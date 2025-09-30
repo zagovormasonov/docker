@@ -6,16 +6,16 @@ WORKDIR /app
 # Копируем package файлы
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm ci --only=production
+# Устанавливаем ВСЕ зависимости (для сборки нужны dev)
+RUN npm install
 
 # Копируем исходники
 COPY . .
 
 # Собираем TypeScript
-RUN npm install typescript tsx --save-dev && npm run build
+RUN npm run build
 
-# Удаляем dev-зависимости
+# Удаляем dev-зависимости после сборки
 RUN npm prune --production
 
 # Порт приложения

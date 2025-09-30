@@ -15,7 +15,7 @@ services:
     networks:
       - synergy-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U synergy"]
+      test: ["CMD-SHELL", "pg_isready -U synergy -d synergy_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,10 +39,11 @@ services:
     networks:
       - synergy-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/topics"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:3001/api/topics || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 40s
 
   # Frontend (Nginx)
   frontend:
