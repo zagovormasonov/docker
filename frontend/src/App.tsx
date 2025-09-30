@@ -1,0 +1,67 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ConfigProvider, theme } from 'antd';
+import ruRU from 'antd/locale/ru_RU';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ExpertsPage from './pages/ExpertsPage';
+import ExpertProfilePage from './pages/ExpertProfilePage';
+import ArticlePage from './pages/ArticlePage';
+import ProfilePage from './pages/ProfilePage';
+import ChatsPage from './pages/ChatsPage';
+import CreateArticlePage from './pages/CreateArticlePage';
+import MyArticlesPage from './pages/MyArticlesPage';
+import './App.css';
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { token, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
+  
+  return token ? <>{children}</> : <Navigate to="/login" />;
+};
+
+function App() {
+  return (
+    <ConfigProvider
+      locale={ruRU}
+      theme={{
+        algorithm: theme.defaultAlgorithm,
+        token: {
+          colorPrimary: '#6366f1',
+          borderRadius: 8,
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        }
+      }}
+    >
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            
+            <Route path="/" element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="experts" element={<ExpertsPage />} />
+              <Route path="experts/:id" element={<ExpertProfilePage />} />
+              <Route path="articles/:id" element={<ArticlePage />} />
+              
+              <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
+              <Route path="chats/:chatId" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
+              <Route path="create-article" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
+              <Route path="edit-article/:id" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
+              <Route path="my-articles" element={<ProtectedRoute><MyArticlesPage /></ProtectedRoute>} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ConfigProvider>
+  );
+}
+
+export default App;

@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15-alpine
+    container_name: synergy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synergy
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-synergy_secure_password_2025}
+      POSTGRES_DB: synergy_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - synergy-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synergy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: synergy-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://synergy:${DB_PASSWORD:-synergy_secure_password_2025}@postgres:5432/synergy_db
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-key-in-production}
+      PORT: 3001
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - synergy-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/topics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend (Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: synergy-frontend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - synergy-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  synergy-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,173 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #fafafa;
+  color: #1d1d1f;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Apple-inspired минималистичный стиль */
+.ant-btn-primary {
+  background: #6366f1;
+  border: none;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.ant-card {
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: #86868b;
+}
+
+/* Ховер на ссылке автора */
+.author-link:hover {
+  color: #6366f1 !important;
+  text-decoration: underline;
+}
+
+/* Стили для редактора статей */
+.quill {
+  background: white;
+}
+
+.ql-container {
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.ql-editor {
+  min-height: 400px;
+  padding: 20px;
+}
+
+.ql-editor.ql-blank::before {
+  color: #86868b;
+  font-style: normal;
+}
+
+/* Стили для содержимого статьи */
+.article-content {
+  line-height: 1.8;
+}
+
+.article-content h1,
+.article-content h2,
+.article-content h3 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.article-content h1 {
+  font-size: 28px;
+}
+
+.article-content h2 {
+  font-size: 24px;
+}
+
+.article-content h3 {
+  font-size: 20px;
+}
+
+.article-content p {
+  margin-bottom: 16px;
+}
+
+.article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.article-content blockquote {
+  border-left: 4px solid #6366f1;
+  padding-left: 16px;
+  margin: 20px 0;
+  color: #86868b;
+  font-style: italic;
+}
+
+.article-content ul,
+.article-content ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.article-content li {
+  margin-bottom: 8px;
+}
+
+.article-content a {
+  color: #6366f1;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.article-content a:hover {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .page-title {
+    font-size: 24px;
+  }
+
+  .article-content h1 {
+    font-size: 24px;
+  }
+
+  .article-content h2 {
+    font-size: 20px;
+  }
+
+  .article-content h3 {
+    font-size: 18px;
+  }
+}
