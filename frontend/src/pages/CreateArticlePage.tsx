@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Switch, Typography, Upload, Space } from 'antd';
+import { Form, Input, Button, Card, message, Switch, Typography, Upload, Space, Divider } from 'antd';
 import { ArrowLeftOutlined, PictureOutlined } from '@ant-design/icons';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
