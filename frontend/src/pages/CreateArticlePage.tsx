@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Switch, Typography, Space, Divider, Spin } from 'antd';
-import { ArrowLeftOutlined, PictureOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, message, Switch, Typography, Space, Divider, Spin, Upload, Image } from 'antd';
+import { ArrowLeftOutlined, PictureOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import api from '../api/axios';
@@ -15,6 +15,8 @@ const CreateArticlePage = () => {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingArticle, setLoadingArticle] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [coverImageUrl, setCoverImageUrl] = useState('');
   const quillRef = useRef<ReactQuill>(null);
   const isEdit = !!id;
 
@@ -36,6 +38,7 @@ const CreateArticlePage = () => {
         isPublished: article.is_published
       });
       setContent(article.content || '');
+      setCoverImageUrl(article.cover_image || '');
     } catch (error) {
       console.error('Ошибка загрузки статьи:', error);
       message.error('Ошибка загрузки статьи');
@@ -116,6 +119,38 @@ const CreateArticlePage = () => {
     };
   };
 
+  // Обработчик загрузки обложки статьи
+  const handleCoverUpload = async (file: File) => {
+    setUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const uploadResponse = await api.post('/upload/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const imageUrl = uploadResponse.data.url;
+      setCoverImageUrl(imageUrl);
+      form.setFieldValue('coverImage', imageUrl);
+      message.success('Обложка загружена!');
+    } catch (error) {
+      console.error('Ошибка загрузки обложки:', error);
+      message.error('Ошибка загрузки обложки');
+    } finally {
+      setUploadingCover(false);
+    }
+    return false;
+  };
+
+  const handleRemoveCover = () => {
+    setCoverImageUrl('');
+    form.setFieldValue('coverImage', '');
+    message.info('Обложка удалена');
+  };
+
   const modules = {
     toolbar: {
       container: [
@@ -188,15 +223,60 @@ const CreateArticlePage = () => {
           </Form.Item>
 
           <Form.Item
-            name="coverImage"
-            label={<Text strong>Обложка статьи (URL изображения)</Text>}
-            extra="Вставьте ссылку на изображение, например: https://example.com/image.jpg"
+            label={<Text strong>Обложка статьи</Text>}
           >
-            <Input 
-              size="large" 
-              placeholder="https://example.com/image.jpg"
-              prefix={<PictureOutlined />}
-            />
+            <Space direction="vertical" style={{ width: '100%' }}>
+              {coverImageUrl && (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <Image
+                    src={coverImageUrl}
+                    alt="Обложка"
+                    style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8 }}
+                  />
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={handleRemoveCover}
+                    style={{ position: 'absolute', top: 8, right: 8 }}
+                  >
+                    Удалить
+                  </Button>
+                </div>
+              )}
+              
+              {!coverImageUrl && (
+                <>
+                  <Upload
+                    accept="image/*"
+                    showUploadList={false}
+                    beforeUpload={handleCoverUpload}
+                    disabled={uploadingCover}
+                  >
+                    <Button 
+                      icon={<UploadOutlined />} 
+                      loading={uploadingCover}
+                      size="large"
+                    >
+                      {uploadingCover ? 'Загрузка...' : 'Загрузить обложку'}
+                    </Button>
+                  </Upload>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    или введите URL изображения:
+                  </Text>
+                  <Form.Item
+                    name="coverImage"
+                    noStyle
+                  >
+                    <Input 
+                      size="large" 
+                      placeholder="https://example.com/image.jpg"
+                      prefix={<PictureOutlined />}
+                      onChange={(e) => setCoverImageUrl(e.target.value)}
+                    />
+                  </Form.Item>
+                </>
+              )}
+            </Space>
           </Form.Item>
 
           <Form.Item 
