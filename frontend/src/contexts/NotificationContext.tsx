@@ -14,7 +14,23 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  const [audio] = useState(() => new Audio('/notification.mp3'));
+  
+  // Создаем простой beep звук через Web Audio API
+  const createNotificationSound = () => {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800; // Частота звука
+    gainNode.gain.value = 0.3; // Громкость
+    
+    oscillator.type = 'sine';
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.2); // Длительность 200ms
+  };
 
   useEffect(() => {
     if (!user) {
@@ -61,8 +77,11 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const playNotificationSound = () => {
-    audio.volume = 0.5;
-    audio.play().catch(err => console.log('Не удалось воспроизвести звук:', err));
+    try {
+      createNotificationSound();
+    } catch (err) {
+      console.log('Не удалось воспроизвести звук:', err);
+    }
   };
 
   const markAsRead = () => {
