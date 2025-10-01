@@ -121,6 +121,8 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS consultation_types TEXT`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT false`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(500)`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR(500)`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMP`);
 
     // Таблица городов
     await query(`

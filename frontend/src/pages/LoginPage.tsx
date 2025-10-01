@@ -75,6 +75,14 @@ const LoginPage = () => {
             />
           </Form.Item>
 
+          <div style={{ textAlign: 'right', marginBottom: 16 }}>
+            <Link to="/forgot-password">
+              <Text type="secondary" style={{ fontSize: 14 }}>
+                Забыли пароль?
+              </Text>
+            </Link>
+          </div>
+
           <Form.Item>
             <Button
               type="primary"

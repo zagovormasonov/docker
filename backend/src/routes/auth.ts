@@ -184,4 +184,116 @@ router.get('/verify-email/:token', async (req, res) => {
   }
 });
 
+// Запрос на восстановление пароля
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email обязателен' });
+    }
+
+    // Поиск пользователя
+    const result = await query(
+      'SELECT id, email, name FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      // Не раскрываем, что пользователь не существует (безопасность)
+      return res.json({ message: 'Если email существует, письмо будет отправлено' });
+    }
+
+    const user = result.rows[0];
+
+    // Генерация токена восстановления
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 3600000); // 1 час
+
+    // Сохранение токена в БД
+    await query(
+      `UPDATE users 
+       SET reset_password_token = $1, reset_password_expires = $2 
+       WHERE id = $3`,
+      [resetToken, resetExpires, user.id]
+    );
+
+    res.json({
+      message: 'Письмо с инструкциями отправлено',
+      user: {
+        email: user.email,
+        name: user.name,
+        resetToken
+      }
+    });
+  } catch (error) {
+    console.error('Ошибка запроса восстановления пароля:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Сброс пароля
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Токен и новый пароль обязательны' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Пароль должен быть минимум 6 символов' });
+    }
+
+    // Поиск пользователя по токену
+    const result = await query(
+      `SELECT id, email, name, user_type 
+       FROM users 
+       WHERE reset_password_token = $1 
+       AND reset_password_expires > NOW()`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Недействительный или истекший токен' });
+    }
+
+    const user = result.rows[0];
+
+    // Хеширование нового пароля
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Обновление пароля и очистка токена
+    await query(
+      `UPDATE users 
+       SET password = $1, 
+           reset_password_token = NULL, 
+           reset_password_expires = NULL 
+       WHERE id = $2`,
+      [hashedPassword, user.id]
+    );
+
+    // Генерация JWT для автоматического входа
+    const jwtToken = jwt.sign(
+      { userId: user.id, userType: user.user_type },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      message: 'Пароль успешно изменен!',
+      token: jwtToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        userType: user.user_type
+      }
+    });
+  } catch (error) {
+    console.error('Ошибка сброса пароля:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 export default router;
