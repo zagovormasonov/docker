@@ -74,20 +74,29 @@ const ProfilePage = () => {
     if (user?.userType === 'expert') {
       fetchServices();
     }
-    
-    form.setFieldsValue({
-      name: user?.name,
-      email: user?.email,
-      bio: user?.bio,
-      city: user?.city,
-      vkUrl: user?.vkUrl,
-      telegramUrl: user?.telegramUrl,
-      instagramUrl: user?.instagramUrl,
-      whatsapp: user?.whatsapp,
-      consultationTypes: user?.consultationTypes || [],
-      topics: user?.topics?.map((t: any) => t.id) || []
-    });
-  }, [user]);
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      // Правильная обработка тематик - проверяем формат данных
+      const topicsValue = user.topics 
+        ? user.topics.map((t: any) => typeof t === 'object' ? t.id : t)
+        : [];
+
+      form.setFieldsValue({
+        name: user.name,
+        email: user.email,
+        bio: user.bio,
+        city: user.city,
+        vkUrl: user.vkUrl,
+        telegramUrl: user.telegramUrl,
+        instagramUrl: user.instagramUrl,
+        whatsapp: user.whatsapp,
+        consultationTypes: Array.isArray(user.consultationTypes) ? user.consultationTypes : [],
+        topics: topicsValue
+      });
+    }
+  }, [user, form]);
 
   const fetchTopics = async () => {
     try {
