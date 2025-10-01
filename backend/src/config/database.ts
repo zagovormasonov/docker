@@ -144,24 +144,6 @@ export const initDatabase = async () => {
       )
     `);
 
-    // Таблица событий/мероприятий
-    await query(`
-      CREATE TABLE IF NOT EXISTS events (
-        id SERIAL PRIMARY KEY,
-        author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        title VARCHAR(500) NOT NULL,
-        content TEXT NOT NULL,
-        cover_image VARCHAR(500),
-        city VARCHAR(255),
-        event_type VARCHAR(100),
-        event_date TIMESTAMP,
-        is_published BOOLEAN DEFAULT true,
-        views INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
     // Таблица лайков статей
     await query(`
       CREATE TABLE IF NOT EXISTS article_likes (
@@ -187,7 +169,7 @@ export const initDatabase = async () => {
     // Добавляем счетчик лайков к статьям
     await query(`ALTER TABLE articles ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0`);
 
-    // Таблица событий
+    // Таблица событий (новая версия для мероприятий)
     await query(`
       CREATE TABLE IF NOT EXISTS events (
         id SERIAL PRIMARY KEY,
@@ -206,6 +188,22 @@ export const initDatabase = async () => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Миграция: добавляем новые колонки если таблица уже существует со старой структурой
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS description TEXT`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT false`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS city_id INTEGER REFERENCES cities(id)`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS location TEXT`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS price VARCHAR(100)`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_link TEXT`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS organizer_id INTEGER REFERENCES users(id) ON DELETE CASCADE`);
+    
+    // Переименовываем старые колонки если они есть
+    await query(`ALTER TABLE events DROP COLUMN IF EXISTS author_id`);
+    await query(`ALTER TABLE events DROP COLUMN IF EXISTS content`);
+    await query(`ALTER TABLE events DROP COLUMN IF EXISTS city`);
+    await query(`ALTER TABLE events DROP COLUMN IF EXISTS is_published`);
+    await query(`ALTER TABLE events DROP COLUMN IF EXISTS views`);
 
     // Индексы
     await query(`CREATE INDEX IF NOT EXISTS idx_reviews_expert ON reviews(expert_id)`);
