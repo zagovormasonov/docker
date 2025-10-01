@@ -56,7 +56,7 @@ const HomePage = () => {
   return (
     <div className="container" style={{ paddingTop: 24 }}>
       <div style={{
-        background: 'linear-gradient(135deg, rgb(105 105 105) 0%, rgb(0 0 0) 100%)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         borderRadius: 16,
         padding: '60px 40px',
         marginBottom: 48,
@@ -107,7 +107,7 @@ const HomePage = () => {
                   ) : (
                     <div style={{
                       height: 200,
-                      background: 'linear-gradient(135deg, rgb(105 105 105) 0%, rgb(0 0 0) 100%)',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',

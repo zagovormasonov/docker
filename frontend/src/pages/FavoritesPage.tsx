@@ -89,7 +89,7 @@ const FavoritesPage = () => {
                   ) : (
                     <div style={{
                       height: 200,
-                      background: 'linear-gradient(135deg, rgb(105 105 105) 0%, rgb(0 0 0) 100%)',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',

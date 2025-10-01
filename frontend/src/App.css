@@ -18,16 +18,16 @@ body {
 
 /* Apple-inspired минималистичный стиль */
 .ant-btn-primary {
-  background: #000000;
+  background: #6366f1;
   border: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
   transition: all 0.3s ease;
 }
 
 .ant-btn-primary:hover {
-  background: #2d2d2d;
+  background: #4f46e5;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .ant-card {
@@ -60,7 +60,7 @@ body {
 
 /* Ховер на ссылке автора */
 .author-link:hover {
-  color: #000000 !important;
+  color: #6366f1 !important;
   text-decoration: underline;
 }
 
@@ -122,7 +122,7 @@ body {
 }
 
 .article-content blockquote {
-  border-left: 4px solid #000000;
+  border-left: 4px solid #6366f1;
   padding-left: 16px;
   margin: 20px 0;
   color: #86868b;
@@ -140,13 +140,13 @@ body {
 }
 
 .article-content a {
-  color: #000000;
+  color: #6366f1;
   text-decoration: none;
   transition: color 0.3s;
 }
 
 .article-content a:hover {
-  color: #2d2d2d;
+  color: #4f46e5;
   text-decoration: underline;
 }
 

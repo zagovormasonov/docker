@@ -75,7 +75,7 @@ const Header = () => {
           <div style={{
             fontSize: '24px',
             fontWeight: 700,
-            background: 'linear-gradient(135deg, rgb(105 105 105) 0%, rgb(0 0 0) 100%)',
+            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             letterSpacing: '-0.5px'
@@ -129,7 +129,7 @@ const Header = () => {
               <Avatar
                 src={user.avatarUrl}
                 icon={!user.avatarUrl && <UserOutlined />}
-                style={{ cursor: 'pointer', backgroundColor: '#000000' }}
+                style={{ cursor: 'pointer', backgroundColor: '#6366f1' }}
               />
             </Dropdown>
           </>
