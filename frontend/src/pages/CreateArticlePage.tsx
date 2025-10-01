@@ -59,14 +59,17 @@ const CreateArticlePage = () => {
       const data = {
         title: values.title,
         content,
-        coverImage: values.coverImage || null,
+        coverImage: coverImageUrl || values.coverImage || null,
         isPublished: values.isPublished !== false
       };
 
       if (isEdit) {
         await api.put(`/articles/${id}`, data);
         message.success('Статья успешно обновлена!');
-        navigate('/my-articles');
+        // Обновляем URL обложки после сохранения
+        if (data.coverImage) {
+          setCoverImageUrl(data.coverImage);
+        }
       } else {
         const response = await api.post('/articles', data);
         message.success('Статья успешно создана!');
