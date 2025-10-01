@@ -50,7 +50,7 @@ const VerifyEmailPage = () => {
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)'
     }}>
       <Card style={{ maxWidth: 500, width: '100%', margin: 20 }}>
         {status === 'loading' && (
