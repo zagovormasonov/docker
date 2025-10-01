@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -40,27 +41,29 @@ function App() {
       }}
     >
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            
-            <Route path="/" element={<Layout />}>
-              <Route index element={<HomePage />} />
-              <Route path="experts" element={<ExpertsPage />} />
-              <Route path="experts/:id" element={<ExpertProfilePage />} />
-              <Route path="articles/:id" element={<ArticlePage />} />
+        <NotificationProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
               
-              <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-              <Route path="favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
-              <Route path="chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
-              <Route path="chats/:chatId" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
-              <Route path="create-article" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
-              <Route path="edit-article/:id" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
-              <Route path="my-articles" element={<ProtectedRoute><MyArticlesPage /></ProtectedRoute>} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<HomePage />} />
+                <Route path="experts" element={<ExpertsPage />} />
+                <Route path="experts/:id" element={<ExpertProfilePage />} />
+                <Route path="articles/:id" element={<ArticlePage />} />
+                
+                <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                <Route path="favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
+                <Route path="chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
+                <Route path="chats/:chatId" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
+                <Route path="create-article" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
+                <Route path="edit-article/:id" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
+                <Route path="my-articles" element={<ProtectedRoute><MyArticlesPage /></ProtectedRoute>} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </NotificationProvider>
       </AuthProvider>
     </ConfigProvider>
   );

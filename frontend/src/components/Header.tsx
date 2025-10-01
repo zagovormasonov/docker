@@ -12,13 +12,20 @@ import {
   StarOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
 import type { MenuProps } from 'antd';
 
 const { Header: AntHeader } = Layout;
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { unreadCount, markAsRead } = useNotifications();
   const navigate = useNavigate();
+
+  const handleChatsClick = () => {
+    markAsRead();
+    navigate('/chats');
+  };
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -119,12 +126,14 @@ const Header = () => {
       <Space size="middle">
         {user ? (
           <>
-            <Button
-              type="text"
-              icon={<MessageOutlined />}
-              onClick={() => navigate('/chats')}
-              style={{ fontSize: '18px' }}
-            />
+            <Badge count={unreadCount} offset={[-5, 5]}>
+              <Button
+                type="text"
+                icon={<MessageOutlined />}
+                onClick={handleChatsClick}
+                style={{ fontSize: '18px' }}
+              />
+            </Badge>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Avatar
                 src={user.avatarUrl}
