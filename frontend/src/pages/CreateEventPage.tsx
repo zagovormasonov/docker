@@ -272,16 +272,13 @@ const CreateEventPage = () => {
                 placeholder="Выберите город"
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
+                  (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
                 }
-                prefix={<EnvironmentOutlined />}
-              >
-                {cities.map(city => (
-                  <Select.Option key={city.id} value={city.id}>
-                    {city.name}
-                  </Select.Option>
-                ))}
-              </Select>
+                options={cities.map(city => ({
+                  value: city.id,
+                  label: city.name
+                }))}
+              />
             </Form.Item>
           )}
 
