@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Input, Button, Card, message, Switch, Typography, Space, Divider, Spin, Upload, Image } from 'antd';
 import { ArrowLeftOutlined, PictureOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -84,8 +84,8 @@ const CreateArticlePage = () => {
     }
   };
 
-  // Обработчик загрузки изображений
-  const imageHandler = () => {
+  // Обработчик загрузки изображений (мемоизирован)
+  const imageHandler = useCallback(() => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
@@ -120,7 +120,7 @@ const CreateArticlePage = () => {
         }
       }
     };
-  };
+  }, []);
 
   // Обработчик загрузки обложки статьи
   const handleCoverUpload = async (file: File) => {
@@ -154,7 +154,8 @@ const CreateArticlePage = () => {
     message.info('Обложка удалена');
   };
 
-  const modules = {
+  // Мемоизируем modules и formats, чтобы избежать лишних ререндеров ReactQuill
+  const modules = useMemo(() => ({
     toolbar: {
       container: [
         [{ header: [1, 2, 3, false] }],
@@ -169,14 +170,14 @@ const CreateArticlePage = () => {
         image: imageHandler
       }
     }
-  };
+  }), [imageHandler]);
 
-  const formats = [
+  const formats = useMemo(() => [
     'header',
     'bold', 'italic', 'underline', 'strike', 'blockquote',
     'list', 'bullet', 'indent',
     'link', 'image', 'align'
-  ];
+  ], []);
 
   if (loadingArticle) {
     return (
