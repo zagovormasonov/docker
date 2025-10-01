@@ -4,7 +4,12 @@ class SocketService {
   private socket: Socket | null = null;
 
   connect(token: string) {
-    this.socket = io('http://localhost:3001', {
+    // Используем текущий origin для продакшена, localhost для разработки
+    const socketUrl = process.env.NODE_ENV === 'production' 
+      ? window.location.origin 
+      : 'http://localhost:3001';
+    
+    this.socket = io(socketUrl, {
       auth: { token }
     });
 
