@@ -39,7 +39,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Статические файлы для загруженных изображений
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+const uploadsPath = path.join(__dirname, '../uploads');
+console.log('📁 Статический сервер uploads:', uploadsPath);
+app.use('/uploads', express.static(uploadsPath));
 
 // Routes
 app.use('/api/auth', authRoutes);
