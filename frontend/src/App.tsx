@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import ChatsPage from './pages/ChatsPage';
 import CreateArticlePage from './pages/CreateArticlePage';
 import MyArticlesPage from './pages/MyArticlesPage';
+import FavoritesPage from './pages/FavoritesPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -51,6 +52,7 @@ function App() {
               <Route path="articles/:id" element={<ArticlePage />} />
               
               <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
               <Route path="chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
               <Route path="chats/:chatId" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
               <Route path="create-article" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />

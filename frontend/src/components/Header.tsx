@@ -8,7 +8,8 @@ import {
   LogoutOutlined,
   EditOutlined,
   LoginOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  StarOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import type { MenuProps } from 'antd';
@@ -25,6 +26,12 @@ const Header = () => {
       icon: <UserOutlined />,
       label: 'Мой профиль',
       onClick: () => navigate('/profile')
+    },
+    {
+      key: 'favorites',
+      icon: <StarOutlined />,
+      label: 'Избранное',
+      onClick: () => navigate('/favorites')
     },
     ...(user?.userType === 'expert' ? [
       {
@@ -63,7 +70,7 @@ const Header = () => {
         justifyContent: 'space-between'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '48px', flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flex: 1 }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
           <div style={{
             fontSize: '24px',
@@ -77,26 +84,36 @@ const Header = () => {
           </div>
         </Link>
 
-        <Menu
-          mode="horizontal"
-          style={{ 
-            border: 'none', 
-            background: 'transparent',
-            minWidth: 0
-          }}
-          items={[
-            {
-              key: 'home',
-              icon: <HomeOutlined />,
-              label: <Link to="/">Главная</Link>
-            },
-            {
-              key: 'experts',
-              icon: <TeamOutlined />,
-              label: <Link to="/experts">Эксперты</Link>
-            }
-          ]}
-        />
+        <Space size="large">
+          <Link 
+            to="/" 
+            style={{ 
+              fontSize: '16px',
+              color: '#000',
+              textDecoration: 'none',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <HomeOutlined /> Главная
+          </Link>
+          <Link 
+            to="/experts" 
+            style={{ 
+              fontSize: '16px',
+              color: '#000',
+              textDecoration: 'none',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <TeamOutlined /> Эксперты
+          </Link>
+        </Space>
       </div>
 
       <Space size="middle">

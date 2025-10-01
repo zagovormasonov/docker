@@ -17,7 +17,10 @@ import {
   EnvironmentOutlined,
   MessageOutlined,
   DollarOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  LinkOutlined,
+  PhoneOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -40,6 +43,11 @@ interface ExpertProfile {
   avatar_url?: string;
   bio?: string;
   city?: string;
+  vk_url?: string;
+  telegram_url?: string;
+  instagram_url?: string;
+  whatsapp?: string;
+  consultation_types?: string;
   topics: Array<{ id: number; name: string }>;
   services: Service[];
   created_at: string;
@@ -119,7 +127,7 @@ const ExpertProfilePage = () => {
               )}
 
               {expert.bio && (
-                <Paragraph style={{ fontSize: 16, color: '#86868b' }}>
+                <Paragraph style={{ fontSize: 16, color: '#86868b', marginBottom: 16 }}>
                   {expert.bio}
                 </Paragraph>
               )}
@@ -134,6 +142,65 @@ const ExpertProfilePage = () => {
               </Button>
             </div>
           </Space>
+
+          {/* Типы консультаций */}
+          {expert.consultation_types && (() => {
+            try {
+              const types = JSON.parse(expert.consultation_types);
+              if (types.length > 0) {
+                return (
+                  <>
+                    <Divider />
+                    <div>
+                      <Title level={4}><InfoCircleOutlined /> Типы консультаций</Title>
+                      <Space wrap>
+                        {types.map((type: string, idx: number) => (
+                          <Tag key={idx} color="blue" style={{ fontSize: 14, padding: '4px 12px' }}>
+                            {type}
+                          </Tag>
+                        ))}
+                      </Space>
+                    </div>
+                  </>
+                );
+              }
+            } catch (e) {
+              return null;
+            }
+            return null;
+          })()}
+
+          {/* Социальные сети */}
+          {(expert.vk_url || expert.telegram_url || expert.instagram_url || expert.whatsapp) && (
+            <>
+              <Divider />
+              <div>
+                <Title level={4}><LinkOutlined /> Контакты и социальные сети</Title>
+                <Space direction="vertical" size="small">
+                  {expert.vk_url && (
+                    <a href={expert.vk_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16 }}>
+                      🟦 VK: {expert.vk_url}
+                    </a>
+                  )}
+                  {expert.telegram_url && (
+                    <a href={expert.telegram_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16 }}>
+                      ✈️ Telegram: {expert.telegram_url}
+                    </a>
+                  )}
+                  {expert.instagram_url && (
+                    <a href={expert.instagram_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16 }}>
+                      📷 Instagram: {expert.instagram_url}
+                    </a>
+                  )}
+                  {expert.whatsapp && (
+                    <Text style={{ fontSize: 16 }}>
+                      <PhoneOutlined /> WhatsApp: {expert.whatsapp}
+                    </Text>
+                  )}
+                </Space>
+              </div>
+            </>
+          )}
 
           {expert.topics && expert.topics.length > 0 && (
             <>
