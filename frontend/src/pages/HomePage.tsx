@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Tabs, Typography, Image, Space, Tag, Avatar, Spin } from 'antd';
-import { EyeOutlined, ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
+import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
@@ -20,6 +20,7 @@ interface Article {
   author_name: string;
   author_avatar?: string;
   views: number;
+  likes_count: number;
   created_at: string;
 }
 
@@ -151,6 +152,10 @@ const HomePage = () => {
                         </Space>
                         
                         <Space split="•">
+                          <Space size={4}>
+                            <HeartOutlined />
+                            <Text type="secondary">{article.likes_count || 0}</Text>
+                          </Space>
                           <Space size={4}>
                             <EyeOutlined />
                             <Text type="secondary">{article.views}</Text>

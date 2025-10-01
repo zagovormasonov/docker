@@ -12,7 +12,17 @@ import {
   Button,
   Tooltip
 } from 'antd';
-import { UserOutlined, EyeOutlined, ClockCircleOutlined, EditOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { 
+  UserOutlined, 
+  EyeOutlined, 
+  ClockCircleOutlined, 
+  EditOutlined, 
+  ArrowLeftOutlined,
+  HeartOutlined,
+  HeartFilled,
+  StarOutlined,
+  StarFilled
+} from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import dayjs from 'dayjs';
@@ -31,6 +41,7 @@ interface Article {
   author_name: string;
   author_avatar?: string;
   views: number;
+  likes_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -41,21 +52,70 @@ const ArticlePage = () => {
   const { user } = useAuth();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
+  const [liked, setLiked] = useState(false);
+  const [favorited, setFavorited] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
 
   useEffect(() => {
     fetchArticle();
-  }, [id]);
+    if (user) {
+      fetchInteractionStatus();
+    }
+  }, [id, user]);
 
   const fetchArticle = async () => {
     try {
       const response = await api.get(`/articles/${id}`);
       setArticle(response.data);
+      setLikesCount(response.data.likes_count || 0);
     } catch (error: any) {
       console.error('Ошибка загрузки статьи:', error);
       message.error(error.response?.data?.error || 'Ошибка загрузки статьи');
       navigate('/');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInteractionStatus = async () => {
+    try {
+      const response = await api.get(`/article-interactions/${id}/status`);
+      setLiked(response.data.liked);
+      setFavorited(response.data.favorited);
+    } catch (error) {
+      console.error('Ошибка загрузки статуса:', error);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!user) {
+      message.info('Войдите чтобы лайкать статьи');
+      return;
+    }
+
+    try {
+      const response = await api.post(`/article-interactions/${id}/like`);
+      setLiked(response.data.liked);
+      setLikesCount(prev => response.data.liked ? prev + 1 : prev - 1);
+    } catch (error) {
+      console.error('Ошибка лайка:', error);
+      message.error('Ошибка');
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (!user) {
+      message.info('Войдите чтобы добавлять в избранное');
+      return;
+    }
+
+    try {
+      const response = await api.post(`/article-interactions/${id}/favorite`);
+      setFavorited(response.data.favorited);
+      message.success(response.data.favorited ? 'Добавлено в избранное!' : 'Удалено из избранного');
+    } catch (error) {
+      console.error('Ошибка избранного:', error);
+      message.error('Ошибка');
     }
   };
 
@@ -105,16 +165,35 @@ const ArticlePage = () => {
             {article.title}
           </Title>
           
-          {isAuthor && (
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/edit-article/${article.id}`)}
-            >
-              Редактировать
-            </Button>
-          )}
+          <Space>
+            {isAuthor && (
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => navigate(`/edit-article/${article.id}`)}
+              >
+                Редактировать
+              </Button>
+            )}
+          </Space>
         </div>
+
+        <Space size="middle" style={{ marginBottom: 24 }}>
+          <Button
+            size="large"
+            icon={liked ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
+            onClick={handleLike}
+          >
+            {likesCount}
+          </Button>
+          <Button
+            size="large"
+            icon={favorited ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+            onClick={handleFavorite}
+          >
+            {favorited ? 'В избранном' : 'В избранное'}
+          </Button>
+        </Space>
 
         <Tooltip title="Перейти в профиль автора">
           <Space

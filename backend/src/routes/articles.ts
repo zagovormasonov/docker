@@ -33,7 +33,8 @@ router.get('/', async (req, res) => {
     }
 
     const result = await query(
-      `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar
+      `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
+       COALESCE(a.likes_count, 0) as likes_count
        FROM articles a
        JOIN users u ON a.author_id = u.id
        WHERE a.is_published = true
@@ -54,7 +55,8 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
 
     const result = await query(
-      `SELECT a.*, u.name as author_name, u.avatar_url as author_avatar, u.id as author_id
+      `SELECT a.*, u.name as author_name, u.avatar_url as author_avatar, u.id as author_id,
+       COALESCE(a.likes_count, 0) as likes_count
        FROM articles a
        JOIN users u ON a.author_id = u.id
        WHERE a.id = $1`,
