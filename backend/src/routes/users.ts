@@ -8,7 +8,8 @@ const router = express.Router();
 router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const result = await query(
-      `SELECT id, email, name, user_type, avatar_url, bio, city, created_at 
+      `SELECT id, email, name, user_type, avatar_url, bio, city, 
+       vk_url, telegram_url, instagram_url, whatsapp, consultation_types, created_at 
        FROM users WHERE id = $1`,
       [req.userId]
     );
@@ -28,6 +29,11 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       avatarUrl: dbUser.avatar_url,
       bio: dbUser.bio,
       city: dbUser.city,
+      vkUrl: dbUser.vk_url,
+      telegramUrl: dbUser.telegram_url,
+      instagramUrl: dbUser.instagram_url,
+      whatsapp: dbUser.whatsapp,
+      consultationTypes: dbUser.consultation_types ? JSON.parse(dbUser.consultation_types) : [],
       createdAt: dbUser.created_at
     };
 
@@ -52,7 +58,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
 // Обновление профиля
 router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { name, bio, city, avatarUrl } = req.body;
+    const { name, bio, city, avatarUrl, vkUrl, telegramUrl, instagramUrl, whatsapp, consultationTypes } = req.body;
 
     await query(
       `UPDATE users 
@@ -60,9 +66,25 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
            bio = COALESCE($2, bio), 
            city = COALESCE($3, city),
            avatar_url = COALESCE($4, avatar_url),
+           vk_url = COALESCE($5, vk_url),
+           telegram_url = COALESCE($6, telegram_url),
+           instagram_url = COALESCE($7, instagram_url),
+           whatsapp = COALESCE($8, whatsapp),
+           consultation_types = COALESCE($9, consultation_types),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $5`,
-      [name, bio, city, avatarUrl, req.userId]
+       WHERE id = $10`,
+      [
+        name, 
+        bio, 
+        city, 
+        avatarUrl, 
+        vkUrl, 
+        telegramUrl, 
+        instagramUrl, 
+        whatsapp,
+        consultationTypes ? JSON.stringify(consultationTypes) : null,
+        req.userId
+      ]
     );
 
     res.json({ message: 'Профиль обновлен' });

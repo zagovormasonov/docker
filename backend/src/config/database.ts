@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import { RUSSIAN_CITIES } from './cities';
 
 dotenv.config();
 
@@ -112,6 +113,84 @@ export const initDatabase = async () => {
     await query(`CREATE INDEX IF NOT EXISTS idx_messages_chat ON messages(chat_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_expert_topics_expert ON expert_topics(expert_id)`);
 
+    // Добавляем новые поля и таблицы (миграции)
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vk_url VARCHAR(500)`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_url VARCHAR(500)`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram_url VARCHAR(500)`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS whatsapp VARCHAR(50)`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS consultation_types TEXT`);
+
+    // Таблица городов
+    await query(`
+      CREATE TABLE IF NOT EXISTS cities (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL
+      )
+    `);
+
+    // Таблица отзывов
+    await query(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id SERIAL PRIMARY KEY,
+        expert_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        client_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Таблица событий/мероприятий
+    await query(`
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(500) NOT NULL,
+        content TEXT NOT NULL,
+        cover_image VARCHAR(500),
+        city VARCHAR(255),
+        event_type VARCHAR(100),
+        event_date TIMESTAMP,
+        is_published BOOLEAN DEFAULT true,
+        views INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Таблица лайков статей
+    await query(`
+      CREATE TABLE IF NOT EXISTS article_likes (
+        id SERIAL PRIMARY KEY,
+        article_id INTEGER REFERENCES articles(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(article_id, user_id)
+      )
+    `);
+
+    // Таблица избранных статей
+    await query(`
+      CREATE TABLE IF NOT EXISTS article_favorites (
+        id SERIAL PRIMARY KEY,
+        article_id INTEGER REFERENCES articles(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(article_id, user_id)
+      )
+    `);
+
+    // Добавляем счетчик лайков к статьям
+    await query(`ALTER TABLE articles ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0`);
+
+    // Индексы
+    await query(`CREATE INDEX IF NOT EXISTS idx_reviews_expert ON reviews(expert_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_events_author ON events(author_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_events_city ON events(city)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_events_published ON events(is_published)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_article_likes_article ON article_likes(article_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_article_favorites_user ON article_favorites(user_id)`);
+
     // Вставляем тематики
     const topics = [
       'Регресс', 'Парапсихология', 'Расстановки', 'Хьюман дизайн', 'МАК карты',
@@ -126,6 +205,14 @@ export const initDatabase = async () => {
       await query(
         `INSERT INTO topics (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`,
         [topic]
+      );
+    }
+
+    // Вставляем города России
+    for (const city of RUSSIAN_CITIES) {
+      await query(
+        `INSERT INTO cities (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`,
+        [city]
       );
     }
 

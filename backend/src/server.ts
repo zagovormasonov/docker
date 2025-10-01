@@ -13,6 +13,7 @@ import articlesRoutes from './routes/articles';
 import topicsRoutes from './routes/topics';
 import chatsRoutes from './routes/chats';
 import usersRoutes from './routes/users';
+import citiesRoutes from './routes/cities';
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.use('/api/articles', articlesRoutes);
 app.use('/api/topics', topicsRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/cities', citiesRoutes);
 
 // Socket.IO для чатов
 const userSockets = new Map<number, string>();

@@ -63,7 +63,7 @@ const HomePage = () => {
         textAlign: 'center'
       }}>
         <Title level={1} style={{ color: 'white', marginBottom: 16, fontSize: 48 }}>
-          Synergy
+          SoulSynergy
         </Title>
         <Title level={3} style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 400 }}>
           Платформа для духовных мастеров

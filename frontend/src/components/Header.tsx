@@ -73,7 +73,7 @@ const Header = () => {
             WebkitTextFillColor: 'transparent',
             letterSpacing: '-0.5px'
           }}>
-            Synergy
+            SoulSynergy
           </div>
         </Link>
 
