@@ -10,13 +10,17 @@ import {
   Popconfirm,
   message,
   Empty,
-  Spin
+  Spin,
+  Row,
+  Col,
+  Image
 } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
-  PlusOutlined
+  PlusOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import dayjs from 'dayjs';
@@ -111,82 +115,123 @@ const MyArticlesPage = () => {
             </Button>
           </Empty>
         </Card>
+      ) : loading ? (
+        <div style={{ textAlign: 'center', padding: 60 }}>
+          <Spin size="large" />
+        </div>
       ) : (
-        <List
-          loading={loading}
-          dataSource={articles}
-          renderItem={(article) => (
-            <Card style={{ marginBottom: 16 }}>
-              <List.Item
-                actions={[
-                  <Button
-                    icon={<EyeOutlined />}
-                    onClick={() => navigate(`/articles/${article.id}`)}
-                    type="default"
-                  >
-                    Просмотр
-                  </Button>,
-                  <Button
-                    icon={<EditOutlined />}
-                    onClick={() => navigate(`/edit-article/${article.id}`)}
-                    type="primary"
-                  >
-                    Редактировать
-                  </Button>,
-                  <Button
-                    onClick={() => handleTogglePublish(article.id, article.is_published)}
-                    type={article.is_published ? 'default' : 'primary'}
-                  >
-                    {article.is_published ? 'Снять с публикации' : 'Опубликовать'}
-                  </Button>,
-                  <Popconfirm
-                    title="Удалить статью?"
-                    description="Это действие нельзя отменить"
-                    onConfirm={() => handleDelete(article.id)}
-                    okText="Да"
-                    cancelText="Нет"
-                  >
-                    <Button danger icon={<DeleteOutlined />}>
-                      Удалить
-                    </Button>
-                  </Popconfirm>
-                ]}
+        <Row gutter={[16, 16]}>
+          {articles.map((article) => (
+            <Col xs={24} sm={24} md={12} lg={12} xl={12} key={article.id}>
+              <Card
+                hoverable
+                cover={
+                  article.cover_image ? (
+                    <div style={{ height: 200, overflow: 'hidden', cursor: 'pointer' }}
+                         onClick={() => navigate(`/articles/${article.id}`)}>
+                      <Image
+                        src={article.cover_image}
+                        alt={article.title}
+                        preview={false}
+                        style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                      />
+                    </div>
+                  ) : (
+                    <div 
+                      style={{
+                        height: 200,
+                        background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 48,
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => navigate(`/articles/${article.id}`)}
+                    >
+                      ✨
+                    </div>
+                  )
+                }
+                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
-                <List.Item.Meta
-                  title={
-                    <Space>
-                      <Text strong style={{ fontSize: 18 }}>{article.title}</Text>
-                      <Tag color={article.is_published ? 'green' : 'orange'}>
-                        {article.is_published ? 'Опубликовано' : 'Черновик'}
-                      </Tag>
+                <Space direction="vertical" size={12} style={{ width: '100%', flex: 1 }}>
+                  {/* Заголовок */}
+                  <Title 
+                    level={4} 
+                    style={{ margin: 0, cursor: 'pointer' }}
+                    onClick={() => navigate(`/articles/${article.id}`)}
+                  >
+                    {article.title}
+                  </Title>
+
+                  {/* Статус публикации */}
+                  <div>
+                    <Tag color={article.is_published ? 'green' : 'orange'} style={{ fontSize: 13 }}>
+                      {article.is_published ? '✓ Опубликовано' : '○ Черновик'}
+                    </Tag>
+                  </div>
+
+                  {/* Превью текста */}
+                  <Text type="secondary" ellipsis={{ rows: 2 }} style={{ display: 'block', minHeight: 40 }}>
+                    {stripHtml(article.content).substring(0, 120)}...
+                  </Text>
+
+                  {/* Статистика */}
+                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                    <Space size={8}>
+                      <EyeOutlined style={{ color: '#6366f1' }} />
+                      <Text type="secondary">{article.views} просмотров</Text>
                     </Space>
-                  }
-                  description={
-                    <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                      <Text type="secondary" ellipsis>
-                        {stripHtml(article.content).substring(0, 150)}...
+                    <Space size={8}>
+                      <CalendarOutlined style={{ color: '#6366f1' }} />
+                      <Text type="secondary">
+                        {dayjs(article.created_at).format('DD MMMM YYYY')}
                       </Text>
-                      <Space split="•">
-                        <Space size={4}>
-                          <EyeOutlined />
-                          <Text type="secondary">{article.views} просмотров</Text>
-                        </Space>
-                        <Text type="secondary">
-                          Создано: {dayjs(article.created_at).format('DD.MM.YYYY')}
-                        </Text>
-                        {article.updated_at !== article.created_at && (
-                          <Text type="secondary">
-                            Обновлено: {dayjs(article.updated_at).format('DD.MM.YYYY')}
-                          </Text>
-                        )}
-                      </Space>
                     </Space>
-                  }
-                />
-              </List.Item>
-            </Card>
-          )}
-        />
+                  </Space>
+
+                  {/* Кнопки действий */}
+                  <Space wrap style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid #f0f0f0', width: '100%' }}>
+                    <Button
+                      icon={<EyeOutlined />}
+                      onClick={() => navigate(`/articles/${article.id}`)}
+                      size="small"
+                    >
+                      Просмотр
+                    </Button>
+                    <Button
+                      icon={<EditOutlined />}
+                      onClick={() => navigate(`/edit-article/${article.id}`)}
+                      type="primary"
+                      size="small"
+                    >
+                      Редактировать
+                    </Button>
+                    <Button
+                      onClick={() => handleTogglePublish(article.id, article.is_published)}
+                      type={article.is_published ? 'default' : 'primary'}
+                      size="small"
+                    >
+                      {article.is_published ? 'Снять' : 'Опубликовать'}
+                    </Button>
+                    <Popconfirm
+                      title="Удалить статью?"
+                      description="Это действие нельзя отменить"
+                      onConfirm={() => handleDelete(article.id)}
+                      okText="Да"
+                      cancelText="Нет"
+                    >
+                      <Button danger icon={<DeleteOutlined />} size="small">
+                        Удалить
+                      </Button>
+                    </Popconfirm>
+                  </Space>
+                </Space>
+              </Card>
+            </Col>
+          ))}
+        </Row>
       )}
     </div>
   );
