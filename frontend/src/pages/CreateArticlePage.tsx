@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Switch, Typography, Upload, Space, Divider } from 'antd';
+import { Form, Input, Button, Card, message, Switch, Typography, Space, Divider, Spin } from 'antd';
 import { ArrowLeftOutlined, PictureOutlined } from '@ant-design/icons';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -31,10 +31,10 @@ const CreateArticlePage = () => {
       
       form.setFieldsValue({
         title: article.title,
-        coverImage: article.cover_image,
+        coverImage: article.cover_image || '',
         isPublished: article.is_published
       });
-      setContent(article.content);
+      setContent(article.content || '');
     } catch (error) {
       console.error('Ошибка загрузки статьи:', error);
       message.error('Ошибка загрузки статьи');
@@ -61,15 +61,13 @@ const CreateArticlePage = () => {
 
       if (isEdit) {
         await api.put(`/articles/${id}`, data);
-        message.success('Статья обновлена');
+        message.success('Статья успешно обновлена!');
+        navigate('/my-articles');
       } else {
         const response = await api.post('/articles', data);
-        message.success('Статья создана');
+        message.success('Статья успешно создана!');
         navigate(`/articles/${response.data.id}`);
-        return;
       }
-      
-      navigate('/my-articles');
     } catch (error: any) {
       console.error('Ошибка сохранения статьи:', error);
       const errorMsg = error.response?.data?.error || 'Ошибка сохранения статьи';
@@ -101,7 +99,7 @@ const CreateArticlePage = () => {
   if (loadingArticle) {
     return (
       <div className="container" style={{ maxWidth: 900, textAlign: 'center', paddingTop: 100 }}>
-        <Text>Загрузка статьи...</Text>
+        <Spin size="large" tip="Загрузка статьи..." />
       </div>
     );
   }

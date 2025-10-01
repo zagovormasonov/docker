@@ -16,6 +16,9 @@ import { UserOutlined, EyeOutlined, ClockCircleOutlined, EditOutlined, ArrowLeft
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import dayjs from 'dayjs';
+import 'dayjs/locale/ru';
+
+dayjs.locale('ru');
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -47,9 +50,10 @@ const ArticlePage = () => {
     try {
       const response = await api.get(`/articles/${id}`);
       setArticle(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ошибка загрузки статьи:', error);
-      message.error('Ошибка загрузки статьи');
+      message.error(error.response?.data?.error || 'Ошибка загрузки статьи');
+      navigate('/');
     } finally {
       setLoading(false);
     }

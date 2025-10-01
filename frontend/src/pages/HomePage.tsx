@@ -37,9 +37,10 @@ const HomePage = () => {
     setLoading(true);
     try {
       const response = await api.get(`/articles?sort=${sortType}`);
-      setArticles(response.data);
+      setArticles(response.data || []);
     } catch (error) {
       console.error('Ошибка загрузки статей:', error);
+      setArticles([]);
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,8 @@ import {
   Tag,
   Popconfirm,
   message,
-  Empty
+  Empty,
+  Spin
 } from 'antd';
 import {
   EditOutlined,
@@ -19,6 +20,9 @@ import {
 } from '@ant-design/icons';
 import api from '../api/axios';
 import dayjs from 'dayjs';
+import 'dayjs/locale/ru';
+
+dayjs.locale('ru');
 
 const { Title, Text } = Typography;
 
@@ -26,6 +30,7 @@ interface Article {
   id: number;
   title: string;
   content: string;
+  cover_image?: string;
   is_published: boolean;
   views: number;
   created_at: string;
@@ -45,10 +50,11 @@ const MyArticlesPage = () => {
     setLoading(true);
     try {
       const response = await api.get('/articles/my/articles');
-      setArticles(response.data);
+      setArticles(response.data || []);
     } catch (error) {
       console.error('Ошибка загрузки статей:', error);
       message.error('Ошибка загрузки статей');
+      setArticles([]);
     } finally {
       setLoading(false);
     }
@@ -57,26 +63,27 @@ const MyArticlesPage = () => {
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/articles/${id}`);
-      message.success('Статья удалена');
+      message.success('Статья успешно удалена!');
       fetchArticles();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ошибка удаления статьи:', error);
-      message.error('Ошибка удаления статьи');
+      message.error(error.response?.data?.error || 'Ошибка удаления статьи');
     }
   };
 
   const handleTogglePublish = async (id: number, isPublished: boolean) => {
     try {
       await api.put(`/articles/${id}`, { isPublished: !isPublished });
-      message.success(isPublished ? 'Статья снята с публикации' : 'Статья опубликована');
+      message.success(isPublished ? 'Статья снята с публикации' : 'Статья опубликована!');
       fetchArticles();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ошибка изменения статуса:', error);
-      message.error('Ошибка изменения статуса');
+      message.error(error.response?.data?.error || 'Ошибка изменения статуса');
     }
   };
 
   const stripHtml = (html: string) => {
+    if (!html) return '';
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';

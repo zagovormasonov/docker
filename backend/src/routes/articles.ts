@@ -5,6 +5,23 @@ import { authenticateToken, requireExpert, AuthRequest } from '../middleware/aut
 
 const router = express.Router();
 
+// Получение статей пользователя (должен быть перед /:id)
+router.get('/my/articles', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      `SELECT * FROM articles 
+       WHERE author_id = $1 
+       ORDER BY created_at DESC`,
+      [req.userId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Ошибка получения статей пользователя:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Получение всех опубликованных статей
 router.get('/', async (req, res) => {
   try {
@@ -58,23 +75,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Получение статей пользователя
-router.get('/my/articles', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const result = await query(
-      `SELECT * FROM articles 
-       WHERE author_id = $1 
-       ORDER BY created_at DESC`,
-      [req.userId]
-    );
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Ошибка получения статей пользователя:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
 // Создание статьи
 router.post(
   '/',
@@ -97,7 +97,7 @@ router.post(
         `INSERT INTO articles (author_id, title, content, cover_image, is_published)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING *`,
-        [req.userId, title, content, coverImage, isPublished]
+        [req.userId, title, content, coverImage || null, isPublished]
       );
 
       res.status(201).json(result.rows[0]);
@@ -151,10 +151,14 @@ router.delete(
     try {
       const { id } = req.params;
 
-      await query(
-        'DELETE FROM articles WHERE id = $1 AND author_id = $2',
+      const result = await query(
+        'DELETE FROM articles WHERE id = $1 AND author_id = $2 RETURNING id',
         [id, req.userId]
       );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Статья не найдена или у вас нет прав' });
+      }
 
       res.json({ message: 'Статья удалена' });
     } catch (error) {
