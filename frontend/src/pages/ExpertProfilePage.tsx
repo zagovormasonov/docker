@@ -10,7 +10,9 @@ import {
   List,
   Divider,
   Spin,
-  message
+  message,
+  Image,
+  Empty
 } from 'antd';
 import {
   UserOutlined,
@@ -20,10 +22,17 @@ import {
   ClockCircleOutlined,
   LinkOutlined,
   PhoneOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  EyeOutlined,
+  HeartOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ru';
+
+dayjs.locale('ru');
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -34,6 +43,16 @@ interface Service {
   price?: number;
   duration?: number;
   service_type: string;
+}
+
+interface Article {
+  id: number;
+  title: string;
+  content: string;
+  cover_image?: string;
+  views: number;
+  likes_count: number;
+  created_at: string;
 }
 
 interface ExpertProfile {
@@ -58,10 +77,13 @@ const ExpertProfilePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [expert, setExpert] = useState<ExpertProfile | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingArticles, setLoadingArticles] = useState(false);
 
   useEffect(() => {
     fetchExpert();
+    fetchArticles();
   }, [id]);
 
   const fetchExpert = async () => {
@@ -74,6 +96,25 @@ const ExpertProfilePage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchArticles = async () => {
+    setLoadingArticles(true);
+    try {
+      const response = await api.get(`/articles/author/${id}`);
+      setArticles(response.data);
+    } catch (error) {
+      console.error('Ошибка загрузки статей:', error);
+    } finally {
+      setLoadingArticles(false);
+    }
+  };
+
+  const stripHtml = (html: string) => {
+    if (!html) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
   };
 
   const handleContactExpert = async () => {
@@ -259,6 +300,80 @@ const ExpertProfilePage = () => {
               </div>
             </>
           )}
+
+          {/* Статьи эксперта */}
+          <Divider />
+          <div>
+            <Title level={4}><FileTextOutlined /> Статьи эксперта</Title>
+            {loadingArticles ? (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <Spin />
+              </div>
+            ) : articles.length === 0 ? (
+              <Empty description="Эксперт пока не опубликовал ни одной статьи" />
+            ) : (
+              <List
+                grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 3 }}
+                dataSource={articles}
+                renderItem={(article) => (
+                  <List.Item>
+                    <Card
+                      hoverable
+                      onClick={() => navigate(`/articles/${article.id}`)}
+                      cover={
+                        article.cover_image ? (
+                          <div style={{ height: 200, overflow: 'hidden' }}>
+                            <Image
+                              src={article.cover_image}
+                              alt={article.title}
+                              preview={false}
+                              style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                            />
+                          </div>
+                        ) : (
+                          <div style={{
+                            height: 200,
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: 48
+                          }}>
+                            ✨
+                          </div>
+                        )
+                      }
+                    >
+                      <Card.Meta
+                        title={<div style={{ fontSize: 16, fontWeight: 600 }}>{article.title}</div>}
+                        description={
+                          <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                            <Text type="secondary" ellipsis>
+                              {stripHtml(article.content).substring(0, 100)}...
+                            </Text>
+                            <Space split="•">
+                              <Space size={4}>
+                                <HeartOutlined />
+                                <Text type="secondary">{article.likes_count || 0}</Text>
+                              </Space>
+                              <Space size={4}>
+                                <EyeOutlined />
+                                <Text type="secondary">{article.views}</Text>
+                              </Space>
+                              <Text type="secondary">
+                                {dayjs(article.created_at).format('DD MMM YYYY')}
+                              </Text>
+                            </Space>
+                          </Space>
+                        }
+                      />
+                    </Card>
+                  </List.Item>
+                )}
+              />
+            )}
+          </div>
         </Space>
       </Card>
     </div>
