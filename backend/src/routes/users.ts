@@ -17,10 +17,22 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
 
-    const user = result.rows[0];
+    const dbUser = result.rows[0];
+
+    // Преобразуем snake_case в camelCase для frontend
+    const user = {
+      id: dbUser.id,
+      email: dbUser.email,
+      name: dbUser.name,
+      userType: dbUser.user_type,
+      avatarUrl: dbUser.avatar_url,
+      bio: dbUser.bio,
+      city: dbUser.city,
+      createdAt: dbUser.created_at
+    };
 
     // Если эксперт, получить тематики
-    if (user.user_type === 'expert') {
+    if (user.userType === 'expert') {
       const topicsResult = await query(
         `SELECT t.id, t.name FROM topics t
          JOIN expert_topics et ON t.id = et.topic_id
