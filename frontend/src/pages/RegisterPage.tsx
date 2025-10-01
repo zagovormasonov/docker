@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Typography, Radio } from 'antd';
-import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, message, Typography, Radio, Modal } from 'antd';
+import { MailOutlined, LockOutlined, UserOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
+import emailjs from '@emailjs/browser';
 
 const { Title, Text } = Typography;
 
@@ -11,12 +12,57 @@ const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const sendVerificationEmail = async (email: string, name: string, verificationToken: string) => {
+    try {
+      const verificationUrl = `${window.location.origin}/verify-email?token=${verificationToken}`;
+      
+      // Замените на ваши данные из EmailJS
+      await emailjs.send(
+        'YOUR_SERVICE_ID',  // Service ID из EmailJS
+        'YOUR_TEMPLATE_ID', // Template ID из EmailJS
+        {
+          to_email: email,
+          to_name: name,
+          verification_url: verificationUrl,
+          app_name: 'SoulSynergy'
+        },
+        'YOUR_PUBLIC_KEY' // Public Key из EmailJS
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('Ошибка отправки email:', error);
+      return false;
+    }
+  };
+
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      await register(values.email, values.password, values.name, values.userType);
-      message.success('Регистрация успешна!');
-      navigate('/');
+      const result = await register(values.email, values.password, values.name, values.userType);
+      
+      // Отправка email верификации
+      const emailSent = await sendVerificationEmail(
+        result.user.email,
+        result.user.name,
+        result.user.verificationToken
+      );
+      
+      if (emailSent) {
+        Modal.success({
+          title: 'Регистрация успешна!',
+          content: (
+            <div>
+              <p>На ваш email <strong>{result.user.email}</strong> отправлено письмо с подтверждением.</p>
+              <p>Пожалуйста, проверьте почту и перейдите по ссылке для активации аккаунта.</p>
+            </div>
+          ),
+          okText: 'Понятно',
+          onOk: () => navigate('/login')
+        });
+      } else {
+        message.warning('Регистрация выполнена, но не удалось отправить email. Обратитесь в поддержку.');
+      }
     } catch (error: any) {
       message.error(error.response?.data?.error || 'Ошибка регистрации');
     } finally {

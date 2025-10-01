@@ -21,8 +21,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, userType: string) => Promise<void>;
+  login: (emailOrToken: string, passwordOrUser?: string | User) => Promise<void>;
+  register: (email: string, password: string, name: string, userType: string) => Promise<any>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
   loading: boolean;
@@ -60,8 +60,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
-    const response = await api.post('/auth/login', { email, password });
+  const login = async (emailOrToken: string, passwordOrUser?: string | User) => {
+    // Если передан второй параметр как объект User - это вызов после верификации
+    if (typeof passwordOrUser === 'object') {
+      const newToken = emailOrToken;
+      const userData = passwordOrUser;
+      
+      localStorage.setItem('token', newToken);
+      setToken(newToken);
+      setUser(userData);
+      socketService.connect(newToken);
+      return;
+    }
+    
+    // Обычный вход по email и паролю
+    const response = await api.post('/auth/login', { 
+      email: emailOrToken, 
+      password: passwordOrUser 
+    });
     const { token: newToken, user: userData } = response.data;
     
     localStorage.setItem('token', newToken);
@@ -77,12 +93,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name,
       userType
     });
-    const { token: newToken, user: userData } = response.data;
     
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
-    setUser(userData);
-    socketService.connect(newToken);
+    // Возвращаем данные для отправки email
+    return response.data;
   };
 
   const logout = () => {
