@@ -16,17 +16,16 @@ const RegisterPage = () => {
     try {
       const verificationUrl = `${window.location.origin}/verify-email?token=${verificationToken}`;
       
-      // Замените на ваши данные из EmailJS
       await emailjs.send(
-        'service_hd63lfg',  // Service ID из EmailJS
-        'template_x4iwchr', // Template ID из EmailJS
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_VERIFICATION_TEMPLATE_ID,
         {
           to_email: email,
           to_name: name,
           verification_url: verificationUrl,
           app_name: 'SoulSynergy'
         },
-        'ONZ5G0uZYkJdC-ryS' // Public Key из EmailJS
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
       
       return true;

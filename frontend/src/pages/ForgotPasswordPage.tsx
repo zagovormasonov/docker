@@ -15,17 +15,16 @@ const ForgotPasswordPage = () => {
     try {
       const resetUrl = `${window.location.origin}/reset-password?token=${resetToken}`;
       
-      // Замените на ваши данные из EmailJS
       await emailjs.send(
-        'YOUR_SERVICE_ID',  // Service ID из EmailJS (тот же что для регистрации)
-        'YOUR_RESET_TEMPLATE_ID', // Новый Template ID для восстановления пароля
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID,
         {
           to_email: email,
           to_name: name,
           reset_url: resetUrl,
           app_name: 'SoulSynergy'
         },
-        'YOUR_PUBLIC_KEY' // Public Key из EmailJS
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
       
       return true;
