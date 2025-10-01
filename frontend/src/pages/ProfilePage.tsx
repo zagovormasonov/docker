@@ -11,9 +11,19 @@ import {
   Avatar,
   Upload,
   Divider,
-  List
+  List,
+  Modal,
+  Popconfirm,
+  Tag
 } from 'antd';
-import { UserOutlined, PlusOutlined } from '@ant-design/icons';
+import { 
+  UserOutlined, 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined,
+  UploadOutlined,
+  LinkOutlined
+} from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -21,6 +31,11 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 interface Topic {
+  id: number;
+  name: string;
+}
+
+interface City {
   id: number;
   name: string;
 }
@@ -34,25 +49,28 @@ interface Service {
   service_type: string;
 }
 
-// Список городов РФ (сокращенный)
-const CITIES = [
-  'Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань',
-  'Нижний Новгород', 'Челябинск', 'Самара', 'Омск', 'Ростов-на-Дону',
-  'Уфа', 'Красноярск', 'Воронеж', 'Пермь', 'Волгоград', 'Краснодар',
-  'Саратов', 'Тюмень', 'Тольятти', 'Ижевск'
+const CONSULTATION_TYPES = [
+  'Онлайн',
+  'Офлайн',
+  'Выезд на дом',
+  'Групповые сессии',
+  'Индивидуальные сессии'
 ];
 
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const [form] = Form.useForm();
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
   const [serviceForm] = Form.useForm();
   const [showServiceForm, setShowServiceForm] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
 
   useEffect(() => {
     fetchTopics();
+    fetchCities();
     if (user?.userType === 'expert') {
       fetchServices();
     }
@@ -62,6 +80,11 @@ const ProfilePage = () => {
       email: user?.email,
       bio: user?.bio,
       city: user?.city,
+      vkUrl: user?.vkUrl,
+      telegramUrl: user?.telegramUrl,
+      instagramUrl: user?.instagramUrl,
+      whatsapp: user?.whatsapp,
+      consultationTypes: user?.consultationTypes || [],
       topics: user?.topics?.map((t: any) => t.id) || []
     });
   }, [user]);
@@ -72,6 +95,15 @@ const ProfilePage = () => {
       setTopics(response.data);
     } catch (error) {
       console.error('Ошибка загрузки тематик:', error);
+    }
+  };
+
+  const fetchCities = async () => {
+    try {
+      const response = await api.get('/cities');
+      setCities(response.data);
+    } catch (error) {
+      console.error('Ошибка загрузки городов:', error);
     }
   };
 
@@ -92,11 +124,16 @@ const ProfilePage = () => {
         name: values.name,
         bio: values.bio,
         city: values.city,
+        vkUrl: values.vkUrl,
+        telegramUrl: values.telegramUrl,
+        instagramUrl: values.instagramUrl,
+        whatsapp: values.whatsapp,
+        consultationTypes: values.consultationTypes,
         topics: values.topics
       });
       
       updateUser(values);
-      message.success('Профиль обновлен');
+      message.success('Профиль успешно обновлен!');
     } catch (error) {
       console.error('Ошибка обновления профиля:', error);
       message.error('Ошибка обновления профиля');
@@ -107,15 +144,33 @@ const ProfilePage = () => {
 
   const handleAddService = async (values: any) => {
     try {
-      await api.post('/experts/services', values);
-      message.success('Услуга добавлена');
+      if (editingService) {
+        await api.put(`/experts/services/${editingService.id}`, values);
+        message.success('Услуга обновлена!');
+        setEditingService(null);
+      } else {
+        await api.post('/experts/services', values);
+        message.success('Услуга добавлена!');
+      }
       serviceForm.resetFields();
       setShowServiceForm(false);
       fetchServices();
     } catch (error) {
-      console.error('Ошибка добавления услуги:', error);
-      message.error('Ошибка добавления услуги');
+      console.error('Ошибка сохранения услуги:', error);
+      message.error('Ошибка сохранения услуги');
     }
+  };
+
+  const handleEditService = (service: Service) => {
+    setEditingService(service);
+    setShowServiceForm(true);
+    serviceForm.setFieldsValue({
+      title: service.title,
+      description: service.description,
+      price: service.price,
+      duration: service.duration,
+      serviceType: service.service_type
+    });
   };
 
   const handleDeleteService = async (serviceId: number) => {
@@ -181,22 +236,73 @@ const ProfilePage = () => {
                 size="large"
                 placeholder="Выберите город"
                 showSearch
-                options={CITIES.map(city => ({ label: city, value: city }))}
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                options={cities.map(city => ({ label: city.name, value: city.name }))}
               />
             </Form.Item>
 
+            <Divider orientation="left">
+              <LinkOutlined /> Социальные сети
+            </Divider>
+
+            <Form.Item
+              name="vkUrl"
+              label="VK"
+            >
+              <Input size="large" placeholder="https://vk.com/your_profile" />
+            </Form.Item>
+
+            <Form.Item
+              name="telegramUrl"
+              label="Telegram"
+            >
+              <Input size="large" placeholder="https://t.me/your_username" />
+            </Form.Item>
+
+            <Form.Item
+              name="instagramUrl"
+              label="Instagram"
+            >
+              <Input size="large" placeholder="https://instagram.com/your_profile" />
+            </Form.Item>
+
+            <Form.Item
+              name="whatsapp"
+              label="WhatsApp"
+            >
+              <Input size="large" placeholder="+79001234567" />
+            </Form.Item>
+
             {user?.userType === 'expert' && (
-              <Form.Item
-                name="topics"
-                label="Тематики"
-              >
-                <Select
-                  mode="multiple"
-                  size="large"
-                  placeholder="Выберите тематики"
-                  options={topics.map(t => ({ label: t.name, value: t.id }))}
-                />
-              </Form.Item>
+              <>
+                <Divider />
+                
+                <Form.Item
+                  name="consultationTypes"
+                  label="Типы консультаций"
+                >
+                  <Select
+                    mode="multiple"
+                    size="large"
+                    placeholder="Выберите типы консультаций"
+                    options={CONSULTATION_TYPES.map(t => ({ label: t, value: t }))}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="topics"
+                  label="Тематики"
+                >
+                  <Select
+                    mode="multiple"
+                    size="large"
+                    placeholder="Выберите тематики"
+                    options={topics.map(t => ({ label: t.name, value: t.id }))}
+                  />
+                </Form.Item>
+              </>
             )}
 
             <Form.Item>
@@ -223,6 +329,7 @@ const ProfilePage = () => {
 
                 {showServiceForm && (
                   <Card style={{ marginBottom: 16, background: '#fafafa' }}>
+                    <Title level={5}>{editingService ? 'Редактировать услугу' : 'Добавить услугу'}</Title>
                     <Form
                       form={serviceForm}
                       layout="vertical"
@@ -231,34 +338,34 @@ const ProfilePage = () => {
                       <Form.Item
                         name="title"
                         label="Название"
-                        rules={[{ required: true }]}
+                        rules={[{ required: true, message: 'Введите название услуги' }]}
                       >
-                        <Input />
+                        <Input placeholder="Например: Консультация по таро" />
                       </Form.Item>
 
                       <Form.Item
                         name="description"
                         label="Описание"
-                        rules={[{ required: true }]}
+                        rules={[{ required: true, message: 'Введите описание услуги' }]}
                       >
-                        <TextArea rows={3} />
+                        <TextArea rows={3} placeholder="Опишите вашу услугу..." />
                       </Form.Item>
 
                       <Space style={{ width: '100%' }} size="middle">
                         <Form.Item name="price" label="Цена (₽)">
-                          <Input type="number" />
+                          <Input type="number" placeholder="3000" />
                         </Form.Item>
 
                         <Form.Item name="duration" label="Длительность (мин)">
-                          <Input type="number" />
+                          <Input type="number" placeholder="60" />
                         </Form.Item>
 
                         <Form.Item
                           name="serviceType"
                           label="Тип"
-                          rules={[{ required: true }]}
+                          rules={[{ required: true, message: 'Выберите тип' }]}
                         >
-                          <Select style={{ width: 150 }}>
+                          <Select style={{ width: 150 }} placeholder="Тип">
                             <Select.Option value="online">Онлайн</Select.Option>
                             <Select.Option value="offline">Офлайн</Select.Option>
                             <Select.Option value="both">Оба</Select.Option>
@@ -269,9 +376,13 @@ const ProfilePage = () => {
                       <Form.Item>
                         <Space>
                           <Button type="primary" htmlType="submit">
-                            Добавить
+                            {editingService ? 'Сохранить' : 'Добавить'}
                           </Button>
-                          <Button onClick={() => setShowServiceForm(false)}>
+                          <Button onClick={() => {
+                            setShowServiceForm(false);
+                            setEditingService(null);
+                            serviceForm.resetFields();
+                          }}>
                             Отмена
                           </Button>
                         </Space>
@@ -282,20 +393,51 @@ const ProfilePage = () => {
 
                 <List
                   dataSource={services}
+                  locale={{ emptyText: 'Нет добавленных услуг' }}
                   renderItem={(service) => (
                     <List.Item
                       actions={[
                         <Button
-                          danger
-                          onClick={() => handleDeleteService(service.id)}
+                          icon={<EditOutlined />}
+                          onClick={() => handleEditService(service)}
                         >
-                          Удалить
-                        </Button>
+                          Редактировать
+                        </Button>,
+                        <Popconfirm
+                          title="Удалить услугу?"
+                          description="Это действие нельзя отменить"
+                          onConfirm={() => handleDeleteService(service.id)}
+                          okText="Да"
+                          cancelText="Нет"
+                        >
+                          <Button danger icon={<DeleteOutlined />}>
+                            Удалить
+                          </Button>
+                        </Popconfirm>
                       ]}
                     >
                       <List.Item.Meta
-                        title={service.title}
-                        description={service.description}
+                        title={
+                          <Space>
+                            {service.title}
+                            <Tag color={
+                              service.service_type === 'online' ? 'blue' :
+                              service.service_type === 'offline' ? 'green' : 'purple'
+                            }>
+                              {service.service_type === 'online' ? 'Онлайн' :
+                               service.service_type === 'offline' ? 'Офлайн' : 'Оба'}
+                            </Tag>
+                          </Space>
+                        }
+                        description={
+                          <>
+                            <div>{service.description}</div>
+                            <Space style={{ marginTop: 8 }}>
+                              {service.price && <Text strong>{service.price} ₽</Text>}
+                              {service.duration && <Text type="secondary">{service.duration} мин</Text>}
+                            </Space>
+                          </>
+                        }
                       />
                     </List.Item>
                   )}

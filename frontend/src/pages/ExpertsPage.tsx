@@ -12,6 +12,11 @@ interface Topic {
   name: string;
 }
 
+interface City {
+  id: number;
+  name: string;
+}
+
 interface Expert {
   id: number;
   name: string;
@@ -25,19 +30,22 @@ interface Expert {
 const ExpertsPage = () => {
   const [experts, setExperts] = useState<Expert[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedCity, setSelectedCity] = useState<string>('');
   const [searchText, setSearchText] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchTopics();
+    fetchCities();
     fetchExperts();
   }, []);
 
   useEffect(() => {
     fetchExperts();
-  }, [selectedTopics, searchText]);
+  }, [selectedTopics, selectedCity, searchText]);
 
   const fetchTopics = async () => {
     try {
@@ -48,12 +56,24 @@ const ExpertsPage = () => {
     }
   };
 
+  const fetchCities = async () => {
+    try {
+      const response = await api.get('/cities');
+      setCities(response.data);
+    } catch (error) {
+      console.error('Ошибка загрузки городов:', error);
+    }
+  };
+
   const fetchExperts = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (selectedTopics.length > 0) {
         params.append('topics', selectedTopics.join(','));
+      }
+      if (selectedCity) {
+        params.append('city', selectedCity);
       }
       if (searchText) {
         params.append('search', searchText);
@@ -83,6 +103,24 @@ const ExpertsPage = () => {
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+          />
+
+          <Select
+            size="large"
+            placeholder="Выберите город"
+            prefix={<EnvironmentOutlined />}
+            style={{ width: '100%' }}
+            value={selectedCity || undefined}
+            onChange={setSelectedCity}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              { label: 'Все города', value: '' },
+              ...cities.map(c => ({ label: c.name, value: c.name }))
+            ]}
             allowClear
           />
 

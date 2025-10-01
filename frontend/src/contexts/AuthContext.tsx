@@ -10,6 +10,11 @@ interface User {
   avatarUrl?: string;
   bio?: string;
   city?: string;
+  vkUrl?: string;
+  telegramUrl?: string;
+  instagramUrl?: string;
+  whatsapp?: string;
+  consultationTypes?: string[];
   topics?: any[];
 }
 
