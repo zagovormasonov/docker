@@ -9,7 +9,8 @@ import {
   EditOutlined,
   LoginOutlined,
   FileTextOutlined,
-  StarOutlined
+  StarOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -119,6 +120,20 @@ const Header = () => {
             }}
           >
             <TeamOutlined /> Эксперты
+          </Link>
+          <Link 
+            to="/events" 
+            style={{ 
+              fontSize: '16px',
+              color: '#000',
+              textDecoration: 'none',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <CalendarOutlined /> События
           </Link>
         </Space>
       </div>

@@ -18,6 +18,9 @@ import ChatsPage from './pages/ChatsPage';
 import CreateArticlePage from './pages/CreateArticlePage';
 import MyArticlesPage from './pages/MyArticlesPage';
 import FavoritesPage from './pages/FavoritesPage';
+import EventsPage from './pages/EventsPage';
+import EventPage from './pages/EventPage';
+import CreateEventPage from './pages/CreateEventPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -58,6 +61,11 @@ function App() {
                 <Route path="experts" element={<ExpertsPage />} />
                 <Route path="experts/:id" element={<ExpertProfilePage />} />
                 <Route path="articles/:id" element={<ArticlePage />} />
+                
+                <Route path="events" element={<EventsPage />} />
+                <Route path="events/:id" element={<EventPage />} />
+                <Route path="events/create" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
+                <Route path="events/edit/:id" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
                 
                 <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
