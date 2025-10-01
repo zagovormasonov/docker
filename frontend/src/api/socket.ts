@@ -5,7 +5,7 @@ class SocketService {
 
   connect(token: string) {
     // Используем текущий origin для продакшена, localhost для разработки
-    const socketUrl = process.env.NODE_ENV === 'production' 
+    const socketUrl = import.meta.env.PROD 
       ? window.location.origin 
       : 'http://localhost:3001';
     
