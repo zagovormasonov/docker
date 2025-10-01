@@ -18,15 +18,15 @@ const RegisterPage = () => {
       
       // Замените на ваши данные из EmailJS
       await emailjs.send(
-        'YOUR_SERVICE_ID',  // Service ID из EmailJS
-        'YOUR_TEMPLATE_ID', // Template ID из EmailJS
+        'service_hd63lfg',  // Service ID из EmailJS
+        'template_x4iwchr', // Template ID из EmailJS
         {
           to_email: email,
           to_name: name,
           verification_url: verificationUrl,
           app_name: 'SoulSynergy'
         },
-        'YOUR_PUBLIC_KEY' // Public Key из EmailJS
+        'ONZ5G0uZYkJdC-ryS' // Public Key из EmailJS
       );
       
       return true;
