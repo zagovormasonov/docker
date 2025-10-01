@@ -20,7 +20,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
     const dbUser = result.rows[0];
 
     // Преобразуем snake_case в camelCase для frontend
-    const user = {
+    const user: any = {
       id: dbUser.id,
       email: dbUser.email,
       name: dbUser.name,
