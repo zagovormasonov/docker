@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import { query } from '../config/database';
 
@@ -37,31 +38,27 @@ router.post(
       // Хеширование пароля
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Создание пользователя
+      // Генерация токена верификации
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+
+      // Создание пользователя (неподтвержденный)
       const result = await query(
-        `INSERT INTO users (email, password, name, user_type) 
-         VALUES ($1, $2, $3, $4) 
-         RETURNING id, email, name, user_type, created_at`,
-        [email, hashedPassword, name, userType]
+        `INSERT INTO users (email, password, name, user_type, email_verified, verification_token) 
+         VALUES ($1, $2, $3, $4, false, $5) 
+         RETURNING id, email, name, user_type, verification_token, created_at`,
+        [email, hashedPassword, name, userType, verificationToken]
       );
 
       const user = result.rows[0];
 
-      // Генерация токена
-      const token = jwt.sign(
-        { userId: user.id, userType: user.user_type },
-        process.env.JWT_SECRET || 'secret',
-        { expiresIn: '30d' }
-      );
-
       res.status(201).json({
-        token,
+        message: 'Регистрация успешна! Проверьте email для подтверждения аккаунта.',
         user: {
           id: user.id,
           email: user.email,
           name: user.name,
           userType: user.user_type,
-          createdAt: user.created_at
+          verificationToken: user.verification_token
         }
       });
     } catch (error) {
@@ -106,6 +103,13 @@ router.post(
         return res.status(401).json({ error: 'Неверные учетные данные' });
       }
 
+      // Проверка подтверждения email
+      if (!user.email_verified) {
+        return res.status(403).json({ 
+          error: 'Email не подтвержден. Проверьте почту и перейдите по ссылке подтверждения.' 
+        });
+      }
+
       // Генерация токена
       const token = jwt.sign(
         { userId: user.id, userType: user.user_type },
@@ -131,5 +135,53 @@ router.post(
     }
   }
 );
+
+// Подтверждение email
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Поиск пользователя по токену
+    const result = await query(
+      'SELECT id, email, name, user_type FROM users WHERE verification_token = $1',
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Неверный токен верификации' });
+    }
+
+    const user = result.rows[0];
+
+    // Обновление статуса верификации
+    await query(
+      `UPDATE users 
+       SET email_verified = true, verification_token = NULL 
+       WHERE id = $1`,
+      [user.id]
+    );
+
+    // Генерация JWT токена для автоматического входа
+    const jwtToken = jwt.sign(
+      { userId: user.id, userType: user.user_type },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      message: 'Email успешно подтвержден!',
+      token: jwtToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        userType: user.user_type
+      }
+    });
+  } catch (error) {
+    console.error('Ошибка верификации email:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
 
 export default router;
