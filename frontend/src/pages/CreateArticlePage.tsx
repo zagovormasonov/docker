@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Input, Button, Card, message, Switch, Typography, Space, Divider, Spin } from 'antd';
 import { ArrowLeftOutlined, PictureOutlined } from '@ant-design/icons';
@@ -15,6 +15,7 @@ const CreateArticlePage = () => {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingArticle, setLoadingArticle] = useState(false);
+  const quillRef = useRef<ReactQuill>(null);
   const isEdit = !!id;
 
   useEffect(() => {
@@ -77,16 +78,59 @@ const CreateArticlePage = () => {
     }
   };
 
+  // Обработчик загрузки изображений
+  const imageHandler = () => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+          const hide = message.loading('Загрузка изображения...', 0);
+          const response = await api.post('/upload/image', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          hide();
+
+          const imageUrl = response.data.url;
+          const quill = quillRef.current?.getEditor();
+          if (quill) {
+            const range = quill.getSelection(true);
+            quill.insertEmbed(range.index, 'image', imageUrl);
+            quill.setSelection(range.index + 1, 0);
+          }
+          message.success('Изображение загружено!');
+        } catch (error) {
+          console.error('Ошибка загрузки изображения:', error);
+          message.error('Ошибка загрузки изображения');
+        }
+      }
+    };
+  };
+
   const modules = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ indent: '-1' }, { indent: '+1' }],
-      ['link', 'image'],
-      [{ align: [] }],
-      ['clean']
-    ]
+    toolbar: {
+      container: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ indent: '-1' }, { indent: '+1' }],
+        ['link', 'image'],
+        [{ align: [] }],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
   };
 
   const formats = [
@@ -165,6 +209,7 @@ const CreateArticlePage = () => {
               overflow: 'hidden'
             }}>
               <ReactQuill
+                ref={quillRef}
                 theme="snow"
                 value={content}
                 onChange={setContent}

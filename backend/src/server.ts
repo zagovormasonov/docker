@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { initDatabase, query } from './config/database';
@@ -16,6 +17,7 @@ import topicsRoutes from './routes/topics';
 import chatsRoutes from './routes/chats';
 import usersRoutes from './routes/users';
 import citiesRoutes from './routes/cities';
+import uploadRoutes from './routes/upload';
 
 dotenv.config();
 
@@ -36,6 +38,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Статические файлы для загруженных изображений
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/experts', expertsRoutes);
@@ -46,6 +51,7 @@ app.use('/api/topics', topicsRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/cities', citiesRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Socket.IO для чатов
 const userSockets = new Map<number, string>();

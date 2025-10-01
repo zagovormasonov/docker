@@ -67,6 +67,7 @@ const ProfilePage = () => {
   const [serviceForm] = Form.useForm();
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchTopics();
@@ -193,6 +194,36 @@ const ProfilePage = () => {
     }
   };
 
+  const handleAvatarUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const uploadResponse = await api.post('/upload/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const avatarUrl = uploadResponse.data.url;
+
+      // Обновляем профиль с новым аватаром
+      const endpoint = user?.userType === 'expert' ? '/experts/profile' : '/users/profile';
+      await api.put(endpoint, { avatarUrl });
+
+      // Обновляем локальный стейт
+      updateUser({ ...user, avatarUrl });
+      message.success('Аватар успешно обновлен!');
+    } catch (error) {
+      console.error('Ошибка загрузки аватара:', error);
+      message.error('Ошибка загрузки аватара');
+    } finally {
+      setUploading(false);
+    }
+    return false; // Предотвращаем автоматическую загрузку
+  };
+
   return (
     <div className="container" style={{ maxWidth: 800 }}>
       <Card>
@@ -204,6 +235,18 @@ const ProfilePage = () => {
               icon={!user?.avatarUrl && <UserOutlined />}
               style={{ backgroundColor: '#6366f1', marginBottom: 16 }}
             />
+            <div style={{ marginTop: 16, marginBottom: 16 }}>
+              <Upload
+                accept="image/*"
+                showUploadList={false}
+                beforeUpload={handleAvatarUpload}
+                disabled={uploading}
+              >
+                <Button icon={<UploadOutlined />} loading={uploading}>
+                  {uploading ? 'Загрузка...' : 'Загрузить аватар'}
+                </Button>
+              </Upload>
+            </div>
             <Title level={3}>{user?.name}</Title>
             <Text type="secondary">{user?.email}</Text>
           </div>
