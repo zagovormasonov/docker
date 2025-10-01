@@ -173,9 +173,17 @@ const MyArticlesPage = () => {
                   </div>
 
                   {/* Превью текста */}
-                  <Text type="secondary" ellipsis={{ rows: 2 }} style={{ display: 'block', minHeight: 40 }}>
-                    {stripHtml(article.content).substring(0, 120)}...
-                  </Text>
+                  <div style={{ 
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    minHeight: 40,
+                    color: 'rgba(0, 0, 0, 0.45)',
+                    fontSize: 14
+                  }}>
+                    {stripHtml(article.content).substring(0, 150)}...
+                  </div>
 
                   {/* Статистика */}
                   <Space direction="vertical" size={4} style={{ width: '100%' }}>
