@@ -8,8 +8,14 @@ const router = express.Router();
 
 // Создаем папку uploads если её нет
 const uploadsDir = path.join(__dirname, '../../uploads');
+console.log('📁 Путь к uploads:', uploadsDir);
+
 if (!fs.existsSync(uploadsDir)) {
+  console.log('📁 Создаю папку uploads...');
   fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✅ Папка uploads создана');
+} else {
+  console.log('✅ Папка uploads существует');
 }
 
 // Настройка хранилища
@@ -46,14 +52,22 @@ const upload = multer({
 // Загрузка одного изображения
 router.post('/image', authenticateToken, upload.single('image'), (req, res) => {
   try {
+    console.log('📤 Запрос на загрузку изображения');
+    
     if (!req.file) {
+      console.error('❌ Файл не загружен');
       return res.status(400).json({ error: 'Файл не загружен' });
     }
 
+    console.log('✅ Файл загружен:', req.file.filename);
+    console.log('📂 Путь:', req.file.path);
+
     const imageUrl = `/uploads/${req.file.filename}`;
+    console.log('🔗 URL изображения:', imageUrl);
+    
     res.json({ url: imageUrl });
   } catch (error) {
-    console.error('Ошибка загрузки изображения:', error);
+    console.error('❌ Ошибка загрузки изображения:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
