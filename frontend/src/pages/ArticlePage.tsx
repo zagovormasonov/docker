@@ -161,7 +161,7 @@ const ArticlePage = () => {
         )}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-          <Title level={1} style={{ margin: 0, flex: 1 }}>
+          <Title level={1} ellipsis={{ rows: 2 }} style={{ margin: 0, flex: 1 }}>
             {article.title}
           </Title>
           
