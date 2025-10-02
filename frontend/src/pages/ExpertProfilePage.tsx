@@ -346,7 +346,20 @@ const ExpertProfilePage = () => {
                       }
                     >
                       <Card.Meta
-                        title={<div style={{ fontSize: 16, fontWeight: 600 }}>{article.title}</div>}
+                        title={
+                          <div 
+                            style={{ 
+                              fontSize: 16, 
+                              fontWeight: 600,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {article.title}
+                          </div>
+                        }
                         description={
                           <Space direction="vertical" size={8} style={{ width: '100%' }}>
                             <Text type="secondary" ellipsis>

@@ -159,6 +159,7 @@ const MyArticlesPage = () => {
                   {/* Заголовок */}
                   <Title 
                     level={4} 
+                    ellipsis={{ rows: 2 }}
                     style={{ margin: 0, cursor: 'pointer' }}
                     onClick={() => navigate(`/articles/${article.id}`)}
                   >
