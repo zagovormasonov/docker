@@ -164,10 +164,10 @@ const CreateEventPage = () => {
 
         {moderationStatus && (
           <ModerationNotification
-            eventId={id || 0}
+            eventId={id ? parseInt(id) : 0}
             status={moderationStatus}
             reason={moderationReason}
-            onStatusChange={setModerationStatus}
+            onStatusChange={(status) => setModerationStatus(status as 'pending' | 'approved' | 'rejected')}
           />
         )}
 
