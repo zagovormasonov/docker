@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Image, Space, Tag, Avatar, Spin } from 'antd';
+import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin } from 'antd';
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import dayjs from 'dayjs';
@@ -96,11 +96,10 @@ const HomePage = () => {
                 hoverable
                 cover={
                   article.cover_image ? (
-                    <div style={{ height: 200 }}>
-                      <Image
-                        alt={article.title}
+                    <div style={{ height: 200, overflow: 'hidden' }}>
+                      <img
                         src={article.cover_image}
-                        preview={false}
+                        alt={article.title}
                         style={{ width: '100%', height: 200, objectFit: 'cover' }}
                       />
                     </div>

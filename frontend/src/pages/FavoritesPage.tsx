@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Typography, Image, Space, Avatar, Spin, Empty } from 'antd';
+import { Card, Row, Col, Typography, Space, Avatar, Spin, Empty } from 'antd';
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import dayjs from 'dayjs';
@@ -78,11 +78,10 @@ const FavoritesPage = () => {
                 hoverable
                 cover={
                   article.cover_image ? (
-                    <div style={{ height: 200 }}>
-                      <Image
-                        alt={article.title}
+                    <div style={{ height: 200, overflow: 'hidden' }}>
+                      <img
                         src={article.cover_image}
-                        preview={false}
+                        alt={article.title}
                         style={{ width: '100%', height: 200, objectFit: 'cover' }}
                       />
                     </div>

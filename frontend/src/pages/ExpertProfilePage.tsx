@@ -11,7 +11,6 @@ import {
   Divider,
   Spin,
   message,
-  Image,
   Empty
 } from 'antd';
 import {
@@ -322,11 +321,10 @@ const ExpertProfilePage = () => {
                       onClick={() => navigate(`/articles/${article.id}`)}
                       cover={
                         article.cover_image ? (
-                          <div style={{ height: 200 }}>
-                            <Image
+                          <div style={{ height: 200, overflow: 'hidden' }}>
+                            <img
                               src={article.cover_image}
                               alt={article.title}
-                              preview={false}
                               style={{ width: '100%', height: 200, objectFit: 'cover' }}
                             />
                           </div>

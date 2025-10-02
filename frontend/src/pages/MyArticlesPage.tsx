@@ -13,7 +13,6 @@ import {
   Spin,
   Row,
   Col,
-  Image
 } from 'antd';
 import {
   EditOutlined,
@@ -127,12 +126,11 @@ const MyArticlesPage = () => {
                 hoverable
                 cover={
                   article.cover_image ? (
-                    <div style={{ height: 200, cursor: 'pointer' }}
+                    <div style={{ height: 200, overflow: 'hidden', cursor: 'pointer' }}
                          onClick={() => navigate(`/articles/${article.id}`)}>
-                      <Image
+                      <img
                         src={article.cover_image}
                         alt={article.title}
-                        preview={false}
                         style={{ width: '100%', height: 200, objectFit: 'cover' }}
                       />
                     </div>
