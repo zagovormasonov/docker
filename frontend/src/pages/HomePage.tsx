@@ -63,13 +63,13 @@ const HomePage = () => {
         color: 'white',
         textAlign: 'center'
       }}>
-        <Title level={1} style={{ color: 'white', marginBottom: 16, fontSize: 48 }}>
+        <Title level={1} style={{ color: 'black', marginBottom: 16, fontSize: 48 }}>
           SoulSynergy
         </Title>
-        <Title level={3} style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 400 }}>
+        <Title level={3} style={{ color: 'rgba(43, 43, 43, 0.9)', fontWeight: 400 }}>
           Платформа для духовных мастеров
         </Title>
-        <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: 16, maxWidth: 600, margin: '16px auto' }}>
+        <Paragraph style={{ color: 'rgba(43, 43, 43, 0.9)', fontSize: 16, maxWidth: 600, margin: '16px auto' }}>
           Найдите своего эксперта, погрузитесь в мир духовных практик и начните путь к гармонии
         </Paragraph>
       </div>
