@@ -1,0 +1,21 @@
+{
+  "name": "SoulSynergy — Платформа для духовных мастеров",
+  "short_name": "SoulSynergy",
+  "description": "Платформа для духовных мастеров и экспертов",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#6366f1",
+  "background_color": "#fafafa",
+  "display": "standalone",
+  "start_url": "/"
+}
