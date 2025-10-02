@@ -96,7 +96,7 @@ const HomePage = () => {
                 hoverable
                 cover={
                   article.cover_image ? (
-                    <div style={{ height: 200, overflow: 'hidden' }}>
+                    <div style={{ height: 200 }}>
                       <Image
                         alt={article.title}
                         src={article.cover_image}

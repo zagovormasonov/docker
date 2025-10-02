@@ -127,7 +127,7 @@ const MyArticlesPage = () => {
                 hoverable
                 cover={
                   article.cover_image ? (
-                    <div style={{ height: 200, overflow: 'hidden', cursor: 'pointer' }}
+                    <div style={{ height: 200, cursor: 'pointer' }}
                          onClick={() => navigate(`/articles/${article.id}`)}>
                       <Image
                         src={article.cover_image}
@@ -159,7 +159,6 @@ const MyArticlesPage = () => {
                   {/* Заголовок */}
                   <Title 
                     level={4} 
-                    ellipsis={{ rows: 2 }}
                     style={{ margin: 0, cursor: 'pointer' }}
                     onClick={() => navigate(`/articles/${article.id}`)}
                   >

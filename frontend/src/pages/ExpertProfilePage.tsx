@@ -322,7 +322,7 @@ const ExpertProfilePage = () => {
                       onClick={() => navigate(`/articles/${article.id}`)}
                       cover={
                         article.cover_image ? (
-                          <div style={{ height: 200, overflow: 'hidden' }}>
+                          <div style={{ height: 200 }}>
                             <Image
                               src={article.cover_image}
                               alt={article.title}
