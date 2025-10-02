@@ -7,7 +7,6 @@ import {
   Avatar,
   Divider,
   Spin,
-  Image,
   message,
   Button,
   Tooltip
@@ -146,18 +145,18 @@ const ArticlePage = () => {
 
       <Card>
         {article.cover_image && (
-          <Image
-            src={article.cover_image}
-            alt={article.title}
-            style={{
-              width: '100%',
-              maxHeight: 400,
-              objectFit: 'cover',
-              borderRadius: 8,
-              marginBottom: 24
-            }}
-            preview={true}
-          />
+          <div style={{ marginBottom: 24, borderRadius: 8, overflow: 'hidden' }}>
+            <img
+              src={article.cover_image}
+              alt={article.title}
+              style={{
+                width: '100%',
+                height: 400,
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+          </div>
         )}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
