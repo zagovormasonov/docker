@@ -28,10 +28,12 @@ const HomePage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortType, setSortType] = useState<'new' | 'popular'>('new');
+  const [expertsCount, setExpertsCount] = useState<number>(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchArticles();
+    fetchExpertsCount();
   }, [sortType]);
 
   const fetchArticles = async () => {
@@ -44,6 +46,16 @@ const HomePage = () => {
       setArticles([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExpertsCount = async () => {
+    try {
+      const response = await api.get('/experts/count');
+      setExpertsCount(response.data.count || 0);
+    } catch (error) {
+      console.error('Ошибка загрузки количества экспертов:', error);
+      setExpertsCount(0);
     }
   };
 
@@ -69,6 +81,20 @@ const HomePage = () => {
         <Title level={3} style={{ color: 'rgba(43, 43, 43, 0.9)', fontWeight: 400 }}>
           Платформа для духовных мастеров
         </Title>
+        {expertsCount > 0 && (
+          <Paragraph style={{ 
+            color: 'rgba(43, 43, 43, 0.8)', 
+            fontSize: 18, 
+            fontWeight: 500,
+            margin: '8px auto 16px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            display: 'inline-block'
+          }}>
+            Нас уже более {expertsCount} экспертов
+          </Paragraph>
+        )}
         <Paragraph style={{ color: 'rgba(43, 43, 43, 0.9)', fontSize: 16, maxWidth: 600, margin: '16px auto' }}>
           Найдите своего эксперта, погрузитесь в мир духовных практик и начните путь к гармонии
         </Paragraph>

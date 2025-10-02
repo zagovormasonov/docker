@@ -5,6 +5,21 @@ import { authenticateToken, requireExpert, AuthRequest } from '../middleware/aut
 
 const router = express.Router();
 
+// Получение количества экспертов
+router.get('/count', async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT COUNT(*) as count FROM users WHERE user_type = $1',
+      ['expert']
+    );
+    
+    res.json({ count: parseInt(result.rows[0].count) });
+  } catch (error) {
+    console.error('Ошибка получения количества экспертов:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Получение списка экспертов с фильтрацией
 router.get('/search', async (req, res) => {
   try {
