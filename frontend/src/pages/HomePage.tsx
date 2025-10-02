@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin } from 'antd';
-import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input } from 'antd';
+import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, FilterOutlined } from '@ant-design/icons';
 import api from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -29,6 +30,8 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [sortType, setSortType] = useState<'new' | 'popular'>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,17 +98,67 @@ const HomePage = () => {
             Нас уже более {expertsCount} экспертов
           </Paragraph>
         )}
+        
+        {/* Поисковая строка */}
+        <div className="home-search-container">
+          <Input
+            placeholder="Поиск экспертов по имени или специализации..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onPressEnter={() => {
+              if (searchQuery.trim()) {
+                navigate(`/experts?search=${encodeURIComponent(searchQuery.trim())}`);
+              }
+            }}
+            prefix={<SearchOutlined style={{ color: 'rgba(43, 43, 43, 0.6)' }} />}
+            className="home-search-input"
+          />
+          <Button
+            type="primary"
+            icon={<FilterOutlined />}
+            onClick={() => navigate('/experts')}
+            className="home-filter-button"
+          />
+        </div>
       </div>
 
-      <Tabs
-        activeKey={sortType}
-        onChange={(key) => setSortType(key as 'new' | 'popular')}
-        items={[
-          { key: 'new', label: '🆕 Новые статьи' },
-          { key: 'popular', label: '🔥 Популярные' }
-        ]}
-        style={{ marginBottom: 24 }}
-      />
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: 24,
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <Tabs
+          activeKey={sortType}
+          onChange={(key) => setSortType(key as 'new' | 'popular')}
+          items={[
+            { key: 'new', label: '🆕 Новые статьи' },
+            { key: 'popular', label: '🔥 Популярные' }
+          ]}
+          style={{ marginBottom: 0 }}
+        />
+        
+        {/* Кнопка создания статьи для экспертов */}
+        {user?.userType === 'expert' && (
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => navigate('/create-article')}
+            style={{
+              height: 40,
+              borderRadius: 20,
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+              fontWeight: 500
+            }}
+          >
+            Создать статью
+          </Button>
+        )}
+      </div>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60 }}>
