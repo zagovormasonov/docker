@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input } from 'antd';
+import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input, AutoComplete, List } from 'antd';
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, FilterOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,12 +25,25 @@ interface Article {
   created_at: string;
 }
 
+interface Expert {
+  id: number;
+  name: string;
+  avatar_url?: string;
+  bio?: string;
+  city?: string;
+  topics: string[];
+}
+
 const HomePage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortType, setSortType] = useState<'new' | 'popular'>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<Expert[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchTimeoutRef = useRef<number | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -38,6 +51,15 @@ const HomePage = () => {
     fetchArticles();
     fetchExpertsCount();
   }, [sortType]);
+
+  // Очистка таймаута при размонтировании
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const fetchArticles = async () => {
     setLoading(true);
@@ -60,6 +82,41 @@ const HomePage = () => {
       console.error('Ошибка загрузки количества экспертов:', error);
       setExpertsCount(0);
     }
+  };
+
+  const searchExperts = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const response = await api.get(`/experts/search?search=${encodeURIComponent(query.trim())}`);
+      setSearchResults(response.data || []);
+      setShowDropdown(true);
+    } catch (error) {
+      console.error('Ошибка поиска экспертов:', error);
+      setSearchResults([]);
+      setShowDropdown(true);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    
+    // Очищаем предыдущий таймаут
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Устанавливаем новый таймаут для поиска
+    searchTimeoutRef.current = setTimeout(() => {
+      searchExperts(value);
+    }, 300); // Поиск через 300мс после остановки ввода
   };
 
   const stripHtml = (html: string) => {
@@ -100,19 +157,121 @@ const HomePage = () => {
         )}
         
         {/* Поисковая строка */}
-        <div className="home-search-container">
-          <Input
-            placeholder="Поиск экспертов по имени или специализации..."
+        <div className="home-search-container" style={{ position: 'relative' }}>
+          <AutoComplete
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onPressEnter={() => {
-              if (searchQuery.trim()) {
-                navigate(`/experts?search=${encodeURIComponent(searchQuery.trim())}`);
+            onChange={handleSearchChange}
+            onSearch={searchExperts}
+            onBlur={() => {
+              // Закрываем выпадающий список через небольшую задержку
+              setTimeout(() => setShowDropdown(false), 200);
+            }}
+            onFocus={() => {
+              if (searchQuery.trim() && searchResults.length > 0) {
+                setShowDropdown(true);
               }
             }}
-            prefix={<SearchOutlined style={{ color: 'rgba(43, 43, 43, 0.6)' }} />}
-            className="home-search-input"
-          />
+            options={[]}
+            style={{ width: '100%' }}
+            dropdownStyle={{ display: 'none' }} // Скрываем стандартный dropdown
+          >
+            <Input
+              placeholder="Поиск экспертов по имени или специализации..."
+              prefix={<SearchOutlined style={{ color: 'rgba(43, 43, 43, 0.6)' }} />}
+              suffix={searchLoading ? <Spin size="small" /> : null}
+              className="home-search-input"
+            />
+          </AutoComplete>
+          
+          {/* Кастомный выпадающий список */}
+          {showDropdown && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              background: 'white',
+              border: '1px solid #d9d9d9',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              zIndex: 1000,
+              maxHeight: '300px',
+              overflowY: 'auto'
+            }}>
+              {searchResults.length > 0 ? (
+                <List
+                  dataSource={searchResults}
+                  renderItem={(expert) => (
+                    <List.Item
+                      style={{
+                        padding: '12px 16px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #f0f0f0'
+                      }}
+                      onClick={() => {
+                        navigate(`/experts/${expert.id}`);
+                        setShowDropdown(false);
+                        setSearchQuery('');
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f5f5f5';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                      }}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar 
+                            src={expert.avatar_url} 
+                            icon={!expert.avatar_url && <UserOutlined />}
+                            size="large"
+                          />
+                        }
+                        title={
+                          <div style={{ fontWeight: 500, color: '#1d1d1f' }}>
+                            {expert.name}
+                          </div>
+                        }
+                        description={
+                          <div>
+                            {expert.city && (
+                              <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>
+                                📍 {expert.city}
+                              </div>
+                            )}
+                            {expert.topics && expert.topics.length > 0 && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                {expert.topics.slice(0, 3).map((topic, index) => (
+                                  <Tag key={index} color="blue">
+                                    {topic}
+                                  </Tag>
+                                ))}
+                                {expert.topics.length > 3 && (
+                                  <Tag color="default">
+                                    +{expert.topics.length - 3}
+                                  </Tag>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : searchQuery.trim() && !searchLoading ? (
+                <div style={{
+                  padding: '20px',
+                  textAlign: 'center',
+                  color: '#86868b'
+                }}>
+                  Эксперты не найдены
+                </div>
+              ) : null}
+            </div>
+          )}
+          
           <Button
             type="primary"
             icon={<FilterOutlined />}
@@ -138,7 +297,7 @@ const HomePage = () => {
               key: 'new', 
               label: (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <img src="/new.png" alt="Новые" style={{ width: 16, height: 16 }} />
+                  <img src="/new.png" alt="Новые" style={{ width: 40, height: 40 }} />
                   Новые статьи
                 </span>
               )
@@ -147,7 +306,7 @@ const HomePage = () => {
               key: 'popular', 
               label: (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <img src="/fire.png" alt="Популярные" style={{ width: 16, height: 16 }} />
+                  <img src="/pop.png" alt="Популярные" style={{ width: 40, height: 40 }} />
                   Популярные
                 </span>
               )
