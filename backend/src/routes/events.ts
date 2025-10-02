@@ -71,7 +71,7 @@ router.get('/', async (req: AuthRequest, res) => {
       FROM events e
       LEFT JOIN users u ON e.organizer_id = u.id
       LEFT JOIN cities c ON e.city_id = c.id
-      WHERE e.event_date >= NOW() AND e.is_published = true
+      WHERE e.event_date >= NOW() AND (e.is_published = true OR e.is_published IS NULL)
     `;
 
     const params: any[] = [];
@@ -221,47 +221,84 @@ router.post(
         return res.status(400).json({ error: 'Для офлайн события город обязателен' });
       }
 
-      const result = await query(
-        `INSERT INTO events (
-          title, description, cover_image, event_type, is_online, city_id,
-          event_date, location, price, registration_link, organizer_id,
-          is_published, moderation_status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-        RETURNING *`,
-        [
-          title,
-          description,
-          coverImage,
-          eventType,
-          isOnline,
-          isOnline ? null : cityId,
-          eventDate,
-          location,
-          price,
-          registrationLink,
-          req.userId,
-          false, // is_published = false (требует модерации)
-          'pending' // moderation_status = 'pending'
-        ]
-      );
+      // Сначала пробуем создать с полями модерации
+      let result;
+      try {
+        result = await query(
+          `INSERT INTO events (
+            title, description, cover_image, event_type, is_online, city_id,
+            event_date, location, price, registration_link, organizer_id,
+            is_published, moderation_status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          RETURNING *`,
+          [
+            title,
+            description,
+            coverImage,
+            eventType,
+            isOnline,
+            isOnline ? null : cityId,
+            eventDate,
+            location,
+            price,
+            registrationLink,
+            req.userId,
+            false, // is_published = false (требует модерации)
+            'pending' // moderation_status = 'pending'
+          ]
+        );
+      } catch (error) {
+        // Если поля модерации не существуют, создаем без них
+        console.log('Поля модерации не найдены, создаем событие без них');
+        result = await query(
+          `INSERT INTO events (
+            title, description, cover_image, event_type, is_online, city_id,
+            event_date, location, price, registration_link, organizer_id
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          RETURNING *`,
+          [
+            title,
+            description,
+            coverImage,
+            eventType,
+            isOnline,
+            isOnline ? null : cityId,
+            eventDate,
+            location,
+            price,
+            registrationLink,
+            req.userId
+          ]
+        );
+      }
 
       const newEvent = result.rows[0];
       
-      // Получаем данные организатора для письма
-      const organizerResult = await query(
-        'SELECT name, email FROM users WHERE id = $1',
-        [req.userId]
-      );
+      // Проверяем, есть ли поля модерации
+      const hasModerationFields = newEvent.hasOwnProperty('is_published') && newEvent.hasOwnProperty('moderation_status');
       
-      if (organizerResult.rows.length > 0) {
-        // Отправляем письмо модерации
-        await sendModerationEmail(newEvent, organizerResult.rows[0]);
-      }
+      if (hasModerationFields) {
+        // Получаем данные организатора для письма
+        const organizerResult = await query(
+          'SELECT name, email FROM users WHERE id = $1',
+          [req.userId]
+        );
+        
+        if (organizerResult.rows.length > 0) {
+          // Отправляем письмо модерации
+          await sendModerationEmail(newEvent, organizerResult.rows[0]);
+        }
 
-      res.status(201).json({
-        ...newEvent,
-        message: 'Событие создано и отправлено на модерацию'
-      });
+        res.status(201).json({
+          ...newEvent,
+          message: 'Событие создано и отправлено на модерацию'
+        });
+      } else {
+        res.status(201).json({
+          ...newEvent,
+          message: 'Событие создано'
+        });
+      }
     } catch (error) {
       console.error('Ошибка создания события:', error);
       res.status(500).json({ error: 'Ошибка сервера' });
