@@ -95,9 +95,6 @@ const HomePage = () => {
             Нас уже более {expertsCount} экспертов
           </Paragraph>
         )}
-        <Paragraph style={{ color: 'rgba(43, 43, 43, 0.9)', fontSize: 16, maxWidth: 600, margin: '16px auto' }}>
-          Найдите своего эксперта, погрузитесь в мир духовных практик и начните путь к гармонии
-        </Paragraph>
       </div>
 
       <Tabs
