@@ -134,8 +134,24 @@ const HomePage = () => {
           activeKey={sortType}
           onChange={(key) => setSortType(key as 'new' | 'popular')}
           items={[
-            { key: 'new', label: '🆕 Новые статьи' },
-            { key: 'popular', label: '🔥 Популярные' }
+            { 
+              key: 'new', 
+              label: (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img src="/new.png" alt="Новые" style={{ width: 16, height: 16 }} />
+                  Новые статьи
+                </span>
+              )
+            },
+            { 
+              key: 'popular', 
+              label: (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img src="/fire.png" alt="Популярные" style={{ width: 16, height: 16 }} />
+                  Популярные
+                </span>
+              )
+            }
           ]}
           style={{ marginBottom: 0 }}
         />
