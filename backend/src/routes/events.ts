@@ -2,8 +2,38 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { query } from '../config/database';
 import { authenticateToken, requireExpert, AuthRequest } from '../middleware/auth';
+import emailjs from '@emailjs/browser';
 
 const router = express.Router();
+
+// Функция отправки письма модерации
+const sendModerationEmail = async (event: any, organizer: any) => {
+  try {
+    const approveUrl = `${process.env.FRONTEND_URL || 'https://soulsynergy.ru'}/api/events/approve/${event.id}`;
+    const rejectUrl = `${process.env.FRONTEND_URL || 'https://soulsynergy.ru'}/api/events/reject/${event.id}`;
+    
+    await emailjs.send(
+      process.env.EMAILJS_SERVICE_ID!,
+      process.env.EMAILJS_MODERATION_TEMPLATE_ID!,
+      {
+        event_title: event.title,
+        event_date: new Date(event.event_date).toLocaleString('ru-RU'),
+        event_location: event.is_online ? 'Онлайн' : event.location || 'Не указано',
+        organizer_name: organizer.name,
+        event_price: event.price || 'Бесплатно',
+        event_description: event.description || 'Описание не указано',
+        approve_url: approveUrl,
+        reject_url: rejectUrl
+      },
+      process.env.EMAILJS_PUBLIC_KEY!
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Ошибка отправки письма модерации:', error);
+    return false;
+  }
+};
 
 // Типы событий
 export const EVENT_TYPES = [
@@ -41,7 +71,7 @@ router.get('/', async (req: AuthRequest, res) => {
       FROM events e
       LEFT JOIN users u ON e.organizer_id = u.id
       LEFT JOIN cities c ON e.city_id = c.id
-      WHERE e.event_date >= NOW()
+      WHERE e.event_date >= NOW() AND e.is_published = true
     `;
 
     const params: any[] = [];
@@ -194,8 +224,9 @@ router.post(
       const result = await query(
         `INSERT INTO events (
           title, description, cover_image, event_type, is_online, city_id,
-          event_date, location, price, registration_link, organizer_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          event_date, location, price, registration_link, organizer_id,
+          is_published, moderation_status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING *`,
         [
           title,
@@ -208,11 +239,29 @@ router.post(
           location,
           price,
           registrationLink,
-          req.userId
+          req.userId,
+          false, // is_published = false (требует модерации)
+          'pending' // moderation_status = 'pending'
         ]
       );
 
-      res.status(201).json(result.rows[0]);
+      const newEvent = result.rows[0];
+      
+      // Получаем данные организатора для письма
+      const organizerResult = await query(
+        'SELECT name, email FROM users WHERE id = $1',
+        [req.userId]
+      );
+      
+      if (organizerResult.rows.length > 0) {
+        // Отправляем письмо модерации
+        await sendModerationEmail(newEvent, organizerResult.rows[0]);
+      }
+
+      res.status(201).json({
+        ...newEvent,
+        message: 'Событие создано и отправлено на модерацию'
+      });
     } catch (error) {
       console.error('Ошибка создания события:', error);
       res.status(500).json({ error: 'Ошибка сервера' });

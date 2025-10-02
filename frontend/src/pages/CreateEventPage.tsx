@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { EVENT_TYPES } from './EventsPage';
+import ModerationNotification from '../components/ModerationNotification';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -31,6 +32,8 @@ const CreateEventPage = () => {
   const [isOnline, setIsOnline] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [moderationStatus, setModerationStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
+  const [moderationReason, setModerationReason] = useState('');
 
   useEffect(() => {
     if (user?.userType !== 'expert') {
@@ -61,6 +64,8 @@ const CreateEventPage = () => {
 
       setIsOnline(event.is_online);
       setCoverImageUrl(event.cover_image || '');
+      setModerationStatus(event.moderation_status || null);
+      setModerationReason(event.moderation_reason || '');
 
       form.setFieldsValue({
         title: event.title,
@@ -129,8 +134,9 @@ const CreateEventPage = () => {
         await api.put(`/events/${id}`, eventData);
         message.success('Событие обновлено');
       } else {
-        await api.post('/events', eventData);
-        message.success('Событие создано');
+        const response = await api.post('/events', eventData);
+        message.success('Событие создано и отправлено на модерацию');
+        setModerationStatus('pending');
       }
 
       navigate('/events');
@@ -155,6 +161,15 @@ const CreateEventPage = () => {
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
       <Card>
         <Title level={2}>{id ? 'Редактировать событие' : 'Создать событие'}</Title>
+
+        {moderationStatus && (
+          <ModerationNotification
+            eventId={id || 0}
+            status={moderationStatus}
+            reason={moderationReason}
+            onStatusChange={setModerationStatus}
+          />
+        )}
 
         <Form
           form={form}

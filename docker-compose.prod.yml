@@ -32,6 +32,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-this-secret-key-in-production}
       PORT: 3001
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      EMAILJS_SERVICE_ID: ${EMAILJS_SERVICE_ID}
+      EMAILJS_PUBLIC_KEY: ${EMAILJS_PUBLIC_KEY}
+      EMAILJS_MODERATION_TEMPLATE_ID: ${EMAILJS_MODERATION_TEMPLATE_ID}
     volumes:
       - uploads_data:/app/uploads
     depends_on:
@@ -56,6 +59,7 @@ services:
         - VITE_EMAILJS_PUBLIC_KEY=${VITE_EMAILJS_PUBLIC_KEY}
         - VITE_EMAILJS_VERIFICATION_TEMPLATE_ID=${VITE_EMAILJS_VERIFICATION_TEMPLATE_ID}
         - VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID=${VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID}
+        - VITE_EMAILJS_MODERATION_TEMPLATE_ID=${VITE_EMAILJS_MODERATION_TEMPLATE_ID}
     container_name: synergy-frontend
     restart: unless-stopped
     ports:

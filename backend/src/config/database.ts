@@ -198,6 +198,12 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_link TEXT`);
     await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS organizer_id INTEGER REFERENCES users(id) ON DELETE CASCADE`);
     
+    // Поля для модерации событий
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderation_status VARCHAR(20) DEFAULT 'pending'`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderation_reason TEXT`);
+    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderated_at TIMESTAMP`);
+    
     // Переименовываем старые колонки если они есть
     await query(`ALTER TABLE events DROP COLUMN IF EXISTS author_id`);
     await query(`ALTER TABLE events DROP COLUMN IF EXISTS content`);
