@@ -276,7 +276,17 @@ const HomePage = () => {
             type="primary"
             icon={<FilterOutlined />}
             onClick={() => navigate('/experts')}
-            className="home-filter-button"
+            style={{
+              height: 32,
+              width: 32,
+              borderRadius: 16,
+              background: 'rgba(99, 102, 241, 0.9)',
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
           />
         </div>
       </div>

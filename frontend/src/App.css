@@ -231,12 +231,12 @@ body {
 
 .home-search-input {
   flex: 1;
-  height: 48px;
-  border-radius: 24px;
+  height: 32px;
+  border-radius: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.9);
   font-size: 16px;
-  padding: 0 20px;
+  padding: 0 16px;
 }
 
 .home-search-input:focus {
@@ -245,12 +245,15 @@ body {
 }
 
 .home-filter-button {
-  height: 48px;
-  width: 48px;
-  border-radius: 24px;
+  height: 32px;
+  width: 32px;
+  border-radius: 16px;
   background: rgba(99, 102, 241, 0.9);
   border: none;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .home-filter-button:hover {
@@ -272,7 +275,8 @@ body {
   }
   
   .home-filter-button {
-    width: 100%;
-    max-width: 200px;
+    width: 32px;
+    height: 32px;
+    align-self: center;
   }
 }
