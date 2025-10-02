@@ -54,6 +54,8 @@ export const EVENT_TYPES = [
 // Получить список событий с фильтрами
 router.get('/', async (req: AuthRequest, res) => {
   try {
+    console.log('🔍 Запрос событий:', req.query);
+    
     const {
       isOnline,
       cityId,
@@ -71,7 +73,7 @@ router.get('/', async (req: AuthRequest, res) => {
       FROM events e
       LEFT JOIN users u ON e.organizer_id = u.id
       LEFT JOIN cities c ON e.city_id = c.id
-      WHERE e.event_date >= NOW() AND (e.is_published = true OR e.is_published IS NULL)
+      WHERE e.event_date >= NOW()
     `;
 
     const params: any[] = [];
@@ -119,7 +121,12 @@ router.get('/', async (req: AuthRequest, res) => {
     // Сортировка по дате (ближайшие первыми)
     queryText += ` ORDER BY e.event_date ASC`;
 
+    console.log('📝 SQL запрос:', queryText);
+    console.log('📝 Параметры:', params);
+    
     const result = await query(queryText, params);
+    console.log('✅ Найдено событий:', result.rows.length);
+    
     res.json(result.rows);
   } catch (error) {
     console.error('Ошибка получения событий:', error);
