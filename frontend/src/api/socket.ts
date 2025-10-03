@@ -9,6 +9,9 @@ class SocketService {
       ? window.location.origin 
       : 'http://localhost:3001';
     
+    console.log('🔌 Подключаемся к WebSocket:', socketUrl);
+    console.log('🔑 Токен:', token ? 'есть' : 'нет');
+    
     this.socket = io(socketUrl, {
       auth: { token }
     });
@@ -19,6 +22,10 @@ class SocketService {
 
     this.socket.on('disconnect', () => {
       console.log('❌ Отключено от WebSocket');
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('❌ Ошибка подключения к WebSocket:', error);
     });
 
     return this.socket;
@@ -44,10 +51,12 @@ class SocketService {
   }
 
   onNewMessage(callback: (message: any) => void) {
+    console.log('📨 Регистрируем обработчик new_message');
     this.socket?.on('new_message', callback);
   }
 
   offNewMessage() {
+    console.log('📨 Удаляем обработчик new_message');
     this.socket?.off('new_message');
   }
 

@@ -23,7 +23,7 @@ const { Header: AntHeader } = Layout;
 
 const Header = () => {
   const { user, logout } = useAuth();
-  const { unreadCount, markAsRead } = useNotifications();
+  const { unreadCount, markAsRead, testNotification } = useNotifications();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -274,6 +274,16 @@ const Header = () => {
                     style={{ fontSize: '18px' }}
                   />
                 </Badge>
+                {/* Тестовая кнопка для проверки уведомлений - только в разработке */}
+                {import.meta.env.DEV && (
+                  <Button
+                    type="text"
+                    onClick={testNotification}
+                    style={{ fontSize: '12px', color: '#ff4d4f' }}
+                  >
+                    🧪 Тест
+                  </Button>
+                )}
                 <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                   <Avatar
                     src={user.avatarUrl}
