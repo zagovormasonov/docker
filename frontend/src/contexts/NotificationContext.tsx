@@ -94,7 +94,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       console.log('🔌 Отключаемся от WebSocket');
       socketService.offNewMessage();
     };
-  }, [user]);
+  }, [user?.id]); // Изменили зависимость на user.id вместо всего объекта user
 
   // Запрос разрешения на уведомления
   useEffect(() => {

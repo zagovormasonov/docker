@@ -27,7 +27,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
               END as other_user_online,
               (SELECT content FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
               (SELECT created_at FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_time,
-              (SELECT sender_id FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_sender_id
+              (SELECT sender_id FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_sender_id,
+              (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND sender_id != $1 AND is_read = false) as unread_count
        FROM chats c
        JOIN users u1 ON c.user1_id = u1.id
        JOIN users u2 ON c.user2_id = u2.id
@@ -111,6 +112,34 @@ router.post('/mark-all-read', authenticateToken, async (req: AuthRequest, res) =
     res.json({ message: 'Все сообщения отмечены как прочитанные' });
   } catch (error) {
     console.error('Ошибка отметки сообщений как прочитанных:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Отметить сообщения конкретного чата как прочитанные
+router.post('/:chatId/mark-read', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { chatId } = req.params;
+    
+    // Проверяем, что пользователь имеет доступ к чату
+    const chatCheck = await query(
+      'SELECT id FROM chats WHERE id = $1 AND (user1_id = $2 OR user2_id = $2)',
+      [chatId, req.userId]
+    );
+    
+    if (chatCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Нет доступа к чату' });
+    }
+    
+    await query(
+      `UPDATE messages SET is_read = true 
+       WHERE chat_id = $1 AND sender_id != $2`,
+      [chatId, req.userId]
+    );
+
+    res.json({ message: 'Сообщения чата отмечены как прочитанные' });
+  } catch (error) {
+    console.error('Ошибка отметки сообщений чата как прочитанных:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });

@@ -31,6 +31,7 @@ interface Chat {
   last_message?: string;
   last_message_time?: string;
   last_message_sender_id?: number;
+  unread_count?: number;
 }
 
 interface Message {
@@ -70,15 +71,19 @@ const ChatsPage = () => {
   }, [selectedChat]);
 
   useEffect(() => {
-    socketService.onNewMessage((message) => {
+    const handleNewMessage = (message: any) => {
+      console.log('📨 Получено новое сообщение в ChatsPage:', message);
+      
       if (message.chat_id === selectedChat) {
         setMessages((prev) => [...prev, message]);
         scrollToBottom();
       }
       
-      // Обновить список чатов
+      // Обновить список чатов для показа новых непрочитанных сообщений
       fetchChats();
-    });
+    };
+
+    socketService.onNewMessage(handleNewMessage);
 
     return () => {
       socketService.offNewMessage();
@@ -104,6 +109,15 @@ const ChatsPage = () => {
     try {
       const response = await api.get(`/chats/${chatId}/messages`);
       setMessages(response.data);
+      
+      // Отмечаем сообщения как прочитанные при входе в чат
+      try {
+        await api.post(`/chats/${chatId}/mark-read`);
+        // Обновляем список чатов для обновления счетчиков
+        fetchChats();
+      } catch (error) {
+        console.error('Ошибка отметки сообщений как прочитанных:', error);
+      }
     } catch (error) {
       console.error('Ошибка загрузки сообщений:', error);
     }
@@ -143,7 +157,12 @@ const ChatsPage = () => {
                 >
                   <List.Item.Meta
                     avatar={
-                      <Badge dot={chat.other_user_online} color="green">
+                      <Badge 
+                        dot={chat.other_user_online} 
+                        color="green"
+                        count={chat.unread_count && chat.unread_count > 0 ? chat.unread_count : 0}
+                        offset={[-5, 5]}
+                      >
                         <Avatar
                           src={chat.other_user_avatar}
                           icon={!chat.other_user_avatar && <UserOutlined />}
@@ -162,9 +181,18 @@ const ChatsPage = () => {
                       </div>
                     }
                     description={
-                      <Text ellipsis type="secondary">
-                        {chat.last_message || 'Нет сообщений'}
-                      </Text>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text ellipsis type="secondary" style={{ flex: 1 }}>
+                          {chat.last_message || 'Нет сообщений'}
+                        </Text>
+                        {chat.unread_count && chat.unread_count > 0 && (
+                          <Badge 
+                            count={chat.unread_count} 
+                            size="small" 
+                            style={{ marginLeft: 8 }}
+                          />
+                        )}
+                      </div>
                     }
                   />
                   {chat.last_message_time && (
