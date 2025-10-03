@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input, AutoComplete, List } from 'antd';
-import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, FilterOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input } from 'antd';
+import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import dayjs from 'dayjs';
@@ -25,15 +25,6 @@ interface Article {
   created_at: string;
 }
 
-interface SearchArticle {
-  id: number;
-  title: string;
-  author_name: string;
-  author_avatar?: string;
-  created_at: string;
-  views: number;
-  likes_count: number;
-}
 
 const HomePage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -41,9 +32,7 @@ const HomePage = () => {
   const [sortType, setSortType] = useState<'new' | 'popular'>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<SearchArticle[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const searchTimeoutRef = useRef<number | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -52,6 +41,18 @@ const HomePage = () => {
     fetchArticles();
     fetchExpertsCount();
   }, [sortType]);
+
+  // Фильтрация статей при изменении поискового запроса
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredArticles(articles);
+    } else {
+      const filtered = articles.filter(article => 
+        article.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredArticles(filtered);
+    }
+  }, [searchQuery, articles]);
 
   // Очистка таймаута при размонтировании
   useEffect(() => {
@@ -66,10 +67,13 @@ const HomePage = () => {
     setLoading(true);
     try {
       const response = await api.get(`/articles?sort=${sortType}`);
-      setArticles(response.data || []);
+      const articlesData = response.data || [];
+      setArticles(articlesData);
+      setFilteredArticles(articlesData);
     } catch (error) {
       console.error('Ошибка загрузки статей:', error);
       setArticles([]);
+      setFilteredArticles([]);
     } finally {
       setLoading(false);
     }
@@ -85,39 +89,8 @@ const HomePage = () => {
     }
   };
 
-  const searchArticles = async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      setShowDropdown(false);
-      return;
-    }
-
-    setSearchLoading(true);
-    try {
-      const response = await api.get(`/articles/search?search=${encodeURIComponent(query.trim())}`);
-      setSearchResults(response.data || []);
-      setShowDropdown(true);
-    } catch (error) {
-      console.error('Ошибка поиска статей:', error);
-      setSearchResults([]);
-      setShowDropdown(true);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    
-    // Очищаем предыдущий таймаут
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    // Устанавливаем новый таймаут для поиска
-    searchTimeoutRef.current = setTimeout(() => {
-      searchArticles(value);
-    }, 300); // Поиск через 300мс после остановки ввода
   };
 
   const stripHtml = (html: string) => {
@@ -158,110 +131,14 @@ const HomePage = () => {
         )}
         
         {/* Поисковая строка */}
-        <div className="home-search-container" style={{ position: 'relative' }}>
-          <AutoComplete
+        <div className="home-search-container">
+          <Input
+            placeholder="Поиск статей по заголовку..."
+            prefix={<SearchOutlined style={{ color: 'rgba(43, 43, 43, 0.6)' }} />}
             value={searchQuery}
-            onChange={handleSearchChange}
-            onSearch={searchArticles}
-            onBlur={() => {
-              // Закрываем выпадающий список через небольшую задержку
-              setTimeout(() => setShowDropdown(false), 200);
-            }}
-            onFocus={() => {
-              if (searchQuery.trim() && searchResults.length > 0) {
-                setShowDropdown(true);
-              }
-            }}
-            options={[]}
-            style={{ width: '100%' }}
-            dropdownStyle={{ display: 'none' }} // Скрываем стандартный dropdown
-          >
-            <Input
-              placeholder="Поиск статей по заголовку..."
-              prefix={<SearchOutlined style={{ color: 'rgba(43, 43, 43, 0.6)' }} />}
-              suffix={searchLoading ? <Spin size="small" /> : null}
-              className="home-search-input"
-            />
-          </AutoComplete>
-          
-          {/* Кастомный выпадающий список */}
-          {showDropdown && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              background: 'white',
-              border: '1px solid #d9d9d9',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              zIndex: 1000,
-              maxHeight: '300px',
-              overflowY: 'auto'
-            }}>
-              {searchResults.length > 0 ? (
-                <List
-                  dataSource={searchResults}
-                  renderItem={(article) => (
-                    <List.Item
-                      style={{
-                        padding: '12px 16px',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #f0f0f0'
-                      }}
-                      onClick={() => {
-                        navigate(`/articles/${article.id}`);
-                        setShowDropdown(false);
-                        setSearchQuery('');
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#f5f5f5';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'white';
-                      }}
-                    >
-                      <List.Item.Meta
-                        avatar={
-                          <Avatar 
-                            src={article.author_avatar} 
-                            icon={!article.author_avatar && <UserOutlined />}
-                            size="large"
-                          />
-                        }
-                        title={
-                          <div style={{ fontWeight: 500, color: '#1d1d1f' }}>
-                            {article.title}
-                          </div>
-                        }
-                        description={
-                          <div>
-                            <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>
-                              👤 {article.author_name}
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#86868b' }}>
-                              <span>👁️ {article.views}</span>
-                              <span>❤️ {article.likes_count}</span>
-                              <span>📅 {dayjs(article.created_at).format('DD.MM.YYYY')}</span>
-                            </div>
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              ) : searchQuery.trim() && !searchLoading ? (
-                <div style={{
-                  padding: '20px',
-                  textAlign: 'center',
-                  color: '#86868b'
-                }}>
-                  Статьи не найдены
-                </div>
-              ) : null}
-            </div>
-          )}
-          
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="home-search-input"
+          />
         </div>
       </div>
 
@@ -322,9 +199,15 @@ const HomePage = () => {
         <div style={{ textAlign: 'center', padding: 60 }}>
           <Spin size="large" />
         </div>
+      ) : filteredArticles.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 60 }}>
+          <Text type="secondary">
+            {searchQuery.trim() ? 'Статьи не найдены по вашему запросу' : 'Статьи не найдены'}
+          </Text>
+        </div>
       ) : (
         <Row gutter={[24, 24]}>
-          {articles.map((article) => (
+          {filteredArticles.map((article) => (
             <Col xs={24} sm={12} lg={8} key={article.id}>
               <Card
                 hoverable
