@@ -248,14 +248,18 @@ const ChatsPage = () => {
             borderBottom: '1px solid #f0f0f0',
             display: 'flex',
             alignItems: 'center',
-            gap: 12
+            gap: 12,
+            position: 'sticky',
+            top: 0,
+            backgroundColor: 'white',
+            zIndex: 10
           }}>
             <Button 
               icon={<ArrowLeftOutlined />} 
               onClick={handleBackToChatList}
               type="text"
             />
-            <Text strong>Чат</Text>
+            <Text strong>Чаты</Text>
           </div>
           
           <div
