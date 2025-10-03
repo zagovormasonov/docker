@@ -25,13 +25,14 @@ interface Article {
   created_at: string;
 }
 
-interface Expert {
+interface SearchArticle {
   id: number;
-  name: string;
-  avatar_url?: string;
-  bio?: string;
-  city?: string;
-  topics: string[];
+  title: string;
+  author_name: string;
+  author_avatar?: string;
+  created_at: string;
+  views: number;
+  likes_count: number;
 }
 
 const HomePage = () => {
@@ -40,7 +41,7 @@ const HomePage = () => {
   const [sortType, setSortType] = useState<'new' | 'popular'>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<Expert[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchArticle[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const searchTimeoutRef = useRef<number | null>(null);
@@ -84,7 +85,7 @@ const HomePage = () => {
     }
   };
 
-  const searchExperts = async (query: string) => {
+  const searchArticles = async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
       setShowDropdown(false);
@@ -93,11 +94,11 @@ const HomePage = () => {
 
     setSearchLoading(true);
     try {
-      const response = await api.get(`/experts/search?search=${encodeURIComponent(query.trim())}`);
+      const response = await api.get(`/articles/search?search=${encodeURIComponent(query.trim())}`);
       setSearchResults(response.data || []);
       setShowDropdown(true);
     } catch (error) {
-      console.error('Ошибка поиска экспертов:', error);
+      console.error('Ошибка поиска статей:', error);
       setSearchResults([]);
       setShowDropdown(true);
     } finally {
@@ -115,7 +116,7 @@ const HomePage = () => {
 
     // Устанавливаем новый таймаут для поиска
     searchTimeoutRef.current = setTimeout(() => {
-      searchExperts(value);
+      searchArticles(value);
     }, 300); // Поиск через 300мс после остановки ввода
   };
 
@@ -161,7 +162,7 @@ const HomePage = () => {
           <AutoComplete
             value={searchQuery}
             onChange={handleSearchChange}
-            onSearch={searchExperts}
+            onSearch={searchArticles}
             onBlur={() => {
               // Закрываем выпадающий список через небольшую задержку
               setTimeout(() => setShowDropdown(false), 200);
@@ -176,7 +177,7 @@ const HomePage = () => {
             dropdownStyle={{ display: 'none' }} // Скрываем стандартный dropdown
           >
             <Input
-              placeholder="Поиск экспертов по имени или специализации..."
+              placeholder="Поиск статей по заголовку..."
               prefix={<SearchOutlined style={{ color: 'rgba(43, 43, 43, 0.6)' }} />}
               suffix={searchLoading ? <Spin size="small" /> : null}
               className="home-search-input"
@@ -201,7 +202,7 @@ const HomePage = () => {
               {searchResults.length > 0 ? (
                 <List
                   dataSource={searchResults}
-                  renderItem={(expert) => (
+                  renderItem={(article) => (
                     <List.Item
                       style={{
                         padding: '12px 16px',
@@ -209,7 +210,7 @@ const HomePage = () => {
                         borderBottom: '1px solid #f0f0f0'
                       }}
                       onClick={() => {
-                        navigate(`/experts/${expert.id}`);
+                        navigate(`/articles/${article.id}`);
                         setShowDropdown(false);
                         setSearchQuery('');
                       }}
@@ -223,37 +224,26 @@ const HomePage = () => {
                       <List.Item.Meta
                         avatar={
                           <Avatar 
-                            src={expert.avatar_url} 
-                            icon={!expert.avatar_url && <UserOutlined />}
+                            src={article.author_avatar} 
+                            icon={!article.author_avatar && <UserOutlined />}
                             size="large"
                           />
                         }
                         title={
                           <div style={{ fontWeight: 500, color: '#1d1d1f' }}>
-                            {expert.name}
+                            {article.title}
                           </div>
                         }
                         description={
                           <div>
-                            {expert.city && (
-                              <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>
-                                📍 {expert.city}
-                              </div>
-                            )}
-                            {expert.topics && expert.topics.length > 0 && (
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                {expert.topics.slice(0, 3).map((topic, index) => (
-                                  <Tag key={index} color="blue">
-                                    {topic}
-                                  </Tag>
-                                ))}
-                                {expert.topics.length > 3 && (
-                                  <Tag color="default">
-                                    +{expert.topics.length - 3}
-                                  </Tag>
-                                )}
-                              </div>
-                            )}
+                            <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>
+                              👤 {article.author_name}
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#86868b' }}>
+                              <span>👁️ {article.views}</span>
+                              <span>❤️ {article.likes_count}</span>
+                              <span>📅 {dayjs(article.created_at).format('DD.MM.YYYY')}</span>
+                            </div>
                           </div>
                         }
                       />
@@ -266,28 +256,12 @@ const HomePage = () => {
                   textAlign: 'center',
                   color: '#86868b'
                 }}>
-                  Эксперты не найдены
+                  Статьи не найдены
                 </div>
               ) : null}
             </div>
           )}
           
-          <Button
-            type="primary"
-            icon={<FilterOutlined />}
-            onClick={() => navigate('/experts')}
-            style={{
-              height: 32,
-              width: 32,
-              borderRadius: 16,
-              background: 'rgba(99, 102, 241, 0.9)',
-              border: 'none',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          />
         </div>
       </div>
 

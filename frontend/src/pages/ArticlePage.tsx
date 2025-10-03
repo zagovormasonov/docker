@@ -255,6 +255,49 @@ const ArticlePage = () => {
           }}
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
+
+        <Divider />
+
+        {/* Лайки и избранное в конце статьи */}
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '24px 0',
+          background: '#fafafa',
+          borderRadius: 8,
+          marginTop: 24
+        }}>
+          <Text strong style={{ fontSize: 16, marginBottom: 16, display: 'block' }}>
+            Понравилась статья? Поделитесь своими эмоциями!
+          </Text>
+          <Space size="large">
+            <Button
+              size="large"
+              icon={liked ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
+              onClick={handleLike}
+              style={{ 
+                height: 48,
+                padding: '0 24px',
+                fontSize: 16,
+                fontWeight: 500
+              }}
+            >
+              {liked ? 'Лайкнуто' : 'Лайк'} ({likesCount})
+            </Button>
+            <Button
+              size="large"
+              icon={favorited ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+              onClick={handleFavorite}
+              style={{ 
+                height: 48,
+                padding: '0 24px',
+                fontSize: 16,
+                fontWeight: 500
+              }}
+            >
+              {favorited ? 'В избранном' : 'В избранное'}
+            </Button>
+          </Space>
+        </div>
       </Card>
     </div>
   );

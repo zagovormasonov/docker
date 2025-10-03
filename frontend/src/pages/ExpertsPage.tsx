@@ -150,47 +150,70 @@ const ExpertsPage = () => {
               <Card
                 hoverable
                 onClick={() => navigate(`/experts/${expert.id}`)}
+                style={{ 
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+                bodyStyle={{ 
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
               >
-                <Meta
-                  avatar={
-                    <Avatar
-                      size={64}
-                      src={expert.avatar_url}
-                      icon={!expert.avatar_url && <UserOutlined />}
-                      style={{ backgroundColor: '#6366f1' }}
-                    />
-                  }
-                  title={
-                    <Space direction="vertical" size={4}>
-                      <Title level={4} style={{ margin: 0 }}>{expert.name}</Title>
-                      {expert.city && (
-                        <Text type="secondary">
-                          <EnvironmentOutlined /> {expert.city}
-                        </Text>
-                      )}
-                    </Space>
-                  }
-                  description={
-                    <Space direction="vertical" size={12} style={{ width: '100%', marginTop: 12 }}>
-                      {expert.bio && (
-                        <Text type="secondary" ellipsis={{ tooltip: expert.bio }}>
-                          {expert.bio}
-                        </Text>
-                      )}
-                      
-                      {expert.topics && expert.topics.length > 0 && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                          {expert.topics.slice(0, 3).map((topic, index) => (
-                            <Tag key={index} color="purple">{topic}</Tag>
-                          ))}
-                          {expert.topics.length > 3 && (
-                            <Tag>+{expert.topics.length - 3}</Tag>
-                          )}
-                        </div>
-                      )}
-                    </Space>
-                  }
-                />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Meta
+                    avatar={
+                      <Avatar
+                        size={64}
+                        src={expert.avatar_url}
+                        icon={!expert.avatar_url && <UserOutlined />}
+                        style={{ backgroundColor: '#6366f1' }}
+                      />
+                    }
+                    title={
+                      <Space direction="vertical" size={4}>
+                        <Title level={4} style={{ margin: 0 }}>{expert.name}</Title>
+                        {expert.city && (
+                          <Text type="secondary">
+                            <EnvironmentOutlined /> {expert.city}
+                          </Text>
+                        )}
+                      </Space>
+                    }
+                    description={
+                      <Space direction="vertical" size={12} style={{ width: '100%', marginTop: 12, flex: 1 }}>
+                        {expert.bio && (
+                          <Text 
+                            type="secondary" 
+                            style={{ 
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              lineHeight: '1.4',
+                              height: '2.8em'
+                            }}
+                            title={expert.bio}
+                          >
+                            {expert.bio}
+                          </Text>
+                        )}
+                        
+                        {expert.topics && expert.topics.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 'auto' }}>
+                            {expert.topics.slice(0, 2).map((topic, index) => (
+                              <Tag key={index} color="purple">{topic}</Tag>
+                            ))}
+                            {expert.topics.length > 2 && (
+                              <Tag>+{expert.topics.length - 2}</Tag>
+                            )}
+                          </div>
+                        )}
+                      </Space>
+                    }
+                  />
+                </div>
               </Card>
             </Col>
           ))}

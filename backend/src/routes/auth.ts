@@ -25,14 +25,24 @@ router.post(
     try {
       const { email, password, name, userType } = req.body;
 
-      // Проверка существования пользователя
-      const existingUser = await query(
+      // Проверка существования пользователя по email
+      const existingUserByEmail = await query(
         'SELECT id FROM users WHERE email = $1',
         [email]
       );
 
-      if (existingUser.rows.length > 0) {
-        return res.status(400).json({ error: 'Пользователь уже существует' });
+      if (existingUserByEmail.rows.length > 0) {
+        return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
+      }
+
+      // Проверка существования пользователя по имени
+      const existingUserByName = await query(
+        'SELECT id FROM users WHERE name = $1',
+        [name]
+      );
+
+      if (existingUserByName.rows.length > 0) {
+        return res.status(400).json({ error: 'Пользователь с таким именем уже существует' });
       }
 
       // Хеширование пароля
@@ -291,6 +301,61 @@ router.post('/reset-password', async (req, res) => {
     });
   } catch (error) {
     console.error('Ошибка сброса пароля:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Ручная верификация email (для админа)
+router.post('/verify-email-manual', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email обязателен' });
+    }
+    
+    // Проверяем существование пользователя
+    const userResult = await query(
+      'SELECT id, name, email, email_verified FROM users WHERE email = $1',
+      [email]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+    
+    const user = userResult.rows[0];
+    
+    if (user.email_verified) {
+      return res.json({ 
+        message: 'Email уже подтвержден',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          email_verified: user.email_verified
+        }
+      });
+    }
+    
+    // Обновляем статус верификации
+    await query(
+      'UPDATE users SET email_verified = true WHERE email = $1',
+      [email]
+    );
+    
+    res.json({ 
+      message: 'Email успешно подтвержден',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        email_verified: true
+      }
+    });
+    
+  } catch (error) {
+    console.error('Ошибка ручной верификации email:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });

@@ -45,6 +45,33 @@ router.get('/author/:authorId', async (req, res) => {
   }
 });
 
+// Поиск статей по заголовку
+router.get('/search', async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    if (!search || typeof search !== 'string' || !search.trim()) {
+      return res.json([]);
+    }
+
+    const result = await query(
+      `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
+       COALESCE(a.likes_count, 0) as likes_count
+       FROM articles a
+       JOIN users u ON a.author_id = u.id
+       WHERE a.is_published = true AND a.title ILIKE $1
+       ORDER BY a.created_at DESC
+       LIMIT 10`,
+      [`%${search.trim()}%`]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Ошибка поиска статей:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Получение всех опубликованных статей
 router.get('/', async (req, res) => {
   try {

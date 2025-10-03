@@ -60,6 +60,18 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const { name, bio, city, avatarUrl, vkUrl, telegramUrl, instagramUrl, whatsapp, consultationTypes } = req.body;
 
+    // Проверка уникальности имени (если имя изменилось)
+    if (name) {
+      const existingUserByName = await query(
+        'SELECT id FROM users WHERE name = $1 AND id != $2',
+        [name, req.userId]
+      );
+
+      if (existingUserByName.rows.length > 0) {
+        return res.status(400).json({ error: 'Пользователь с таким именем уже существует' });
+      }
+    }
+
     await query(
       `UPDATE users 
        SET name = COALESCE($1, name), 
