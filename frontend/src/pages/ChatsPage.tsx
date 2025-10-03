@@ -215,12 +215,15 @@ const ChatsPage = () => {
               <>
                 <div
                   style={{
-                    flex: 1,
+                    height: '400px', // Фиксированная высота
                     overflowY: 'auto',
                     padding: 24,
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 16
+                    gap: 16,
+                    border: '1px solid #d9d9d9',
+                    borderRadius: 8,
+                    margin: 16
                   }}
                 >
                   {messages.map((message) => (

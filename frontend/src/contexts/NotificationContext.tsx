@@ -46,19 +46,19 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     // Слушаем новые сообщения через Socket.IO
     const handleNewMessage = (message: any) => {
       console.log('📨 Получено новое сообщение:', message);
-      console.log('👤 Текущий пользователь:', user);
       
       // Проверяем, что сообщение не от текущего пользователя
       if (message.sender_id !== user.id) {
         console.log('✅ Показываем уведомление для сообщения от другого пользователя');
         
-        // Обновляем счетчик
+        // Мгновенно обновляем счетчик
         setUnreadCount(prev => prev + 1);
+        
+        // Воспроизводим звук
         playNotificationSound();
         
         // Показываем уведомление в браузере
         if ('Notification' in window && Notification.permission === 'granted') {
-          console.log('🔔 Показываем браузерное уведомление');
           new Notification(`💬 ${message.sender_name}`, {
             body: `${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`,
             icon: '/logo.png',
@@ -66,12 +66,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
             requireInteraction: false,
             silent: false
           });
-        } else {
-          console.log('❌ Браузерные уведомления не разрешены');
         }
 
         // Показываем Ant Design уведомление
-        console.log('📱 Показываем Ant Design уведомление');
         antMessage.info({
           content: `💬 Новое сообщение от ${message.sender_name}`,
           duration: 4,
@@ -79,12 +76,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
             marginTop: '20px'
           }
         });
-      } else {
-        console.log('❌ Сообщение от текущего пользователя, уведомление не показываем');
+        
+        // Обновляем счетчик с сервера для точности
+        fetchUnreadCount();
       }
-      
-      // Обновляем счетчик непрочитанных сообщений с сервера
-      fetchUnreadCount();
     };
 
     console.log('🔌 Подключаемся к WebSocket для уведомлений');
@@ -166,8 +161,8 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       fetchUnreadCount();
       
-      // Периодически обновляем счетчик каждые 30 секунд
-      const interval = setInterval(fetchUnreadCount, 30000);
+      // Периодически обновляем счетчик каждые 10 секунд (уменьшили с 30)
+      const interval = setInterval(fetchUnreadCount, 10000);
       
       return () => clearInterval(interval);
     }
