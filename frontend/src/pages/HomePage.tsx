@@ -113,7 +113,7 @@ const HomePage = () => {
           SoulSynergy
         </Title>
         <Title level={3} style={{ color: 'rgba(43, 43, 43, 0.9)', fontWeight: 400 }}>
-          Платформа для духовных мастеров
+          Экосистема для тех, кто ищет свой путь
         </Title>
         {/* {expertsCount > 0 && (
           <Paragraph style={{ 
