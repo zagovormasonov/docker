@@ -96,6 +96,25 @@ router.get('/unread-count', authenticateToken, async (req: AuthRequest, res) => 
   }
 });
 
+// Отметить все сообщения как прочитанные
+router.post('/mark-all-read', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    await query(
+      `UPDATE messages SET is_read = true 
+       FROM chats c
+       WHERE messages.chat_id = c.id 
+       AND messages.sender_id != $1
+       AND (c.user1_id = $1 OR c.user2_id = $1)`,
+      [req.userId]
+    );
+
+    res.json({ message: 'Все сообщения отмечены как прочитанные' });
+  } catch (error) {
+    console.error('Ошибка отметки сообщений как прочитанных:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Получение сообщений чата
 router.get('/:chatId/messages', authenticateToken, async (req: AuthRequest, res) => {
   try {

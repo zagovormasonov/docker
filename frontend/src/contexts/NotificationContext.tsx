@@ -44,6 +44,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const handleNewMessage = (message: any) => {
       // Проверяем, что сообщение не от текущего пользователя
       if (message.sender_id !== user.id) {
+        // Обновляем счетчик
         setUnreadCount(prev => prev + 1);
         playNotificationSound();
         
@@ -67,6 +68,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
           }
         });
       }
+      
+      // Обновляем счетчик непрочитанных сообщений с сервера
+      fetchUnreadCount();
     };
 
     socketService.onNewMessage(handleNewMessage);
@@ -102,14 +106,27 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const markAsRead = () => {
+  const markAsRead = async () => {
     setUnreadCount(0);
+    // Также обновляем счетчик на сервере
+    if (user) {
+      try {
+        await api.post('/chats/mark-all-read');
+      } catch (error) {
+        console.error('Ошибка отметки сообщений как прочитанных:', error);
+      }
+    }
   };
 
   // Загружаем количество непрочитанных сообщений при входе пользователя
   useEffect(() => {
     if (user) {
       fetchUnreadCount();
+      
+      // Периодически обновляем счетчик каждые 30 секунд
+      const interval = setInterval(fetchUnreadCount, 30000);
+      
+      return () => clearInterval(interval);
     }
   }, [user]);
 

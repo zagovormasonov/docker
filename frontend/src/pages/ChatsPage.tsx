@@ -47,7 +47,7 @@ interface Message {
 const ChatsPage = () => {
   const { chatId } = useParams();
   const { user } = useAuth();
-  const { fetchUnreadCount } = useNotifications();
+  const { fetchUnreadCount, markAsRead } = useNotifications();
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<number | null>(
     chatId ? parseInt(chatId) : null
@@ -58,6 +58,8 @@ const ChatsPage = () => {
 
   useEffect(() => {
     fetchChats();
+    // Сбрасываем счетчик непрочитанных сообщений при входе в чаты
+    markAsRead();
   }, []);
 
   useEffect(() => {
