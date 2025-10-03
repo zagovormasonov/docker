@@ -30,24 +30,66 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const createNotificationSound = () => {
     console.log('🔊 Пытаемся воспроизвести звук уведомления');
     
+    // Проверяем доступность файла
+    fetch('/notificate.mp3', { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) {
+          console.log('✅ Файл notificate.mp3 найден');
+          playAudioFile();
+        } else {
+          console.error('❌ Файл notificate.mp3 не найден, статус:', response.status);
+          playFallbackSound();
+        }
+      })
+      .catch(error => {
+        console.error('❌ Ошибка проверки файла:', error);
+        playFallbackSound();
+      });
+  };
+
+  const playAudioFile = () => {
     const audio = new Audio('/notificate.mp3');
-    audio.volume = 0.7; // Устанавливаем громкость
+    audio.volume = 0.7;
     
     // Добавляем обработчики событий для отладки
     audio.addEventListener('loadstart', () => console.log('🔊 Начало загрузки звука'));
     audio.addEventListener('canplay', () => console.log('🔊 Звук готов к воспроизведению'));
-    audio.addEventListener('error', (e) => console.error('🔊 Ошибка загрузки звука:', e));
+    audio.addEventListener('error', (e) => {
+      console.error('🔊 Ошибка загрузки звука:', e);
+      playFallbackSound();
+    });
     audio.addEventListener('ended', () => console.log('🔊 Звук воспроизведен полностью'));
     
     audio.play().then(() => {
       console.log('✅ Звук уведомления воспроизведен успешно');
     }).catch(error => {
       console.error('❌ Не удалось воспроизвести звук уведомления:', error);
-      console.log('💡 Возможные причины:');
-      console.log('   - Браузер блокирует автовоспроизведение');
-      console.log('   - Пользователь не взаимодействовал со страницей');
-      console.log('   - Файл notificate.mp3 не найден');
+      console.log('💡 Переключаемся на fallback звук');
+      playFallbackSound();
     });
+  };
+
+  const playFallbackSound = () => {
+    console.log('🔊 Используем fallback программный звук');
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      gainNode.gain.value = 0.3;
+      
+      oscillator.type = 'sine';
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+      
+      console.log('✅ Fallback звук воспроизведен');
+    } catch (fallbackErr) {
+      console.error('❌ Не удалось воспроизвести даже fallback звук:', fallbackErr);
+    }
   };
 
   useEffect(() => {
@@ -114,31 +156,8 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const playNotificationSound = () => {
-    try {
-      createNotificationSound();
-    } catch (err) {
-      console.log('Не удалось воспроизвести звук:', err);
-      // Fallback на программный звук
-      try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        gainNode.gain.value = 0.3;
-        
-        oscillator.type = 'sine';
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.2);
-        
-        console.log('🔊 Использован fallback программный звук');
-      } catch (fallbackErr) {
-        console.error('❌ Не удалось воспроизвести даже fallback звук:', fallbackErr);
-      }
-    }
+    console.log('🔊 Вызываем createNotificationSound');
+    createNotificationSound();
   };
 
   const fetchUnreadCount = async () => {
@@ -167,7 +186,8 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const testNotification = () => {
     console.log('🧪 Тестируем уведомление');
     
-    // Тестируем звук
+    // Тестируем звук с подробным логированием
+    console.log('🔊 Начинаем тест звука...');
     playNotificationSound();
     
     // Тестируем браузерное уведомление
