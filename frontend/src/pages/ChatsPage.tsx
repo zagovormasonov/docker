@@ -17,6 +17,7 @@ import { SendOutlined, UserOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import socketService from '../api/socket';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
 import dayjs from 'dayjs';
 
 const { Text } = Typography;
@@ -29,6 +30,7 @@ interface Chat {
   other_user_online: boolean;
   last_message?: string;
   last_message_time?: string;
+  last_message_sender_id?: number;
 }
 
 interface Message {
@@ -45,6 +47,7 @@ interface Message {
 const ChatsPage = () => {
   const { chatId } = useParams();
   const { user } = useAuth();
+  const { fetchUnreadCount } = useNotifications();
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<number | null>(
     chatId ? parseInt(chatId) : null
@@ -88,6 +91,8 @@ const ChatsPage = () => {
     try {
       const response = await api.get('/chats');
       setChats(response.data);
+      // Обновляем счетчик непрочитанных сообщений
+      fetchUnreadCount();
     } catch (error) {
       console.error('Ошибка загрузки чатов:', error);
     }
@@ -144,7 +149,16 @@ const ChatsPage = () => {
                         />
                       </Badge>
                     }
-                    title={chat.other_user_name}
+                    title={
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span>{chat.other_user_name}</span>
+                        {chat.last_message_sender_id === user?.id && (
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            (Вы)
+                          </Text>
+                        )}
+                      </div>
+                    }
                     description={
                       <Text ellipsis type="secondary">
                         {chat.last_message || 'Нет сообщений'}

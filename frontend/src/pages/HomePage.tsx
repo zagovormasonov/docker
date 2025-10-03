@@ -334,9 +334,8 @@ const HomePage = () => {
             style={{
               height: 40,
               borderRadius: 20,
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, rgb(183 196 255) 0%, rgb(239 232 255) 100%)',
               border: 'none',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
               fontWeight: 500
             }}
           >

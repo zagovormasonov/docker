@@ -26,7 +26,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
                 ELSE u1.is_online
               END as other_user_online,
               (SELECT content FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
-              (SELECT created_at FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_time
+              (SELECT created_at FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_time,
+              (SELECT sender_id FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_sender_id
        FROM chats c
        JOIN users u1 ON c.user1_id = u1.id
        JOIN users u2 ON c.user2_id = u2.id
@@ -71,6 +72,26 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Ошибка создания чата:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Получение количества непрочитанных сообщений
+router.get('/unread-count', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      `SELECT COUNT(*) as count 
+       FROM messages m
+       JOIN chats c ON m.chat_id = c.id
+       WHERE m.sender_id != $1 
+       AND m.is_read = false
+       AND (c.user1_id = $1 OR c.user2_id = $1)`,
+      [req.userId]
+    );
+
+    res.json({ count: parseInt(result.rows[0].count) });
+  } catch (error) {
+    console.error('Ошибка получения количества непрочитанных сообщений:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });

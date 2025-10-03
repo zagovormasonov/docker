@@ -1,12 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import socketService from '../api/socket';
+import api from '../api/axios';
 import { message as antMessage } from 'antd';
 
 interface NotificationContextType {
   unreadCount: number;
   playNotificationSound: () => void;
   markAsRead: () => void;
+  fetchUnreadCount: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -47,17 +49,22 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         
         // Показываем уведомление в браузере
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Новое сообщение', {
-            body: `${message.sender_name}: ${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`,
-            icon: '/vite.svg',
-            tag: 'chat-message'
+          new Notification(`💬 ${message.sender_name}`, {
+            body: `${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`,
+            icon: '/logo.png',
+            tag: `chat-${message.chat_id}`,
+            requireInteraction: false,
+            silent: false
           });
         }
 
         // Показываем Ant Design уведомление
         antMessage.info({
-          content: `Новое сообщение от ${message.sender_name}`,
-          duration: 3
+          content: `💬 Новое сообщение от ${message.sender_name}`,
+          duration: 4,
+          style: {
+            marginTop: '20px'
+          }
         });
       }
     };
@@ -84,12 +91,30 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchUnreadCount = async () => {
+    if (!user) return;
+    
+    try {
+      const response = await api.get('/chats/unread-count');
+      setUnreadCount(response.data.count || 0);
+    } catch (error) {
+      console.error('Ошибка получения количества непрочитанных сообщений:', error);
+    }
+  };
+
   const markAsRead = () => {
     setUnreadCount(0);
   };
 
+  // Загружаем количество непрочитанных сообщений при входе пользователя
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+    }
+  }, [user]);
+
   return (
-    <NotificationContext.Provider value={{ unreadCount, playNotificationSound, markAsRead }}>
+    <NotificationContext.Provider value={{ unreadCount, playNotificationSound, markAsRead, fetchUnreadCount }}>
       {children}
     </NotificationContext.Provider>
   );
