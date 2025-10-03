@@ -18,21 +18,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   
-  // Создаем простой beep звук через Web Audio API
+  // Воспроизводим звук уведомления из файла
   const createNotificationSound = () => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 800; // Частота звука
-    gainNode.gain.value = 0.3; // Громкость
-    
-    oscillator.type = 'sine';
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.2); // Длительность 200ms
+    const audio = new Audio('/notificate.mp3');
+    audio.volume = 0.7; // Устанавливаем громкость
+    audio.play().catch(error => {
+      console.log('Не удалось воспроизвести звук уведомления:', error);
+    });
   };
 
   useEffect(() => {
