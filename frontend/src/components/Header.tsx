@@ -312,17 +312,21 @@ const Header = () => {
           </Space>
         </div>
 
-        {/* Мобильная кнопка меню */}
-        <Button
-          type="text"
-          icon={<MenuOutlined />}
-          onClick={() => setMobileMenuOpen(true)}
-          style={{ 
-            fontSize: '18px',
-            display: 'none'
-          }}
-          className="mobile-menu-button"
-        />
+        {/* Мобильная кнопка меню с индикатором */}
+        <div style={{ position: 'relative' }}>
+          <Badge count={unreadCount} offset={[-5, 5]}>
+            <Button
+              type="text"
+              icon={<MenuOutlined />}
+              onClick={() => setMobileMenuOpen(true)}
+              style={{ 
+                fontSize: '18px',
+                display: 'none'
+              }}
+              className="mobile-menu-button"
+            />
+          </Badge>
+        </div>
       </AntHeader>
 
       {/* Мобильное меню */}
