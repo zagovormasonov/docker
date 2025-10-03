@@ -115,7 +115,7 @@ const HomePage = () => {
         <Title level={3} style={{ color: 'rgba(43, 43, 43, 0.9)', fontWeight: 400 }}>
           Платформа для духовных мастеров
         </Title>
-        {expertsCount > 0 && (
+        {/* {expertsCount > 0 && (
           <Paragraph style={{ 
             color: 'rgba(43, 43, 43, 0.8)', 
             fontSize: 18, 
@@ -128,7 +128,7 @@ const HomePage = () => {
           }}>
             Нас уже более {expertsCount} экспертов
           </Paragraph>
-        )}
+        )} */}
         
         {/* Поисковая строка */}
         <div className="home-search-container">
