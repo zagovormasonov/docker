@@ -18,12 +18,35 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   
+  // Предварительно загружаем звук уведомления
+  useEffect(() => {
+    const audio = new Audio('/notificate.mp3');
+    audio.preload = 'auto';
+    audio.load();
+    console.log('🔊 Звук уведомления предварительно загружен');
+  }, []);
+  
   // Воспроизводим звук уведомления из файла
   const createNotificationSound = () => {
+    console.log('🔊 Пытаемся воспроизвести звук уведомления');
+    
     const audio = new Audio('/notificate.mp3');
     audio.volume = 0.7; // Устанавливаем громкость
-    audio.play().catch(error => {
-      console.log('Не удалось воспроизвести звук уведомления:', error);
+    
+    // Добавляем обработчики событий для отладки
+    audio.addEventListener('loadstart', () => console.log('🔊 Начало загрузки звука'));
+    audio.addEventListener('canplay', () => console.log('🔊 Звук готов к воспроизведению'));
+    audio.addEventListener('error', (e) => console.error('🔊 Ошибка загрузки звука:', e));
+    audio.addEventListener('ended', () => console.log('🔊 Звук воспроизведен полностью'));
+    
+    audio.play().then(() => {
+      console.log('✅ Звук уведомления воспроизведен успешно');
+    }).catch(error => {
+      console.error('❌ Не удалось воспроизвести звук уведомления:', error);
+      console.log('💡 Возможные причины:');
+      console.log('   - Браузер блокирует автовоспроизведение');
+      console.log('   - Пользователь не взаимодействовал со страницей');
+      console.log('   - Файл notificate.mp3 не найден');
     });
   };
 
@@ -95,6 +118,26 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       createNotificationSound();
     } catch (err) {
       console.log('Не удалось воспроизвести звук:', err);
+      // Fallback на программный звук
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        gainNode.gain.value = 0.3;
+        
+        oscillator.type = 'sine';
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+        console.log('🔊 Использован fallback программный звук');
+      } catch (fallbackErr) {
+        console.error('❌ Не удалось воспроизвести даже fallback звук:', fallbackErr);
+      }
     }
   };
 
