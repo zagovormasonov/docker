@@ -132,6 +132,34 @@ const ExpertProfilePage = () => {
     }
   };
 
+  const handleBuyService = async (service: Service) => {
+    if (!user) {
+      message.warning('Необходимо войти в систему');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      // Создаем или находим чат с экспертом
+      const response = await api.post('/chats/create', { otherUserId: expert?.id });
+      const chatId = response.data.id;
+      
+      // Отправляем сообщение об услуге
+      const serviceMessage = `🛒 Хочу заказать услугу: "${service.title}"${service.price ? ` (${service.price} ₽)` : ''}${service.duration ? `, длительность: ${service.duration} мин` : ''}. ${service.description}`;
+      
+      await api.post(`/chats/${chatId}/messages`, {
+        content: serviceMessage
+      });
+      
+      // Переходим в чат
+      navigate(`/chats/${chatId}`);
+      message.success('Сообщение об услуге отправлено в чат!');
+    } catch (error) {
+      console.error('Ошибка заказа услуги:', error);
+      message.error('Ошибка заказа услуги');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 100 }}>
@@ -268,30 +296,43 @@ const ExpertProfilePage = () => {
                   renderItem={(service) => (
                     <List.Item>
                       <Card style={{ width: '100%' }} size="small">
-                        <Title level={5}>{service.title}</Title>
-                        <Paragraph type="secondary">{service.description}</Paragraph>
-                        
-                        <Space split="•">
-                          {service.price && (
-                            <Space>
-                              <DollarOutlined />
-                              <Text>{service.price} ₽</Text>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            <Title level={5}>{service.title}</Title>
+                            <Paragraph type="secondary">{service.description}</Paragraph>
+                            
+                            <Space split="•">
+                              {service.price && (
+                                <Space>
+                                  <DollarOutlined />
+                                  <Text>{service.price} ₽</Text>
+                                </Space>
+                              )}
+                              {service.duration && (
+                                <Space>
+                                  <ClockCircleOutlined />
+                                  <Text>{service.duration} мин</Text>
+                                </Space>
+                              )}
+                              <Tag color={
+                                service.service_type === 'online' ? 'blue' :
+                                service.service_type === 'offline' ? 'green' : 'purple'
+                              }>
+                                {service.service_type === 'online' ? 'Онлайн' :
+                                 service.service_type === 'offline' ? 'Офлайн' : 'Онлайн/Офлайн'}
+                              </Tag>
                             </Space>
-                          )}
-                          {service.duration && (
-                            <Space>
-                              <ClockCircleOutlined />
-                              <Text>{service.duration} мин</Text>
-                            </Space>
-                          )}
-                          <Tag color={
-                            service.service_type === 'online' ? 'blue' :
-                            service.service_type === 'offline' ? 'green' : 'purple'
-                          }>
-                            {service.service_type === 'online' ? 'Онлайн' :
-                             service.service_type === 'offline' ? 'Офлайн' : 'Онлайн/Офлайн'}
-                          </Tag>
-                        </Space>
+                          </div>
+                          
+                          <Button
+                            type="primary"
+                            size="small"
+                            onClick={() => handleBuyService(service)}
+                            style={{ marginLeft: 16, minWidth: 80 }}
+                          >
+                            Купить
+                          </Button>
+                        </div>
                       </Card>
                     </List.Item>
                   )}

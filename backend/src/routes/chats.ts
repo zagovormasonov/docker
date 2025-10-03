@@ -182,4 +182,37 @@ router.get('/:chatId/messages', authenticateToken, async (req: AuthRequest, res)
   }
 });
 
+// Отправка сообщения в чат
+router.post('/:chatId/messages', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { chatId } = req.params;
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: 'Содержимое сообщения обязательно' });
+    }
+
+    // Проверяем, что пользователь является участником чата
+    const chatResult = await query(
+      'SELECT id FROM chats WHERE id = $1 AND (user1_id = $2 OR user2_id = $2)',
+      [chatId, req.userId]
+    );
+
+    if (chatResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Чат не найден' });
+    }
+
+    // Создаем сообщение
+    const result = await query(
+      'INSERT INTO messages (chat_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *',
+      [chatId, req.userId, content.trim()]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Ошибка отправки сообщения:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 export default router;
