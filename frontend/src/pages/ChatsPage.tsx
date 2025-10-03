@@ -239,36 +239,61 @@ const ChatsPage = () => {
                           maxWidth: '70%',
                           display: 'flex',
                           gap: 8,
-                          flexDirection: message.sender_id === user?.id ? 'row-reverse' : 'row'
+                          flexDirection: message.sender_id === user?.id ? 'row-reverse' : 'row',
+                          alignItems: 'flex-start'
                         }}
                       >
                         <Avatar
                           src={message.sender_avatar}
                           icon={!message.sender_avatar && <UserOutlined />}
                           size={32}
+                          style={{ 
+                            flexShrink: 0,
+                            width: 32,
+                            height: 32
+                          }}
                         />
-                        <div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div
                             style={{
-                              background: message.sender_id === user?.id ? '#6366f1' : '#f0f0f0',
-                              color: message.sender_id === user?.id ? 'white' : 'black',
+                              background: message.sender_id === user?.id 
+                                ? 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)'
+                                : '#f0f0f0',
+                              color: 'black',
                               padding: '12px 16px',
                               borderRadius: 12,
-                              marginBottom: 4
+                              marginBottom: 4,
+                              wordWrap: 'break-word',
+                              wordBreak: 'break-word'
                             }}
                           >
                             {message.content}
                           </div>
-                          <Text
-                            type="secondary"
+                          <div
                             style={{
-                              fontSize: 11,
-                              display: 'block',
                               textAlign: message.sender_id === user?.id ? 'right' : 'left'
                             }}
                           >
-                            {dayjs(message.created_at).format('HH:mm')}
-                          </Text>
+                            <Text
+                              type="secondary"
+                              style={{
+                                fontSize: 11,
+                                display: 'block'
+                              }}
+                            >
+                              {dayjs(message.created_at).format('HH:mm')}
+                            </Text>
+                            <Text
+                              type="secondary"
+                              style={{
+                                fontSize: 10,
+                                display: 'block',
+                                marginTop: 2
+                              }}
+                            >
+                              {dayjs(message.created_at).format('DD.MM.YYYY')}
+                            </Text>
+                          </div>
                         </div>
                       </div>
                     </div>
