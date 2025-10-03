@@ -200,8 +200,7 @@ router.post('/forgot-password', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      // Не раскрываем, что пользователь не существует (безопасность)
-      return res.json({ message: 'Если email существует, письмо будет отправлено' });
+      return res.status(404).json({ error: 'Пользователь с таким email не найден' });
     }
 
     const user = result.rows[0];

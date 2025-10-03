@@ -54,9 +54,6 @@ const ForgotPasswordPage = () => {
         } else {
           message.error('Не удалось отправить email. Попробуйте позже.');
         }
-      } else {
-        // Даже если пользователя нет, показываем успех (безопасность)
-        setEmailSent(true);
       }
     } catch (error: any) {
       message.error(error.response?.data?.error || 'Ошибка запроса');
