@@ -140,11 +140,13 @@ const ChatsPage = () => {
         <Col xs={24} md={8}>
           <Card
             title="Чаты"
-            style={{ height: '100%', overflow: 'auto' }}
+            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            bodyStyle={{ flex: 1, overflow: 'auto', padding: 0 }}
           >
-            <List
-              dataSource={chats}
-              renderItem={(chat) => (
+            <div style={{ padding: 16 }}>
+              <List
+                dataSource={chats}
+                renderItem={(chat) => (
                 <List.Item
                   onClick={() => setSelectedChat(chat.id)}
                   style={{
@@ -203,6 +205,7 @@ const ChatsPage = () => {
                 </List.Item>
               )}
             />
+            </div>
           </Card>
         </Col>
 
@@ -215,7 +218,7 @@ const ChatsPage = () => {
               <>
                 <div
                   style={{
-                    height: '400px', // Фиксированная высота
+                    flex: 1,
                     overflowY: 'auto',
                     padding: 24,
                     display: 'flex',
