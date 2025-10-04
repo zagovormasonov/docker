@@ -106,4 +106,39 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
+// Стать экспертом
+router.post('/become-expert', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    // Проверяем, что пользователь еще не эксперт
+    const userResult = await query(
+      'SELECT user_type FROM users WHERE id = $1',
+      [req.userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const user = userResult.rows[0];
+    
+    if (user.user_type === 'expert') {
+      return res.status(400).json({ error: 'Пользователь уже является экспертом' });
+    }
+
+    // Обновляем тип пользователя на эксперта
+    await query(
+      'UPDATE users SET user_type = $1 WHERE id = $2',
+      ['expert', req.userId]
+    );
+
+    res.json({ 
+      message: 'Поздравляем! Теперь вы эксперт!',
+      userType: 'expert'
+    });
+  } catch (error) {
+    console.error('Ошибка становления экспертом:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 export default router;
