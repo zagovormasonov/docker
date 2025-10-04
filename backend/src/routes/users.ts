@@ -146,7 +146,40 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
       console.log('Тематики не переданы или не являются массивом');
     }
 
-    res.json({ message: 'Профиль обновлен' });
+    // Получаем обновленные данные пользователя с тематиками
+    const userResult = await query(`
+      SELECT 
+        u.*,
+        COALESCE(
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', t.id,
+              'name', t.name
+            )
+          ) FILTER (WHERE t.id IS NOT NULL),
+          '[]'::json
+        ) as topics
+      FROM users u
+      LEFT JOIN user_topics ut ON u.id = ut.user_id
+      LEFT JOIN topics t ON ut.topic_id = t.id
+      WHERE u.id = $1
+      GROUP BY u.id
+    `, [req.userId]);
+
+    const updatedUser = userResult.rows[0];
+    
+    // Обрабатываем consultationTypes если это JSON строка
+    if (updatedUser.consultation_types && typeof updatedUser.consultation_types === 'string') {
+      try {
+        updatedUser.consultationTypes = JSON.parse(updatedUser.consultation_types);
+      } catch (e) {
+        updatedUser.consultationTypes = [];
+      }
+    } else {
+      updatedUser.consultationTypes = updatedUser.consultation_types || [];
+    }
+
+    res.json(updatedUser);
   } catch (error) {
     console.error('Ошибка обновления профиля:', error);
     console.error('Детали ошибки:', {

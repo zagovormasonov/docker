@@ -146,14 +146,40 @@ const ProfilePage = () => {
         topics: values.topics
       });
       
-      // Обновляем пользователя с данными с сервера
-      if (response.data) {
-        updateUser({ ...user, ...response.data });
-        // Обновляем форму с новыми данными
-        form.setFieldsValue(response.data);
-      } else {
+      // Загружаем обновленные данные пользователя с сервера
+      try {
+        const userResponse = await api.get('/users/me');
+        const updatedUser = userResponse.data;
+        updateUser(updatedUser);
+        
+        // Обновляем форму с данными с сервера
+        const topicsValue = updatedUser.topics 
+          ? updatedUser.topics.map((t: any) => typeof t === 'object' ? t.id : t)
+          : [];
+          
+        form.setFieldsValue({
+          name: updatedUser.name,
+          email: updatedUser.email,
+          bio: updatedUser.bio,
+          city: updatedUser.city,
+          vkUrl: updatedUser.vkUrl,
+          telegramUrl: updatedUser.telegramUrl,
+          instagramUrl: updatedUser.instagramUrl,
+          whatsapp: updatedUser.whatsapp,
+          consultationTypes: Array.isArray(updatedUser.consultationTypes) ? updatedUser.consultationTypes : [],
+          topics: topicsValue
+        });
+        
+        console.log('Профиль обновлен с сервера:', updatedUser);
+        
+        // Если пользователь эксперт, перезагружаем услуги
+        if (updatedUser.userType === 'expert') {
+          fetchServices();
+        }
+      } catch (fetchError) {
+        console.error('Ошибка загрузки обновленного профиля:', fetchError);
+        // Fallback - используем переданные значения
         updateUser({ ...user, ...values });
-        // Обновляем форму с новыми данными
         form.setFieldsValue(values);
       }
       
