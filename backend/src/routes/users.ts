@@ -58,10 +58,14 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
 // Обновление профиля
 router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    console.log('Обновление профиля для пользователя:', req.userId);
+    console.log('Данные запроса:', req.body);
+    
     const { name, bio, city, avatarUrl, vkUrl, telegramUrl, instagramUrl, whatsapp, consultationTypes, topics } = req.body;
 
     // Проверка уникальности имени (если имя изменилось)
     if (name) {
+      console.log('Проверка уникальности имени:', name);
       const existingUserByName = await query(
         'SELECT id FROM users WHERE name = $1 AND id != $2',
         [name, req.userId]
@@ -73,6 +77,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
     }
 
     // Обновляем основные поля пользователя
+    console.log('Обновление основных полей пользователя');
     await query(
       `UPDATE users 
        SET name = COALESCE($1, name), 
@@ -99,11 +104,19 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
         req.userId
       ]
     );
+    console.log('Основные поля обновлены успешно');
 
-    // Если есть тематики, обновляем их в таблице user_topics
+    // Временно отключаем обновление тематик для диагностики
+    console.log('Тематики временно отключены для диагностики');
+    console.log('Полученные тематики:', topics);
+    
+    // TODO: Включить обратно после исправления основной проблемы
+    /*
     if (topics && Array.isArray(topics)) {
+      console.log('Обновление тематик:', topics);
       // Удаляем старые тематики
       await query('DELETE FROM user_topics WHERE user_id = $1', [req.userId]);
+      console.log('Старые тематики удалены');
       
       // Добавляем новые тематики
       for (const topicId of topics) {
@@ -112,7 +125,11 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
           [req.userId, topicId]
         );
       }
+      console.log('Новые тематики добавлены');
+    } else {
+      console.log('Тематики не переданы или не являются массивом');
     }
+    */
 
     res.json({ message: 'Профиль обновлен' });
   } catch (error) {
