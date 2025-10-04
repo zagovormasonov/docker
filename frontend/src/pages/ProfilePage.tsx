@@ -129,18 +129,39 @@ const ProfilePage = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      const endpoint = user?.userType === 'expert' ? '/experts/profile' : '/users/profile';
-      await api.put(endpoint, {
-        name: values.name,
-        bio: values.bio,
-        city: values.city,
-        vkUrl: values.vkUrl,
-        telegramUrl: values.telegramUrl,
-        instagramUrl: values.instagramUrl,
-        whatsapp: values.whatsapp,
-        consultationTypes: values.consultationTypes,
-        topics: values.topics
-      });
+      // Сначала пробуем endpoint для экспертов, если не получается - используем endpoint для пользователей
+      let endpoint = '/experts/profile';
+      try {
+        await api.put(endpoint, {
+          name: values.name,
+          bio: values.bio,
+          city: values.city,
+          vkUrl: values.vkUrl,
+          telegramUrl: values.telegramUrl,
+          instagramUrl: values.instagramUrl,
+          whatsapp: values.whatsapp,
+          consultationTypes: values.consultationTypes,
+          topics: values.topics
+        });
+      } catch (expertError: any) {
+        // Если endpoint экспертов не работает (403), пробуем endpoint пользователей
+        if (expertError.response?.status === 403) {
+          endpoint = '/users/profile';
+          await api.put(endpoint, {
+            name: values.name,
+            bio: values.bio,
+            city: values.city,
+            vkUrl: values.vkUrl,
+            telegramUrl: values.telegramUrl,
+            instagramUrl: values.instagramUrl,
+            whatsapp: values.whatsapp,
+            consultationTypes: values.consultationTypes,
+            topics: values.topics
+          });
+        } else {
+          throw expertError;
+        }
+      }
       
       updateUser(values);
       message.success('Профиль успешно обновлен!');
@@ -226,10 +247,12 @@ const ProfilePage = () => {
 
   const handleBecomeExpert = async () => {
     try {
-      await api.post('/users/become-expert');
+      const response = await api.post('/users/become-expert');
       message.success('Поздравляем! Теперь вы эксперт! Обновите страницу для применения изменений.');
       // Обновляем локальный стейт
       updateUser({ ...user, userType: 'expert' });
+      // Перезагружаем страницу для применения всех изменений
+      window.location.reload();
     } catch (error: any) {
       console.error('Ошибка становления экспертом:', error);
       message.error(error.response?.data?.error || 'Ошибка становления экспертом');
