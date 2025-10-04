@@ -72,6 +72,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
       }
     }
 
+    // Обновляем основные поля пользователя
     await query(
       `UPDATE users 
        SET name = COALESCE($1, name), 
@@ -83,9 +84,8 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
            instagram_url = COALESCE($7, instagram_url),
            whatsapp = COALESCE($8, whatsapp),
            consultation_types = COALESCE($9, consultation_types),
-           topics = COALESCE($10, topics),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $11`,
+       WHERE id = $10`,
       [
         name, 
         bio, 
@@ -96,15 +96,33 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
         instagramUrl, 
         whatsapp,
         consultationTypes ? JSON.stringify(consultationTypes) : null,
-        topics ? JSON.stringify(topics) : null,
         req.userId
       ]
     );
 
+    // Если есть тематики, обновляем их в таблице user_topics
+    if (topics && Array.isArray(topics)) {
+      // Удаляем старые тематики
+      await query('DELETE FROM user_topics WHERE user_id = $1', [req.userId]);
+      
+      // Добавляем новые тематики
+      for (const topicId of topics) {
+        await query(
+          'INSERT INTO user_topics (user_id, topic_id) VALUES ($1, $2)',
+          [req.userId, topicId]
+        );
+      }
+    }
+
     res.json({ message: 'Профиль обновлен' });
   } catch (error) {
     console.error('Ошибка обновления профиля:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('Детали ошибки:', {
+      message: error.message,
+      stack: error.stack,
+      body: req.body
+    });
+    res.status(500).json({ error: 'Ошибка сервера', details: error.message });
   }
 });
 
