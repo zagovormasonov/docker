@@ -312,6 +312,42 @@ const ProfilePage = () => {
             </div>
             <Title level={3}>{user?.name}</Title>
             <Text type="secondary">{user?.email}</Text>
+            
+            {/* Отображение биографии */}
+            {user?.bio && (
+              <div style={{ marginTop: 16 }}>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>О себе:</Text>
+                <Text>{user.bio}</Text>
+              </div>
+            )}
+            
+            {/* Отображение тематик пользователя */}
+            {user?.topics && user.topics.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>Тематики:</Text>
+                <Space wrap>
+                  {user.topics.map((topic: any) => (
+                    <Tag key={topic.id} color="purple">
+                      {typeof topic === 'object' ? topic.name : topic}
+                    </Tag>
+                  ))}
+                </Space>
+              </div>
+            )}
+            
+            {/* Отображение типов консультаций */}
+            {user?.consultationTypes && user.consultationTypes.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>Типы консультаций:</Text>
+                <Space wrap>
+                  {user.consultationTypes.map((type: string, index: number) => (
+                    <Tag key={index} color="blue">
+                      {type}
+                    </Tag>
+                  ))}
+                </Space>
+              </div>
+            )}
           </div>
 
           {user?.userType === 'client' && (
