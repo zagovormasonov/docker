@@ -129,41 +129,32 @@ const ProfilePage = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      // Сначала пробуем endpoint для экспертов, если не получается - используем endpoint для пользователей
-      let endpoint = '/experts/profile';
-      try {
-        await api.put(endpoint, {
-          name: values.name,
-          bio: values.bio,
-          city: values.city,
-          vkUrl: values.vkUrl,
-          telegramUrl: values.telegramUrl,
-          instagramUrl: values.instagramUrl,
-          whatsapp: values.whatsapp,
-          consultationTypes: values.consultationTypes,
-          topics: values.topics
-        });
-      } catch (expertError: any) {
-        // Если endpoint экспертов не работает (403), пробуем endpoint пользователей
-        if (expertError.response?.status === 403) {
-          endpoint = '/users/profile';
-          await api.put(endpoint, {
-            name: values.name,
-            bio: values.bio,
-            city: values.city,
-            vkUrl: values.vkUrl,
-            telegramUrl: values.telegramUrl,
-            instagramUrl: values.instagramUrl,
-            whatsapp: values.whatsapp,
-            consultationTypes: values.consultationTypes,
-            topics: values.topics
-          });
-        } else {
-          throw expertError;
-        }
+      // Определяем endpoint на основе типа пользователя
+      const endpoint = user?.userType === 'expert' ? '/experts/profile' : '/users/profile';
+      
+      const response = await api.put(endpoint, {
+        name: values.name,
+        bio: values.bio,
+        city: values.city,
+        vkUrl: values.vkUrl,
+        telegramUrl: values.telegramUrl,
+        instagramUrl: values.instagramUrl,
+        whatsapp: values.whatsapp,
+        consultationTypes: values.consultationTypes,
+        topics: values.topics
+      });
+      
+      // Обновляем пользователя с данными с сервера
+      if (response.data) {
+        updateUser({ ...user, ...response.data });
+        // Обновляем форму с новыми данными
+        form.setFieldsValue(response.data);
+      } else {
+        updateUser({ ...user, ...values });
+        // Обновляем форму с новыми данными
+        form.setFieldsValue(values);
       }
       
-      updateUser(values);
       message.success('Профиль успешно обновлен!');
     } catch (error) {
       console.error('Ошибка обновления профиля:', error);
