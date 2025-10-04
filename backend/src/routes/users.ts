@@ -106,30 +106,45 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
     );
     console.log('Основные поля обновлены успешно');
 
-    // Временно отключаем обновление тематик для диагностики
-    console.log('Тематики временно отключены для диагностики');
-    console.log('Полученные тематики:', topics);
-    
-    // TODO: Включить обратно после исправления основной проблемы
-    /*
+    // Создаем таблицу user_topics если она не существует
+    try {
+      await query(`
+        CREATE TABLE IF NOT EXISTS user_topics (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          topic_id INTEGER NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(user_id, topic_id)
+        )
+      `);
+      console.log('Таблица user_topics создана или уже существует');
+    } catch (createError) {
+      console.error('Ошибка создания таблицы user_topics:', createError);
+    }
+
+    // Обновляем тематики если они переданы
     if (topics && Array.isArray(topics)) {
       console.log('Обновление тематик:', topics);
-      // Удаляем старые тематики
-      await query('DELETE FROM user_topics WHERE user_id = $1', [req.userId]);
-      console.log('Старые тематики удалены');
-      
-      // Добавляем новые тематики
-      for (const topicId of topics) {
-        await query(
-          'INSERT INTO user_topics (user_id, topic_id) VALUES ($1, $2)',
-          [req.userId, topicId]
-        );
+      try {
+        // Удаляем старые тематики
+        await query('DELETE FROM user_topics WHERE user_id = $1', [req.userId]);
+        console.log('Старые тематики удалены');
+        
+        // Добавляем новые тематики
+        for (const topicId of topics) {
+          await query(
+            'INSERT INTO user_topics (user_id, topic_id) VALUES ($1, $2)',
+            [req.userId, topicId]
+          );
+        }
+        console.log('Новые тематики добавлены');
+      } catch (topicsError) {
+        console.error('Ошибка обновления тематик:', topicsError);
+        // Не прерываем выполнение, просто логируем ошибку
       }
-      console.log('Новые тематики добавлены');
     } else {
       console.log('Тематики не переданы или не являются массивом');
     }
-    */
 
     res.json({ message: 'Профиль обновлен' });
   } catch (error) {
