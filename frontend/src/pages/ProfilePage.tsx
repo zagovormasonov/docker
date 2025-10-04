@@ -27,7 +27,7 @@ import {
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 interface Topic {
