@@ -58,7 +58,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
 // Обновление профиля
 router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { name, bio, city, avatarUrl, vkUrl, telegramUrl, instagramUrl, whatsapp, consultationTypes } = req.body;
+    const { name, bio, city, avatarUrl, vkUrl, telegramUrl, instagramUrl, whatsapp, consultationTypes, topics } = req.body;
 
     // Проверка уникальности имени (если имя изменилось)
     if (name) {
@@ -83,8 +83,9 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
            instagram_url = COALESCE($7, instagram_url),
            whatsapp = COALESCE($8, whatsapp),
            consultation_types = COALESCE($9, consultation_types),
+           topics = COALESCE($10, topics),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $10`,
+       WHERE id = $11`,
       [
         name, 
         bio, 
@@ -95,6 +96,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
         instagramUrl, 
         whatsapp,
         consultationTypes ? JSON.stringify(consultationTypes) : null,
+        topics ? JSON.stringify(topics) : null,
         req.userId
       ]
     );

@@ -129,8 +129,10 @@ const ProfilePage = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      // Определяем endpoint на основе типа пользователя
-      const endpoint = user?.userType === 'expert' ? '/experts/profile' : '/users/profile';
+      // Всегда используем endpoint для пользователей, так как эксперты тоже могут обновлять профиль через этот endpoint
+      const endpoint = '/users/profile';
+      
+      console.log('Обновление профиля для пользователя:', user?.userType, 'через endpoint:', endpoint);
       
       const response = await api.put(endpoint, {
         name: values.name,
