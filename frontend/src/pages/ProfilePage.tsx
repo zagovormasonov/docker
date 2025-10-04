@@ -249,11 +249,20 @@ const ProfilePage = () => {
       const avatarUrl = uploadResponse.data.url;
 
       // Обновляем профиль с новым аватаром
-      const endpoint = user?.userType === 'expert' ? '/experts/profile' : '/users/profile';
-      await api.put(endpoint, { avatarUrl });
+      await api.put('/users/profile', { avatarUrl });
 
-      // Обновляем локальный стейт
-      updateUser({ ...user, avatarUrl });
+      // Загружаем обновленные данные пользователя с сервера
+      try {
+        const userResponse = await api.get('/users/me');
+        const updatedUser = userResponse.data;
+        updateUser(updatedUser);
+        console.log('Аватар обновлен с сервера:', updatedUser);
+      } catch (fetchError) {
+        console.error('Ошибка загрузки обновленного профиля:', fetchError);
+        // Fallback - используем локальные данные
+        updateUser({ ...user, avatarUrl });
+      }
+      
       message.success('Аватар успешно обновлен!');
     } catch (error) {
       console.error('Ошибка загрузки аватара:', error);

@@ -37,15 +37,18 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       createdAt: dbUser.created_at
     };
 
-    // Если эксперт, получить тематики
-    if (user.userType === 'expert') {
+    // Получаем тематики для всех пользователей
+    try {
       const topicsResult = await query(
         `SELECT t.id, t.name FROM topics t
-         JOIN expert_topics et ON t.id = et.topic_id
-         WHERE et.expert_id = $1`,
+         JOIN user_topics ut ON t.id = ut.topic_id
+         WHERE ut.user_id = $1`,
         [req.userId]
       );
       user.topics = topicsResult.rows;
+    } catch (topicsError) {
+      console.error('Ошибка загрузки тематик:', topicsError);
+      user.topics = []; // Если таблица не существует, возвращаем пустой массив
     }
 
     res.json(user);
