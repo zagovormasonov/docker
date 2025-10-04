@@ -29,9 +29,9 @@ router.get('/search', async (req, res) => {
       SELECT u.id, u.name, u.email, u.avatar_url, u.bio, u.city,
              ARRAY(
                SELECT t2.name 
-               FROM expert_topics et2 
-               JOIN topics t2 ON et2.topic_id = t2.id 
-               WHERE et2.expert_id = u.id
+               FROM user_topics ut2 
+               JOIN topics t2 ON ut2.topic_id = t2.id 
+               WHERE ut2.user_id = u.id
              ) as topics
       FROM users u
       WHERE u.user_type = 'expert'
@@ -45,9 +45,9 @@ router.get('/search', async (req, res) => {
       if (topicArray.length > 0) {
         paramCount++;
         queryText += ` AND EXISTS (
-          SELECT 1 FROM expert_topics et3
-          JOIN topics t3 ON et3.topic_id = t3.id
-          WHERE et3.expert_id = u.id AND t3.name = ANY($${paramCount}::text[])
+          SELECT 1 FROM user_topics ut3
+          JOIN topics t3 ON ut3.topic_id = t3.id
+          WHERE ut3.user_id = u.id AND t3.name = ANY($${paramCount}::text[])
         )`;
         queryParams.push(topicArray);
       }
@@ -98,8 +98,8 @@ router.get('/:id', async (req, res) => {
     // Получение тематик
     const topicsResult = await query(
       `SELECT t.id, t.name FROM topics t
-       JOIN expert_topics et ON t.id = et.topic_id
-       WHERE et.expert_id = $1`,
+       JOIN user_topics ut ON t.id = ut.topic_id
+       WHERE ut.user_id = $1`,
       [id]
     );
 
@@ -170,11 +170,11 @@ router.put(
 
       // Обновление тематик
       if (topics && Array.isArray(topics)) {
-        await query('DELETE FROM expert_topics WHERE expert_id = $1', [req.userId]);
+        await query('DELETE FROM user_topics WHERE user_id = $1', [req.userId]);
 
         for (const topicId of topics) {
           await query(
-            'INSERT INTO expert_topics (expert_id, topic_id) VALUES ($1, $2)',
+            'INSERT INTO user_topics (user_id, topic_id) VALUES ($1, $2)',
             [req.userId, topicId]
           );
         }
