@@ -57,7 +57,7 @@ router.get('/events', authenticateToken, requireAdmin, async (req: AuthRequest, 
       result = await query(`
         SELECT e.*, u.name as author_name, u.email as author_email
         FROM events e
-        JOIN users u ON e.author_id = u.id
+        JOIN users u ON e.organizer_id = u.id
         WHERE e.moderation_status = 'pending'
         ORDER BY e.created_at DESC
       `);
@@ -195,7 +195,7 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
     const authorResult = await query(`
       SELECT u.id, u.name, u.email, e.title
       FROM events e
-      JOIN users u ON e.author_id = u.id
+      JOIN users u ON e.organizer_id = u.id
       WHERE e.id = $1
     `, [id]);
     
@@ -251,7 +251,7 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
     const authorResult = await query(`
       SELECT u.id, u.name, u.email, e.title
       FROM events e
-      JOIN users u ON e.author_id = u.id
+      JOIN users u ON e.organizer_id = u.id
       WHERE e.id = $1
     `, [id]);
     

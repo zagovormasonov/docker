@@ -257,11 +257,11 @@ router.post(
       const newEvent = result.rows[0];
       
       // Поля модерации теперь всегда существуют
-        // Получаем данные организатора для письма
-        const organizerResult = await query(
-          'SELECT name, email FROM users WHERE id = $1',
-          [req.userId]
-        );
+      // Получаем данные организатора для письма
+      const organizerResult = await query(
+        'SELECT name, email FROM users WHERE id = $1',
+        [req.userId]
+      );
         
         if (organizerResult.rows.length > 0) {
           // Отправляем письмо модерации
