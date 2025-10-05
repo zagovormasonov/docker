@@ -118,6 +118,29 @@ router.get('/fix-events-published', async (req, res) => {
   }
 });
 
+// Middleware для проверки прав администратора
+const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
+  console.log('🔐 Проверка прав администратора для пользователя:', req.userId);
+  try {
+    const result = await query(
+      'SELECT user_type FROM users WHERE id = $1',
+      [req.userId]
+    );
+    console.log('👤 Тип пользователя:', result.rows[0]?.user_type);
+    
+    if (result.rows.length === 0 || result.rows[0].user_type !== 'admin') {
+      console.log('❌ Доступ запрещен. Пользователь не является администратором');
+      return res.status(403).json({ error: 'Доступ запрещен. Требуются права администратора.' });
+    }
+    
+    console.log('✅ Пользователь является администратором');
+    next();
+  } catch (error) {
+    console.error('Ошибка проверки прав администратора:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+};
+
 // Endpoint для тестирования отклонения события
 router.post('/test-reject/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
   try {
@@ -148,29 +171,6 @@ router.post('/test-reject/:id', authenticateToken, requireAdmin, async (req: Aut
     });
   }
 });
-
-// Middleware для проверки прав администратора
-const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
-  console.log('🔐 Проверка прав администратора для пользователя:', req.userId);
-  try {
-    const result = await query(
-      'SELECT user_type FROM users WHERE id = $1',
-      [req.userId]
-    );
-    console.log('👤 Тип пользователя:', result.rows[0]?.user_type);
-    
-    if (result.rows.length === 0 || result.rows[0].user_type !== 'admin') {
-      console.log('❌ Доступ запрещен. Пользователь не является администратором');
-      return res.status(403).json({ error: 'Доступ запрещен. Требуются права администратора.' });
-    }
-    
-    console.log('✅ Пользователь является администратором');
-    next();
-  } catch (error) {
-    console.error('Ошибка проверки прав администратора:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-};
 
 // Получение списка статей на модерацию
 router.get('/articles', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
