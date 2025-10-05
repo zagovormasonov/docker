@@ -2,37 +2,14 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { query } from '../config/database';
 import { authenticateToken, requireExpert, AuthRequest } from '../middleware/auth';
-import emailjs from '@emailjs/browser';
+// import emailjs from '@emailjs/browser'; // НЕ используем EmailJS на сервере
 
 const router = express.Router();
 
-// Функция отправки письма модерации
+// Функция отправки письма модерации (отключена на сервере)
 const sendModerationEmail = async (event: any, organizer: any) => {
-  try {
-    const approveUrl = `${process.env.FRONTEND_URL || 'https://soulsynergy.ru'}/api/events/approve/${event.id}`;
-    const rejectUrl = `${process.env.FRONTEND_URL || 'https://soulsynergy.ru'}/api/events/reject/${event.id}`;
-    
-    await emailjs.send(
-      process.env.EMAILJS_SERVICE_ID!,
-      process.env.EMAILJS_MODERATION_TEMPLATE_ID!,
-      {
-        event_title: event.title,
-        event_date: new Date(event.event_date).toLocaleString('ru-RU'),
-        event_location: event.is_online ? 'Онлайн' : event.location || 'Не указано',
-        organizer_name: organizer.name,
-        event_price: event.price || 'Бесплатно',
-        event_description: event.description || 'Описание не указано',
-        approve_url: approveUrl,
-        reject_url: rejectUrl
-      },
-      process.env.EMAILJS_PUBLIC_KEY!
-    );
-    
-    return true;
-  } catch (error) {
-    console.error('Ошибка отправки письма модерации:', error);
-    return false;
-  }
+  console.log('📧 EmailJS отключен на сервере - используем только уведомления в чат');
+  return true;
 };
 
 // Типы событий
@@ -205,8 +182,11 @@ router.post(
     body('isOnline').isBoolean().withMessage('Укажите онлайн или офлайн'),
   ],
   async (req: AuthRequest, res) => {
+    console.log('🎯 Создание события, пользователь:', req.userId);
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Ошибки валидации:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -226,9 +206,12 @@ router.post(
 
       // Проверка: если офлайн, город обязателен
       if (!isOnline && !cityId) {
+        console.log('❌ Для офлайн события город обязателен');
         return res.status(400).json({ error: 'Для офлайн события город обязателен' });
       }
 
+      console.log('📝 Создаем событие:', { title, eventType, isOnline, cityId, eventDate });
+      
       // Создаем событие с полями модерации
       const result = await query(
         `INSERT INTO events (
@@ -255,6 +238,7 @@ router.post(
       );
 
       const newEvent = result.rows[0];
+      console.log('✅ Событие создано:', newEvent.id);
       
       // Поля модерации теперь всегда существуют
       // Получаем данные организатора для письма
@@ -311,8 +295,18 @@ router.post(
           message: 'Событие создано и отправлено на модерацию'
         });
     } catch (error) {
-      console.error('Ошибка создания события:', error);
-      res.status(500).json({ error: 'Ошибка сервера' });
+      console.error('❌ Ошибка создания события:', error);
+      console.error('❌ Детали ошибки:', {
+        message: error.message,
+        stack: error.stack,
+        userId: req.userId,
+        body: req.body
+      });
+      res.status(500).json({ 
+        error: 'Ошибка сервера', 
+        details: error.message,
+        userId: req.userId
+      });
     }
   }
 );
