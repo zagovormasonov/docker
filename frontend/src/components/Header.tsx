@@ -29,7 +29,8 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleChatsClick = () => {
-    markAsRead();
+    // НЕ сбрасываем счетчики при переходе в чаты
+    // markAsRead();
     navigate('/chats');
   };
 
