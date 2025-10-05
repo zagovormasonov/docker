@@ -279,6 +279,23 @@ const Header = () => {
             >
               <CalendarOutlined /> События
             </Link>
+            {user && (
+              <Link 
+                to="/chats" 
+                onClick={handleChatsClick}
+                style={{ 
+                  fontSize: '16px',
+                  color: 'rgb(170 180 251)',
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <MessageOutlined /> Чаты{unreadCount > 0 ? ` (${unreadCount})` : ''}
+              </Link>
+            )}
           </div>
         </div>
 
