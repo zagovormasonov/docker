@@ -86,6 +86,69 @@ router.get('/check-fields', async (req, res) => {
   }
 });
 
+// Endpoint для добавления недостающего поля is_published в events
+router.get('/fix-events-published', async (req, res) => {
+  try {
+    console.log('🔧 Добавляем поле is_published в таблицу events');
+    
+    // Добавляем поле is_published в таблицу events
+    await query(`
+      ALTER TABLE events 
+      ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false
+    `);
+    
+    // Обновляем существующие события
+    await query(`
+      UPDATE events 
+      SET is_published = true 
+      WHERE moderation_status = 'approved' OR moderation_status IS NULL
+    `);
+    
+    res.json({
+      message: 'Поле is_published добавлено в таблицу events',
+      timestamp: new Date().toISOString(),
+      success: true
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка добавления поля is_published',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Endpoint для тестирования отклонения события
+router.post('/test-reject/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    console.log('🧪 Тестируем отклонение события:', {
+      eventId: id,
+      reason: reason,
+      userId: req.userId,
+      body: req.body
+    });
+    
+    res.json({
+      message: 'Тест отклонения события',
+      debug: {
+        eventId: id,
+        reason: reason,
+        userId: req.userId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка тестирования отклонения',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Middleware для проверки прав администратора
 const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
   console.log('🔐 Проверка прав администратора для пользователя:', req.userId);
@@ -384,7 +447,15 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
     const { id } = req.params;
     const { reason } = req.body;
     
+    console.log('🚫 Попытка отклонить событие:', {
+      eventId: id,
+      reason: reason,
+      userId: req.userId,
+      body: req.body
+    });
+    
     if (!reason || reason.trim().length === 0) {
+      console.log('❌ Причина отклонения не указана');
       return res.status(400).json({ error: 'Необходимо указать причину отклонения' });
     }
     
@@ -438,19 +509,35 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
       );
     }
     
-    res.json({ message: 'Событие отклонено' });
+    console.log('✅ Событие успешно отклонено:', id);
+    res.json({ 
+      message: 'Событие отклонено',
+      debug: {
+        eventId: id,
+        userId: req.userId,
+        reason: reason,
+        timestamp: new Date().toISOString()
+      }
+    });
   } catch (error) {
-    console.error('Ошибка отклонения события:', error);
+    console.error('❌ Ошибка отклонения события:', error);
     console.error('Детали ошибки:', {
       message: error.message,
       stack: error.stack,
       eventId: req.params.id,
-      userId: req.userId
+      userId: req.userId,
+      reason: req.body.reason
     });
     res.status(500).json({ 
       error: 'Ошибка сервера',
       details: error.message,
-      eventId: req.params.id
+      eventId: req.params.id,
+      debug: {
+        eventId: req.params.id,
+        userId: req.userId,
+        reason: req.body.reason,
+        timestamp: new Date().toISOString()
+      }
     });
   }
 });
