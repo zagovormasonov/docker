@@ -191,6 +191,15 @@ console.log('🎯 Регистрируем endpoint POST /events/:id/approve');
 router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
   console.log('🚀 Начало одобрения события:', req.params.id);
   console.log('👤 Пользователь:', req.userId);
+  
+  // Добавляем логи в ответ для отладки
+  const debugInfo = {
+    eventId: req.params.id,
+    userId: req.userId,
+    timestamp: new Date().toISOString(),
+    step: 'start'
+  };
+  
   try {
     const { id } = req.params;
     console.log('📝 ID события для одобрения:', id);
@@ -254,7 +263,13 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
       console.log('Уведомление об одобрении отправлено');
     }
     
-    res.json({ message: 'Событие одобрено' });
+    res.json({ 
+      message: 'Событие одобрено',
+      debug: {
+        ...debugInfo,
+        step: 'success'
+      }
+    });
   } catch (error) {
     console.error('Ошибка одобрения события:', error);
     console.error('Детали ошибки:', {
@@ -266,7 +281,13 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
     res.status(500).json({ 
       error: 'Ошибка сервера',
       details: error.message,
-      eventId: req.params.id
+      eventId: req.params.id,
+      debug: {
+        ...debugInfo,
+        step: 'error',
+        errorMessage: error.message,
+        errorStack: error.stack
+      }
     });
   }
 });
