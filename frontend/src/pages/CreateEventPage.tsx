@@ -135,7 +135,14 @@ const CreateEventPage = () => {
         message.success('Событие обновлено');
       } else {
         const response = await api.post('/events', eventData);
-        message.success('Событие создано и отправлено на модерацию');
+        
+        // Показываем уведомление в зависимости от ответа сервера
+        if (response.data.message) {
+          message.success(response.data.message);
+        } else {
+          message.success('Событие создано и отправлено на модерацию');
+        }
+        
         setModerationStatus('pending');
       }
 

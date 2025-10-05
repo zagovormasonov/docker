@@ -72,7 +72,14 @@ const CreateArticlePage = () => {
         }
       } else {
         const response = await api.post('/articles', data);
-        message.success('Статья успешно создана!');
+        
+        // Показываем уведомление в зависимости от ответа сервера
+        if (response.data.message) {
+          message.success(response.data.message);
+        } else {
+          message.success('Статья успешно создана!');
+        }
+        
         navigate(`/articles/${response.data.id}`);
       }
     } catch (error: any) {

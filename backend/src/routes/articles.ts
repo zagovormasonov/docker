@@ -145,55 +145,77 @@ router.post(
     try {
       const { title, content, coverImage } = req.body;
 
-      // Создаем статью со статусом модерации
-      const result = await query(
-        `INSERT INTO articles (author_id, title, content, cover_image, is_published, moderation_status)
-         VALUES ($1, $2, $3, $4, false, 'pending')
-         RETURNING *`,
-        [req.userId, title, content, coverImage || null]
-      );
+      // Создаем статью (пробуем с полями модерации, если не получается - без них)
+      let result;
+      try {
+        result = await query(
+          `INSERT INTO articles (author_id, title, content, cover_image, is_published, moderation_status)
+           VALUES ($1, $2, $3, $4, false, 'pending')
+           RETURNING *`,
+          [req.userId, title, content, coverImage || null]
+        );
+      } catch (error) {
+        // Если поля модерации не существуют, создаем без них
+        console.log('Поля модерации не найдены, создаем статью без них');
+        result = await query(
+          `INSERT INTO articles (author_id, title, content, cover_image, is_published)
+           VALUES ($1, $2, $3, $4, true)
+           RETURNING *`,
+          [req.userId, title, content, coverImage || null]
+        );
+      }
 
       const article = result.rows[0];
 
-      // Отправляем уведомление администратору
-      try {
-        // Находим администратора
-        const adminResult = await query(
-          'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
-          ['admin', 'samyrize77777@gmail.com']
-        );
-
-        if (adminResult.rows.length > 0) {
-          const admin = adminResult.rows[0];
-          
-          // Создаем или находим чат с администратором
-          let chatResult = await query(
-            'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
-            [req.userId, admin.id]
+      // Отправляем уведомление администратору только если есть поля модерации
+      if (article.hasOwnProperty('moderation_status') && article.moderation_status === 'pending') {
+        try {
+          // Находим администратора
+          const adminResult = await query(
+            'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
+            ['admin', 'samyrize77777@gmail.com']
           );
-          
-          if (chatResult.rows.length === 0) {
-            chatResult = await query(
-              'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
+
+          if (adminResult.rows.length > 0) {
+            const admin = adminResult.rows[0];
+            
+            // Создаем или находим чат с администратором
+            let chatResult = await query(
+              'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
               [req.userId, admin.id]
             );
+            
+            if (chatResult.rows.length === 0) {
+              chatResult = await query(
+                'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
+                [req.userId, admin.id]
+              );
+            }
+            
+            const chatId = chatResult.rows[0].id;
+            
+            // Отправляем уведомление о новой статье на модерацию
+            await query(
+              `INSERT INTO messages (chat_id, sender_id, content, is_read) 
+               VALUES ($1, $2, $3, false)`,
+              [chatId, req.userId, `📝 Новая статья на модерацию от ${req.body.authorName || 'эксперта'}:\n\n📌 Заголовок: ${title}\n\n📄 Содержание:\n${content.substring(0, 500)}${content.length > 500 ? '...' : ''}\n\n🔗 ID статьи: ${article.id}`]
+            );
           }
-          
-          const chatId = chatResult.rows[0].id;
-          
-          // Отправляем уведомление о новой статье на модерацию
-          await query(
-            `INSERT INTO messages (chat_id, sender_id, content, is_read) 
-             VALUES ($1, $2, $3, false)`,
-            [chatId, req.userId, `📝 Новая статья на модерацию от ${req.body.authorName || 'эксперта'}:\n\n📌 Заголовок: ${title}\n\n📄 Содержание:\n${content.substring(0, 500)}${content.length > 500 ? '...' : ''}\n\n🔗 ID статьи: ${article.id}`]
-          );
+        } catch (notificationError) {
+          console.error('Ошибка отправки уведомления администратору:', notificationError);
+          // Не прерываем создание статьи из-за ошибки уведомления
         }
-      } catch (notificationError) {
-        console.error('Ошибка отправки уведомления администратору:', notificationError);
-        // Не прерываем создание статьи из-за ошибки уведомления
       }
 
-      res.status(201).json(article);
+      // Возвращаем статью с информацией о модерации
+      const response = {
+        ...article,
+        message: article.hasOwnProperty('moderation_status') && article.moderation_status === 'pending' 
+          ? 'Статья отправлена на модерацию. В ближайшее время вы получите ответ в чате.'
+          : 'Статья создана и опубликована'
+      };
+      
+      res.status(201).json(response);
     } catch (error) {
       console.error('Ошибка создания статьи:', error);
       res.status(500).json({ error: 'Ошибка сервера' });

@@ -33,6 +33,11 @@ const Header = () => {
     navigate('/chats');
   };
 
+  // Отладочная информация
+  console.log('Header - user:', user);
+  console.log('Header - userType:', user?.userType);
+  console.log('Header - isAdmin:', user?.userType === 'admin');
+
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
