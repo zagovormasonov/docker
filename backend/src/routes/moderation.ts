@@ -486,13 +486,6 @@ router.post('/articles/:id/reject', authenticateToken, requireAdmin, async (req:
 // Одобрение события
 console.log('🎯 Регистрируем endpoint POST /events/:id/approve');
 router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
-  // Отключаем кэширование для POST запросов
-  res.set({
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0'
-  });
-  
   console.log('🚀 Начало одобрения события:', req.params.id);
   console.log('👤 Пользователь:', req.userId);
   
