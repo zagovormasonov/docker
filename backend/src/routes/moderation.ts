@@ -187,16 +187,19 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
     
     // Пробуем обновить с полями модерации, если не получается - без них
     try {
+      console.log('Пробуем обновить событие с полями модерации:', id);
       await query(
         'UPDATE events SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP, is_published = true WHERE id = $3',
         ['approved', req.userId, id]
       );
+      console.log('Событие обновлено с полями модерации');
     } catch (error) {
-      console.log('Поля модерации не найдены, обновляем только is_published');
+      console.log('Поля модерации не найдены, обновляем только is_published:', error.message);
       await query(
         'UPDATE events SET is_published = true WHERE id = $1',
         [id]
       );
+      console.log('Событие обновлено без полей модерации');
     }
     
     // Получаем информацию об авторе и названии события для уведомления
@@ -251,16 +254,19 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
     
     // Пробуем обновить с полями модерации, если не получается - без них
     try {
+      console.log('Пробуем отклонить событие с полями модерации:', id);
       await query(
         'UPDATE events SET moderation_status = $1, moderation_reason = $2, moderated_by = $3, moderated_at = CURRENT_TIMESTAMP WHERE id = $4',
         ['rejected', reason, req.userId, id]
       );
+      console.log('Событие отклонено с полями модерации');
     } catch (error) {
-      console.log('Поля модерации не найдены, обновляем только is_published');
+      console.log('Поля модерации не найдены, обновляем только is_published:', error.message);
       await query(
         'UPDATE events SET is_published = false WHERE id = $1',
         [id]
       );
+      console.log('Событие отклонено без полей модерации');
     }
     
     // Получаем информацию об авторе для уведомления
