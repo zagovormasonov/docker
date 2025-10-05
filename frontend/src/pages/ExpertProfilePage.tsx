@@ -123,6 +123,12 @@ const ExpertProfilePage = () => {
       return;
     }
 
+    // Проверяем, что пользователь не пытается создать чат с самим собой
+    if (user.id === expert?.id) {
+      message.warning('Нельзя создать чат с самим собой');
+      return;
+    }
+
     try {
       const response = await api.post('/chats/create', { otherUserId: expert?.id });
       navigate(`/chats/${response.data.id}`);
@@ -200,14 +206,17 @@ const ExpertProfilePage = () => {
                 </Paragraph>
               )}
 
-              <Button
-                type="primary"
-                size="large"
-                icon={<MessageOutlined />}
-                onClick={handleContactExpert}
-              >
-                Связаться с экспертом
-              </Button>
+              {/* Показываем кнопку только если это не собственный профиль */}
+              {user?.id !== expert.id && (
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<MessageOutlined />}
+                  onClick={handleContactExpert}
+                >
+                  Связаться с экспертом
+                </Button>
+              )}
             </div>
           </Space>
 

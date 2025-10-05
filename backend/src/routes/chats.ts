@@ -32,7 +32,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
        FROM chats c
        JOIN users u1 ON c.user1_id = u1.id
        JOIN users u2 ON c.user2_id = u2.id
-       WHERE c.user1_id = $1 OR c.user2_id = $1
+       WHERE (c.user1_id = $1 OR c.user2_id = $1)
+       AND EXISTS (SELECT 1 FROM messages WHERE chat_id = c.id)
        ORDER BY last_message_time DESC NULLS LAST`,
       [req.userId]
     );
@@ -51,6 +52,11 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
 
     if (!otherUserId) {
       return res.status(400).json({ error: 'Не указан ID собеседника' });
+    }
+
+    // Проверяем, что пользователь не пытается создать чат с самим собой
+    if (req.userId === parseInt(otherUserId)) {
+      return res.status(400).json({ error: 'Нельзя создать чат с самим собой' });
     }
 
     // Проверка существования чата
