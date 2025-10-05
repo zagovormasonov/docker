@@ -31,10 +31,12 @@ const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
 
 // Получение списка статей на модерацию
 router.get('/articles', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+  console.log('📋 Загружаем статьи на модерацию для пользователя:', req.userId);
   try {
     // Пробуем запрос с полями модерации, если не получается - возвращаем пустой массив
     let result;
     try {
+      console.log('🔍 Ищем статьи с moderation_status = pending');
       result = await query(`
         SELECT a.*, u.name as author_name, u.email as author_email
         FROM articles a
@@ -42,12 +44,20 @@ router.get('/articles', authenticateToken, requireAdmin, async (req: AuthRequest
         WHERE a.moderation_status = 'pending'
         ORDER BY a.created_at DESC
       `);
+      console.log('📊 Найдено статей на модерацию:', result.rows.length);
     } catch (error) {
-      console.log('Поля модерации не найдены, возвращаем пустой список статей на модерацию');
+      console.log('❌ Поля модерации не найдены, возвращаем пустой список статей на модерацию:', error.message);
       result = { rows: [] };
     }
     
-    res.json(result.rows);
+    res.json({
+      articles: result.rows,
+      debug: {
+        userId: req.userId,
+        timestamp: new Date().toISOString(),
+        count: result.rows.length
+      }
+    });
   } catch (error) {
     console.error('Ошибка получения статей на модерацию:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
@@ -56,10 +66,12 @@ router.get('/articles', authenticateToken, requireAdmin, async (req: AuthRequest
 
 // Получение списка событий на модерацию
 router.get('/events', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+  console.log('📋 Загружаем события на модерацию для пользователя:', req.userId);
   try {
     // Пробуем запрос с полями модерации, если не получается - возвращаем пустой массив
     let result;
     try {
+      console.log('🔍 Ищем события с moderation_status = pending');
       result = await query(`
         SELECT e.*, u.name as author_name, u.email as author_email
         FROM events e
@@ -67,12 +79,20 @@ router.get('/events', authenticateToken, requireAdmin, async (req: AuthRequest, 
         WHERE e.moderation_status = 'pending'
         ORDER BY e.created_at DESC
       `);
+      console.log('📊 Найдено событий на модерацию:', result.rows.length);
     } catch (error) {
-      console.log('Поля модерации не найдены, возвращаем пустой список событий на модерацию');
+      console.log('❌ Поля модерации не найдены, возвращаем пустой список событий на модерацию:', error.message);
       result = { rows: [] };
     }
     
-    res.json(result.rows);
+    res.json({
+      events: result.rows,
+      debug: {
+        userId: req.userId,
+        timestamp: new Date().toISOString(),
+        count: result.rows.length
+      }
+    });
   } catch (error) {
     console.error('Ошибка получения событий на модерацию:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
