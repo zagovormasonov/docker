@@ -6,6 +6,14 @@ console.log('📁 Загружается файл moderation.ts');
 
 const router = express.Router();
 
+// Простой endpoint для проверки
+router.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Модерация работает!',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Middleware для проверки прав администратора
 const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
   console.log('🔐 Проверка прав администратора для пользователя:', req.userId);
