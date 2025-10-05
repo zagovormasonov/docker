@@ -23,6 +23,7 @@ import {
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import './ModerationPage.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -182,16 +183,65 @@ const ModerationPage = () => {
       // Article
       return (
         <div>
+          <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
+            <Text strong>Автор:</Text> {item.author_name} ({item.author_email})
+          </div>
           <Title level={3}>{item.title}</Title>
-          <Paragraph>{item.content}</Paragraph>
+          {item.cover_image && (
+            <div style={{ marginBottom: 16 }}>
+              <img 
+                src={item.cover_image} 
+                alt={item.title}
+                style={{ 
+                  maxWidth: '100%', 
+                  height: 'auto',
+                  borderRadius: 8,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }} 
+              />
+            </div>
+          )}
+          <div 
+            dangerouslySetInnerHTML={{ __html: item.content }}
+            style={{
+              lineHeight: '1.6',
+              fontSize: '16px'
+            }}
+            className="article-content"
+          />
         </div>
       );
     } else {
       // Event
       return (
         <div>
+          <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
+            <Text strong>Автор:</Text> {item.author_name} ({item.author_email})
+          </div>
           <Title level={3}>{item.title}</Title>
-          <Paragraph>{item.description}</Paragraph>
+          {item.cover_image && (
+            <div style={{ marginBottom: 16 }}>
+              <img 
+                src={item.cover_image} 
+                alt={item.title}
+                style={{ 
+                  maxWidth: '100%', 
+                  height: 'auto',
+                  borderRadius: 8,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }} 
+              />
+            </div>
+          )}
+          <div 
+            dangerouslySetInnerHTML={{ __html: item.description }}
+            style={{
+              lineHeight: '1.6',
+              fontSize: '16px',
+              marginBottom: 16
+            }}
+            className="article-content"
+          />
           <Divider />
           <Row gutter={16}>
             <Col span={12}>
@@ -267,7 +317,9 @@ const ModerationPage = () => {
             Закрыть
           </Button>
         ]}
-        width={800}
+        width={1000}
+        style={{ top: 20 }}
+        bodyStyle={{ maxHeight: '80vh', overflowY: 'auto' }}
       >
         {selectedItem && renderContent(selectedItem)}
       </Modal>
