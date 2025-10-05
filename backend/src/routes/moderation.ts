@@ -203,36 +203,45 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
     }
     
     // Получаем информацию об авторе и названии события для уведомления
+    console.log('Получаем информацию об авторе события:', id);
     const authorResult = await query(`
       SELECT u.id, u.name, u.email, e.title
       FROM events e
       JOIN users u ON e.organizer_id = u.id
       WHERE e.id = $1
     `, [id]);
+    console.log('Автор события:', authorResult.rows);
     
     if (authorResult.rows.length > 0) {
       const author = authorResult.rows[0];
       
       // Создаем или находим чат с автором
+      console.log('Ищем чат между администратором и автором:', req.userId, author.id);
       let chatResult = await query(
         'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
         [req.userId, author.id]
       );
+      console.log('Найденный чат:', chatResult.rows);
       
       if (chatResult.rows.length === 0) {
+        console.log('Создаем новый чат между администратором и автором');
         chatResult = await query(
           'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
           [req.userId, author.id]
         );
+        console.log('Созданный чат:', chatResult.rows);
       }
       
       const chatId = chatResult.rows[0].id;
+      console.log('ID чата для уведомления:', chatId);
       
       // Отправляем уведомление об одобрении
+      console.log('Отправляем уведомление об одобрении события');
       await query(
         'INSERT INTO messages (chat_id, sender_id, content, is_read) VALUES ($1, $2, $3, false)',
         [chatId, req.userId, `✅ Ваше событие "${author.title}" одобрено и опубликовано!`]
       );
+      console.log('Уведомление об одобрении отправлено');
     }
     
     res.json({ message: 'Событие одобрено' });
