@@ -78,15 +78,15 @@ router.post('/articles/:id/approve', authenticateToken, requireAdmin, async (req
   try {
     const { id } = req.params;
     
-    // Обновляем статус статьи
+    // Обновляем статус статьи и публикуем её
     await query(
-      'UPDATE articles SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP WHERE id = $3',
+      'UPDATE articles SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP, is_published = true WHERE id = $3',
       ['approved', req.userId, id]
     );
     
-    // Получаем информацию об авторе для уведомления
+    // Получаем информацию об авторе и названии статьи для уведомления
     const authorResult = await query(`
-      SELECT u.id, u.name, u.email
+      SELECT u.id, u.name, u.email, a.title
       FROM articles a
       JOIN users u ON a.author_id = u.id
       WHERE a.id = $1
@@ -113,7 +113,7 @@ router.post('/articles/:id/approve', authenticateToken, requireAdmin, async (req
       // Отправляем уведомление об одобрении
       await query(
         'INSERT INTO messages (chat_id, sender_id, content, is_read) VALUES ($1, $2, $3, false)',
-        [chatId, req.userId, `✅ Ваша статья "${req.body.title || 'статья'}" одобрена и опубликована!`]
+        [chatId, req.userId, `✅ Ваша статья "${author.title}" одобрена и опубликована!`]
       );
     }
     
@@ -185,15 +185,15 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
   try {
     const { id } = req.params;
     
-    // Обновляем статус события
+    // Обновляем статус события и публикуем его
     await query(
-      'UPDATE events SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP WHERE id = $3',
+      'UPDATE events SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP, is_published = true WHERE id = $3',
       ['approved', req.userId, id]
     );
     
-    // Получаем информацию об авторе для уведомления
+    // Получаем информацию об авторе и названии события для уведомления
     const authorResult = await query(`
-      SELECT u.id, u.name, u.email
+      SELECT u.id, u.name, u.email, e.title
       FROM events e
       JOIN users u ON e.author_id = u.id
       WHERE e.id = $1
@@ -220,7 +220,7 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
       // Отправляем уведомление об одобрении
       await query(
         'INSERT INTO messages (chat_id, sender_id, content, is_read) VALUES ($1, $2, $3, false)',
-        [chatId, req.userId, `✅ Ваше событие "${req.body.title || 'событие'}" одобрено и опубликовано!`]
+        [chatId, req.userId, `✅ Ваше событие "${author.title}" одобрено и опубликовано!`]
       );
     }
     
