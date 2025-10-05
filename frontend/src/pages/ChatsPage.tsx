@@ -124,6 +124,29 @@ const ChatsPage = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Обработчик прокрутки для отметки сообщений как прочитанных
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!selectedChat) return;
+      
+      const messagesContainer = document.querySelector('.messages-container');
+      if (!messagesContainer) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainer;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10; // 10px допуск
+      
+      if (isAtBottom) {
+        markMessagesAsRead(selectedChat);
+      }
+    };
+
+    const messagesContainer = document.querySelector('.messages-container');
+    if (messagesContainer) {
+      messagesContainer.addEventListener('scroll', handleScroll);
+      return () => messagesContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [selectedChat, messages]);
+
   const fetchChats = async () => {
     try {
       const response = await api.get('/chats');
@@ -141,16 +164,8 @@ const ChatsPage = () => {
       const response = await api.get(`/chats/${chatId}/messages`);
       setMessages(response.data);
       
-      // Отмечаем сообщения как прочитанные при входе в чат
-      try {
-        await api.post(`/chats/${chatId}/mark-read`);
-        // Обновляем список чатов для обновления счетчиков
-        setTimeout(() => {
-          fetchChats();
-        }, 100);
-      } catch (error) {
-        console.error('Ошибка отметки сообщений как прочитанных:', error);
-      }
+      // НЕ отмечаем сообщения как прочитанные при входе в чат
+      // Это будет делаться только при прокрутке до конца
     } catch (error) {
       console.error('Ошибка загрузки сообщений:', error);
     }
@@ -165,6 +180,18 @@ const ChatsPage = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const markMessagesAsRead = async (chatId: number) => {
+    try {
+      await api.post(`/chats/${chatId}/mark-read`);
+      // Обновляем список чатов для обновления счетчиков
+      setTimeout(() => {
+        fetchChats();
+      }, 100);
+    } catch (error) {
+      console.error('Ошибка отметки сообщений как прочитанных:', error);
+    }
   };
 
   const handleChatSelect = (chatId: number) => {
@@ -297,6 +324,7 @@ const ChatsPage = () => {
           </div>
           
           <div
+            className="messages-container"
             style={{
               flex: 1,
               overflowY: 'auto',
@@ -494,6 +522,7 @@ const ChatsPage = () => {
             {selectedChat ? (
               <>
                 <div
+                  className="messages-container"
                   style={{
                     height: 'calc(100vh - 300px)', // Фиксированная высота по высоте экрана
                     overflowY: 'auto',
