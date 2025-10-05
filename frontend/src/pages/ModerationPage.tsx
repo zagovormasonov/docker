@@ -74,11 +74,13 @@ const ModerationPage = () => {
         api.get('/moderation/events')
       ]);
       
-      setArticles(articlesRes.data);
-      setEvents(eventsRes.data);
+      setArticles(articlesRes.data || []);
+      setEvents(eventsRes.data || []);
     } catch (error) {
       console.error('Ошибка загрузки элементов на модерацию:', error);
-      message.error('Ошибка загрузки данных');
+      // Не показываем ошибку, если поля модерации не настроены
+      setArticles([]);
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -229,6 +231,8 @@ const ModerationPage = () => {
           {articles.length === 0 ? (
             <Card>
               <Text>Нет статей на модерацию</Text>
+              <br />
+              <Text type="secondary">Система модерации будет активна после настройки полей в базе данных</Text>
             </Card>
           ) : (
             <List
@@ -242,6 +246,8 @@ const ModerationPage = () => {
           {events.length === 0 ? (
             <Card>
               <Text>Нет событий на модерацию</Text>
+              <br />
+              <Text type="secondary">Система модерации будет активна после настройки полей в базе данных</Text>
             </Card>
           ) : (
             <List

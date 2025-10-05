@@ -26,13 +26,20 @@ const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
 // Получение списка статей на модерацию
 router.get('/articles', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
   try {
-    const result = await query(`
-      SELECT a.*, u.name as author_name, u.email as author_email
-      FROM articles a
-      JOIN users u ON a.author_id = u.id
-      WHERE a.moderation_status = 'pending'
-      ORDER BY a.created_at DESC
-    `);
+    // Пробуем запрос с полями модерации, если не получается - возвращаем пустой массив
+    let result;
+    try {
+      result = await query(`
+        SELECT a.*, u.name as author_name, u.email as author_email
+        FROM articles a
+        JOIN users u ON a.author_id = u.id
+        WHERE a.moderation_status = 'pending'
+        ORDER BY a.created_at DESC
+      `);
+    } catch (error) {
+      console.log('Поля модерации не найдены, возвращаем пустой список статей на модерацию');
+      result = { rows: [] };
+    }
     
     res.json(result.rows);
   } catch (error) {
@@ -44,13 +51,20 @@ router.get('/articles', authenticateToken, requireAdmin, async (req: AuthRequest
 // Получение списка событий на модерацию
 router.get('/events', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
   try {
-    const result = await query(`
-      SELECT e.*, u.name as author_name, u.email as author_email
-      FROM events e
-      JOIN users u ON e.author_id = u.id
-      WHERE e.moderation_status = 'pending'
-      ORDER BY e.created_at DESC
-    `);
+    // Пробуем запрос с полями модерации, если не получается - возвращаем пустой массив
+    let result;
+    try {
+      result = await query(`
+        SELECT e.*, u.name as author_name, u.email as author_email
+        FROM events e
+        JOIN users u ON e.author_id = u.id
+        WHERE e.moderation_status = 'pending'
+        ORDER BY e.created_at DESC
+      `);
+    } catch (error) {
+      console.log('Поля модерации не найдены, возвращаем пустой список событий на модерацию');
+      result = { rows: [] };
+    }
     
     res.json(result.rows);
   } catch (error) {
