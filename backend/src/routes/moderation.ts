@@ -128,6 +128,68 @@ router.get('/fix-events-published', async (req, res) => {
   }
 });
 
+// Endpoint для принудительного добавления поля is_published
+router.get('/force-add-published', async (req, res) => {
+  try {
+    console.log('🔧 Принудительно добавляем поле is_published в таблицу events');
+    
+    // Сначала проверяем, существует ли поле
+    const checkResult = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'events' 
+      AND column_name = 'is_published'
+    `);
+    
+    if (checkResult.rows.length === 0) {
+      console.log('Поле is_published не существует, добавляем...');
+      
+      // Добавляем поле is_published в таблицу events
+      await query(`
+        ALTER TABLE events 
+        ADD COLUMN is_published BOOLEAN DEFAULT false
+      `);
+      
+      console.log('Поле is_published добавлено');
+      
+      // Обновляем существующие события
+      await query(`
+        UPDATE events 
+        SET is_published = true 
+        WHERE moderation_status = 'approved' OR moderation_status IS NULL
+      `);
+      
+      console.log('Существующие события обновлены');
+    } else {
+      console.log('Поле is_published уже существует');
+    }
+    
+    // Проверяем результат
+    const finalResult = await query(`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'events' 
+      AND column_name IN ('moderation_status', 'is_published', 'moderated_by', 'moderated_at')
+      ORDER BY column_name
+    `);
+    
+    res.json({
+      message: 'Поле is_published принудительно добавлено в таблицу events',
+      timestamp: new Date().toISOString(),
+      success: true,
+      eventsFields: finalResult.rows,
+      wasAdded: checkResult.rows.length === 0
+    });
+  } catch (error) {
+    console.error('Ошибка принудительного добавления поля is_published:', error);
+    res.status(500).json({
+      error: 'Ошибка принудительного добавления поля is_published',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Middleware для проверки прав администратора
 const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
   console.log('🔐 Проверка прав администратора для пользователя:', req.userId);
