@@ -238,7 +238,17 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
     res.json({ message: 'Событие одобрено' });
   } catch (error) {
     console.error('Ошибка одобрения события:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('Детали ошибки:', {
+      message: error.message,
+      stack: error.stack,
+      eventId: req.params.id,
+      userId: req.userId
+    });
+    res.status(500).json({ 
+      error: 'Ошибка сервера',
+      details: error.message,
+      eventId: req.params.id
+    });
   }
 });
 
@@ -305,7 +315,17 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
     res.json({ message: 'Событие отклонено' });
   } catch (error) {
     console.error('Ошибка отклонения события:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('Детали ошибки:', {
+      message: error.message,
+      stack: error.stack,
+      eventId: req.params.id,
+      userId: req.userId
+    });
+    res.status(500).json({ 
+      error: 'Ошибка сервера',
+      details: error.message,
+      eventId: req.params.id
+    });
   }
 });
 
