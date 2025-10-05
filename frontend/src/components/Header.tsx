@@ -220,7 +220,7 @@ const Header = () => {
               to="/" 
               style={{ 
                 fontSize: '16px',
-                color: '#000',
+                color: 'rgb(170 180 251)',
                 textDecoration: 'none',
                 fontWeight: 500,
                 display: 'flex',
@@ -234,7 +234,7 @@ const Header = () => {
               to="/experts" 
               style={{ 
                 fontSize: '16px',
-                color: '#000',
+                color: 'rgb(170 180 251)',
                 textDecoration: 'none',
                 fontWeight: 500,
                 display: 'flex',
@@ -248,7 +248,7 @@ const Header = () => {
               to="/events" 
               style={{ 
                 fontSize: '16px',
-                color: '#000',
+                color: 'rgb(170 180 251)',
                 textDecoration: 'none',
                 fontWeight: 500,
                 display: 'flex',
