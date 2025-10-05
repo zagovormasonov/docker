@@ -50,14 +50,7 @@ router.get('/articles', authenticateToken, requireAdmin, async (req: AuthRequest
       result = { rows: [] };
     }
     
-    res.json({
-      articles: result.rows,
-      debug: {
-        userId: req.userId,
-        timestamp: new Date().toISOString(),
-        count: result.rows.length
-      }
-    });
+    res.json(result.rows);
   } catch (error) {
     console.error('Ошибка получения статей на модерацию:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
@@ -85,14 +78,7 @@ router.get('/events', authenticateToken, requireAdmin, async (req: AuthRequest, 
       result = { rows: [] };
     }
     
-    res.json({
-      events: result.rows,
-      debug: {
-        userId: req.userId,
-        timestamp: new Date().toISOString(),
-        count: result.rows.length
-      }
-    });
+    res.json(result.rows);
   } catch (error) {
     console.error('Ошибка получения событий на модерацию:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
