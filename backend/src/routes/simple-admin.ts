@@ -8,6 +8,16 @@ router.get('/', async (req, res) => {
   try {
     console.log('Попытка назначить администратора...');
     
+    // Сначала обновляем ограничение user_type
+    try {
+      await query('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_user_type_check');
+      await query('ALTER TABLE users ADD CONSTRAINT users_user_type_check CHECK (user_type IN (\'client\', \'expert\', \'admin\'))');
+      console.log('Ограничение user_type обновлено');
+    } catch (constraintError) {
+      console.log('Ошибка обновления ограничения:', constraintError.message);
+      // Продолжаем выполнение, возможно ограничение уже правильное
+    }
+    
     const result = await query(
       'UPDATE users SET user_type = $1 WHERE email = $2 RETURNING id, name, email, user_type',
       ['admin', 'samyrize77777@gmail.com']
