@@ -486,6 +486,13 @@ router.post('/articles/:id/reject', authenticateToken, requireAdmin, async (req:
 // Одобрение события
 console.log('🎯 Регистрируем endpoint POST /events/:id/approve');
 router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+  // Отключаем кэширование для POST запросов
+  res.set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  
   console.log('🚀 Начало одобрения события:', req.params.id);
   console.log('👤 Пользователь:', req.userId);
   
@@ -591,6 +598,13 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
 
 // Отклонение события
 router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+  // Отключаем кэширование для POST запросов
+  res.set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  
   try {
     const { id } = req.params;
     const { reason } = req.body;
@@ -611,7 +625,7 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
     try {
       console.log('Пробуем отклонить событие с полями модерации:', id);
       await query(
-        'UPDATE events SET moderation_status = $1, moderation_reason = $2, moderated_by = $3, moderated_at = CURRENT_TIMESTAMP WHERE id = $4',
+        'UPDATE events SET moderation_status = $1, moderation_reason = $2, moderated_by = $3, moderated_at = CURRENT_TIMESTAMP, is_published = false WHERE id = $4',
         ['rejected', reason, req.userId, id]
       );
       console.log('Событие отклонено с полями модерации');
@@ -625,36 +639,47 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
     }
     
     // Получаем информацию об авторе для уведомления
+    console.log('Получаем информацию об авторе события для отклонения:', id);
     const authorResult = await query(`
       SELECT u.id, u.name, u.email, e.title
       FROM events e
       JOIN users u ON e.organizer_id = u.id
       WHERE e.id = $1
     `, [id]);
+    console.log('Автор события для отклонения:', authorResult.rows);
     
     if (authorResult.rows.length > 0) {
       const author = authorResult.rows[0];
       
       // Создаем или находим чат с автором
+      console.log('Ищем чат между администратором и автором для отклонения:', req.userId, author.id);
       let chatResult = await query(
         'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
         [req.userId, author.id]
       );
+      console.log('Найденный чат для отклонения:', chatResult.rows);
       
       if (chatResult.rows.length === 0) {
+        console.log('Создаем новый чат между администратором и автором для отклонения');
         chatResult = await query(
           'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
           [req.userId, author.id]
         );
+        console.log('Созданный чат для отклонения:', chatResult.rows);
       }
       
       const chatId = chatResult.rows[0].id;
+      console.log('ID чата для уведомления об отклонении:', chatId);
       
       // Отправляем уведомление об отклонении
+      console.log('Отправляем уведомление об отклонении события');
       await query(
         'INSERT INTO messages (chat_id, sender_id, content, is_read) VALUES ($1, $2, $3, false)',
         [chatId, req.userId, `❌ Ваше событие "${author.title}" отклонено.\n\nПричина: ${reason}`]
       );
+      console.log('Уведомление об отклонении отправлено');
+    } else {
+      console.log('Автор события не найден для отклонения');
     }
     
     console.log('✅ Событие успешно отклонено:', id);
