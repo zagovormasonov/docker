@@ -6,16 +6,20 @@ const router = express.Router();
 
 // Middleware для проверки прав администратора
 const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
+  console.log('🔐 Проверка прав администратора для пользователя:', req.userId);
   try {
     const result = await query(
       'SELECT user_type FROM users WHERE id = $1',
       [req.userId]
     );
+    console.log('👤 Тип пользователя:', result.rows[0]?.user_type);
     
     if (result.rows.length === 0 || result.rows[0].user_type !== 'admin') {
+      console.log('❌ Доступ запрещен. Пользователь не является администратором');
       return res.status(403).json({ error: 'Доступ запрещен. Требуются права администратора.' });
     }
     
+    console.log('✅ Пользователь является администратором');
     next();
   } catch (error) {
     console.error('Ошибка проверки прав администратора:', error);
@@ -182,8 +186,11 @@ router.post('/articles/:id/reject', authenticateToken, requireAdmin, async (req:
 
 // Одобрение события
 router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+  console.log('🚀 Начало одобрения события:', req.params.id);
+  console.log('👤 Пользователь:', req.userId);
   try {
     const { id } = req.params;
+    console.log('📝 ID события для одобрения:', id);
     
     // Пробуем обновить с полями модерации, если не получается - без них
     try {
