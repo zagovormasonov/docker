@@ -282,8 +282,16 @@ router.post(
 
       const newEvent = result.rows[0];
       
-      // Проверяем, есть ли поля модерации
-      const hasModerationFields = newEvent.hasOwnProperty('is_published') && newEvent.hasOwnProperty('moderation_status');
+      // Проверяем, есть ли поля модерации в базе данных
+      let hasModerationFields = false;
+      try {
+        // Пробуем выполнить запрос с полями модерации
+        await query('SELECT moderation_status FROM events LIMIT 1');
+        hasModerationFields = true;
+      } catch (error) {
+        console.log('Поля модерации не найдены в базе данных');
+        hasModerationFields = false;
+      }
       
       if (hasModerationFields) {
         // Получаем данные организатора для письма
@@ -340,9 +348,54 @@ router.post(
           message: 'Событие создано и отправлено на модерацию'
         });
       } else {
+        // Даже если поля модерации не существуют, отправляем уведомление администратору
+        try {
+          // Получаем данные организатора
+          const organizerResult = await query(
+            'SELECT name, email FROM users WHERE id = $1',
+            [req.userId]
+          );
+          
+          if (organizerResult.rows.length > 0) {
+            // Находим администратора
+            const adminResult = await query(
+              'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
+              ['admin', 'samyrize77777@gmail.com']
+            );
+
+            if (adminResult.rows.length > 0) {
+              const admin = adminResult.rows[0];
+              
+              // Создаем или находим чат с администратором
+              let chatResult = await query(
+                'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
+                [req.userId, admin.id]
+              );
+              
+              if (chatResult.rows.length === 0) {
+                chatResult = await query(
+                  'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
+                  [req.userId, admin.id]
+                );
+              }
+              
+              const chatId = chatResult.rows[0].id;
+              
+              // Отправляем уведомление о новом событии на модерацию
+              await query(
+                `INSERT INTO messages (chat_id, sender_id, content, is_read) 
+                 VALUES ($1, $2, $3, false)`,
+                [chatId, req.userId, `🎉 Новое событие на модерацию от ${organizerResult.rows[0].name}:\n\n📌 Название: ${title}\n\n📄 Описание:\n${description.substring(0, 500)}${description.length > 500 ? '...' : ''}\n\n📅 Дата: ${new Date(eventDate).toLocaleDateString('ru-RU')}\n\n🔗 ID события: ${newEvent.id}`]
+              );
+            }
+          }
+        } catch (notificationError) {
+          console.error('Ошибка отправки уведомления администратору:', notificationError);
+        }
+        
         res.status(201).json({
           ...newEvent,
-          message: 'Событие создано'
+          message: 'Событие создано и отправлено на модерацию'
         });
       }
     } catch (error) {
