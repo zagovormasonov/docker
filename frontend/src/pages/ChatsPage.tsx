@@ -72,7 +72,23 @@ const ChatsPage = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
-    return () => window.removeEventListener('resize', checkMobile);
+    // Периодическое обновление счетчиков каждые 5 секунд
+    const interval = setInterval(() => {
+      fetchChats();
+    }, 5000);
+    
+    // Обновление счетчиков при фокусе на окне
+    const handleFocus = () => {
+      fetchChats();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -91,8 +107,10 @@ const ChatsPage = () => {
         scrollToBottom();
       }
       
-      // Обновить список чатов для показа новых непрочитанных сообщений
-      fetchChats();
+      // Принудительно обновить список чатов для показа новых непрочитанных сообщений
+      setTimeout(() => {
+        fetchChats();
+      }, 100);
     };
 
     socketService.onNewMessage(handleNewMessage);
@@ -215,7 +233,12 @@ const ChatsPage = () => {
                           <Badge 
                             count={chat.unread_count} 
                             size="small" 
-                            style={{ marginLeft: 8 }}
+                            style={{ 
+                              marginLeft: 8,
+                              backgroundColor: '#ff4d4f',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}
                           />
                         )}
                       </div>
@@ -429,7 +452,12 @@ const ChatsPage = () => {
                           <Badge 
                             count={chat.unread_count} 
                             size="small" 
-                            style={{ marginLeft: 8 }}
+                            style={{ 
+                              marginLeft: 8,
+                              backgroundColor: '#ff4d4f',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}
                           />
                         )}
                       </div>
