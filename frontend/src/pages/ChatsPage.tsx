@@ -172,11 +172,17 @@ const ChatsPage = () => {
     if (isMobile) {
       setShowChatList(false);
     }
+    // Обновляем список чатов при выборе чата
+    setTimeout(() => {
+      fetchChats();
+    }, 100);
   };
 
   const handleBackToChatList = () => {
     setShowChatList(true);
     setSelectedChat(null);
+    // Обновляем список чатов при возврате к списку
+    fetchChats();
   };
 
   // Мобильная версия - список чатов
@@ -196,10 +202,12 @@ const ChatsPage = () => {
                   onClick={() => handleChatSelect(chat.id)}
                   style={{
                     cursor: 'pointer',
-                    background: selectedChat === chat.id ? '#f0f0f0' : 'transparent',
+                    background: selectedChat === chat.id ? '#f0f0f0' : 
+                               (chat.unread_count && chat.unread_count > 0 ? '#fff2f0' : 'transparent'),
                     borderRadius: 8,
                     padding: 12,
-                    marginBottom: 8
+                    marginBottom: 8,
+                    border: chat.unread_count && chat.unread_count > 0 ? '1px solid #ffccc7' : '1px solid transparent'
                   }}
                 >
                   <List.Item.Meta
