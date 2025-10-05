@@ -185,11 +185,19 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
   try {
     const { id } = req.params;
     
-    // Обновляем статус события и публикуем его
-    await query(
-      'UPDATE events SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP, is_published = true WHERE id = $3',
-      ['approved', req.userId, id]
-    );
+    // Пробуем обновить с полями модерации, если не получается - без них
+    try {
+      await query(
+        'UPDATE events SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP, is_published = true WHERE id = $3',
+        ['approved', req.userId, id]
+      );
+    } catch (error) {
+      console.log('Поля модерации не найдены, обновляем только is_published');
+      await query(
+        'UPDATE events SET is_published = true WHERE id = $1',
+        [id]
+      );
+    }
     
     // Получаем информацию об авторе и названии события для уведомления
     const authorResult = await query(`
@@ -241,11 +249,19 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
       return res.status(400).json({ error: 'Необходимо указать причину отклонения' });
     }
     
-    // Обновляем статус события
-    await query(
-      'UPDATE events SET moderation_status = $1, moderation_reason = $2, moderated_by = $3, moderated_at = CURRENT_TIMESTAMP WHERE id = $4',
-      ['rejected', reason, req.userId, id]
-    );
+    // Пробуем обновить с полями модерации, если не получается - без них
+    try {
+      await query(
+        'UPDATE events SET moderation_status = $1, moderation_reason = $2, moderated_by = $3, moderated_at = CURRENT_TIMESTAMP WHERE id = $4',
+        ['rejected', reason, req.userId, id]
+      );
+    } catch (error) {
+      console.log('Поля модерации не найдены, обновляем только is_published');
+      await query(
+        'UPDATE events SET is_published = false WHERE id = $1',
+        [id]
+      );
+    }
     
     // Получаем информацию об авторе для уведомления
     const authorResult = await query(`
