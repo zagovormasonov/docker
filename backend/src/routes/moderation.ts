@@ -2,6 +2,8 @@ import express from 'express';
 import { query } from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 
+console.log('📁 Загружается файл moderation.ts');
+
 const router = express.Router();
 
 // Middleware для проверки прав администратора
@@ -185,6 +187,7 @@ router.post('/articles/:id/reject', authenticateToken, requireAdmin, async (req:
 });
 
 // Одобрение события
+console.log('🎯 Регистрируем endpoint POST /events/:id/approve');
 router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
   console.log('🚀 Начало одобрения события:', req.params.id);
   console.log('👤 Пользователь:', req.userId);

@@ -56,6 +56,7 @@ app.use('/api/articles', articlesRoutes);
 app.use('/api/article-interactions', articleInteractionsRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/events', eventModerationRoutes);
+console.log('🔗 Регистрируем маршруты модерации');
 app.use('/api/moderation', moderationRoutes);
 app.use('/api/admin-setup', adminSetupRoutes);
 app.use('/api/fix-admin', fixAdminRoutes);
