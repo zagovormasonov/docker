@@ -87,7 +87,8 @@ router.get('/', async (req, res) => {
        COALESCE(a.likes_count, 0) as likes_count
        FROM articles a
        JOIN users u ON a.author_id = u.id
-       WHERE a.is_published = true AND a.moderation_status = 'approved'
+       WHERE a.is_published = true 
+       AND (a.moderation_status = 'approved' OR a.moderation_status IS NULL)
        ORDER BY ${orderBy}
        LIMIT 100`
     );
