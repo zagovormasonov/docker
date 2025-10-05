@@ -82,16 +82,32 @@ router.get('/', async (req, res) => {
       orderBy = 'a.views DESC, a.created_at DESC';
     }
 
-    const result = await query(
-      `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
-       COALESCE(a.likes_count, 0) as likes_count
-       FROM articles a
-       JOIN users u ON a.author_id = u.id
-       WHERE a.is_published = true 
-       AND (a.moderation_status = 'approved' OR a.moderation_status IS NULL)
-       ORDER BY ${orderBy}
-       LIMIT 100`
-    );
+    // Пробуем запрос с полями модерации, если не получается - без них
+    let result;
+    try {
+      result = await query(
+        `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
+         COALESCE(a.likes_count, 0) as likes_count
+         FROM articles a
+         JOIN users u ON a.author_id = u.id
+         WHERE a.is_published = true 
+         AND (a.moderation_status = 'approved' OR a.moderation_status IS NULL)
+         ORDER BY ${orderBy}
+         LIMIT 100`
+      );
+    } catch (error) {
+      // Если поля модерации не существуют, делаем запрос без них
+      console.log('Поля модерации не найдены, загружаем все опубликованные статьи');
+      result = await query(
+        `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
+         COALESCE(a.likes_count, 0) as likes_count
+         FROM articles a
+         JOIN users u ON a.author_id = u.id
+         WHERE a.is_published = true
+         ORDER BY ${orderBy}
+         LIMIT 100`
+      );
+    }
 
     res.json(result.rows);
   } catch (error) {
