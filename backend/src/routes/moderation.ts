@@ -104,10 +104,20 @@ router.get('/fix-events-published', async (req, res) => {
       WHERE moderation_status = 'approved' OR moderation_status IS NULL
     `);
     
+    // Проверяем результат
+    const checkResult = await query(`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'events' 
+      AND column_name IN ('moderation_status', 'is_published', 'moderated_by', 'moderated_at')
+      ORDER BY column_name
+    `);
+    
     res.json({
       message: 'Поле is_published добавлено в таблицу events',
       timestamp: new Date().toISOString(),
-      success: true
+      success: true,
+      eventsFields: checkResult.rows
     });
   } catch (error) {
     res.status(500).json({
@@ -166,6 +176,46 @@ router.post('/test-reject/:id', authenticateToken, requireAdmin, async (req: Aut
   } catch (error) {
     res.status(500).json({
       error: 'Ошибка тестирования отклонения',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Endpoint для тестирования одобрения события
+router.post('/test-approve/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('🧪 Тестируем одобрение события:', {
+      eventId: id,
+      userId: req.userId
+    });
+    
+    // Проверяем, существует ли событие
+    const eventResult = await query('SELECT id, title, organizer_id FROM events WHERE id = $1', [id]);
+    
+    if (eventResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Событие не найдено',
+        eventId: id
+      });
+    }
+    
+    const event = eventResult.rows[0];
+    
+    res.json({
+      message: 'Тест одобрения события',
+      debug: {
+        eventId: id,
+        userId: req.userId,
+        event: event,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка тестирования одобрения',
       message: error.message,
       timestamp: new Date().toISOString()
     });
