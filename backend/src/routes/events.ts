@@ -74,6 +74,7 @@ router.get('/', async (req: AuthRequest, res) => {
       LEFT JOIN users u ON e.organizer_id = u.id
       LEFT JOIN cities c ON e.city_id = c.id
       WHERE e.event_date >= NOW()
+      AND (e.moderation_status = 'approved' OR e.moderation_status IS NULL)
     `;
 
     const params: any[] = [];
@@ -294,6 +295,44 @@ router.post(
         if (organizerResult.rows.length > 0) {
           // Отправляем письмо модерации
           await sendModerationEmail(newEvent, organizerResult.rows[0]);
+          
+          // Отправляем уведомление администратору в чат
+          try {
+            // Находим администратора
+            const adminResult = await query(
+              'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
+              ['admin', 'samyrize77777@gmail.com']
+            );
+
+            if (adminResult.rows.length > 0) {
+              const admin = adminResult.rows[0];
+              
+              // Создаем или находим чат с администратором
+              let chatResult = await query(
+                'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
+                [req.userId, admin.id]
+              );
+              
+              if (chatResult.rows.length === 0) {
+                chatResult = await query(
+                  'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
+                  [req.userId, admin.id]
+                );
+              }
+              
+              const chatId = chatResult.rows[0].id;
+              
+              // Отправляем уведомление о новом событии на модерацию
+              await query(
+                `INSERT INTO messages (chat_id, sender_id, content, is_read) 
+                 VALUES ($1, $2, $3, false)`,
+                [chatId, req.userId, `🎉 Новое событие на модерацию от ${organizerResult.rows[0].name}:\n\n📌 Название: ${title}\n\n📄 Описание:\n${description.substring(0, 500)}${description.length > 500 ? '...' : ''}\n\n📅 Дата: ${new Date(eventDate).toLocaleDateString('ru-RU')}\n\n🔗 ID события: ${newEvent.id}`]
+              );
+            }
+          } catch (notificationError) {
+            console.error('Ошибка отправки уведомления администратору:', notificationError);
+            // Не прерываем создание события из-за ошибки уведомления
+          }
         }
 
         res.status(201).json({

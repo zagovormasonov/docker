@@ -87,7 +87,7 @@ router.get('/', async (req, res) => {
        COALESCE(a.likes_count, 0) as likes_count
        FROM articles a
        JOIN users u ON a.author_id = u.id
-       WHERE a.is_published = true
+       WHERE a.is_published = true AND a.moderation_status = 'approved'
        ORDER BY ${orderBy}
        LIMIT 100`
     );
@@ -143,16 +143,57 @@ router.post(
     }
 
     try {
-      const { title, content, coverImage, isPublished = true } = req.body;
+      const { title, content, coverImage } = req.body;
 
+      // Создаем статью со статусом модерации
       const result = await query(
-        `INSERT INTO articles (author_id, title, content, cover_image, is_published)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO articles (author_id, title, content, cover_image, is_published, moderation_status)
+         VALUES ($1, $2, $3, $4, false, 'pending')
          RETURNING *`,
-        [req.userId, title, content, coverImage || null, isPublished]
+        [req.userId, title, content, coverImage || null]
       );
 
-      res.status(201).json(result.rows[0]);
+      const article = result.rows[0];
+
+      // Отправляем уведомление администратору
+      try {
+        // Находим администратора
+        const adminResult = await query(
+          'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
+          ['admin', 'samyrize77777@gmail.com']
+        );
+
+        if (adminResult.rows.length > 0) {
+          const admin = adminResult.rows[0];
+          
+          // Создаем или находим чат с администратором
+          let chatResult = await query(
+            'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
+            [req.userId, admin.id]
+          );
+          
+          if (chatResult.rows.length === 0) {
+            chatResult = await query(
+              'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
+              [req.userId, admin.id]
+            );
+          }
+          
+          const chatId = chatResult.rows[0].id;
+          
+          // Отправляем уведомление о новой статье на модерацию
+          await query(
+            `INSERT INTO messages (chat_id, sender_id, content, is_read) 
+             VALUES ($1, $2, $3, false)`,
+            [chatId, req.userId, `📝 Новая статья на модерацию от ${req.body.authorName || 'эксперта'}:\n\n📌 Заголовок: ${title}\n\n📄 Содержание:\n${content.substring(0, 500)}${content.length > 500 ? '...' : ''}\n\n🔗 ID статьи: ${article.id}`]
+          );
+        }
+      } catch (notificationError) {
+        console.error('Ошибка отправки уведомления администратору:', notificationError);
+        // Не прерываем создание статьи из-за ошибки уведомления
+      }
+
+      res.status(201).json(article);
     } catch (error) {
       console.error('Ошибка создания статьи:', error);
       res.status(500).json({ error: 'Ошибка сервера' });

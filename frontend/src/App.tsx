@@ -21,6 +21,7 @@ import FavoritesPage from './pages/FavoritesPage';
 import EventsPage from './pages/EventsPage';
 import EventPage from './pages/EventPage';
 import CreateEventPage from './pages/CreateEventPage';
+import ModerationPage from './pages/ModerationPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -74,6 +75,7 @@ function App() {
                 <Route path="create-article" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
                 <Route path="edit-article/:id" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
                 <Route path="my-articles" element={<ProtectedRoute><MyArticlesPage /></ProtectedRoute>} />
+                <Route path="moderation" element={<ProtectedRoute><ModerationPage /></ProtectedRoute>} />
               </Route>
             </Routes>
           </BrowserRouter>

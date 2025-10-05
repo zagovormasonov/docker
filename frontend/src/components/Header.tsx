@@ -12,7 +12,8 @@ import {
   StarOutlined,
   CalendarOutlined,
   MenuOutlined,
-  CloseOutlined
+  CloseOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -57,6 +58,14 @@ const Header = () => {
         icon: <EditOutlined />,
         label: 'Создать статью',
         onClick: () => navigate('/create-article')
+      }
+    ] : []),
+    ...(user?.userType === 'admin' ? [
+      {
+        key: 'moderation',
+        icon: <CheckCircleOutlined />,
+        label: 'Модерация',
+        onClick: () => navigate('/moderation')
       }
     ] : []),
     {
@@ -140,6 +149,17 @@ const Header = () => {
           label: 'Создать статью',
           onClick: () => {
             navigate('/create-article');
+            setMobileMenuOpen(false);
+          }
+        }
+      ] : []),
+      ...(user?.userType === 'admin' ? [
+        {
+          key: 'moderation',
+          icon: <CheckCircleOutlined />,
+          label: 'Модерация',
+          onClick: () => {
+            navigate('/moderation');
             setMobileMenuOpen(false);
           }
         }
