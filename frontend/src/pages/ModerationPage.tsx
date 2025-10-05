@@ -105,7 +105,7 @@ const ModerationPage = () => {
     }
 
     try {
-      const type = 'title' in rejectingItem ? 'article' : 'event';
+      const type = 'content' in rejectingItem ? 'article' : 'event';
       await api.post(`/moderation/${type}s/${rejectingItem.id}/reject`, {
         reason: rejectReason
       });
