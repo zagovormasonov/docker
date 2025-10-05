@@ -222,6 +222,42 @@ router.post('/test-approve/:id', authenticateToken, requireAdmin, async (req: Au
   }
 });
 
+// Простой endpoint для проверки одобрения без аутентификации
+router.get('/test-approve-simple/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('🧪 Простой тест одобрения события:', id);
+    
+    // Проверяем, существует ли событие
+    const eventResult = await query('SELECT id, title, organizer_id, is_published, moderation_status FROM events WHERE id = $1', [id]);
+    
+    if (eventResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Событие не найдено',
+        eventId: id
+      });
+    }
+    
+    const event = eventResult.rows[0];
+    
+    res.json({
+      message: 'Простой тест одобрения события',
+      debug: {
+        eventId: id,
+        event: event,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка тестирования одобрения',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Получение списка статей на модерацию
 router.get('/articles', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
   console.log('📋 Загружаем статьи на модерацию для пользователя:', req.userId);
