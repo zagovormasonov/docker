@@ -14,6 +14,78 @@ router.get('/test', (req, res) => {
   });
 });
 
+// Endpoint для проверки полей модерации
+router.get('/check-fields', async (req, res) => {
+  try {
+    console.log('🔍 Проверяем поля модерации в базе данных');
+    
+    // Проверяем поля в таблице events
+    let eventsResult;
+    try {
+      eventsResult = await query(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'events' 
+        AND column_name IN ('moderation_status', 'is_published', 'moderated_by', 'moderated_at')
+      `);
+    } catch (error) {
+      eventsResult = { rows: [] };
+    }
+    
+    // Проверяем поля в таблице articles
+    let articlesResult;
+    try {
+      articlesResult = await query(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'articles' 
+        AND column_name IN ('moderation_status', 'is_published', 'moderated_by', 'moderated_at')
+      `);
+    } catch (error) {
+      articlesResult = { rows: [] };
+    }
+    
+    // Проверяем события на модерацию
+    let pendingEvents;
+    try {
+      pendingEvents = await query(`
+        SELECT COUNT(*) as count 
+        FROM events 
+        WHERE moderation_status = 'pending'
+      `);
+    } catch (error) {
+      pendingEvents = { rows: [{ count: 0 }] };
+    }
+    
+    // Проверяем статьи на модерацию
+    let pendingArticles;
+    try {
+      pendingArticles = await query(`
+        SELECT COUNT(*) as count 
+        FROM articles 
+        WHERE moderation_status = 'pending'
+      `);
+    } catch (error) {
+      pendingArticles = { rows: [{ count: 0 }] };
+    }
+    
+    res.json({
+      message: 'Проверка полей модерации',
+      timestamp: new Date().toISOString(),
+      eventsFields: eventsResult.rows,
+      articlesFields: articlesResult.rows,
+      pendingEvents: pendingEvents.rows[0].count,
+      pendingArticles: pendingArticles.rows[0].count
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка проверки полей',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Middleware для проверки прав администратора
 const requireAdmin = async (req: AuthRequest, res: any, next: any) => {
   console.log('🔐 Проверка прав администратора для пользователя:', req.userId);
