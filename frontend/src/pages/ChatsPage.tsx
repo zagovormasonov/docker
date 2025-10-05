@@ -72,21 +72,13 @@ const ChatsPage = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
-    // Периодическое обновление счетчиков каждые 5 секунд
+    // Периодическое обновление счетчиков каждые 30 секунд (реже)
     const interval = setInterval(() => {
       fetchChats();
-    }, 5000);
-    
-    // Обновление счетчиков при фокусе на окне
-    const handleFocus = () => {
-      fetchChats();
-    };
-    
-    window.addEventListener('focus', handleFocus);
+    }, 30000);
     
     return () => {
       window.removeEventListener('resize', checkMobile);
-      window.removeEventListener('focus', handleFocus);
       clearInterval(interval);
     };
   }, []);
@@ -108,9 +100,10 @@ const ChatsPage = () => {
       }
       
       // Принудительно обновить список чатов для показа новых непрочитанных сообщений
+      // С дебаунсом, чтобы не обновлять слишком часто
       setTimeout(() => {
         fetchChats();
-      }, 100);
+      }, 1000);
     };
 
     socketService.onNewMessage(handleNewMessage);
@@ -185,10 +178,10 @@ const ChatsPage = () => {
   const markMessagesAsRead = async (chatId: number) => {
     try {
       await api.post(`/chats/${chatId}/mark-read`);
-      // Обновляем список чатов для обновления счетчиков
+      // Обновляем список чатов для обновления счетчиков с дебаунсом
       setTimeout(() => {
         fetchChats();
-      }, 100);
+      }, 500);
     } catch (error) {
       console.error('Ошибка отметки сообщений как прочитанных:', error);
     }
@@ -199,17 +192,13 @@ const ChatsPage = () => {
     if (isMobile) {
       setShowChatList(false);
     }
-    // Обновляем список чатов при выборе чата
-    setTimeout(() => {
-      fetchChats();
-    }, 100);
+    // НЕ обновляем список чатов при выборе чата
   };
 
   const handleBackToChatList = () => {
     setShowChatList(true);
     setSelectedChat(null);
-    // Обновляем список чатов при возврате к списку
-    fetchChats();
+    // НЕ обновляем список чатов при возврате к списку
   };
 
   // Мобильная версия - список чатов
