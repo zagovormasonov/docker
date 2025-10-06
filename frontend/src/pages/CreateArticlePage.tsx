@@ -64,8 +64,15 @@ const CreateArticlePage = () => {
       };
 
       if (isEdit) {
-        await api.put(`/articles/${id}`, data);
-        message.success('Статья успешно обновлена!');
+        const response = await api.put(`/articles/${id}`, data);
+        
+        // Показываем уведомление в зависимости от ответа сервера
+        if (response.data.message) {
+          message.success(response.data.message);
+        } else {
+          message.success('Статья успешно обновлена!');
+        }
+        
         // Обновляем URL обложки после сохранения
         if (data.coverImage) {
           setCoverImageUrl(data.coverImage);

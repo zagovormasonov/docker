@@ -250,26 +250,96 @@ router.put(
       const { id } = req.params;
       const { title, content, coverImage, isPublished } = req.body;
 
+      console.log('📝 Обновление статьи:', { id, title, userId: req.userId });
+
+      // Сначала получаем текущую статью, чтобы проверить статус модерации
+      const currentArticle = await query(
+        'SELECT * FROM articles WHERE id = $1 AND author_id = $2',
+        [id, req.userId]
+      );
+
+      if (currentArticle.rows.length === 0) {
+        return res.status(404).json({ error: 'Статья не найдена' });
+      }
+
+      const article = currentArticle.rows[0];
+      console.log('📄 Текущая статья:', { 
+        id: article.id, 
+        moderation_status: article.moderation_status, 
+        is_published: article.is_published 
+      });
+
+      // Обновляем статью и сбрасываем статус модерации
       const result = await query(
         `UPDATE articles 
          SET title = COALESCE($1, title),
              content = COALESCE($2, content),
              cover_image = COALESCE($3, cover_image),
-             is_published = COALESCE($4, is_published),
+             is_published = false,
+             moderation_status = 'pending',
+             moderation_reason = NULL,
+             moderated_by = NULL,
+             moderated_at = NULL,
              updated_at = CURRENT_TIMESTAMP
-         WHERE id = $5 AND author_id = $6
+         WHERE id = $4 AND author_id = $5
          RETURNING *`,
-        [title, content, coverImage, isPublished, id, req.userId]
+        [title, content, coverImage, id, req.userId]
       );
 
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Статья не найдена' });
       }
 
-      res.json(result.rows[0]);
+      const updatedArticle = result.rows[0];
+      console.log('✅ Статья обновлена и отправлена на модерацию:', updatedArticle.id);
+
+      // Отправляем уведомление администратору о повторной модерации
+      try {
+        // Находим администратора
+        const adminResult = await query(
+          'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
+          ['admin', 'samyrize77777@gmail.com']
+        );
+
+        if (adminResult.rows.length > 0) {
+          const admin = adminResult.rows[0];
+          
+          // Создаем или находим чат с администратором
+          let chatResult = await query(
+            'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
+            [req.userId, admin.id]
+          );
+          
+          if (chatResult.rows.length === 0) {
+            chatResult = await query(
+              'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
+              [req.userId, admin.id]
+            );
+          }
+          
+          const chatId = chatResult.rows[0].id;
+          
+          // Отправляем уведомление о повторной модерации
+          await query(
+            `INSERT INTO messages (chat_id, sender_id, content, is_read) 
+             VALUES ($1, $2, $3, false)`,
+            [chatId, req.userId, `🔄 Статья отредактирована и отправлена на повторную модерацию:\n\n📌 Название: ${title}\n\n🔗 ID статьи: ${updatedArticle.id}`]
+          );
+          
+          console.log('📨 Уведомление администратору отправлено');
+        }
+      } catch (notificationError) {
+        console.error('Ошибка отправки уведомления администратору:', notificationError);
+        // Не прерываем обновление статьи из-за ошибки уведомления
+      }
+
+      res.json({
+        ...updatedArticle,
+        message: 'Статья обновлена и отправлена на повторную модерацию'
+      });
     } catch (error) {
       console.error('Ошибка обновления статьи:', error);
-      res.status(500).json({ error: 'Ошибка сервера' });
+      res.status(500).json({ error: 'Ошибка сервера', details: error.message });
     }
   }
 );

@@ -130,10 +130,20 @@ const CreateEventPage = () => {
         registrationLink: values.registrationLink
       };
 
+      console.log('📝 Отправляем данные события:', eventData);
+
       if (id) {
-        await api.put(`/events/${id}`, eventData);
-        message.success('Событие обновлено');
+        console.log('📝 Обновляем событие:', id);
+        const response = await api.put(`/events/${id}`, eventData);
+        
+        // Показываем уведомление в зависимости от ответа сервера
+        if (response.data.message) {
+          message.success(response.data.message);
+        } else {
+          message.success('Событие обновлено');
+        }
       } else {
+        console.log('📝 Создаем новое событие');
         const response = await api.post('/events', eventData);
         
         // Показываем уведомление в зависимости от ответа сервера
@@ -148,6 +158,12 @@ const CreateEventPage = () => {
 
       navigate('/events');
     } catch (error: any) {
+      console.error('❌ Ошибка создания события:', error);
+      console.error('❌ Детали ошибки:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       message.error(error.response?.data?.error || 'Ошибка сохранения события');
     } finally {
       setLoading(false);
