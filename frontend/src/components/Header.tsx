@@ -226,7 +226,7 @@ const Header = () => {
             />
             <div style={{
               fontSize: '24px',
-              fontWeight: 700,
+              fontWeight: 500,
               background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -244,7 +244,7 @@ const Header = () => {
                 fontSize: '16px',
                 color: 'rgb(170 180 251)',
                 textDecoration: 'none',
-                fontWeight: 300,
+                fontWeight: 400,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
@@ -258,7 +258,7 @@ const Header = () => {
                 fontSize: '16px',
                 color: 'rgb(170 180 251)',
                 textDecoration: 'none',
-                fontWeight: 300,
+                fontWeight: 400,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
@@ -272,7 +272,7 @@ const Header = () => {
                 fontSize: '16px',
                 color: 'rgb(170 180 251)',
                 textDecoration: 'none',
-                fontWeight: 300,
+                fontWeight: 400,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
