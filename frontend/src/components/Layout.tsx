@@ -12,7 +12,7 @@ const Layout = () => {
         <Outlet />
       </Content>
       <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0' }}>
-        Synergy © 2025 — Платформа для духовных мастеров
+        Soul Synergy c 2025 - Синергия в единстве
       </Footer>
     </AntLayout>
   );
