@@ -244,7 +244,7 @@ const Header = () => {
                 fontSize: '16px',
                 color: 'rgb(170 180 251)',
                 textDecoration: 'none',
-                fontWeight: 500,
+                fontWeight: 300,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
@@ -258,7 +258,7 @@ const Header = () => {
                 fontSize: '16px',
                 color: 'rgb(170 180 251)',
                 textDecoration: 'none',
-                fontWeight: 500,
+                fontWeight: 300,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
@@ -272,7 +272,7 @@ const Header = () => {
                 fontSize: '16px',
                 color: 'rgb(170 180 251)',
                 textDecoration: 'none',
-                fontWeight: 500,
+                fontWeight: 300,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
