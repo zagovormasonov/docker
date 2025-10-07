@@ -2,11 +2,10 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 body {
-  font-family: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background-color: #fafafa;
   color: #1d1d1f;
 }
@@ -23,7 +22,6 @@ body {
   border: none;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
   transition: all 0.3s ease;
-  font-family: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .ant-btn-primary:hover {
@@ -37,7 +35,6 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #f0f0f0;
   transition: all 0.3s ease;
-  font-family: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .ant-card:hover {
@@ -74,7 +71,7 @@ body {
 
 .ql-container {
   font-size: 16px;
-  font-family: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .ql-editor {
@@ -262,21 +259,6 @@ body {
   background: #4f46e5;
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-}
-
-/* Глобальные стили для Ant Design компонентов */
-.ant-typography,
-.ant-input,
-.ant-select,
-.ant-menu,
-.ant-drawer,
-.ant-modal,
-.ant-tooltip,
-.ant-popover,
-.ant-dropdown,
-.ant-message,
-.ant-notification {
-  font-family: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 /* Адаптивность для мобильных устройств */

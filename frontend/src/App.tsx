@@ -43,7 +43,7 @@ function App() {
         token: {
           colorPrimary: '#6366f1',
           borderRadius: 8,
-          fontFamily: "'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         }
       }}
     >
