@@ -76,7 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_events_is_published ON events(is_published);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
 
--- 5. Проверяем результат
+-- 5. Проверяем результат - структура таблицы articles
 SELECT 
     'articles' as table_name,
     column_name, 
@@ -84,10 +84,9 @@ SELECT
     is_nullable
 FROM information_schema.columns 
 WHERE table_name = 'articles' 
-ORDER BY ordinal_position
+ORDER BY ordinal_position;
 
-UNION ALL
-
+-- 6. Проверяем результат - структура таблицы events
 SELECT 
     'events' as table_name,
     column_name, 
@@ -95,4 +94,4 @@ SELECT
     is_nullable
 FROM information_schema.columns 
 WHERE table_name = 'events' 
-ORDER BY table_name, ordinal_position;
+ORDER BY ordinal_position;
