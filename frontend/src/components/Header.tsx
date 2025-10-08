@@ -202,7 +202,7 @@ const Header = () => {
     <>
       <AntHeader 
         style={{ 
-          background: '#fff', 
+          background: 'rgba(255, 255, 255, 0.95)', 
           padding: '0 24px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           position: 'sticky',
@@ -210,7 +210,9 @@ const Header = () => {
           zIndex: 999,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flex: 1 }}>

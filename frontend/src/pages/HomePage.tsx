@@ -112,25 +112,41 @@ const HomePage = () => {
   };
 
   return (
-    <div className="container" style={{ paddingTop: 24 }}>
-      <div style={{
-        background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-        borderRadius: 16,
-        padding: '60px 40px',
-        marginBottom: 48,
-        color: 'white',
-        textAlign: 'center'
-      }}>
-        <Title level={1} style={{ color: 'black', marginBottom: 16, fontSize: 48 }}>
+    <div style={{
+      minHeight: '100vh',
+      backgroundImage: 'url(/back.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed'
+    }}>
+      <div className="container" style={{ paddingTop: 24, position: 'relative', zIndex: 1 }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: 16,
+          padding: '60px 40px',
+          marginBottom: 48,
+          color: 'white',
+          textAlign: 'center',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+        }}>
+        <Title level={1} style={{ 
+          color: '#1a1a1a', 
+          marginBottom: 16, 
+          fontSize: 48,
+          textShadow: '0 2px 4px rgba(255, 255, 255, 0.8)'
+        }}>
           SoulSynergy
         </Title>
         <AnimatedText 
           texts={animatedTexts}
           interval={20000}
           style={{ 
-            color: 'rgba(43, 43, 43, 0.9)', 
-            fontWeight: 400,
-            marginBottom: 16
+            color: '#2c2c2c', 
+            fontWeight: 500,
+            marginBottom: 16,
+            textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)'
           }}
         />
         {/* {expertsCount > 0 && (
@@ -156,6 +172,12 @@ const HomePage = () => {
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="home-search-input"
+            style={{
+              background: 'rgba(255, 255, 255, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              backdropFilter: 'blur(5px)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
+            }}
           />
         </div>
       </div>
@@ -166,7 +188,12 @@ const HomePage = () => {
         alignItems: 'center', 
         marginBottom: 24,
         flexWrap: 'wrap',
-        gap: '16px'
+        gap: '16px',
+        background: 'rgba(255, 255, 255, 0.9)',
+        padding: '16px 24px',
+        borderRadius: '12px',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
       }}>
         <Tabs
           activeKey={sortType}
@@ -253,7 +280,13 @@ const HomePage = () => {
                   )
                 }
                 onClick={() => navigate(`/articles/${article.id}`)}
-                style={{ height: '100%' }}
+                style={{ 
+                  height: '100%',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}
               >
                 <Meta
                   title={
@@ -310,6 +343,7 @@ const HomePage = () => {
           ))}
         </Row>
       )}
+      </div>
     </div>
   );
 };
