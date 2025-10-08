@@ -82,7 +82,7 @@ const AdminPanel: React.FC = () => {
   const fetchArticles = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/articles');
+      const response = await axios.get('/admin/articles');
       setArticles(response.data.articles);
     } catch (error) {
       message.error('Ошибка загрузки статей');
@@ -94,7 +94,7 @@ const AdminPanel: React.FC = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/events');
+      const response = await axios.get('/admin/events');
       setEvents(response.data.events);
     } catch (error) {
       message.error('Ошибка загрузки событий');
@@ -125,7 +125,7 @@ const AdminPanel: React.FC = () => {
       const values = await editForm.validateFields();
       
       if (editingItem.type === 'article') {
-        await axios.put(`/api/admin/articles/${editingItem.id}`, {
+        await axios.put(`/admin/articles/${editingItem.id}`, {
           title: values.title,
           content: values.content,
           is_published: values.is_published
@@ -133,7 +133,7 @@ const AdminPanel: React.FC = () => {
         message.success('Статья обновлена');
         fetchArticles();
       } else {
-        await axios.put(`/api/admin/events/${editingItem.id}`, {
+        await axios.put(`/admin/events/${editingItem.id}`, {
           title: values.title,
           description: values.content,
           location: values.location,
@@ -154,11 +154,11 @@ const AdminPanel: React.FC = () => {
   const handleDelete = async (id: number, type: 'article' | 'event') => {
     try {
       if (type === 'article') {
-        await axios.delete(`/api/admin/articles/${id}`);
+        await axios.delete(`/admin/articles/${id}`);
         message.success('Статья удалена');
         fetchArticles();
       } else {
-        await axios.delete(`/api/admin/events/${id}`);
+        await axios.delete(`/admin/events/${id}`);
         message.success('Событие удалено');
         fetchEvents();
       }
