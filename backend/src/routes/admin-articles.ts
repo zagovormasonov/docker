@@ -17,6 +17,22 @@ const requireAdmin = (req: any, res: any, next: any) => {
 // Получить все статьи с информацией об авторах
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    console.log('🔍 Запрос статей для админа');
+    
+    // Сначала проверим, существует ли таблица articles
+    const tableCheck = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'articles'
+      );
+    `);
+    
+    console.log('📊 Таблица articles существует:', tableCheck.rows[0].exists);
+    
+    if (!tableCheck.rows[0].exists) {
+      return res.json({ success: true, articles: [] });
+    }
+    
     const result = await query(`
       SELECT 
         a.*,
@@ -28,10 +44,11 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
       ORDER BY a.created_at DESC
     `);
     
+    console.log('✅ Статьи загружены:', result.rows.length);
     res.json({ success: true, articles: result.rows });
   } catch (error) {
-    console.error('Ошибка получения статей:', error);
-    res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    console.error('❌ Ошибка получения статей:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера', error: error.message });
   }
 });
 

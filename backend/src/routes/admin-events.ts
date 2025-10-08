@@ -17,6 +17,22 @@ const requireAdmin = (req: any, res: any, next: any) => {
 // Получить все события с информацией об авторах
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    console.log('🔍 Запрос событий для админа');
+    
+    // Сначала проверим, существует ли таблица events
+    const tableCheck = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'events'
+      );
+    `);
+    
+    console.log('📊 Таблица events существует:', tableCheck.rows[0].exists);
+    
+    if (!tableCheck.rows[0].exists) {
+      return res.json({ success: true, events: [] });
+    }
+    
     const result = await query(`
       SELECT 
         e.*,
@@ -28,10 +44,11 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
       ORDER BY e.created_at DESC
     `);
     
+    console.log('✅ События загружены:', result.rows.length);
     res.json({ success: true, events: result.rows });
   } catch (error) {
-    console.error('Ошибка получения событий:', error);
-    res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    console.error('❌ Ошибка получения событий:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера', error: error.message });
   }
 });
 
