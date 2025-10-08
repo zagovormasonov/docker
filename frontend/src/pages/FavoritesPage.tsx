@@ -5,7 +5,6 @@ import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined } from '@
 import api from '../api/axios';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
-import favoriteIcon from '../public/fav.png';
 dayjs.locale('ru');
 
 const { Title, Paragraph, Text } = Typography;
@@ -55,7 +54,7 @@ const FavoritesPage = () => {
   return (
     <div className="container" style={{ paddingTop: 24 }}>
       <div className="page-header">
-        <Title level={2} className="page-title"><img src={favoriteIcon} alt="Избранное" /> Избранное</Title>
+        <img src="/fav.png" alt="Избранное" /> <Title level={2} className="page-title">Избранное</Title>
         <Text className="page-subtitle">Статьи, которые вы добавили в избранное</Text>
       </div>
 
