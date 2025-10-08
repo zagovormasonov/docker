@@ -33,16 +33,53 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
       return res.json({ success: true, articles: [] });
     }
     
-    const result = await query(`
-      SELECT 
-        a.*,
-        u.name as author_name,
-        u.email as author_email,
-        CASE WHEN a.is_published = true THEN 'Опубликована' ELSE 'На модерации' END as status
-      FROM articles a
-      JOIN users u ON a.author_id = u.id
-      ORDER BY a.created_at DESC
+    // Сначала проверим структуру таблицы articles
+    const structureCheck = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'articles'
     `);
+    
+    console.log('📊 Колонки в таблице articles:', structureCheck.rows.map(r => r.column_name));
+    
+    // Проверяем, есть ли колонка author_id
+    const hasAuthorId = structureCheck.rows.some(row => row.column_name === 'author_id');
+    const hasIsPublished = structureCheck.rows.some(row => row.column_name === 'is_published');
+    const hasCreatedAt = structureCheck.rows.some(row => row.column_name === 'created_at');
+    
+    console.log('📊 author_id существует:', hasAuthorId);
+    console.log('📊 is_published существует:', hasIsPublished);
+    console.log('📊 created_at существует:', hasCreatedAt);
+    
+    let queryString;
+    let queryParams = [];
+    
+    if (hasAuthorId) {
+      // Если есть author_id, используем JOIN с users
+      queryString = `
+        SELECT 
+          a.*,
+          u.name as author_name,
+          u.email as author_email,
+          CASE WHEN a.is_published = true THEN 'Опубликована' ELSE 'На модерации' END as status
+        FROM articles a
+        JOIN users u ON a.author_id = u.id
+        ORDER BY a.created_at DESC
+      `;
+    } else {
+      // Если нет author_id, используем только articles без JOIN
+      queryString = `
+        SELECT 
+          a.*,
+          'Неизвестный автор' as author_name,
+          'unknown@example.com' as author_email,
+          CASE WHEN a.is_published = true THEN 'Опубликована' ELSE 'На модерации' END as status
+        FROM articles a
+        ORDER BY a.created_at DESC
+      `;
+    }
+    
+    const result = await query(queryString, queryParams);
     
     console.log('✅ Статьи загружены:', result.rows.length);
     res.json({ success: true, articles: result.rows });
