@@ -45,11 +45,11 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
     // Проверяем, есть ли колонка author_id
     const hasAuthorId = structureCheck.rows.some(row => row.column_name === 'author_id');
     const hasIsPublished = structureCheck.rows.some(row => row.column_name === 'is_published');
-    const hasCreatedAt = structureCheck.rows.some(row => row.column_name === 'created_at');
+    const hasOrganizerId = structureCheck.rows.some(row => row.column_name === 'organizer_id');
     
     console.log('📊 author_id существует:', hasAuthorId);
     console.log('📊 is_published существует:', hasIsPublished);
-    console.log('📊 created_at существует:', hasCreatedAt);
+    console.log('📊 organizer_id существует:', hasOrganizerId);
     
     let queryString;
     let queryParams = [];
@@ -64,7 +64,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
             u.email as author_email,
             CASE WHEN e.is_published = true THEN 'Опубликовано' ELSE 'На модерации' END as status
           FROM events e
-          JOIN users u ON e.author_id = u.id
+          LEFT JOIN users u ON e.author_id = u.id
           ORDER BY e.id DESC
         `;
       } else {
@@ -75,12 +75,39 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
             u.email as author_email,
             'На модерации' as status
           FROM events e
-          JOIN users u ON e.author_id = u.id
+          LEFT JOIN users u ON e.author_id = u.id
+          ORDER BY e.id DESC
+        `;
+      }
+    } else if (hasOrganizerId) {
+      // Если нет author_id, но есть organizer_id, используем его
+      console.log('⚠️ author_id не найден, используем organizer_id');
+      if (hasIsPublished) {
+        queryString = `
+          SELECT 
+            e.*,
+            u.name as author_name,
+            u.email as author_email,
+            CASE WHEN e.is_published = true THEN 'Опубликовано' ELSE 'На модерации' END as status
+          FROM events e
+          LEFT JOIN users u ON e.organizer_id = u.id
+          ORDER BY e.id DESC
+        `;
+      } else {
+        queryString = `
+          SELECT 
+            e.*,
+            u.name as author_name,
+            u.email as author_email,
+            'На модерации' as status
+          FROM events e
+          LEFT JOIN users u ON e.organizer_id = u.id
           ORDER BY e.id DESC
         `;
       }
     } else {
-      // Если нет author_id, используем только events без JOIN
+      // Если нет ни author_id, ни organizer_id, используем дефолтные значения
+      console.log('⚠️ Нет ни author_id, ни organizer_id, используем дефолтные значения');
       if (hasIsPublished) {
         queryString = `
           SELECT 
@@ -104,139 +131,96 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
       }
     }
     
+    // Выполняем запрос
+    console.log('🔍 Выполняем запрос:', queryString);
     const result = await query(queryString, queryParams);
-    
     console.log('✅ События загружены:', result.rows.length);
+    
     res.json({ success: true, events: result.rows });
   } catch (error) {
-    console.error('❌ Ошибка получения событий:', error);
+    console.error('❌ Ошибка загрузки событий:', error);
     res.status(500).json({ success: false, message: 'Ошибка сервера', error: error.message });
   }
 });
 
-// Редактировать событие
+// Обновить событие
 router.put('/:id', authenticateToken, requireAdmin, [
-  body('title').trim().isLength({ min: 5 }).withMessage('Заголовок должен содержать минимум 5 символов'),
-  body('description').trim().isLength({ min: 20 }).withMessage('Описание должно содержать минимум 20 символов'),
-  body('location').trim().isLength({ min: 3 }).withMessage('Место проведения должно содержать минимум 3 символа'),
-  body('event_date').isISO8601().withMessage('Дата события должна быть в формате ISO8601'),
-  body('is_published').isBoolean().withMessage('Статус публикации должен быть boolean')
+  body('title').trim().isLength({ min: 1 }).withMessage('Название обязательно'),
+  body('description').trim().isLength({ min: 1 }).withMessage('Описание обязательно'),
+  body('location').trim().isLength({ min: 1 }).withMessage('Место проведения обязательно'),
+  body('event_date').isISO8601().withMessage('Дата события должна быть в формате ISO 8601'),
+  body('price').optional().trim(),
+  body('registration_link').optional().isURL().withMessage('Ссылка на регистрацию должна быть валидным URL'),
+  body('is_published').optional().isBoolean().withMessage('Статус публикации должен быть boolean')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
+      return res.status(400).json({ success: false, message: 'Ошибка валидации', errors: errors.array() });
     }
 
     const { id } = req.params;
-    const { title, description, location, event_date, is_published } = req.body;
+    const { title, description, location, event_date, price, registration_link, is_published } = req.body;
 
-    // Сначала проверим структуру таблицы events
+    // Проверяем, существует ли событие
+    const eventCheck = await query('SELECT * FROM events WHERE id = $1', [id]);
+    if (eventCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Событие не найдено' });
+    }
+
+    const event = eventCheck.rows[0];
+
+    // Проверяем структуру таблицы для динамического запроса
     const structureCheck = await query(`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'events'
     `);
     
-    const hasAuthorId = structureCheck.rows.some(row => row.column_name === 'author_id');
-    
-    let eventResult;
-    if (hasAuthorId) {
-      // Если есть author_id, используем JOIN с users
-      eventResult = await query(`
-        SELECT e.*, u.name as author_name, u.email as author_email
-        FROM events e
-        JOIN users u ON e.author_id = u.id
-        WHERE e.id = $1
-      `, [id]);
-    } else {
-      // Если нет author_id, получаем только событие
-      eventResult = await query(`
-        SELECT e.*, 'Неизвестный автор' as author_name, 'unknown@example.com' as author_email
-        FROM events e
-        WHERE e.id = $1
-      `, [id]);
-    }
-
-    if (eventResult.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Событие не найдено' });
-    }
-
-    const event = eventResult.rows[0];
-
-    // Проверяем, какие колонки существуют для обновления
     const hasIsPublished = structureCheck.rows.some(row => row.column_name === 'is_published');
     const hasUpdatedAt = structureCheck.rows.some(row => row.column_name === 'updated_at');
     
-    console.log('📊 is_published существует:', hasIsPublished);
-    console.log('📊 updated_at существует:', hasUpdatedAt);
+    // Строим динамический запрос UPDATE
+    let updateFields = ['title = $2', 'description = $3', 'location = $4', 'event_date = $5', 'price = $6', 'registration_link = $7'];
+    let queryParams = [id, title, description, location, event_date, price, registration_link];
+    let paramIndex = 8;
     
-    // Формируем запрос обновления в зависимости от существующих колонок
-    let updateQuery;
-    let updateParams;
-    
-    if (hasIsPublished && hasUpdatedAt) {
-      // Если есть обе колонки
-      updateQuery = `
-        UPDATE events 
-        SET title = $1, description = $2, location = $3, event_date = $4, is_published = $5, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $6
-      `;
-      updateParams = [title, description, location, event_date, is_published, id];
-    } else if (hasIsPublished) {
-      // Если есть только is_published
-      updateQuery = `
-        UPDATE events 
-        SET title = $1, description = $2, location = $3, event_date = $4, is_published = $5
-        WHERE id = $6
-      `;
-      updateParams = [title, description, location, event_date, is_published, id];
-    } else if (hasUpdatedAt) {
-      // Если есть только updated_at
-      updateQuery = `
-        UPDATE events 
-        SET title = $1, description = $2, location = $3, event_date = $4, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $5
-      `;
-      updateParams = [title, description, location, event_date, id];
-    } else {
-      // Если нет ни одной из колонок
-      updateQuery = `
-        UPDATE events 
-        SET title = $1, description = $2, location = $3, event_date = $4
-        WHERE id = $5
-      `;
-      updateParams = [title, description, location, event_date, id];
+    if (hasIsPublished) {
+      updateFields.push(`is_published = $${paramIndex}`);
+      queryParams.push(is_published);
+      paramIndex++;
     }
     
-    console.log('🔧 Выполняем обновление:', updateQuery);
-    console.log('🔧 Параметры:', updateParams);
+    if (hasUpdatedAt) {
+      updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+    }
     
-    // Обновляем событие
-    await query(updateQuery, updateParams);
-
-    // Создаем внутреннее уведомление для автора (только если есть author_id)
-    if (hasAuthorId && event.author_id) {
-      await createEventEditedNotification(event.author_id, title, is_published);
+    const updateQuery = `UPDATE events SET ${updateFields.join(', ')} WHERE id = $1 RETURNING *`;
+    
+    console.log('🔍 Выполняем UPDATE запрос:', updateQuery);
+    const result = await query(updateQuery, queryParams);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Событие не найдено' });
     }
 
-    res.json({ 
-      success: true, 
-      message: 'Событие успешно обновлено',
-      event: {
-        id: parseInt(id),
-        title,
-        description,
-        location,
-        event_date,
-        is_published,
-        author_name: event.author_name
+    const updatedEvent = result.rows[0];
+
+    // Отправляем уведомление автору о редактировании
+    try {
+      const authorId = event.author_id || event.organizer_id;
+      if (authorId) {
+        await createEventEditedNotification(authorId, updatedEvent.title, is_published);
+        console.log('✅ Уведомление о редактировании отправлено автору:', authorId);
       }
-    });
+    } catch (notificationError) {
+      console.error('⚠️ Ошибка отправки уведомления:', notificationError);
+    }
 
+    res.json({ success: true, message: 'Событие обновлено', event: updatedEvent });
   } catch (error) {
-    console.error('Ошибка обновления события:', error);
-    res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    console.error('❌ Ошибка обновления события:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера', error: error.message });
   }
 });
 
@@ -245,86 +229,32 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Сначала проверим структуру таблицы events
-    const structureCheck = await query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'events'
-    `);
-    
-    const hasAuthorId = structureCheck.rows.some(row => row.column_name === 'author_id');
-    
-    let eventResult;
-    if (hasAuthorId) {
-      // Если есть author_id, используем JOIN с users
-      eventResult = await query(`
-        SELECT e.*, u.name as author_name, u.email as author_email
-        FROM events e
-        JOIN users u ON e.author_id = u.id
-        WHERE e.id = $1
-      `, [id]);
-    } else {
-      // Если нет author_id, получаем только событие
-      eventResult = await query(`
-        SELECT e.*, 'Неизвестный автор' as author_name, 'unknown@example.com' as author_email
-        FROM events e
-        WHERE e.id = $1
-      `, [id]);
-    }
-
-    if (eventResult.rows.length === 0) {
+    // Сначала получаем информацию о событии для уведомления
+    const eventCheck = await query('SELECT * FROM events WHERE id = $1', [id]);
+    if (eventCheck.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Событие не найдено' });
     }
 
-    const event = eventResult.rows[0];
+    const event = eventCheck.rows[0];
 
     // Удаляем событие
     await query('DELETE FROM events WHERE id = $1', [id]);
 
-    // Создаем внутреннее уведомление для автора (только если есть author_id)
-    if (hasAuthorId && event.author_id) {
-      await createEventDeletedNotification(event.author_id, event.title);
-    }
-
-    res.json({ 
-      success: true, 
-      message: 'Событие успешно удалено',
-      deleted_event: {
-        id: parseInt(id),
-        title: event.title,
-        author_name: event.author_name
+    // Отправляем уведомление автору об удалении
+    try {
+      const authorId = event.author_id || event.organizer_id;
+      if (authorId) {
+        await createEventDeletedNotification(authorId, event.title);
+        console.log('✅ Уведомление об удалении отправлено автору:', authorId);
       }
-    });
-
-  } catch (error) {
-    console.error('Ошибка удаления события:', error);
-    res.status(500).json({ success: false, message: 'Ошибка сервера' });
-  }
-});
-
-// Получить детали события
-router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const result = await query(`
-      SELECT 
-        e.*,
-        u.name as author_name,
-        u.email as author_email
-      FROM events e
-      JOIN users u ON e.author_id = u.id
-      WHERE e.id = $1
-    `, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Событие не найдено' });
+    } catch (notificationError) {
+      console.error('⚠️ Ошибка отправки уведомления:', notificationError);
     }
 
-    res.json({ success: true, event: result.rows[0] });
+    res.json({ success: true, message: 'Событие удалено' });
   } catch (error) {
-    console.error('Ошибка получения события:', error);
-    res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    console.error('❌ Ошибка удаления события:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера', error: error.message });
   }
 });
 
