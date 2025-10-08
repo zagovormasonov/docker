@@ -164,12 +164,56 @@ router.put('/:id', authenticateToken, requireAdmin, [
 
     const event = eventResult.rows[0];
 
+    // Проверяем, какие колонки существуют для обновления
+    const hasIsPublished = structureCheck.rows.some(row => row.column_name === 'is_published');
+    const hasUpdatedAt = structureCheck.rows.some(row => row.column_name === 'updated_at');
+    
+    console.log('📊 is_published существует:', hasIsPublished);
+    console.log('📊 updated_at существует:', hasUpdatedAt);
+    
+    // Формируем запрос обновления в зависимости от существующих колонок
+    let updateQuery;
+    let updateParams;
+    
+    if (hasIsPublished && hasUpdatedAt) {
+      // Если есть обе колонки
+      updateQuery = `
+        UPDATE events 
+        SET title = $1, description = $2, location = $3, event_date = $4, is_published = $5, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $6
+      `;
+      updateParams = [title, description, location, event_date, is_published, id];
+    } else if (hasIsPublished) {
+      // Если есть только is_published
+      updateQuery = `
+        UPDATE events 
+        SET title = $1, description = $2, location = $3, event_date = $4, is_published = $5
+        WHERE id = $6
+      `;
+      updateParams = [title, description, location, event_date, is_published, id];
+    } else if (hasUpdatedAt) {
+      // Если есть только updated_at
+      updateQuery = `
+        UPDATE events 
+        SET title = $1, description = $2, location = $3, event_date = $4, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
+      `;
+      updateParams = [title, description, location, event_date, id];
+    } else {
+      // Если нет ни одной из колонок
+      updateQuery = `
+        UPDATE events 
+        SET title = $1, description = $2, location = $3, event_date = $4
+        WHERE id = $5
+      `;
+      updateParams = [title, description, location, event_date, id];
+    }
+    
+    console.log('🔧 Выполняем обновление:', updateQuery);
+    console.log('🔧 Параметры:', updateParams);
+    
     // Обновляем событие
-    await query(`
-      UPDATE events 
-      SET title = $1, description = $2, location = $3, event_date = $4, is_published = $5, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $6
-    `, [title, description, location, event_date, is_published, id]);
+    await query(updateQuery, updateParams);
 
     // Создаем внутреннее уведомление для автора (только если есть author_id)
     if (hasAuthorId && event.author_id) {

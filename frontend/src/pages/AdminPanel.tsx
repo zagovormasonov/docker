@@ -16,7 +16,10 @@ import {
   Typography,
   Row,
   Col,
-  Statistic
+  Statistic,
+  Divider,
+  Image,
+  Alert
 } from 'antd';
 import { 
   EditOutlined, 
@@ -68,6 +71,43 @@ const AdminPanel: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState('articles');
+
+  // Функция для рендеринга HTML содержимого с картинками и ссылками
+  const renderHtmlContent = (content: string) => {
+    if (!content) return null;
+    
+    // Создаем временный div для парсинга HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    
+    // Находим все изображения
+    const images = tempDiv.querySelectorAll('img');
+    images.forEach((img, index) => {
+      const src = img.getAttribute('src');
+      if (src) {
+        // Заменяем img на стилизованный элемент
+        const imageElement = document.createElement('div');
+        imageElement.innerHTML = `<div style="margin: 10px 0; text-align: center;">
+          <img src="${src}" alt="Изображение ${index + 1}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+        </div>`;
+        img.parentNode?.replaceChild(imageElement.firstChild!, img);
+      }
+    });
+    
+    // Находим все ссылки
+    const links = tempDiv.querySelectorAll('a');
+    links.forEach((link) => {
+      const href = link.getAttribute('href');
+      if (href) {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+        link.style.color = '#1890ff';
+        link.style.textDecoration = 'underline';
+      }
+    });
+    
+    return tempDiv.innerHTML;
+  };
 
   // Проверяем права администратора
   if (user?.userType !== 'admin') {
@@ -411,53 +451,131 @@ const AdminPanel: React.FC = () => {
           setEditModalVisible(false);
           setEditingItem(null);
         }}
-        width={800}
+        width={1200}
+        style={{ top: 20 }}
       >
-        <Form form={editForm} layout="vertical">
-          <Form.Item
-            name="title"
-            label="Заголовок"
-            rules={[{ required: true, message: 'Введите заголовок' }]}
-          >
-            <Input />
-          </Form.Item>
-          
-          <Form.Item
-            name="content"
-            label={editingItem?.type === 'article' ? 'Содержимое' : 'Описание'}
-            rules={[{ required: true, message: 'Введите содержимое' }]}
-          >
-            <TextArea rows={6} />
-          </Form.Item>
+        <Tabs
+          defaultActiveKey="edit"
+          items={[
+            {
+              key: 'edit',
+              label: 'Редактирование',
+              children: (
+                <Form form={editForm} layout="vertical">
+                  <Form.Item
+                    name="title"
+                    label="Заголовок"
+                    rules={[{ required: true, message: 'Введите заголовок' }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                  
+                  <Form.Item
+                    name="content"
+                    label={editingItem?.type === 'article' ? 'Содержимое' : 'Описание'}
+                    rules={[{ required: true, message: 'Введите содержимое' }]}
+                  >
+                    <TextArea rows={8} />
+                  </Form.Item>
 
-          {editingItem?.type === 'event' && (
-            <>
-              <Form.Item
-                name="location"
-                label="Место проведения"
-                rules={[{ required: true, message: 'Введите место проведения' }]}
-              >
-                <Input />
-              </Form.Item>
-              
-              <Form.Item
-                name="event_date"
-                label="Дата события"
-                rules={[{ required: true, message: 'Выберите дату события' }]}
-              >
-                <DatePicker showTime style={{ width: '100%' }} />
-              </Form.Item>
-            </>
-          )}
+                  {editingItem?.type === 'event' && (
+                    <>
+                      <Form.Item
+                        name="location"
+                        label="Место проведения"
+                        rules={[{ required: true, message: 'Введите место проведения' }]}
+                      >
+                        <Input />
+                      </Form.Item>
+                      
+                      <Form.Item
+                        name="event_date"
+                        label="Дата события"
+                        rules={[{ required: true, message: 'Выберите дату события' }]}
+                      >
+                        <DatePicker showTime style={{ width: '100%' }} />
+                      </Form.Item>
+                    </>
+                  )}
 
-          <Form.Item
-            name="is_published"
-            label="Опубликовано"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Form>
+                  <Form.Item
+                    name="is_published"
+                    label="Опубликовано"
+                    valuePropName="checked"
+                  >
+                    <Switch />
+                  </Form.Item>
+                </Form>
+              ),
+            },
+            {
+              key: 'preview',
+              label: 'Предварительный просмотр',
+              children: (
+                <div>
+                  <Alert
+                    message="Предварительный просмотр"
+                    description="Здесь отображается, как будет выглядеть содержимое для пользователей"
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+                  
+                  <Card>
+                    <Typography.Title level={3}>
+                      {editForm.getFieldValue('title') || 'Заголовок'}
+                    </Typography.Title>
+                    
+                    <Divider />
+                    
+                    <div 
+                      dangerouslySetInnerHTML={{ 
+                        __html: renderHtmlContent(editForm.getFieldValue('content') || '') 
+                      }}
+                      style={{
+                        lineHeight: '1.6',
+                        fontSize: '16px',
+                        color: '#333'
+                      }}
+                    />
+                    
+                    {editingItem?.type === 'event' && (
+                      <>
+                        <Divider />
+                        <Row gutter={16}>
+                          <Col span={12}>
+                            <Typography.Text strong>Место проведения:</Typography.Text>
+                            <br />
+                            <Typography.Text>{editForm.getFieldValue('location') || 'Не указано'}</Typography.Text>
+                          </Col>
+                          <Col span={12}>
+                            <Typography.Text strong>Дата события:</Typography.Text>
+                            <br />
+                            <Typography.Text>
+                              {editForm.getFieldValue('event_date') 
+                                ? dayjs(editForm.getFieldValue('event_date')).format('DD.MM.YYYY HH:mm')
+                                : 'Не указано'
+                              }
+                            </Typography.Text>
+                          </Col>
+                        </Row>
+                      </>
+                    )}
+                    
+                    <Divider />
+                    
+                    <Space>
+                      <Typography.Text strong>Статус:</Typography.Text>
+                      <Tag color={editForm.getFieldValue('is_published') ? 'green' : 'orange'}>
+                        {editForm.getFieldValue('is_published') ? 'Опубликовано' : 'На модерации'}
+                      </Tag>
+                    </Space>
+                  </Card>
+                </div>
+              ),
+            },
+          ]}
+        />
       </Modal>
     </div>
   );
