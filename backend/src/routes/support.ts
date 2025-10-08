@@ -21,7 +21,17 @@ router.post(
       }
 
       const { contact, message } = req.body;
-      const user = req.user;
+      const userId = req.userId;
+
+      // Получаем информацию о пользователе из базы данных
+      const { query } = await import('../config/database');
+      const userResult = await query('SELECT id, name, email FROM users WHERE id = $1', [userId]);
+      
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+      }
+
+      const user = userResult.rows[0];
 
       // Формируем сообщение для Telegram
       const telegramMessage = `🆘 Новое сообщение в поддержку:

@@ -35,6 +35,10 @@ services:
       EMAILJS_SERVICE_ID: ${EMAILJS_SERVICE_ID}
       EMAILJS_PUBLIC_KEY: ${EMAILJS_PUBLIC_KEY}
       EMAILJS_MODERATION_TEMPLATE_ID: ${EMAILJS_MODERATION_TEMPLATE_ID}
+      # Telegram Bot настройки
+      TELEGRAM_ENABLED: ${TELEGRAM_ENABLED:-false}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
     volumes:
       - uploads_data:/app/uploads
     depends_on:
