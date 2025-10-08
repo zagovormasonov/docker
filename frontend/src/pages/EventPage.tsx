@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Card, Typography, Space, Tag, Button, Spin, Divider, Avatar, Image
+  Card, Typography, Space, Tag, Button, Spin, Divider, Avatar, Image, message
 } from 'antd';
 import {
   CalendarOutlined, EnvironmentOutlined, DollarOutlined, LinkOutlined,
-  EditOutlined, GlobalOutlined, HomeOutlined, UserOutlined
+  EditOutlined, GlobalOutlined, HomeOutlined, UserOutlined, StarOutlined, StarFilled
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../api/axios';
@@ -39,10 +39,22 @@ const EventPage = () => {
   const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {
     fetchEvent();
+    fetchFavoriteStatus();
   }, [id]);
+
+  const fetchFavoriteStatus = async () => {
+    if (!id) return;
+    try {
+      const response = await api.get(`/event-interactions/${id}/status`);
+      setIsFavorited(response.data.favorited);
+    } catch (error) {
+      console.error('Ошибка загрузки статуса избранного:', error);
+    }
+  };
 
   const fetchEvent = async () => {
     try {
@@ -80,6 +92,25 @@ const EventPage = () => {
 
   const isEventTomorrow = (eventDate: string) => {
     return dayjs(eventDate).isSame(dayjs().add(1, 'day'), 'day');
+  };
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      message.warning('Необходимо войти в систему');
+      navigate('/login');
+      return;
+    }
+
+    if (!id) return;
+
+    try {
+      const response = await api.post(`/event-interactions/${id}/favorite`);
+      setIsFavorited(response.data.favorited);
+      message.success(response.data.favorited ? 'Событие добавлено в избранное' : 'Событие удалено из избранного');
+    } catch (error) {
+      console.error('Ошибка изменения избранного:', error);
+      message.error('Ошибка изменения избранного');
+    }
   };
 
   if (loading) {
@@ -126,15 +157,29 @@ const EventPage = () => {
             </Space>
             <Title level={2} style={{ marginBottom: 0 }}>{event.title}</Title>
           </div>
-          {canEdit && (
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/events/edit/${event.id}`)}
-            >
-              Редактировать
-            </Button>
-          )}
+          <Space>
+            {!canEdit && (
+              <Button
+                icon={isFavorited ? <StarFilled /> : <StarOutlined />}
+                onClick={toggleFavorite}
+                style={{
+                  color: isFavorited ? '#faad14' : '#8c8c8c',
+                  borderColor: isFavorited ? '#faad14' : '#d9d9d9'
+                }}
+              >
+                {isFavorited ? 'В избранном' : 'Добавить в избранное'}
+              </Button>
+            )}
+            {canEdit && (
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => navigate(`/events/edit/${event.id}`)}
+              >
+                Редактировать
+              </Button>
+            )}
+          </Space>
         </div>
 
         <Divider />

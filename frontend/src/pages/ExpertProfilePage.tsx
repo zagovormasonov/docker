@@ -24,7 +24,9 @@ import {
   InfoCircleOutlined,
   EyeOutlined,
   HeartOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  StarOutlined,
+  StarFilled
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -79,11 +81,23 @@ const ExpertProfilePage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingArticles, setLoadingArticles] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {
     fetchExpert();
     fetchArticles();
+    fetchFavoriteStatus();
   }, [id]);
+
+  const fetchFavoriteStatus = async () => {
+    if (!id) return;
+    try {
+      const response = await api.get(`/expert-interactions/${id}/status`);
+      setIsFavorited(response.data.favorited);
+    } catch (error) {
+      console.error('Ошибка загрузки статуса избранного:', error);
+    }
+  };
 
   const fetchExpert = async () => {
     try {
@@ -166,6 +180,25 @@ const ExpertProfilePage = () => {
     }
   };
 
+  const toggleFavorite = async () => {
+    if (!user) {
+      message.warning('Необходимо войти в систему');
+      navigate('/login');
+      return;
+    }
+
+    if (!id) return;
+
+    try {
+      const response = await api.post(`/expert-interactions/${id}/favorite`);
+      setIsFavorited(response.data.favorited);
+      message.success(response.data.favorited ? 'Эксперт добавлен в избранное' : 'Эксперт удален из избранного');
+    } catch (error) {
+      console.error('Ошибка изменения избранного:', error);
+      message.error('Ошибка изменения избранного');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 100 }}>
@@ -206,16 +239,29 @@ const ExpertProfilePage = () => {
                 </Paragraph>
               )}
 
-              {/* Показываем кнопку только если это не собственный профиль */}
+              {/* Показываем кнопки только если это не собственный профиль */}
               {user?.id !== expert.id && (
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<MessageOutlined />}
-                  onClick={handleContactExpert}
-                >
-                  Связаться с экспертом
-                </Button>
+                <Space>
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<MessageOutlined />}
+                    onClick={handleContactExpert}
+                  >
+                    Связаться с экспертом
+                  </Button>
+                  <Button
+                    size="large"
+                    icon={isFavorited ? <StarFilled /> : <StarOutlined />}
+                    onClick={toggleFavorite}
+                    style={{
+                      color: isFavorited ? '#faad14' : '#8c8c8c',
+                      borderColor: isFavorited ? '#faad14' : '#d9d9d9'
+                    }}
+                  >
+                    {isFavorited ? 'В избранном' : 'Добавить в избранное'}
+                  </Button>
+                </Space>
               )}
             </div>
           </Space>

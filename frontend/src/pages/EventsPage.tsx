@@ -259,12 +259,16 @@ const EventsPage = () => {
                       <Button
                         type="text"
                         icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
-                        onClick={(e) => toggleFavorite(event.id, e)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleFavorite(event.id, e);
+                        }}
                         style={{
                           position: 'absolute',
                           top: 8,
                           right: 8,
-                          zIndex: 1,
+                          zIndex: 10,
                           color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
                           border: 'none',
                           background: 'rgba(255, 255, 255, 0.9)',
@@ -273,7 +277,8 @@ const EventsPage = () => {
                           height: 32,
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                         }}
                       />
                     </div>
@@ -291,12 +296,16 @@ const EventsPage = () => {
                       <Button
                         type="text"
                         icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
-                        onClick={(e) => toggleFavorite(event.id, e)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleFavorite(event.id, e);
+                        }}
                         style={{
                           position: 'absolute',
                           top: 8,
                           right: 8,
-                          zIndex: 1,
+                          zIndex: 10,
                           color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
                           border: 'none',
                           background: 'rgba(255, 255, 255, 0.9)',
@@ -305,7 +314,8 @@ const EventsPage = () => {
                           height: 32,
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                         }}
                       />
                     </div>
