@@ -4,6 +4,7 @@ import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Inp
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import AnimatedText from '../components/AnimatedText';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -36,6 +37,17 @@ const HomePage = () => {
   const searchTimeoutRef = useRef<number | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Массив надписей для анимации
+  const animatedTexts = [
+    "Развивайся. Соединяйся. Сияй.",
+    "ваша духовная эволюция",
+    "ваш личный источник Света",
+    "эволюция души",
+    "ваша духовная трансформация",
+    "синергия в единстве",
+    "путь к себе"
+  ];
 
   useEffect(() => {
     fetchArticles();
@@ -112,9 +124,15 @@ const HomePage = () => {
         <Title level={1} style={{ color: 'black', marginBottom: 16, fontSize: 48 }}>
           SoulSynergy
         </Title>
-        <Title level={3} style={{ color: 'rgba(43, 43, 43, 0.9)', fontWeight: 400 }}>
-          Экосистема для тех, кто ищет свой путь
-        </Title>
+        <AnimatedText 
+          texts={animatedTexts}
+          interval={20000}
+          style={{ 
+            color: 'rgba(43, 43, 43, 0.9)', 
+            fontWeight: 400,
+            marginBottom: 16
+          }}
+        />
         {/* {expertsCount > 0 && (
           <Paragraph style={{ 
             color: 'rgba(43, 43, 43, 0.8)', 
