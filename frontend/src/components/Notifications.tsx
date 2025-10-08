@@ -214,7 +214,7 @@ const Notifications: React.FC<NotificationsProps> = ({
                     <Text strong={!notification.is_read}>
                       {notification.title}
                     </Text>
-                    <Tag color={getNotificationColor(notification.type)} size="small">
+                    <Tag color={getNotificationColor(notification.type)}>
                       {notification.type.replace('_', ' ')}
                     </Tag>
                   </Space>
