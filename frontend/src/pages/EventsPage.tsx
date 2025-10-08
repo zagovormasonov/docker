@@ -5,7 +5,7 @@ import {
 } from 'antd';
 import {
   CalendarOutlined, EnvironmentOutlined, FilterOutlined, PlusOutlined, 
-  GlobalOutlined, HomeOutlined
+  GlobalOutlined, HomeOutlined, StarOutlined, StarFilled
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../api/axios';
@@ -60,6 +60,7 @@ const EventsPage = () => {
   const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [favoriteStatus, setFavoriteStatus] = useState<Record<number, boolean>>({});
 
   // Фильтры
   const [selectedOnline, setSelectedOnline] = useState<boolean[]>([true, false]); // По умолчанию оба
@@ -110,11 +111,41 @@ const EventsPage = () => {
       }
 
       const response = await api.get('/events', { params });
-      setEvents(response.data);
+      const eventsData = response.data;
+      setEvents(eventsData);
+      
+      // Загружаем статус избранного для каждого события
+      const favoritePromises = eventsData.map((event: Event) => 
+        api.get(`/event-interactions/${event.id}/status`)
+      );
+      
+      try {
+        const favoriteResponses = await Promise.all(favoritePromises);
+        const favoriteStatusMap: Record<number, boolean> = {};
+        favoriteResponses.forEach((response, index) => {
+          favoriteStatusMap[eventsData[index].id] = response.data.favorited;
+        });
+        setFavoriteStatus(favoriteStatusMap);
+      } catch (error) {
+        console.error('Ошибка загрузки статуса избранного:', error);
+      }
     } catch (error) {
       console.error('Ошибка загрузки событий:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleFavorite = async (eventId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await api.post(`/event-interactions/${eventId}/favorite`);
+      setFavoriteStatus(prev => ({
+        ...prev,
+        [eventId]: response.data.favorited
+      }));
+    } catch (error) {
+      console.error('Ошибка изменения избранного:', error);
     }
   };
 
@@ -219,11 +250,31 @@ const EventsPage = () => {
                 hoverable
                 cover={
                   event.cover_image ? (
-                    <div style={{ height: 200, overflow: 'hidden' }}>
+                    <div style={{ height: 200, overflow: 'hidden', position: 'relative' }}>
                       <img
                         src={event.cover_image}
                         alt={event.title}
                         style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                      />
+                      <Button
+                        type="text"
+                        icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
+                        onClick={(e) => toggleFavorite(event.id, e)}
+                        style={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          zIndex: 1,
+                          color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
+                          border: 'none',
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          borderRadius: '50%',
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
                       />
                     </div>
                   ) : (
@@ -233,9 +284,30 @@ const EventsPage = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 64
+                      fontSize: 64,
+                      position: 'relative'
                     }}>
                       🎉
+                      <Button
+                        type="text"
+                        icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
+                        onClick={(e) => toggleFavorite(event.id, e)}
+                        style={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          zIndex: 1,
+                          color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
+                          border: 'none',
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          borderRadius: '50%',
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      />
                     </div>
                   )
                 }

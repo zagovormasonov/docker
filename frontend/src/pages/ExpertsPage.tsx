@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Input, Select, Typography, Avatar, Tag, Space, Spin, Empty } from 'antd';
-import { UserOutlined, EnvironmentOutlined, SearchOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Input, Select, Typography, Avatar, Tag, Space, Spin, Empty, Button } from 'antd';
+import { UserOutlined, EnvironmentOutlined, SearchOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import api from '../api/axios';
 
 const { Title, Text } = Typography;
@@ -35,6 +35,7 @@ const ExpertsPage = () => {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [searchText, setSearchText] = useState('');
+  const [favoriteStatus, setFavoriteStatus] = useState<Record<number, boolean>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -80,11 +81,41 @@ const ExpertsPage = () => {
       }
 
       const response = await api.get(`/experts/search?${params.toString()}`);
-      setExperts(response.data);
+      const expertsData = response.data;
+      setExperts(expertsData);
+      
+      // Загружаем статус избранного для каждого эксперта
+      const favoritePromises = expertsData.map((expert: Expert) => 
+        api.get(`/expert-interactions/${expert.id}/status`)
+      );
+      
+      try {
+        const favoriteResponses = await Promise.all(favoritePromises);
+        const favoriteStatusMap: Record<number, boolean> = {};
+        favoriteResponses.forEach((response, index) => {
+          favoriteStatusMap[expertsData[index].id] = response.data.favorited;
+        });
+        setFavoriteStatus(favoriteStatusMap);
+      } catch (error) {
+        console.error('Ошибка загрузки статуса избранного:', error);
+      }
     } catch (error) {
       console.error('Ошибка загрузки экспертов:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleFavorite = async (expertId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await api.post(`/expert-interactions/${expertId}/favorite`);
+      setFavoriteStatus(prev => ({
+        ...prev,
+        [expertId]: response.data.favorited
+      }));
+    } catch (error) {
+      console.error('Ошибка изменения избранного:', error);
     }
   };
 
@@ -153,7 +184,8 @@ const ExpertsPage = () => {
                 style={{ 
                   height: '100%',
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  position: 'relative'
                 }}
                 bodyStyle={{ 
                   flex: 1,
@@ -161,6 +193,27 @@ const ExpertsPage = () => {
                   flexDirection: 'column'
                 }}
               >
+                <Button
+                  type="text"
+                  icon={favoriteStatus[expert.id] ? <StarFilled /> : <StarOutlined />}
+                  onClick={(e) => toggleFavorite(expert.id, e)}
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    zIndex: 1,
+                    color: favoriteStatus[expert.id] ? '#faad14' : '#8c8c8c',
+                    border: 'none',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    borderRadius: '50%',
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                />
+                
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <Meta
                     avatar={
