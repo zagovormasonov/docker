@@ -56,27 +56,52 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
     
     if (hasAuthorId) {
       // Если есть author_id, используем JOIN с users
-      queryString = `
-        SELECT 
-          e.*,
-          u.name as author_name,
-          u.email as author_email,
-          CASE WHEN e.is_published = true THEN 'Опубликовано' ELSE 'На модерации' END as status
-        FROM events e
-        JOIN users u ON e.author_id = u.id
-        ORDER BY e.created_at DESC
-      `;
+      if (hasIsPublished) {
+        queryString = `
+          SELECT 
+            e.*,
+            u.name as author_name,
+            u.email as author_email,
+            CASE WHEN e.is_published = true THEN 'Опубликовано' ELSE 'На модерации' END as status
+          FROM events e
+          JOIN users u ON e.author_id = u.id
+          ORDER BY e.created_at DESC
+        `;
+      } else {
+        queryString = `
+          SELECT 
+            e.*,
+            u.name as author_name,
+            u.email as author_email,
+            'На модерации' as status
+          FROM events e
+          JOIN users u ON e.author_id = u.id
+          ORDER BY e.created_at DESC
+        `;
+      }
     } else {
       // Если нет author_id, используем только events без JOIN
-      queryString = `
-        SELECT 
-          e.*,
-          'Неизвестный автор' as author_name,
-          'unknown@example.com' as author_email,
-          CASE WHEN e.is_published = true THEN 'Опубликовано' ELSE 'На модерации' END as status
-        FROM events e
-        ORDER BY e.created_at DESC
-      `;
+      if (hasIsPublished) {
+        queryString = `
+          SELECT 
+            e.*,
+            'Неизвестный автор' as author_name,
+            'unknown@example.com' as author_email,
+            CASE WHEN e.is_published = true THEN 'Опубликовано' ELSE 'На модерации' END as status
+          FROM events e
+          ORDER BY e.created_at DESC
+        `;
+      } else {
+        queryString = `
+          SELECT 
+            e.*,
+            'Неизвестный автор' as author_name,
+            'unknown@example.com' as author_email,
+            'На модерации' as status
+          FROM events e
+          ORDER BY e.created_at DESC
+        `;
+      }
     }
     
     const result = await query(queryString, queryParams);

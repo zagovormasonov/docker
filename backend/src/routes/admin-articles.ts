@@ -56,27 +56,52 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
     
     if (hasAuthorId) {
       // Если есть author_id, используем JOIN с users
-      queryString = `
-        SELECT 
-          a.*,
-          u.name as author_name,
-          u.email as author_email,
-          CASE WHEN a.is_published = true THEN 'Опубликована' ELSE 'На модерации' END as status
-        FROM articles a
-        JOIN users u ON a.author_id = u.id
-        ORDER BY a.created_at DESC
-      `;
+      if (hasIsPublished) {
+        queryString = `
+          SELECT 
+            a.*,
+            u.name as author_name,
+            u.email as author_email,
+            CASE WHEN a.is_published = true THEN 'Опубликована' ELSE 'На модерации' END as status
+          FROM articles a
+          JOIN users u ON a.author_id = u.id
+          ORDER BY a.created_at DESC
+        `;
+      } else {
+        queryString = `
+          SELECT 
+            a.*,
+            u.name as author_name,
+            u.email as author_email,
+            'На модерации' as status
+          FROM articles a
+          JOIN users u ON a.author_id = u.id
+          ORDER BY a.created_at DESC
+        `;
+      }
     } else {
       // Если нет author_id, используем только articles без JOIN
-      queryString = `
-        SELECT 
-          a.*,
-          'Неизвестный автор' as author_name,
-          'unknown@example.com' as author_email,
-          CASE WHEN a.is_published = true THEN 'Опубликована' ELSE 'На модерации' END as status
-        FROM articles a
-        ORDER BY a.created_at DESC
-      `;
+      if (hasIsPublished) {
+        queryString = `
+          SELECT 
+            a.*,
+            'Неизвестный автор' as author_name,
+            'unknown@example.com' as author_email,
+            CASE WHEN a.is_published = true THEN 'Опубликована' ELSE 'На модерации' END as status
+          FROM articles a
+          ORDER BY a.created_at DESC
+        `;
+      } else {
+        queryString = `
+          SELECT 
+            a.*,
+            'Неизвестный автор' as author_name,
+            'unknown@example.com' as author_email,
+            'На модерации' as status
+          FROM articles a
+          ORDER BY a.created_at DESC
+        `;
+      }
     }
     
     const result = await query(queryString, queryParams);
