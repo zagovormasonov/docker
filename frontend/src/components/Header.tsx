@@ -15,7 +15,8 @@ import {
   CloseOutlined,
   CheckCircleOutlined,
   CustomerServiceOutlined,
-  SendOutlined
+  SendOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -98,6 +99,12 @@ const Header = () => {
         icon: <CheckCircleOutlined />,
         label: 'Модерация',
         onClick: () => navigate('/moderation')
+      },
+      {
+        key: 'admin-panel',
+        icon: <SettingOutlined />,
+        label: 'Админ панель',
+        onClick: () => navigate('/admin-panel')
       }
     ] : []),
     {
@@ -201,6 +208,15 @@ const Header = () => {
           label: 'Модерация',
           onClick: () => {
             navigate('/moderation');
+            setMobileMenuOpen(false);
+          }
+        },
+        {
+          key: 'admin-panel',
+          icon: <SettingOutlined />,
+          label: 'Админ панель',
+          onClick: () => {
+            navigate('/admin-panel');
             setMobileMenuOpen(false);
           }
         }

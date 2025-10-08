@@ -22,6 +22,7 @@ import EventsPage from './pages/EventsPage';
 import EventPage from './pages/EventPage';
 import CreateEventPage from './pages/CreateEventPage';
 import ModerationPage from './pages/ModerationPage';
+import AdminPanel from './pages/AdminPanel';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -76,6 +77,7 @@ function App() {
                 <Route path="edit-article/:id" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
                 <Route path="my-articles" element={<ProtectedRoute><MyArticlesPage /></ProtectedRoute>} />
                 <Route path="moderation" element={<ProtectedRoute><ModerationPage /></ProtectedRoute>} />
+                <Route path="admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
               </Route>
             </Routes>
           </BrowserRouter>
