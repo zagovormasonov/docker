@@ -16,10 +16,12 @@ import {
   CheckCircleOutlined,
   CustomerServiceOutlined,
   SendOutlined,
-  SettingOutlined
+  SettingOutlined,
+  BellOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
+import Notifications from './Notifications';
 import type { MenuProps } from 'antd';
 import { useState } from 'react';
 
@@ -32,6 +34,8 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportForm] = Form.useForm();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsUnreadCount, setNotificationsUnreadCount] = useState(0);
 
   const handleChatsClick = () => {
     // НЕ сбрасываем счетчики при переходе в чаты
@@ -351,6 +355,14 @@ const Header = () => {
                     style={{ fontSize: '18px' }}
                   />
                 </Badge>
+                <Badge count={notificationsUnreadCount} offset={[-5, 5]}>
+                  <Button
+                    type="text"
+                    icon={<BellOutlined />}
+                    onClick={() => setNotificationsOpen(true)}
+                    style={{ fontSize: '18px' }}
+                  />
+                </Badge>
                 <Button
                   type="text"
                   icon={<CustomerServiceOutlined />}
@@ -539,6 +551,13 @@ const Header = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Компонент уведомлений */}
+      <Notifications
+        visible={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        onUnreadCountChange={setNotificationsUnreadCount}
+      />
     </>
   );
 };

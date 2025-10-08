@@ -2,7 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticateToken } from '../middleware/auth';
 import { query } from '../config/database';
-import { sendTelegramMessage } from '../config/telegram';
+import { createArticleEditedNotification, createArticleDeletedNotification } from '../utils/notifications';
 
 const router = express.Router();
 
@@ -71,16 +71,8 @@ router.put('/:id', authenticateToken, requireAdmin, [
       WHERE id = $4
     `, [title, content, is_published, id]);
 
-    // Отправляем уведомление автору
-    const notificationMessage = `📝 Ваша статья была отредактирована администратором:
-
-📰 Заголовок: ${title}
-📊 Статус: ${is_published ? 'Опубликована' : 'На модерации'}
-⏰ Время изменения: ${new Date().toLocaleString('ru-RU')}
-
-Если у вас есть вопросы, обратитесь в поддержку.`;
-
-    await sendTelegramMessage(notificationMessage);
+    // Создаем внутреннее уведомление для автора
+    await createArticleEditedNotification(article.author_id, title, is_published);
 
     res.json({ 
       success: true, 
@@ -122,15 +114,8 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     // Удаляем статью
     await query('DELETE FROM articles WHERE id = $1', [id]);
 
-    // Отправляем уведомление автору
-    const notificationMessage = `🗑️ Ваша статья была удалена администратором:
-
-📰 Заголовок: ${article.title}
-⏰ Время удаления: ${new Date().toLocaleString('ru-RU')}
-
-Если у вас есть вопросы, обратитесь в поддержку.`;
-
-    await sendTelegramMessage(notificationMessage);
+    // Создаем внутреннее уведомление для автора
+    await createArticleDeletedNotification(article.author_id, article.title);
 
     res.json({ 
       success: true, 

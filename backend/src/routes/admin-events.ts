@@ -2,7 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticateToken } from '../middleware/auth';
 import { query } from '../config/database';
-import { sendTelegramMessage } from '../config/telegram';
+import { createEventEditedNotification, createEventDeletedNotification } from '../utils/notifications';
 
 const router = express.Router();
 
@@ -73,18 +73,8 @@ router.put('/:id', authenticateToken, requireAdmin, [
       WHERE id = $6
     `, [title, description, location, event_date, is_published, id]);
 
-    // Отправляем уведомление автору
-    const notificationMessage = `📅 Ваше событие было отредактировано администратором:
-
-🎯 Название: ${title}
-📍 Место: ${location}
-📅 Дата: ${new Date(event_date).toLocaleString('ru-RU')}
-📊 Статус: ${is_published ? 'Опубликовано' : 'На модерации'}
-⏰ Время изменения: ${new Date().toLocaleString('ru-RU')}
-
-Если у вас есть вопросы, обратитесь в поддержку.`;
-
-    await sendTelegramMessage(notificationMessage);
+    // Создаем внутреннее уведомление для автора
+    await createEventEditedNotification(event.author_id, title, is_published);
 
     res.json({ 
       success: true, 
@@ -128,17 +118,8 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     // Удаляем событие
     await query('DELETE FROM events WHERE id = $1', [id]);
 
-    // Отправляем уведомление автору
-    const notificationMessage = `🗑️ Ваше событие было удалено администратором:
-
-🎯 Название: ${event.title}
-📍 Место: ${event.location}
-📅 Дата: ${new Date(event.event_date).toLocaleString('ru-RU')}
-⏰ Время удаления: ${new Date().toLocaleString('ru-RU')}
-
-Если у вас есть вопросы, обратитесь в поддержку.`;
-
-    await sendTelegramMessage(notificationMessage);
+    // Создаем внутреннее уведомление для автора
+    await createEventDeletedNotification(event.author_id, event.title);
 
     res.json({ 
       success: true, 
