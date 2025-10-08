@@ -184,7 +184,7 @@ export default function Orb({
     const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
-    container.appendChild(gl.canvas);
+    container.appendChild(gl.canvas as HTMLCanvasElement);
 
     const geometry = new Triangle(gl);
     const program = new Program(gl, {
@@ -210,8 +210,8 @@ export default function Orb({
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width * dpr, height * dpr);
-      gl.canvas.style.width = width + 'px';
-      gl.canvas.style.height = height + 'px';
+      (gl.canvas as HTMLCanvasElement).style.width = width + 'px';
+      (gl.canvas as HTMLCanvasElement).style.height = height + 'px';
       program.uniforms.iResolution.value.set(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height);
     }
     window.addEventListener('resize', resize);
@@ -274,7 +274,7 @@ export default function Orb({
       window.removeEventListener('resize', resize);
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);
-      container.removeChild(gl.canvas);
+      container.removeChild(gl.canvas as HTMLCanvasElement);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [hue, hoverIntensity, rotateOnHover, forceHoverState]);
