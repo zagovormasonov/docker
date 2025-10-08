@@ -94,30 +94,3 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
-
-/* Стили для главной страницы с орб эффектом */
-.home-search-container {
-  margin-top: 24px;
-}
-
-.home-search-input {
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.home-search-input .ant-input {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  color: white !important;
-  backdrop-filter: blur(10px);
-}
-
-.home-search-input .ant-input::placeholder {
-  color: rgba(255, 255, 255, 0.6) !important;
-}
-
-.home-search-input .ant-input:focus {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
-}
