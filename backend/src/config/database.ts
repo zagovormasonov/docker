@@ -198,18 +198,27 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_link TEXT`);
     await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS organizer_id INTEGER REFERENCES users(id) ON DELETE CASCADE`);
     
-    // Поля для модерации событий
-    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false`);
-    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderation_status VARCHAR(20) DEFAULT 'pending'`);
-    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderation_reason TEXT`);
-    await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderated_at TIMESTAMP`);
+    // Поля для модерации событий (только если их нет)
+    try {
+      await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false`);
+      await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderation_status VARCHAR(20) DEFAULT 'pending'`);
+      await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderation_reason TEXT`);
+      await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderated_at TIMESTAMP`);
+      console.log('✅ Поля модерации событий добавлены');
+    } catch (error) {
+      console.log('⚠️ Поля модерации событий уже существуют или ошибка:', error.message);
+    }
     
     // Переименовываем старые колонки если они есть
-    await query(`ALTER TABLE events DROP COLUMN IF EXISTS author_id`);
-    await query(`ALTER TABLE events DROP COLUMN IF EXISTS content`);
-    await query(`ALTER TABLE events DROP COLUMN IF EXISTS city`);
-    await query(`ALTER TABLE events DROP COLUMN IF EXISTS is_published`);
-    await query(`ALTER TABLE events DROP COLUMN IF EXISTS views`);
+    try {
+      await query(`ALTER TABLE events DROP COLUMN IF EXISTS author_id`);
+      await query(`ALTER TABLE events DROP COLUMN IF EXISTS content`);
+      await query(`ALTER TABLE events DROP COLUMN IF EXISTS city`);
+      await query(`ALTER TABLE events DROP COLUMN IF EXISTS views`);
+      console.log('✅ Старые колонки удалены');
+    } catch (error) {
+      console.log('⚠️ Ошибка удаления старых колонок:', error.message);
+    }
 
     // Индексы
     await query(`CREATE INDEX IF NOT EXISTS idx_reviews_expert ON reviews(expert_id)`);

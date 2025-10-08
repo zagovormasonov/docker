@@ -161,25 +161,29 @@ router.post(
 
     try {
       const { title, content, coverImage } = req.body;
+      console.log('📝 Создание статьи:', { title, userId: req.userId });
 
       // Создаем статью (пробуем с полями модерации, если не получается - без них)
       let result;
       try {
+        console.log('🔍 Пробуем создать статью с полями модерации');
         result = await query(
           `INSERT INTO articles (author_id, title, content, cover_image, is_published, moderation_status)
            VALUES ($1, $2, $3, $4, false, 'pending')
            RETURNING *`,
           [req.userId, title, content, coverImage || null]
         );
+        console.log('✅ Статья создана с полями модерации');
       } catch (error) {
         // Если поля модерации не существуют, создаем без них
-        console.log('Поля модерации не найдены, создаем статью без них');
+        console.log('⚠️ Поля модерации не найдены, создаем статью без них:', error.message);
         result = await query(
           `INSERT INTO articles (author_id, title, content, cover_image, is_published)
            VALUES ($1, $2, $3, $4, true)
            RETURNING *`,
           [req.userId, title, content, coverImage || null]
         );
+        console.log('✅ Статья создана без полей модерации');
       }
 
       const article = result.rows[0];
@@ -187,6 +191,7 @@ router.post(
       // Отправляем уведомление администратору только если есть поля модерации
       if (article.hasOwnProperty('moderation_status') && article.moderation_status === 'pending') {
         try {
+          console.log('📨 Отправляем уведомление администратору');
           // Находим администратора
           const adminResult = await query(
             'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',

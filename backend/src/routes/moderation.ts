@@ -291,8 +291,8 @@ router.get('/test-approve-simple/:id', async (req, res) => {
     
     console.log('🧪 Простой тест одобрения события:', id);
     
-    // Проверяем, существует ли событие
-    const eventResult = await query('SELECT id, title, organizer_id, is_published, moderation_status FROM events WHERE id = $1', [id]);
+    // Проверяем, существует ли событие (без is_published, так как колонка может не существовать)
+    const eventResult = await query('SELECT id, title, organizer_id FROM events WHERE id = $1', [id]);
     
     if (eventResult.rows.length === 0) {
       return res.status(404).json({
