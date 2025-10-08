@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Space, Drawer } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Badge, Space, Drawer, Modal, Form, Input, message as antdMessage } from 'antd';
 import {
   HomeOutlined,
   TeamOutlined,
@@ -13,7 +13,9 @@ import {
   CalendarOutlined,
   MenuOutlined,
   CloseOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  CustomerServiceOutlined,
+  SendOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -27,11 +29,45 @@ const Header = () => {
   const { unreadCount, markAsRead, testNotification } = useNotifications();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [supportModalOpen, setSupportModalOpen] = useState(false);
+  const [supportForm] = Form.useForm();
 
   const handleChatsClick = () => {
     // НЕ сбрасываем счетчики при переходе в чаты
     // markAsRead();
     navigate('/chats');
+  };
+
+  const handleSupportSubmit = async (values: { contact: string; message: string }) => {
+    try {
+      const { contact, message } = values;
+      
+      // Отправляем сообщение в Telegram бот
+      const telegramMessage = `🆘 Новое сообщение в поддержку:\n\n👤 Контакт: ${contact}\n📝 Сообщение: ${message}\n\n⏰ Время: ${new Date().toLocaleString('ru-RU')}`;
+      
+      const response = await fetch(`https://api.telegram.org/bot8283722807:AAG2IeVghBPCFoeIEB8GWnR61WIYJ2WsV1g/sendMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: '337932167',
+          text: telegramMessage,
+          parse_mode: 'HTML'
+        })
+      });
+
+      if (response.ok) {
+        antdMessage.success('Сообщение отправлено в поддержку! Мы ответим вам в ближайшее время.');
+        setSupportModalOpen(false);
+        supportForm.resetFields();
+      } else {
+        throw new Error('Ошибка отправки сообщения');
+      }
+    } catch (error) {
+      console.error('Ошибка отправки сообщения в поддержку:', error);
+      antdMessage.error('Ошибка отправки сообщения. Попробуйте позже.');
+    }
   };
 
 
@@ -114,6 +150,15 @@ const Header = () => {
         label: `Чаты${unreadCount > 0 ? ` (${unreadCount})` : ''}`,
         onClick: () => {
           handleChatsClick();
+          setMobileMenuOpen(false);
+        }
+      },
+      {
+        key: 'support',
+        icon: <CustomerServiceOutlined />,
+        label: 'Поддержка',
+        onClick: () => {
+          setSupportModalOpen(true);
           setMobileMenuOpen(false);
         }
       },
@@ -296,6 +341,13 @@ const Header = () => {
                     style={{ fontSize: '18px' }}
                   />
                 </Badge>
+                <Button
+                  type="text"
+                  icon={<CustomerServiceOutlined />}
+                  onClick={() => setSupportModalOpen(true)}
+                  style={{ fontSize: '18px' }}
+                  title="Поддержка"
+                />
                 {/* Тестовая кнопка для проверки уведомлений - только в разработке */}
                 {import.meta.env.DEV && (
                   <Button
@@ -405,6 +457,78 @@ const Header = () => {
           }}
         />
       </Drawer>
+
+      {/* Модальное окно поддержки */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CustomerServiceOutlined style={{ color: '#1890ff' }} />
+            Поддержка
+          </div>
+        }
+        open={supportModalOpen}
+        onCancel={() => {
+          setSupportModalOpen(false);
+          supportForm.resetFields();
+        }}
+        footer={null}
+        width={500}
+      >
+        <Form
+          form={supportForm}
+          layout="vertical"
+          onFinish={handleSupportSubmit}
+          style={{ marginTop: 16 }}
+        >
+          <Form.Item
+            name="contact"
+            label="Контакт для связи"
+            rules={[
+              { required: true, message: 'Пожалуйста, укажите контакт для связи' },
+              { min: 3, message: 'Контакт должен содержать минимум 3 символа' }
+            ]}
+          >
+            <Input
+              placeholder="Email или ник в Telegram"
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="message"
+            label="Сообщение"
+            rules={[
+              { required: true, message: 'Пожалуйста, опишите вашу проблему' },
+              { min: 10, message: 'Сообщение должно содержать минимум 10 символов' }
+            ]}
+          >
+            <Input.TextArea
+              placeholder="Опишите вашу проблему или вопрос..."
+              rows={4}
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button onClick={() => {
+                setSupportModalOpen(false);
+                supportForm.resetFields();
+              }}>
+                Отмена
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SendOutlined />}
+                loading={false}
+              >
+                Отправить
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 };
