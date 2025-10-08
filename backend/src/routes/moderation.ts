@@ -501,22 +501,54 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
     const { id } = req.params;
     console.log('📝 ID события для одобрения:', id);
     
-    // Пробуем обновить с полями модерации, если не получается - без них
-    try {
-      console.log('Пробуем обновить событие с полями модерации:', id);
-      await query(
-        'UPDATE events SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP, is_published = true WHERE id = $3',
-        ['approved', req.userId, id]
-      );
-      console.log('Событие обновлено с полями модерации');
-    } catch (error) {
-      console.log('Поля модерации не найдены, обновляем только is_published:', error.message);
-      await query(
-        'UPDATE events SET is_published = true WHERE id = $1',
-        [id]
-      );
-      console.log('Событие обновлено без полей модерации');
+    // Проверяем, какие колонки существуют в таблице events
+    const structureCheck = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'events'
+    `);
+    
+    const hasModerationStatus = structureCheck.rows.some(row => row.column_name === 'moderation_status');
+    const hasIsPublished = structureCheck.rows.some(row => row.column_name === 'is_published');
+    
+    console.log('📊 moderation_status существует:', hasModerationStatus);
+    console.log('📊 is_published существует:', hasIsPublished);
+    
+    // Строим динамический запрос UPDATE
+    let updateFields = [];
+    let queryParams = [];
+    let paramIndex = 1;
+    
+    if (hasModerationStatus) {
+      updateFields.push(`moderation_status = $${paramIndex}`);
+      queryParams.push('approved');
+      paramIndex++;
+      
+      updateFields.push(`moderated_by = $${paramIndex}`);
+      queryParams.push(req.userId);
+      paramIndex++;
+      
+      updateFields.push(`moderated_at = CURRENT_TIMESTAMP`);
     }
+    
+    if (hasIsPublished) {
+      updateFields.push(`is_published = $${paramIndex}`);
+      queryParams.push(true);
+      paramIndex++;
+    }
+    
+    if (updateFields.length === 0) {
+      console.log('⚠️ Нет доступных полей для обновления');
+      return res.json({ success: true, message: 'Событие одобрено (нет полей для обновления)' });
+    }
+    
+    queryParams.push(id);
+    
+    const updateQuery = `UPDATE events SET ${updateFields.join(', ')} WHERE id = $${paramIndex}`;
+    console.log('🔍 Выполняем UPDATE запрос:', updateQuery);
+    
+    await query(updateQuery, queryParams);
+    console.log('✅ Событие обновлено');
     
     // Получаем информацию об авторе и названии события для уведомления
     console.log('Получаем информацию об авторе события:', id);
@@ -614,22 +646,58 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
       return res.status(400).json({ error: 'Необходимо указать причину отклонения' });
     }
     
-    // Пробуем обновить с полями модерации, если не получается - без них
-    try {
-      console.log('Пробуем отклонить событие с полями модерации:', id);
-      await query(
-        'UPDATE events SET moderation_status = $1, moderation_reason = $2, moderated_by = $3, moderated_at = CURRENT_TIMESTAMP, is_published = false WHERE id = $4',
-        ['rejected', reason, req.userId, id]
-      );
-      console.log('Событие отклонено с полями модерации');
-    } catch (error) {
-      console.log('Поля модерации не найдены, обновляем только is_published:', error.message);
-      await query(
-        'UPDATE events SET is_published = false WHERE id = $1',
-        [id]
-      );
-      console.log('Событие отклонено без полей модерации');
+    // Проверяем, какие колонки существуют в таблице events
+    const structureCheck = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'events'
+    `);
+    
+    const hasModerationStatus = structureCheck.rows.some(row => row.column_name === 'moderation_status');
+    const hasIsPublished = structureCheck.rows.some(row => row.column_name === 'is_published');
+    
+    console.log('📊 moderation_status существует:', hasModerationStatus);
+    console.log('📊 is_published существует:', hasIsPublished);
+    
+    // Строим динамический запрос UPDATE
+    let updateFields = [];
+    let queryParams = [];
+    let paramIndex = 1;
+    
+    if (hasModerationStatus) {
+      updateFields.push(`moderation_status = $${paramIndex}`);
+      queryParams.push('rejected');
+      paramIndex++;
+      
+      updateFields.push(`moderation_reason = $${paramIndex}`);
+      queryParams.push(reason);
+      paramIndex++;
+      
+      updateFields.push(`moderated_by = $${paramIndex}`);
+      queryParams.push(req.userId);
+      paramIndex++;
+      
+      updateFields.push(`moderated_at = CURRENT_TIMESTAMP`);
     }
+    
+    if (hasIsPublished) {
+      updateFields.push(`is_published = $${paramIndex}`);
+      queryParams.push(false);
+      paramIndex++;
+    }
+    
+    if (updateFields.length === 0) {
+      console.log('⚠️ Нет доступных полей для обновления');
+      return res.json({ success: true, message: 'Событие отклонено (нет полей для обновления)' });
+    }
+    
+    queryParams.push(id);
+    
+    const updateQuery = `UPDATE events SET ${updateFields.join(', ')} WHERE id = $${paramIndex}`;
+    console.log('🔍 Выполняем UPDATE запрос:', updateQuery);
+    
+    await query(updateQuery, queryParams);
+    console.log('✅ Событие отклонено');
     
     // Получаем информацию об авторе для уведомления
     console.log('Получаем информацию об авторе события для отклонения:', id);
