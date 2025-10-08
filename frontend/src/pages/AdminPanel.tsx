@@ -85,10 +85,21 @@ const AdminPanel: React.FC = () => {
     images.forEach((img, index) => {
       const src = img.getAttribute('src');
       if (src) {
+        // Проверяем, является ли это относительным путем
+        let fullSrc = src;
+        if (src.startsWith('/uploads/') || src.startsWith('uploads/')) {
+          // Если это загруженное изображение, добавляем базовый URL
+          fullSrc = src.startsWith('/') ? src : `/${src}`;
+        }
+        
         // Заменяем img на стилизованный элемент
         const imageElement = document.createElement('div');
         imageElement.innerHTML = `<div style="margin: 10px 0; text-align: center;">
-          <img src="${src}" alt="Изображение ${index + 1}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+          <img src="${fullSrc}" alt="Изображение ${index + 1}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" 
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+          <div style="display: none; padding: 20px; background: #f5f5f5; border-radius: 8px; text-align: center; color: #999;">
+            Изображение недоступно: ${src}
+          </div>
         </div>`;
         img.parentNode?.replaceChild(imageElement.firstChild!, img);
       }
@@ -521,12 +532,32 @@ const AdminPanel: React.FC = () => {
                     style={{ marginBottom: 16 }}
                   />
                   
-                  <Card>
+                    <Card>
                     <Typography.Title level={3}>
                       {editForm.getFieldValue('title') || 'Заголовок'}
                     </Typography.Title>
                     
-                    <Divider />
+                    {/* Показываем обложку если есть */}
+                    {editingItem?.cover_image && (
+                      <>
+                        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                          <img 
+                            src={editingItem.cover_image} 
+                            alt="Обложка" 
+                            style={{ 
+                              maxWidth: '100%', 
+                              height: 'auto', 
+                              borderRadius: '8px',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                        <Divider />
+                      </>
+                    )}
                     
                     <div 
                       dangerouslySetInnerHTML={{ 

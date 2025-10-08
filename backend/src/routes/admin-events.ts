@@ -65,7 +65,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
             CASE WHEN e.is_published = true THEN 'Опубликовано' ELSE 'На модерации' END as status
           FROM events e
           JOIN users u ON e.author_id = u.id
-          ORDER BY e.created_at DESC
+          ORDER BY e.id DESC
         `;
       } else {
         queryString = `
@@ -76,7 +76,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
             'На модерации' as status
           FROM events e
           JOIN users u ON e.author_id = u.id
-          ORDER BY e.created_at DESC
+          ORDER BY e.id DESC
         `;
       }
     } else {
@@ -89,7 +89,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
             'unknown@example.com' as author_email,
             CASE WHEN e.is_published = true THEN 'Опубликовано' ELSE 'На модерации' END as status
           FROM events e
-          ORDER BY e.created_at DESC
+          ORDER BY e.id DESC
         `;
       } else {
         queryString = `
@@ -99,7 +99,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
             'unknown@example.com' as author_email,
             'На модерации' as status
           FROM events e
-          ORDER BY e.created_at DESC
+          ORDER BY e.id DESC
         `;
       }
     }
