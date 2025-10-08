@@ -26,6 +26,7 @@ import chatsRoutes from './routes/chats';
 import usersRoutes from './routes/users';
 import citiesRoutes from './routes/cities';
 import uploadRoutes from './routes/upload';
+import supportRoutes from './routes/support';
 
 dotenv.config();
 
@@ -71,6 +72,7 @@ app.use('/api/chats', chatsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/cities', citiesRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/support', supportRoutes);
 
 // Socket.IO для чатов
 const userSockets = new Map<number, string>();

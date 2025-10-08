@@ -40,29 +40,23 @@ const Header = () => {
 
   const handleSupportSubmit = async (values: { contact: string; message: string }) => {
     try {
-      const { contact, message } = values;
-      
-      // Отправляем сообщение в Telegram бот
-      const telegramMessage = `🆘 Новое сообщение в поддержку:\n\n👤 Контакт: ${contact}\n📝 Сообщение: ${message}\n\n⏰ Время: ${new Date().toLocaleString('ru-RU')}`;
-      
-      const response = await fetch(`https://api.telegram.org/bot8283722807:AAG2IeVghBPCFoeIEB8GWnR61WIYJ2WsV1g/sendMessage`, {
+      const response = await fetch('/api/support/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          chat_id: '337932167',
-          text: telegramMessage,
-          parse_mode: 'HTML'
-        })
+        body: JSON.stringify(values)
       });
 
-      if (response.ok) {
-        antdMessage.success('Сообщение отправлено в поддержку! Мы ответим вам в ближайшее время.');
+      const data = await response.json();
+
+      if (data.success) {
+        antdMessage.success(data.message);
         setSupportModalOpen(false);
         supportForm.resetFields();
       } else {
-        throw new Error('Ошибка отправки сообщения');
+        antdMessage.error(data.message || 'Ошибка отправки сообщения');
       }
     } catch (error) {
       console.error('Ошибка отправки сообщения в поддержку:', error);
