@@ -41,6 +41,19 @@ router.get('/', async (req: AuthRequest, res) => {
       dateTo
     } = req.query;
 
+    // Сначала проверим, какие колонки существуют в таблице events
+    const structureCheck = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'events'
+    `);
+    
+    const hasModerationStatus = structureCheck.rows.some(row => row.column_name === 'moderation_status');
+    const hasIsPublished = structureCheck.rows.some(row => row.column_name === 'is_published');
+    
+    console.log('📊 moderation_status существует:', hasModerationStatus);
+    console.log('📊 is_published существует:', hasIsPublished);
+    
     let queryText = `
       SELECT 
         e.*,
@@ -51,8 +64,15 @@ router.get('/', async (req: AuthRequest, res) => {
       LEFT JOIN users u ON e.organizer_id = u.id
       LEFT JOIN cities c ON e.city_id = c.id
       WHERE e.event_date >= NOW()
-      AND (e.moderation_status = 'approved' OR e.moderation_status IS NULL)
     `;
+    
+    // Добавляем фильтр по статусу в зависимости от доступных колонок
+    if (hasModerationStatus) {
+      queryText += ` AND (e.moderation_status = 'approved' OR e.moderation_status IS NULL)`;
+    } else if (hasIsPublished) {
+      queryText += ` AND e.is_published = true`;
+    }
+    // Если нет ни moderation_status, ни is_published, показываем все события
 
     const params: any[] = [];
     let paramCount = 0;
