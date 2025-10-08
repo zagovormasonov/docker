@@ -131,13 +131,32 @@ router.put('/:id', authenticateToken, requireAdmin, [
     const { id } = req.params;
     const { title, description, location, event_date, is_published } = req.body;
 
-    // Получаем информацию о событии и авторе
-    const eventResult = await query(`
-      SELECT e.*, u.name as author_name, u.email as author_email
-      FROM events e
-      JOIN users u ON e.author_id = u.id
-      WHERE e.id = $1
-    `, [id]);
+    // Сначала проверим структуру таблицы events
+    const structureCheck = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'events'
+    `);
+    
+    const hasAuthorId = structureCheck.rows.some(row => row.column_name === 'author_id');
+    
+    let eventResult;
+    if (hasAuthorId) {
+      // Если есть author_id, используем JOIN с users
+      eventResult = await query(`
+        SELECT e.*, u.name as author_name, u.email as author_email
+        FROM events e
+        JOIN users u ON e.author_id = u.id
+        WHERE e.id = $1
+      `, [id]);
+    } else {
+      // Если нет author_id, получаем только событие
+      eventResult = await query(`
+        SELECT e.*, 'Неизвестный автор' as author_name, 'unknown@example.com' as author_email
+        FROM events e
+        WHERE e.id = $1
+      `, [id]);
+    }
 
     if (eventResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Событие не найдено' });
@@ -152,8 +171,10 @@ router.put('/:id', authenticateToken, requireAdmin, [
       WHERE id = $6
     `, [title, description, location, event_date, is_published, id]);
 
-    // Создаем внутреннее уведомление для автора
-    await createEventEditedNotification(event.author_id, title, is_published);
+    // Создаем внутреннее уведомление для автора (только если есть author_id)
+    if (hasAuthorId && event.author_id) {
+      await createEventEditedNotification(event.author_id, title, is_published);
+    }
 
     res.json({ 
       success: true, 
@@ -180,13 +201,32 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Получаем информацию о событии и авторе
-    const eventResult = await query(`
-      SELECT e.*, u.name as author_name, u.email as author_email
-      FROM events e
-      JOIN users u ON e.author_id = u.id
-      WHERE e.id = $1
-    `, [id]);
+    // Сначала проверим структуру таблицы events
+    const structureCheck = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'events'
+    `);
+    
+    const hasAuthorId = structureCheck.rows.some(row => row.column_name === 'author_id');
+    
+    let eventResult;
+    if (hasAuthorId) {
+      // Если есть author_id, используем JOIN с users
+      eventResult = await query(`
+        SELECT e.*, u.name as author_name, u.email as author_email
+        FROM events e
+        JOIN users u ON e.author_id = u.id
+        WHERE e.id = $1
+      `, [id]);
+    } else {
+      // Если нет author_id, получаем только событие
+      eventResult = await query(`
+        SELECT e.*, 'Неизвестный автор' as author_name, 'unknown@example.com' as author_email
+        FROM events e
+        WHERE e.id = $1
+      `, [id]);
+    }
 
     if (eventResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Событие не найдено' });
@@ -197,8 +237,10 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     // Удаляем событие
     await query('DELETE FROM events WHERE id = $1', [id]);
 
-    // Создаем внутреннее уведомление для автора
-    await createEventDeletedNotification(event.author_id, event.title);
+    // Создаем внутреннее уведомление для автора (только если есть author_id)
+    if (hasAuthorId && event.author_id) {
+      await createEventDeletedNotification(event.author_id, event.title);
+    }
 
     res.json({ 
       success: true, 
