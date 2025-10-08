@@ -5,7 +5,7 @@ import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutl
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import AnimatedText from '../components/AnimatedText';
-import Orb from '../components/Orb';
+import Aurora from '../components/Aurora';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -114,7 +114,7 @@ const HomePage = () => {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      {/* Орб эффект как фон */}
+      {/* Aurora эффект как фон */}
       <div style={{
         position: 'fixed',
         top: 0,
@@ -124,10 +124,10 @@ const HomePage = () => {
         zIndex: -1,
         pointerEvents: 'none'
       }}>
-        <Orb
-          hoverIntensity={0.5}
-          rotateOnHover={true}
+        <Aurora
           hue={0}
+          intensity={1}
+          speed={1}
           forceHoverState={false}
         />
       </div>
