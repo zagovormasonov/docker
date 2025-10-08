@@ -54,7 +54,14 @@ const FavoritesPage = () => {
   return (
     <div className="container" style={{ paddingTop: 24 }}>
       <div className="page-header">
-        <img src="/fav.png" alt="Избранное" /> <Title level={2} className="page-title">Избранное</Title>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+          <img 
+            src="/fav.png" 
+            alt="Избранное" 
+            style={{ width: 40, height: 40 }}
+          />
+          <Title level={2} className="page-title" style={{ margin: 0 }}>Избранное</Title>
+        </div>
         <Text className="page-subtitle">Статьи, которые вы добавили в избранное</Text>
       </div>
 
