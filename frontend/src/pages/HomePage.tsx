@@ -5,6 +5,7 @@ import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutl
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import AnimatedText from '../components/AnimatedText';
+import Orb from '../components/Orb';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -112,62 +113,92 @@ const HomePage = () => {
   };
 
   return (
-    <div className="container" style={{ paddingTop: 24 }}>
+    <div style={{ position: 'relative', minHeight: '100vh' }}>
+      {/* Орб эффект как фон */}
       <div style={{
-        background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-        borderRadius: 16,
-        padding: '60px 40px',
-        marginBottom: 48,
-        color: 'white',
-        textAlign: 'center'
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: -1,
+        pointerEvents: 'none'
       }}>
-        <Title level={1} style={{ color: 'black', marginBottom: 16, fontSize: 48 }}>
-          SoulSynergy
-        </Title>
-        <AnimatedText 
-          texts={animatedTexts}
-          interval={20000}
-          style={{ 
-            color: 'rgba(43, 43, 43, 0.9)', 
-            fontWeight: 400,
-            marginBottom: 16
-          }}
+        <Orb
+          hoverIntensity={0.5}
+          rotateOnHover={true}
+          hue={0}
+          forceHoverState={false}
         />
-        {/* {expertsCount > 0 && (
-          <Paragraph style={{ 
-            color: 'rgba(43, 43, 43, 0.8)', 
-            fontSize: 18, 
-            fontWeight: 500,
-            margin: '8px auto 16px',
-            background: 'rgba(255, 255, 255, 0.2)',
-            padding: '8px 16px',
-            borderRadius: '20px',
-            display: 'inline-block'
-          }}>
-            Нас уже более {expertsCount} экспертов
-          </Paragraph>
-        )} */}
-        
-        {/* Поисковая строка */}
-        <div className="home-search-container">
-          <Input
-            placeholder="Поиск статей по заголовку..."
-            prefix={<SearchOutlined style={{ color: 'rgba(43, 43, 43, 0.6)' }} />}
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="home-search-input"
-          />
-        </div>
       </div>
 
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: 24,
-        flexWrap: 'wrap',
-        gap: '16px'
-      }}>
+      <div className="container" style={{ paddingTop: 24, position: 'relative', zIndex: 1 }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 16,
+          padding: '60px 40px',
+          marginBottom: 48,
+          color: 'white',
+          textAlign: 'center',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+        }}>
+          <Title level={1} style={{ color: 'white', marginBottom: 16, fontSize: 48, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+            SoulSynergy
+          </Title>
+          <AnimatedText 
+            texts={animatedTexts}
+            interval={20000}
+            style={{ 
+              color: 'rgba(255, 255, 255, 0.9)', 
+              fontWeight: 400,
+              marginBottom: 16,
+              textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+            }}
+          />
+          {/* {expertsCount > 0 && (
+            <Paragraph style={{ 
+              color: 'rgba(255, 255, 255, 0.8)', 
+              fontSize: 18, 
+              fontWeight: 500,
+              margin: '8px auto 16px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              padding: '8px 16px',
+              borderRadius: '20px',
+              display: 'inline-block'
+            }}>
+              Нас уже более {expertsCount} экспертов
+            </Paragraph>
+          )} */}
+          
+          {/* Поисковая строка */}
+          <div className="home-search-container">
+            <Input
+              placeholder="Поиск статей по заголовку..."
+              prefix={<SearchOutlined style={{ color: 'rgba(255, 255, 255, 0.6)' }} />}
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="home-search-input"
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: 'white'
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: 24,
+          flexWrap: 'wrap',
+          gap: '16px',
+          position: 'relative',
+          zIndex: 1
+        }}>
         <Tabs
           activeKey={sortType}
           onChange={(key) => setSortType(key as 'new' | 'popular')}
@@ -213,19 +244,19 @@ const HomePage = () => {
         )}
       </div>
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: 60 }}>
-          <Spin size="large" />
-        </div>
-      ) : filteredArticles.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 60 }}>
-          <Text type="secondary">
-            {searchQuery.trim() ? 'Статьи не найдены по вашему запросу' : 'Статьи не найдены'}
-          </Text>
-        </div>
-      ) : (
-        <Row gutter={[24, 24]}>
-          {filteredArticles.map((article) => (
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 60, position: 'relative', zIndex: 1 }}>
+            <Spin size="large" />
+          </div>
+        ) : filteredArticles.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 60, position: 'relative', zIndex: 1 }}>
+            <Text type="secondary">
+              {searchQuery.trim() ? 'Статьи не найдены по вашему запросу' : 'Статьи не найдены'}
+            </Text>
+          </div>
+        ) : (
+          <Row gutter={[24, 24]} style={{ position: 'relative', zIndex: 1 }}>
+            {filteredArticles.map((article) => (
             <Col xs={24} sm={12} lg={8} key={article.id}>
               <Card
                 hoverable
@@ -307,9 +338,10 @@ const HomePage = () => {
                 />
               </Card>
             </Col>
-          ))}
-        </Row>
-      )}
+            ))}
+          </Row>
+        )}
+      </div>
     </div>
   );
 };
