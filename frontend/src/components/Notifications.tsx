@@ -108,12 +108,12 @@ const Notifications: React.FC<NotificationsProps> = ({
     switch (type) {
       case 'article_edited':
       case 'article_deleted':
-        return <FileTextOutlined style={{ color: '#1890ff' }} />;
+        return <FileTextOutlined style={{ color: '#1890ff', fontSize: '18px' }} />;
       case 'event_edited':
       case 'event_deleted':
-        return <CalendarOutlined style={{ color: '#52c41a' }} />;
+        return <CalendarOutlined style={{ color: '#52c41a', fontSize: '18px' }} />;
       default:
-        return <ExclamationCircleOutlined style={{ color: '#faad14' }} />;
+        return <ExclamationCircleOutlined style={{ color: '#faad14', fontSize: '18px' }} />;
     }
   };
 
@@ -181,51 +181,67 @@ const Notifications: React.FC<NotificationsProps> = ({
               style={{
                 backgroundColor: notification.is_read ? '#fff' : '#f6ffed',
                 borderLeft: notification.is_read ? 'none' : '3px solid #52c41a',
-                padding: '12px',
-                marginBottom: '8px',
-                borderRadius: '6px'
+                padding: '16px',
+                marginBottom: '12px',
+                borderRadius: '8px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                border: '1px solid #f0f0f0'
               }}
               actions={[
-                !notification.is_read && (
+                <Space direction="vertical" size="small">
+                  {!notification.is_read && (
+                    <Button
+                      type="link"
+                      size="small"
+                      onClick={() => markAsRead(notification.id)}
+                      icon={<CheckOutlined />}
+                      style={{ fontSize: '12px', padding: '4px 8px' }}
+                    >
+                      Прочитано
+                    </Button>
+                  )}
                   <Button
                     type="link"
                     size="small"
-                    onClick={() => markAsRead(notification.id)}
-                    icon={<CheckOutlined />}
+                    danger
+                    onClick={() => deleteNotification(notification.id)}
+                    icon={<DeleteOutlined />}
+                    style={{ fontSize: '12px', padding: '4px 8px' }}
                   >
-                    Прочитано
+                    Удалить
                   </Button>
-                ),
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  onClick={() => deleteNotification(notification.id)}
-                  icon={<DeleteOutlined />}
-                >
-                  Удалить
-                </Button>
+                </Space>
               ]}
             >
               <List.Item.Meta
                 avatar={getNotificationIcon(notification.type)}
                 title={
-                  <Space>
-                    <Text strong={!notification.is_read}>
-                      {notification.title}
-                    </Text>
-                    <Tag color={getNotificationColor(notification.type)}>
-                      {notification.type.replace('_', ' ')}
-                    </Tag>
-                  </Space>
-                }
-                description={
                   <div>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                      {dayjs(notification.created_at).format('DD.MM.YYYY HH:mm')}
-                    </Text>
-                    <div style={{ marginTop: '8px' }}>
-                      <Text>{notification.message}</Text>
+                    {/* Заголовок в первой строке */}
+                    <div style={{ marginBottom: '4px' }}>
+                      <Text strong={!notification.is_read} style={{ fontSize: '14px' }}>
+                        {notification.title}
+                      </Text>
+                      <Tag 
+                        color={getNotificationColor(notification.type)}
+                        style={{ marginLeft: '8px', fontSize: '10px' }}
+                      >
+                        {notification.type.replace('_', ' ')}
+                      </Tag>
+                    </div>
+                    
+                    {/* Дата и время во второй строке */}
+                    <div style={{ marginBottom: '8px' }}>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        {dayjs(notification.created_at).format('DD.MM.YYYY HH:mm')}
+                      </Text>
+                    </div>
+                    
+                    {/* Описание в третьей строке */}
+                    <div>
+                      <Text style={{ fontSize: '13px', lineHeight: '1.4' }}>
+                        {notification.message}
+                      </Text>
                     </div>
                   </div>
                 }
