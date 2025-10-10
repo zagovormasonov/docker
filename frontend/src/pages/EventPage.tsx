@@ -11,8 +11,6 @@ import dayjs from 'dayjs';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import EventMap from '../components/EventMap';
-import SimpleEventMap from '../components/SimpleEventMap';
-import ReliableEventMap from '../components/ReliableEventMap';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -43,7 +41,6 @@ const EventPage = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
-  const [useSimpleMap, setUseSimpleMap] = useState(false);
 
   useEffect(() => {
     fetchEvent();
@@ -224,43 +221,12 @@ const EventPage = () => {
               {/* Карта для офлайн событий */}
               {!event.is_online && event.location && (
                 <div style={{ marginTop: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <Title level={5} style={{ margin: 0 }}>Местоположение на карте</Title>
-                    <button
-                      onClick={() => {
-                        console.log('🔄 Переключение карты, текущее состояние:', useSimpleMap);
-                        setUseSimpleMap(!useSimpleMap);
-                      }}
-                      style={{
-                        background: 'none',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: 4,
-                        padding: '4px 8px',
-                        fontSize: 12,
-                        cursor: 'pointer',
-                        color: '#666'
-                      }}
-                    >
-                      {useSimpleMap ? 'Интерактивная карта' : 'Простая карта'}
-                    </button>
-                  </div>
-                  {(() => {
-                    console.log('🎯 Рендерим карту, useSimpleMap:', useSimpleMap, 'event:', { location: event.location, cityName: event.city_name, title: event.title });
-                    return null;
-                  })()}
-                  {useSimpleMap ? (
-                    <SimpleEventMap 
-                      location={event.location}
-                      cityName={event.city_name}
-                      eventTitle={event.title}
-                    />
-                  ) : (
-                    <ReliableEventMap 
-                      location={event.location}
-                      cityName={event.city_name}
-                      eventTitle={event.title}
-                    />
-                  )}
+                  <Title level={5} style={{ marginBottom: 12 }}>Местоположение на карте</Title>
+                  <EventMap 
+                    location={event.location}
+                    cityName={event.city_name}
+                    eventTitle={event.title}
+                  />
                 </div>
               )}
             </div>
