@@ -20,7 +20,7 @@ ENV VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID=$VITE_EMAILJS_RESET_PASSWORD_TEMPLAT
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm install --production=false
+RUN npm install --production=false --legacy-peer-deps
 
 # Копируем исходники
 COPY . .

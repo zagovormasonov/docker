@@ -1,15 +1,4 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Исправляем иконки для Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-});
 
 interface EventMapProps {
   location: string;
@@ -18,7 +7,7 @@ interface EventMapProps {
 }
 
 const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) => {
-  // Функция для геокодирования адреса (упрощенная версия)
+  // Функция для геокодирования адреса
   const geocodeAddress = async (address: string, city: string): Promise<[number, number] | null> => {
     try {
       // Используем Nominatim API (бесплатный сервис OpenStreetMap)
@@ -93,29 +82,22 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
     );
   }
 
+  // Создаем URL для OpenStreetMap с маркером
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${coordinates[1]-0.01},${coordinates[0]-0.01},${coordinates[1]+0.01},${coordinates[0]+0.01}&layer=mapnik&marker=${coordinates[0]},${coordinates[1]}`;
+
   return (
     <div style={{ height: 300, borderRadius: 8, overflow: 'hidden' }}>
-      <MapContainer
-        center={coordinates}
-        zoom={15}
-        style={{ height: '100%', width: '100%' }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={coordinates}>
-          <Popup>
-            <div>
-              <strong>{eventTitle}</strong>
-              <br />
-              {location}
-              <br />
-              <small>{cityName}</small>
-            </div>
-          </Popup>
-        </Marker>
-      </MapContainer>
+      <iframe
+        width="100%"
+        height="100%"
+        frameBorder="0"
+        scrolling="no"
+        marginHeight={0}
+        marginWidth={0}
+        src={mapUrl}
+        title={`Карта события: ${eventTitle}`}
+        style={{ border: 'none' }}
+      />
     </div>
   );
 };
