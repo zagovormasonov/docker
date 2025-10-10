@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Input, Select, Typography, Avatar, Tag, Space, Spin, Empty, Button } from 'antd';
 import { UserOutlined, EnvironmentOutlined, SearchOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import api from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
@@ -28,6 +29,7 @@ interface Expert {
 }
 
 const ExpertsPage = () => {
+  const { user } = useAuth();
   const [experts, setExperts] = useState<Expert[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -184,7 +186,14 @@ const ExpertsPage = () => {
             <Col xs={24} sm={12} lg={8} key={expert.id}>
               <Card
                 hoverable
-                onClick={() => navigate(`/experts/${expert.id}`)}
+                onClick={() => {
+                  // Если пользователь кликает на свой профиль, переходим к редактированию
+                  if (user && user.id === expert.id) {
+                    navigate('/profile');
+                  } else {
+                    navigate(`/experts/${expert.id}`);
+                  }
+                }}
                 style={{ 
                   height: '100%',
                   display: 'flex',

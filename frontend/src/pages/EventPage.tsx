@@ -10,6 +10,7 @@ import {
 import dayjs from 'dayjs';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import EventMap from '../components/EventMap';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -213,10 +214,21 @@ const EventPage = () => {
 
           {event.location && (
             <div>
-              <Space size={8}>
+              <Space size={8} style={{ marginBottom: 16 }}>
                 <EnvironmentOutlined style={{ color: '#6366f1', fontSize: 20 }} />
                 <Text style={{ fontSize: 16 }}>{event.location}</Text>
               </Space>
+              {/* Карта для офлайн событий */}
+              {!event.is_online && event.location && (
+                <div style={{ marginTop: 16 }}>
+                  <Title level={5} style={{ marginBottom: 12 }}>Местоположение на карте</Title>
+                  <EventMap 
+                    location={event.location}
+                    cityName={event.city_name}
+                    eventTitle={event.title}
+                  />
+                </div>
+              )}
             </div>
           )}
 

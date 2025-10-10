@@ -59,9 +59,11 @@ const HomePage = () => {
     if (!searchQuery.trim()) {
       setFilteredArticles(articles);
     } else {
-      const filtered = articles.filter(article => 
-        article.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const filtered = articles.filter(article => {
+        const searchLower = searchQuery.toLowerCase();
+        return article.title.toLowerCase().includes(searchLower) ||
+               (article.content && article.content.toLowerCase().includes(searchLower));
+      });
       setFilteredArticles(filtered);
     }
   }, [searchQuery, articles]);
@@ -151,7 +153,7 @@ const HomePage = () => {
         {/* Поисковая строка */}
         <div className="home-search-container">
           <Input
-            placeholder="Поиск статей по заголовку..."
+            placeholder="Поиск статей по заголовку и содержимому..."
             prefix={<SearchOutlined style={{ color: 'rgba(43, 43, 43, 0.6)' }} />}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
