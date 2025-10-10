@@ -16,11 +16,28 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
   React.useEffect(() => {
     console.log('🚀 useEffect запущен для EventMap');
     
+    // Небольшая задержка для гарантии, что DOM готов
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ Таймаут для инициализации карты');
+    }, 50);
+    
     const initMap = async () => {
       console.log('🎯 initMap вызван, mapRef.current:', mapRef.current);
       
+      // Ждем, пока ref будет готов
       if (!mapRef.current) {
-        console.log('❌ mapRef.current отсутствует, выходим');
+        console.log('⏳ mapRef.current еще не готов, ждем...');
+        // Даем время для рендеринга
+        setTimeout(() => {
+          console.log('🔄 Повторная попытка, mapRef.current:', mapRef.current);
+          if (mapRef.current) {
+            initMap();
+          } else {
+            console.log('❌ mapRef.current все еще отсутствует после ожидания');
+            setError('Ошибка инициализации карты');
+            setLoading(false);
+          }
+        }, 100);
         return;
       }
 
@@ -183,6 +200,7 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
 
     // Cleanup функция
     return () => {
+      clearTimeout(timeoutId);
       // Очищаем таймауты при размонтировании
     };
   }, [location, cityName, eventTitle]);
