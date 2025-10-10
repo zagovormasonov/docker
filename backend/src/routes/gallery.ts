@@ -7,10 +7,50 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
+// Тестовый эндпоинт для проверки работы галереи
+router.get('/test', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    console.log('🧪 Тестовый запрос галереи');
+    console.log('👤 Пользователь ID:', req.userId);
+    console.log('👤 Тип пользователя:', req.userType);
+    
+    // Проверяем существование таблицы
+    const tableCheck = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'profile_gallery'
+      )
+    `);
+    
+    console.log('📊 Таблица profile_gallery существует:', tableCheck.rows[0].exists);
+    
+    res.json({
+      message: 'Галерея работает',
+      userId: req.userId,
+      userType: req.userType,
+      tableExists: tableCheck.rows[0].exists
+    });
+  } catch (error) {
+    console.error('❌ Ошибка тестового запроса:', error);
+    res.status(500).json({ error: 'Ошибка тестового запроса: ' + error.message });
+  }
+});
+
 // Создаем папку gallery если её нет
 const galleryDir = path.join(__dirname, '../../uploads/gallery');
+console.log('📁 Путь к папке галереи:', galleryDir);
+
 if (!fs.existsSync(galleryDir)) {
-  fs.mkdirSync(galleryDir, { recursive: true });
+  console.log('📁 Создаю папку gallery...');
+  try {
+    fs.mkdirSync(galleryDir, { recursive: true });
+    console.log('✅ Папка gallery создана');
+  } catch (error) {
+    console.error('❌ Ошибка создания папки gallery:', error);
+  }
+} else {
+  console.log('✅ Папка gallery существует');
 }
 
 // Настройка хранилища для галереи
@@ -47,51 +87,82 @@ const upload = multer({
 // Получить галерею пользователя
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    console.log('📸 Запрос галереи от пользователя:', req.userId);
+    
     const result = await query(
       'SELECT * FROM profile_gallery WHERE user_id = $1 ORDER BY created_at DESC',
       [req.userId]
     );
     
+    console.log('📸 Найдено фотографий:', result.rows.length);
     res.json(result.rows);
   } catch (error) {
-    console.error('Ошибка получения галереи:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('❌ Ошибка получения галереи:', error);
+    console.error('❌ Детали ошибки:', error.message);
+    res.status(500).json({ error: 'Ошибка сервера: ' + error.message });
   }
 });
 
 // Загрузить изображение в галерею
 router.post('/upload', authenticateToken, upload.single('image'), async (req: AuthRequest, res) => {
   try {
+    console.log('📤 Запрос на загрузку в галерею от пользователя:', req.userId);
+    
     if (!req.file) {
+      console.log('❌ Файл не загружен');
       return res.status(400).json({ error: 'Файл не загружен' });
     }
 
+    console.log('📁 Файл загружен:', req.file.filename, 'Размер:', req.file.size);
+
     // Проверяем количество фотографий (максимум 20)
+    console.log('🔍 Проверяем количество фотографий...');
     const countResult = await query(
       'SELECT COUNT(*) as count FROM profile_gallery WHERE user_id = $1',
       [req.userId]
     );
     
     const currentCount = parseInt(countResult.rows[0].count);
+    console.log('📊 Текущее количество фотографий:', currentCount);
+    
     if (currentCount >= 20) {
+      console.log('❌ Превышен лимит фотографий');
       // Удаляем загруженный файл, если превышен лимит
-      fs.unlinkSync(req.file.path);
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
       return res.status(400).json({ error: 'Максимальное количество фотографий: 20' });
     }
 
     const imageUrl = `/uploads/gallery/${req.file.filename}`;
+    console.log('🔗 URL изображения:', imageUrl);
     
     // Сохраняем информацию в базу данных
+    console.log('💾 Сохраняем в базу данных...');
     const result = await query(
       `INSERT INTO profile_gallery (user_id, image_url, image_name, image_size) 
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [req.userId, imageUrl, req.file.originalname, req.file.size]
     );
 
+    console.log('✅ Фотография успешно загружена в галерею');
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Ошибка загрузки в галерею:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('❌ Ошибка загрузки в галерею:', error);
+    console.error('❌ Детали ошибки:', error.message);
+    console.error('❌ Стек ошибки:', error.stack);
+    
+    // Удаляем файл в случае ошибки
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+        console.log('🗑️ Файл удален после ошибки');
+      } catch (unlinkError) {
+        console.error('❌ Ошибка удаления файла:', unlinkError);
+      }
+    }
+    
+    res.status(500).json({ error: 'Ошибка сервера: ' + error.message });
   }
 });
 

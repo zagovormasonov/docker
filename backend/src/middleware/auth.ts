@@ -27,9 +27,16 @@ export const authenticateToken = (
       return res.status(403).json({ error: 'Недействительный токен' });
     }
 
-    console.log('✅ Токен валиден, пользователь:', user.userId);
+    console.log('✅ Токен валиден, пользователь:', user.userId, 'тип:', user.userType);
     req.userId = user.userId;
     req.userType = user.userType;
+    
+    // Дополнительная проверка
+    if (!req.userId) {
+      console.log('❌ userId не найден в токене');
+      return res.status(403).json({ error: 'Недействительный токен: отсутствует userId' });
+    }
+    
     next();
   });
 };
