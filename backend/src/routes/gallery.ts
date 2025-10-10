@@ -84,7 +84,7 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-// Получить галерею пользователя
+// Получить галерею текущего пользователя (для управления)
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     console.log('📸 Запрос галереи от пользователя:', req.userId);
@@ -98,6 +98,26 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('❌ Ошибка получения галереи:', error);
+    console.error('❌ Детали ошибки:', error.message);
+    res.status(500).json({ error: 'Ошибка сервера: ' + error.message });
+  }
+});
+
+// Получить галерею конкретного пользователя (для просмотра)
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log('📸 Запрос галереи пользователя:', userId);
+    
+    const result = await query(
+      'SELECT * FROM profile_gallery WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+    
+    console.log('📸 Найдено фотографий для пользователя', userId, ':', result.rows.length);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Ошибка получения галереи пользователя:', error);
     console.error('❌ Детали ошибки:', error.message);
     res.status(500).json({ error: 'Ошибка сервера: ' + error.message });
   }

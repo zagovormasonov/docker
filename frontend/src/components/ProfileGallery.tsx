@@ -45,14 +45,21 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
   const [previewTitle, setPreviewTitle] = useState('');
   const [imageCount, setImageCount] = useState(0);
 
+  console.log('🖼️ ProfileGallery props:', { userId, isOwner });
+
   useEffect(() => {
     fetchGallery();
-  }, [userId]);
+  }, [userId, isOwner]);
 
   const fetchGallery = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/gallery');
+      // Если это владелец профиля, используем защищенный эндпоинт
+      // Если это другой пользователь, используем публичный эндпоинт
+      const endpoint = isOwner ? '/gallery' : `/gallery/user/${userId}`;
+      console.log('📸 Загружаем галерею с эндпоинта:', endpoint);
+      
+      const response = await api.get(endpoint);
       setImages(response.data);
       setImageCount(response.data.length);
     } catch (error) {
