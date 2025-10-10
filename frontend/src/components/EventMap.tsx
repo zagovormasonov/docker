@@ -7,49 +7,128 @@ interface EventMapProps {
 }
 
 const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) => {
-  // Функция для геокодирования адреса
-  const geocodeAddress = async (address: string, city: string): Promise<[number, number] | null> => {
-    try {
-      // Используем Nominatim API (бесплатный сервис OpenStreetMap)
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(`${address}, ${city}`)}&limit=1`
-      );
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      }
-      
-      // Если точный адрес не найден, ищем по городу
-      const cityResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=1`
-      );
-      const cityData = await cityResponse.json();
-      
-      if (cityData && cityData.length > 0) {
-        return [parseFloat(cityData[0].lat), parseFloat(cityData[0].lon)];
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Ошибка геокодирования:', error);
-      return null;
-    }
-  };
-
-  const [coordinates, setCoordinates] = React.useState<[number, number] | null>(null);
+  const mapRef = React.useRef<HTMLDivElement>(null);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    const fetchCoordinates = async () => {
-      setLoading(true);
-      const coords = await geocodeAddress(location, cityName);
-      setCoordinates(coords);
-      setLoading(false);
+    const initMap = async () => {
+      if (!mapRef.current) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Загружаем Yandex Maps API
+        if (!window.ymaps) {
+          const script = document.createElement('script');
+          // Используем API ключ из переменных окружения или без ключа для демо
+          const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '';
+          const apiKeyParam = apiKey ? `&apikey=${apiKey}` : '';
+          script.src = `https://api-maps.yandex.ru/2.1/?lang=ru_RU${apiKeyParam}`;
+          script.async = true;
+          
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+
+        // Инициализируем карту
+        window.ymaps.ready(() => {
+          // Геокодируем адрес
+          const geocoder = window.ymaps.geocode(`${location}, ${cityName}`, {
+            results: 1
+          });
+
+          geocoder.then((result: any) => {
+            if (result.geoObjects.getLength() > 0) {
+              const firstGeoObject = result.geoObjects.get(0);
+              const coordinates = firstGeoObject.geometry.getCoordinates();
+
+              // Создаем карту
+              const map = new window.ymaps.Map(mapRef.current, {
+                center: coordinates,
+                zoom: 15,
+                controls: ['zoomControl', 'typeSelector', 'fullscreenControl']
+              });
+
+              // Добавляем маркер
+              const placemark = new window.ymaps.Placemark(coordinates, {
+                balloonContent: `
+                  <div style="padding: 10px;">
+                    <strong>${eventTitle}</strong><br/>
+                    <span style="color: #666;">${location}</span><br/>
+                    <small style="color: #999;">${cityName}</small>
+                  </div>
+                `,
+                hintContent: eventTitle
+              }, {
+                preset: 'islands#redDotIcon',
+                iconColor: '#ff0000'
+              });
+
+              map.geoObjects.add(placemark);
+              
+              // Открываем балун
+              placemark.balloon.open();
+              
+              setLoading(false);
+            } else {
+              // Если точный адрес не найден, ищем по городу
+              const cityGeocoder = window.ymaps.geocode(cityName, {
+                results: 1
+              });
+
+              cityGeocoder.then((cityResult: any) => {
+                if (cityResult.geoObjects.getLength() > 0) {
+                  const firstGeoObject = cityResult.geoObjects.get(0);
+                  const coordinates = firstGeoObject.geometry.getCoordinates();
+
+                  const map = new window.ymaps.Map(mapRef.current, {
+                    center: coordinates,
+                    zoom: 12,
+                    controls: ['zoomControl', 'typeSelector', 'fullscreenControl']
+                  });
+
+                  const placemark = new window.ymaps.Placemark(coordinates, {
+                    balloonContent: `
+                      <div style="padding: 10px;">
+                        <strong>${eventTitle}</strong><br/>
+                        <span style="color: #666;">${location}</span><br/>
+                        <small style="color: #999;">${cityName}</small><br/>
+                        <small style="color: #ff6b6b;">Точный адрес не найден, показан центр города</small>
+                      </div>
+                    `,
+                    hintContent: `${eventTitle} (${cityName})`
+                  }, {
+                    preset: 'islands#orangeDotIcon',
+                    iconColor: '#ff6b6b'
+                  });
+
+                  map.geoObjects.add(placemark);
+                  placemark.balloon.open();
+                  
+                  setLoading(false);
+                } else {
+                  setError('Не удалось найти местоположение');
+                  setLoading(false);
+                }
+              });
+            }
+          });
+        });
+
+      } catch (err) {
+        console.error('Ошибка инициализации карты:', err);
+        setError('Ошибка загрузки карты');
+        setLoading(false);
+      }
     };
 
-    fetchCoordinates();
-  }, [location, cityName]);
+    initMap();
+  }, [location, cityName, eventTitle]);
 
   if (loading) {
     return (
@@ -66,7 +145,7 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
     );
   }
 
-  if (!coordinates) {
+  if (error) {
     return (
       <div style={{ 
         height: 300, 
@@ -77,28 +156,21 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
         borderRadius: 8,
         color: '#666'
       }}>
-        <div>Не удалось найти местоположение на карте</div>
+        <div>{error}</div>
       </div>
     );
   }
 
-  // Создаем URL для OpenStreetMap с маркером
-  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${coordinates[1]-0.01},${coordinates[0]-0.01},${coordinates[1]+0.01},${coordinates[0]+0.01}&layer=mapnik&marker=${coordinates[0]},${coordinates[1]}`;
-
   return (
-    <div style={{ height: 300, borderRadius: 8, overflow: 'hidden' }}>
-      <iframe
-        width="100%"
-        height="100%"
-        frameBorder="0"
-        scrolling="no"
-        marginHeight={0}
-        marginWidth={0}
-        src={mapUrl}
-        title={`Карта события: ${eventTitle}`}
-        style={{ border: 'none' }}
-      />
-    </div>
+    <div 
+      ref={mapRef} 
+      style={{ 
+        height: 300, 
+        borderRadius: 8, 
+        overflow: 'hidden',
+        border: '1px solid #d9d9d9'
+      }} 
+    />
   );
 };
 
