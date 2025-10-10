@@ -70,6 +70,53 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
     }
   };
 
+  // Функция сжатия изображения
+  const compressImage = (file: File, maxWidth: number = 1200, maxHeight: number = 1200, quality: number = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Вычисляем новые размеры с сохранением пропорций
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Рисуем сжатое изображение
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Конвертируем в blob
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          } else {
+            resolve(file);
+          }
+        }, 'image/jpeg', quality);
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleUpload = async (file: File) => {
     if (imageCount >= 20) {
       message.error('Максимальное количество фотографий: 20');
@@ -78,8 +125,14 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
 
     setUploading(true);
     try {
+      console.log('📸 Исходный размер файла:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+      
+      // Сжимаем изображение
+      const compressedFile = await compressImage(file);
+      console.log('📸 Сжатый размер файла:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
+      
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', compressedFile);
 
       const response = await api.post('/gallery/upload', formData, {
         headers: {
@@ -113,17 +166,10 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
 
   const handlePreview = (image: GalleryImage) => {
     setPreviewImage(image.image_url);
-    setPreviewTitle(image.image_name);
+    setPreviewTitle('Фотография'); // Упрощенное название
     setPreviewVisible(true);
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
 
   if (loading) {
     return (
@@ -224,16 +270,8 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
                     onClick={() => handlePreview(image)}
                   />
                 ]}
-                bodyStyle={{ padding: 12 }}
+                bodyStyle={{ padding: 0 }}
               >
-                <div style={{ textAlign: 'center' }}>
-                  <Text ellipsis style={{ fontSize: 12, display: 'block' }}>
-                    {image.image_name}
-                  </Text>
-                  <Text type="secondary" style={{ fontSize: 10 }}>
-                    {formatFileSize(image.image_size)}
-                  </Text>
-                </div>
               </Card>
             </Col>
           ))}
