@@ -26,6 +26,7 @@ import {
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import ProfileGallery from '../components/ProfileGallery';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -534,6 +535,13 @@ const ProfilePage = () => {
 
           {user?.userType === 'expert' && (
             <>
+              <Divider />
+              
+              {/* Галерея фотографий */}
+              <div>
+                <ProfileGallery userId={user.id} isOwner={true} />
+              </div>
+              
               <Divider />
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

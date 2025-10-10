@@ -30,6 +30,7 @@ import {
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import ProfileGallery from '../components/ProfileGallery';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -340,6 +341,12 @@ const ExpertProfilePage = () => {
               </div>
             </>
           )}
+
+          {/* Галерея фотографий */}
+          <Divider />
+          <div>
+            <ProfileGallery userId={expert.id} isOwner={user?.id === expert.id} />
+          </div>
 
           {expert.services && expert.services.length > 0 && (
             <>
