@@ -11,9 +11,18 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+  console.log('🔧 EventMap рендерится с пропсами:', { location, cityName, eventTitle });
+
   React.useEffect(() => {
+    console.log('🚀 useEffect запущен для EventMap');
+    
     const initMap = async () => {
-      if (!mapRef.current) return;
+      console.log('🎯 initMap вызван, mapRef.current:', mapRef.current);
+      
+      if (!mapRef.current) {
+        console.log('❌ mapRef.current отсутствует, выходим');
+        return;
+      }
 
       try {
         setLoading(true);
@@ -178,7 +187,10 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
     };
   }, [location, cityName, eventTitle]);
 
+  console.log('🎨 EventMap рендерится, состояние:', { loading, error });
+
   if (loading) {
+    console.log('⏳ Показываем загрузку');
     return (
       <div style={{ 
         height: 300, 
@@ -194,6 +206,7 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
   }
 
   if (error) {
+    console.log('❌ Показываем ошибку:', error);
     return (
       <div style={{ 
         height: 300, 
@@ -209,6 +222,7 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
     );
   }
 
+  console.log('🗺️ Показываем карту');
   return (
     <div 
       ref={mapRef} 

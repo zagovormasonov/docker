@@ -226,7 +226,10 @@ const EventPage = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                     <Title level={5} style={{ margin: 0 }}>Местоположение на карте</Title>
                     <button
-                      onClick={() => setUseSimpleMap(!useSimpleMap)}
+                      onClick={() => {
+                        console.log('🔄 Переключение карты, текущее состояние:', useSimpleMap);
+                        setUseSimpleMap(!useSimpleMap);
+                      }}
                       style={{
                         background: 'none',
                         border: '1px solid #d9d9d9',
@@ -240,6 +243,10 @@ const EventPage = () => {
                       {useSimpleMap ? 'Интерактивная карта' : 'Простая карта'}
                     </button>
                   </div>
+                  {(() => {
+                    console.log('🎯 Рендерим карту, useSimpleMap:', useSimpleMap, 'event:', { location: event.location, cityName: event.city_name, title: event.title });
+                    return null;
+                  })()}
                   {useSimpleMap ? (
                     <SimpleEventMap 
                       location={event.location}

@@ -7,8 +7,12 @@ interface SimpleEventMapProps {
 }
 
 const SimpleEventMap: React.FC<SimpleEventMapProps> = ({ location, cityName, eventTitle }) => {
+  console.log('🗺️ SimpleEventMap рендерится с пропсами:', { location, cityName, eventTitle });
+  
   // Создаем простую карту через iframe с Yandex Maps
   const mapUrl = `https://yandex.ru/maps/?text=${encodeURIComponent(`${location}, ${cityName}`)}&mode=search`;
+  
+  console.log('🔗 URL карты:', mapUrl);
 
   return (
     <div style={{ height: 300, borderRadius: 8, overflow: 'hidden', border: '1px solid #d9d9d9' }}>
