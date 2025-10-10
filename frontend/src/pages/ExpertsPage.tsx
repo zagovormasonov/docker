@@ -162,6 +162,10 @@ const ExpertsPage = () => {
             style={{ width: '100%' }}
             value={selectedTopics}
             onChange={setSelectedTopics}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
             options={topics.map(t => ({ label: t.name, value: t.name }))}
             maxTagCount="responsive"
           />

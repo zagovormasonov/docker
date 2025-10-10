@@ -514,7 +514,12 @@ const ProfilePage = () => {
                     mode="multiple"
                     size="large"
                     placeholder="Выберите тематики"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
                     options={topics.map(t => ({ label: t.name, value: t.id }))}
+                    maxTagCount="responsive"
                   />
                 </Form.Item>
               </>
