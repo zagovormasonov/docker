@@ -12,6 +12,7 @@ import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import EventMap from '../components/EventMap';
 import SimpleEventMap from '../components/SimpleEventMap';
+import ReliableEventMap from '../components/ReliableEventMap';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -254,7 +255,7 @@ const EventPage = () => {
                       eventTitle={event.title}
                     />
                   ) : (
-                    <EventMap 
+                    <ReliableEventMap 
                       location={event.location}
                       cityName={event.city_name}
                       eventTitle={event.title}
