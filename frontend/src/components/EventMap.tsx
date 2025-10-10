@@ -19,8 +19,18 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
         setLoading(true);
         setError(null);
 
+        console.log('🗺️ Инициализация карты для:', { location, cityName, eventTitle });
+
+        // Таймаут для загрузки (30 секунд)
+        const timeout = setTimeout(() => {
+          console.error('⏰ Таймаут загрузки карты');
+          setError('Таймаут загрузки карты');
+          setLoading(false);
+        }, 30000);
+
         // Загружаем Yandex Maps API
         if (!window.ymaps) {
+          console.log('📡 Загружаем Yandex Maps API...');
           const script = document.createElement('script');
           // Используем API ключ из переменных окружения или без ключа для демо
           const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '';
@@ -29,23 +39,36 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
           script.async = true;
           
           await new Promise((resolve, reject) => {
-            script.onload = resolve;
-            script.onerror = reject;
+            script.onload = () => {
+              console.log('✅ Yandex Maps API загружен');
+              resolve(true);
+            };
+            script.onerror = (err) => {
+              console.error('❌ Ошибка загрузки Yandex Maps API:', err);
+              reject(err);
+            };
             document.head.appendChild(script);
           });
+        } else {
+          console.log('✅ Yandex Maps API уже загружен');
         }
 
         // Инициализируем карту
         window.ymaps.ready(() => {
+          console.log('🎯 Yandex Maps готов, начинаем геокодирование...');
+          
           // Геокодируем адрес
           const geocoder = window.ymaps.geocode(`${location}, ${cityName}`, {
             results: 1
           });
 
           geocoder.then((result: any) => {
+            console.log('🔍 Результат геокодирования:', result);
+            
             if (result.geoObjects.getLength() > 0) {
               const firstGeoObject = result.geoObjects.get(0);
               const coordinates = firstGeoObject.geometry.getCoordinates();
+              console.log('📍 Найдены координаты:', coordinates);
 
               // Создаем карту
               const map = new window.ymaps.Map(mapRef.current, {
@@ -74,17 +97,23 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
               // Открываем балун
               placemark.balloon.open();
               
+              console.log('✅ Карта создана успешно');
+              clearTimeout(timeout);
               setLoading(false);
             } else {
+              console.log('⚠️ Точный адрес не найден, ищем по городу...');
               // Если точный адрес не найден, ищем по городу
               const cityGeocoder = window.ymaps.geocode(cityName, {
                 results: 1
               });
 
               cityGeocoder.then((cityResult: any) => {
+                console.log('🏙️ Результат геокодирования города:', cityResult);
+                
                 if (cityResult.geoObjects.getLength() > 0) {
                   const firstGeoObject = cityResult.geoObjects.get(0);
                   const coordinates = firstGeoObject.geometry.getCoordinates();
+                  console.log('📍 Найдены координаты города:', coordinates);
 
                   const map = new window.ymaps.Map(mapRef.current, {
                     center: coordinates,
@@ -110,24 +139,43 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
                   map.geoObjects.add(placemark);
                   placemark.balloon.open();
                   
+                  console.log('✅ Карта города создана успешно');
+                  clearTimeout(timeout);
                   setLoading(false);
                 } else {
+                  console.error('❌ Не удалось найти город');
+                  clearTimeout(timeout);
                   setError('Не удалось найти местоположение');
                   setLoading(false);
                 }
+              }).catch((err: any) => {
+                console.error('❌ Ошибка геокодирования города:', err);
+                clearTimeout(timeout);
+                setError('Ошибка поиска местоположения');
+                setLoading(false);
               });
             }
+          }).catch((err: any) => {
+            console.error('❌ Ошибка геокодирования:', err);
+            clearTimeout(timeout);
+            setError('Ошибка поиска адреса');
+            setLoading(false);
           });
         });
 
       } catch (err) {
-        console.error('Ошибка инициализации карты:', err);
+        console.error('❌ Ошибка инициализации карты:', err);
         setError('Ошибка загрузки карты');
         setLoading(false);
       }
     };
 
     initMap();
+
+    // Cleanup функция
+    return () => {
+      // Очищаем таймауты при размонтировании
+    };
   }, [location, cityName, eventTitle]);
 
   if (loading) {
