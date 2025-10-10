@@ -1,0 +1,295 @@
+/* Темная тема для панели администратора и модерации */
+
+.dark-theme {
+  background-color: #141414 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-layout {
+  background-color: #141414 !important;
+}
+
+.dark-theme .ant-layout-header {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid #303030 !important;
+}
+
+.dark-theme .ant-layout-content {
+  background-color: #141414 !important;
+}
+
+.dark-theme .ant-layout-sider {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-menu {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-menu-item {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-menu-item:hover {
+  background-color: #262626 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-menu-item-selected {
+  background-color: #1890ff !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-card {
+  background-color: #1f1f1f !important;
+  border: 1px solid #303030 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-card-head {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid #303030 !important;
+}
+
+.dark-theme .ant-card-head-title {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-card-body {
+  background-color: #1f1f1f !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-table {
+  background-color: #1f1f1f !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-table-thead > tr > th {
+  background-color: #262626 !important;
+  border-bottom: 1px solid #303030 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-table-tbody > tr > td {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid #303030 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-table-tbody > tr:hover > td {
+  background-color: #262626 !important;
+}
+
+.dark-theme .ant-modal {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-modal-content {
+  background-color: #1f1f1f !important;
+  border: 1px solid #303030 !important;
+}
+
+.dark-theme .ant-modal-header {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid #303030 !important;
+}
+
+.dark-theme .ant-modal-title {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-modal-body {
+  background-color: #1f1f1f !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-modal-footer {
+  background-color: #1f1f1f !important;
+  border-top: 1px solid #303030 !important;
+}
+
+.dark-theme .ant-drawer {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-drawer-content {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-drawer-header {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid #303030 !important;
+}
+
+.dark-theme .ant-drawer-title {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-drawer-body {
+  background-color: #1f1f1f !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-tabs {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-tabs-tab {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-tabs-tab:hover {
+  color: #1890ff !important;
+}
+
+.dark-theme .ant-tabs-tab-active {
+  color: #1890ff !important;
+}
+
+.dark-theme .ant-tabs-content-holder {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-form-item-label > label {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-input {
+  background-color: #262626 !important;
+  border: 1px solid #303030 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-input:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+.dark-theme .ant-select {
+  background-color: #262626 !important;
+}
+
+.dark-theme .ant-select-selector {
+  background-color: #262626 !important;
+  border: 1px solid #303030 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-select-selection-item {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-btn {
+  background-color: #262626 !important;
+  border: 1px solid #303030 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-btn:hover {
+  background-color: #303030 !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+}
+
+.dark-theme .ant-btn-primary {
+  background-color: #1890ff !important;
+  border-color: #1890ff !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-btn-primary:hover {
+  background-color: #40a9ff !important;
+  border-color: #40a9ff !important;
+}
+
+.dark-theme .ant-typography {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-statistic-title {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-statistic-content {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-alert {
+  background-color: #1f1f1f !important;
+  border: 1px solid #303030 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-alert-info {
+  background-color: #111b26 !important;
+  border-color: #1890ff !important;
+}
+
+.dark-theme .ant-alert-success {
+  background-color: #162312 !important;
+  border-color: #52c41a !important;
+}
+
+.dark-theme .ant-alert-warning {
+  background-color: #2b2111 !important;
+  border-color: #faad14 !important;
+}
+
+.dark-theme .ant-alert-error {
+  background-color: #2a1215 !important;
+  border-color: #ff4d4f !important;
+}
+
+.dark-theme .ant-list {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-list-item {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid #303030 !important;
+}
+
+.dark-theme .ant-list-item:hover {
+  background-color: #262626 !important;
+}
+
+.dark-theme .ant-list-item-meta-title {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-list-item-meta-description {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-tag {
+  background-color: #262626 !important;
+  border: 1px solid #303030 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-badge {
+  background-color: #1f1f1f !important;
+}
+
+.dark-theme .ant-badge-count {
+  background-color: #ff4d4f !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-empty {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-empty-description {
+  color: #ffffff !important;
+}
+
+.dark-theme .ant-spin {
+  color: #1890ff !important;
+}
+
+.dark-theme .ant-spin-dot-item {
+  background-color: #1890ff !important;
+}
+

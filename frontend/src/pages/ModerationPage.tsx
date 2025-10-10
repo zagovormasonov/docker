@@ -23,6 +23,9 @@ import {
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../hooks/useTheme';
+import ThemeSwitch from '../components/ThemeSwitch';
+import '../styles/dark-theme.css';
 import './ModerationPage.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -272,9 +275,15 @@ const ModerationPage = () => {
     );
   }
 
+  // Хук для управления темой
+  const { isDark, toggleTheme } = useTheme();
+
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={2}>Модерация контента</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <Title level={2} style={{ margin: 0 }}>Модерация контента</Title>
+        <ThemeSwitch isDark={isDark} onChange={toggleTheme} />
+      </div>
       
       <Tabs defaultActiveKey="articles">
         <Tabs.TabPane tab={`Статьи (${articles.length})`} key="articles">

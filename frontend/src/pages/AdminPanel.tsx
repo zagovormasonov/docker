@@ -21,6 +21,9 @@ import {
   Image,
   Alert
 } from 'antd';
+import { useTheme } from '../hooks/useTheme';
+import ThemeSwitch from '../components/ThemeSwitch';
+import '../styles/dark-theme.css';
 import { 
   EditOutlined, 
   DeleteOutlined, 
@@ -71,6 +74,9 @@ const AdminPanel: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState('articles');
+  
+  // Хук для управления темой
+  const { isDark, toggleTheme } = useTheme();
 
   // Функция для рендеринга HTML содержимого с картинками и ссылками
   const renderHtmlContent = (content: string) => {
@@ -374,7 +380,10 @@ const AdminPanel: React.FC = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={2}>Панель администратора</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <Title level={2} style={{ margin: 0 }}>Панель администратора</Title>
+        <ThemeSwitch isDark={isDark} onChange={toggleTheme} />
+      </div>
       
       {/* Статистика */}
       <Row gutter={16} style={{ marginBottom: '24px' }}>
