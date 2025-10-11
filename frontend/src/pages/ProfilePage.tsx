@@ -92,7 +92,6 @@ const ProfilePage = () => {
         city: user.city,
         vkUrl: user.vkUrl,
         telegramUrl: user.telegramUrl,
-        instagramUrl: user.instagramUrl,
         whatsapp: user.whatsapp,
         consultationTypes: Array.isArray(user.consultationTypes) ? user.consultationTypes : [],
         topics: topicsValue
@@ -475,13 +474,6 @@ const ProfilePage = () => {
               label="Telegram"
             >
               <Input size="large" placeholder="https://t.me/your_username" />
-            </Form.Item>
-
-            <Form.Item
-              name="instagramUrl"
-              label="Instagram"
-            >
-              <Input size="large" placeholder="https://instagram.com/your_profile" />
             </Form.Item>
 
             <Form.Item

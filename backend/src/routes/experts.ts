@@ -83,7 +83,7 @@ router.get('/:id', async (req, res) => {
 
     const userResult = await query(
       `SELECT id, name, email, avatar_url, bio, city, 
-       vk_url, telegram_url, instagram_url, whatsapp, consultation_types,
+       vk_url, telegram_url, whatsapp, consultation_types,
        created_at 
        FROM users WHERE id = $1 AND user_type = 'expert'`,
       [id]
@@ -127,7 +127,7 @@ router.put(
   requireExpert,
   async (req: AuthRequest, res) => {
     try {
-      const { name, bio, city, avatarUrl, vkUrl, telegramUrl, instagramUrl, whatsapp, consultationTypes, topics } = req.body;
+      const { name, bio, city, avatarUrl, vkUrl, telegramUrl, whatsapp, consultationTypes, topics } = req.body;
 
       // Проверка уникальности имени (если имя изменилось)
       if (name) {
@@ -149,11 +149,10 @@ router.put(
              avatar_url = COALESCE($4, avatar_url),
              vk_url = COALESCE($5, vk_url),
              telegram_url = COALESCE($6, telegram_url),
-             instagram_url = COALESCE($7, instagram_url),
-             whatsapp = COALESCE($8, whatsapp),
-             consultation_types = COALESCE($9, consultation_types),
+             whatsapp = COALESCE($7, whatsapp),
+             consultation_types = COALESCE($8, consultation_types),
              updated_at = CURRENT_TIMESTAMP
-         WHERE id = $10`,
+         WHERE id = $9`,
         [
           name, 
           bio, 
@@ -161,7 +160,6 @@ router.put(
           avatarUrl, 
           vkUrl, 
           telegramUrl, 
-          instagramUrl, 
           whatsapp,
           consultationTypes ? JSON.stringify(consultationTypes) : null,
           req.userId

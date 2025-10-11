@@ -295,30 +295,28 @@ const ExpertProfilePage = () => {
           })()}
 
           {/* Социальные сети */}
-          {(expert.vk_url || expert.telegram_url || expert.instagram_url || expert.whatsapp) && (
+          {(expert.vk_url || expert.telegram_url || expert.whatsapp) && (
             <>
               <Divider />
               <div>
                 <Title level={4}><LinkOutlined /> Контакты и социальные сети</Title>
                 <Space direction="vertical" size="small">
                   {expert.vk_url && (
-                    <a href={expert.vk_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16 }}>
-                      🟦 VK: {expert.vk_url}
+                    <a href={expert.vk_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <img src="/vk.png" alt="VK" style={{ width: 20, height: 20 }} />
+                      VK: {expert.vk_url}
                     </a>
                   )}
                   {expert.telegram_url && (
-                    <a href={expert.telegram_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16 }}>
-                      ✈️ Telegram: {expert.telegram_url}
-                    </a>
-                  )}
-                  {expert.instagram_url && (
-                    <a href={expert.instagram_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16 }}>
-                      📷 Instagram: {expert.instagram_url}
+                    <a href={expert.telegram_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <img src="/tg.png" alt="Telegram" style={{ width: 20, height: 20 }} />
+                      Telegram: {expert.telegram_url}
                     </a>
                   )}
                   {expert.whatsapp && (
-                    <Text style={{ fontSize: 16 }}>
-                      <PhoneOutlined /> WhatsApp: {expert.whatsapp}
+                    <Text style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <img src="/wp.png" alt="WhatsApp" style={{ width: 20, height: 20 }} />
+                      WhatsApp: {expert.whatsapp}
                     </Text>
                   )}
                 </Space>
