@@ -453,7 +453,8 @@ const ExpertProfilePage = () => {
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
                               WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
                             }}
                           >
                             {article.title}
