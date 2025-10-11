@@ -259,7 +259,7 @@ const HomePage = () => {
               >
                 <Meta
                   title={
-                    <Title level={4} ellipsis={{ rows: 2 }} style={{ marginBottom: 12 }}>
+                    <Title level={4} ellipsis={{ rows: 1 }} style={{ marginBottom: 12 }}>
                       {article.title}
                     </Title>
                   }
