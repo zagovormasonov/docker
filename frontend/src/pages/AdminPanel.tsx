@@ -259,35 +259,44 @@ const AdminPanel: React.FC = () => {
 
   // Функция для загрузки изображения
   const handleImageUpload = async (file: File) => {
+    console.log('📸 Начинаем загрузку изображения:', file.name);
     setUploadingImage(true);
     try {
       const formData = new FormData();
       formData.append('image', file);
       
+      console.log('📤 Отправляем запрос на /upload/image');
       const response = await axios.post('/upload/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       
+      console.log('✅ Ответ сервера:', response.data);
+      
+      // Получаем URL изображения (сервер возвращает { url: imageUrl })
+      const imageUrl = response.data.url || response.data.imageUrl;
+      console.log('🔗 URL изображения:', imageUrl);
+      
       // Обновляем cover_image в форме
-      editForm.setFieldsValue({ cover_image: response.data.imageUrl });
+      editForm.setFieldsValue({ cover_image: imageUrl });
+      console.log('📝 Обновляем форму с cover_image:', imageUrl);
       
       // Обновляем editingItem
       setEditingItem({
         ...editingItem,
-        cover_image: response.data.imageUrl
+        cover_image: imageUrl
       });
+      console.log('📝 Обновляем editingItem');
       
       // Обновляем текущее изображение для отображения
-      setCurrentCoverImage(response.data.imageUrl);
+      setCurrentCoverImage(imageUrl);
+      console.log('🖼️ Обновляем currentCoverImage:', imageUrl);
       
       message.success('Изображение загружено успешно!');
-      return false; // Предотвращаем автоматическую загрузку
     } catch (error) {
       console.error('Ошибка загрузки изображения:', error);
       message.error('Ошибка загрузки изображения');
-      return false;
     } finally {
       setUploadingImage(false);
     }
@@ -642,7 +651,7 @@ const AdminPanel: React.FC = () => {
                       )}
                       
                       <Upload
-                        beforeUpload={handleImageUpload}
+                        customRequest={({ file }) => handleImageUpload(file as File)}
                         showUploadList={false}
                         accept="image/*"
                         disabled={uploadingImage}
