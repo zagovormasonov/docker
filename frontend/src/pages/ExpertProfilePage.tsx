@@ -205,27 +205,49 @@ const ExpertProfilePage = () => {
   const handleShare = () => {
     if (!expert) return;
 
-    const shareText = `${expert.name}
+    // Формируем полную информацию об эксперте
+    const shareText = `🌟 ${expert.name}
 
 ${expert.bio || 'Духовный наставник'}
 
-Направления:
+📍 ${expert.city || 'Город не указан'}
+
+🎯 Направления:
 ${expert.topics?.map(topic => `• ${topic.name}`).join('\n') || 'Не указаны'}
 
-Контакты:
+📞 Контакты:
 ${expert.telegram_url ? `Telegram: ${expert.telegram_url}` : ''}
 ${expert.whatsapp ? `WhatsApp: ${expert.whatsapp}` : ''}
 
+${expert.services && expert.services.length > 0 ? `
+💼 Услуги:
+${expert.services.map(service => `• ${service.title}${service.price ? ` (${service.price} ₽)` : ''}`).join('\n')}
+` : ''}
+
+🌐 soulsynergy.ru
 SoulSynergy - пространство совместного духовного развития`;
 
+    // Создаем URL для поделиться
+    const shareUrl = window.location.href;
+    
     if (navigator.share) {
       navigator.share({
         title: `Профиль эксперта ${expert.name}`,
         text: shareText,
-        url: window.location.href
+        url: shareUrl
+      }).catch((error) => {
+        console.log('Ошибка поделиться:', error);
+        // Fallback к копированию
+        navigator.clipboard.writeText(`${shareText}\n\nСсылка: ${shareUrl}`).then(() => {
+          message.success('Информация скопирована в буфер обмена');
+        }).catch(() => {
+          message.error('Не удалось скопировать информацию');
+        });
       });
     } else {
-      navigator.clipboard.writeText(shareText).then(() => {
+      // Fallback для браузеров без поддержки Web Share API
+      const fullText = `${shareText}\n\nСсылка: ${shareUrl}`;
+      navigator.clipboard.writeText(fullText).then(() => {
         message.success('Информация скопирована в буфер обмена');
       }).catch(() => {
         message.error('Не удалось скопировать информацию');

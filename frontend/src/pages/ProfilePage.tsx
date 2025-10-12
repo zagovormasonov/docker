@@ -483,6 +483,25 @@ const ProfilePage = () => {
               <Input size="large" placeholder="+79001234567" />
             </Form.Item>
 
+            {/* Кнопка добавления новой соцсети */}
+            <Form.Item>
+              <Button 
+                type="dashed" 
+                icon={<PlusOutlined />}
+                style={{ 
+                  width: '100%',
+                  borderStyle: 'dashed',
+                  borderColor: '#d9d9d9',
+                  color: '#8c8c8c'
+                }}
+                onClick={() => {
+                  message.info('Функция добавления соцсетей в разработке');
+                }}
+              >
+                Добавить соцсеть
+              </Button>
+            </Form.Item>
+
             {user?.userType === 'expert' && (
               <>
                 <Divider />

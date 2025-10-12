@@ -228,40 +228,41 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
       ) : (
         <>
           {/* Карусель для листания */}
-          <Carousel
-            dots={true}
-            infinite={true}
-            speed={500}
-            slidesToShow={Math.min(4, images.length)}
-            slidesToScroll={1}
-            arrows={true}
-            prevArrow={<div className="custom-prev-arrow">‹</div>}
-            nextArrow={<div className="custom-next-arrow">›</div>}
-            responsive={[
-              {
-                breakpoint: 1200,
-                settings: {
-                  slidesToShow: 3,
-                  arrows: true,
+          <div style={{ position: 'relative' }}>
+            <Carousel
+              dots={true}
+              infinite={true}
+              speed={500}
+              slidesToShow={Math.min(4, images.length)}
+              slidesToScroll={1}
+              arrows={true}
+              prevArrow={<div className="custom-prev-arrow">‹</div>}
+              nextArrow={<div className="custom-next-arrow">›</div>}
+              responsive={[
+                {
+                  breakpoint: 1200,
+                  settings: {
+                    slidesToShow: 3,
+                    arrows: true,
+                  }
+                },
+                {
+                  breakpoint: 768,
+                  settings: {
+                    slidesToShow: 2,
+                    arrows: true,
+                  }
+                },
+                {
+                  breakpoint: 480,
+                  settings: {
+                    slidesToShow: 1,
+                    arrows: true,
+                  }
                 }
-              },
-              {
-                breakpoint: 768,
-                settings: {
-                  slidesToShow: 2,
-                  arrows: true,
-                }
-              },
-              {
-                breakpoint: 480,
-                settings: {
-                  slidesToShow: 1,
-                  arrows: true,
-                }
-              }
-            ]}
-            style={{ marginBottom: 16 }}
-          >
+              ]}
+              style={{ marginBottom: 16 }}
+            >
             {images.map((image) => (
               <div key={image.id} style={{ padding: '0 8px' }}>
                 <Card
@@ -311,7 +312,8 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
                 </Card>
               </div>
             ))}
-          </Carousel>
+            </Carousel>
+          </div>
           
           {/* Сетка для просмотра всех фотографий */}
           <Row gutter={[16, 16]}>
