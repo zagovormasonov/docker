@@ -19,7 +19,8 @@ import {
   Statistic,
   Divider,
   Image,
-  Alert
+  Alert,
+  Upload
 } from 'antd';
 import { useTheme } from '../hooks/useTheme';
 import ThemeSwitch from '../components/ThemeSwitch';
@@ -30,7 +31,10 @@ import {
   EyeOutlined,
   UserOutlined,
   CalendarOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  UploadOutlined,
+  DeleteOutlined as DeleteImageOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import axios from '../api/axios';
@@ -74,6 +78,7 @@ const AdminPanel: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState('articles');
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   // Хук для управления темой
   const { isDark, toggleTheme } = useTheme();
@@ -185,6 +190,7 @@ const AdminPanel: React.FC = () => {
         await axios.put(`/admin/articles/${editingItem.id}`, {
           title: values.title,
           content: values.content,
+          cover_image: values.cover_image,
           is_published: values.is_published
         });
         message.success('Статья обновлена');
@@ -193,6 +199,7 @@ const AdminPanel: React.FC = () => {
         await axios.put(`/admin/events/${editingItem.id}`, {
           title: values.title,
           description: values.content,
+          cover_image: values.cover_image,
           location: values.location,
           event_date: values.event_date.toISOString(),
           is_published: values.is_published
@@ -231,7 +238,8 @@ const AdminPanel: React.FC = () => {
     // Инициализируем форму данными
     const formData: any = {
       title: item.title,
-      is_published: item.is_published
+      is_published: item.is_published,
+      cover_image: item.cover_image
     };
     
     if (type === 'article') {
@@ -243,6 +251,49 @@ const AdminPanel: React.FC = () => {
     }
     
     editForm.setFieldsValue(formData);
+  };
+
+  // Функция для загрузки изображения
+  const handleImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await axios.post('/upload/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      // Обновляем cover_image в форме
+      editForm.setFieldsValue({ cover_image: response.data.imageUrl });
+      
+      // Обновляем editingItem
+      setEditingItem({
+        ...editingItem,
+        cover_image: response.data.imageUrl
+      });
+      
+      message.success('Изображение загружено успешно!');
+      return false; // Предотвращаем автоматическую загрузку
+    } catch (error) {
+      console.error('Ошибка загрузки изображения:', error);
+      message.error('Ошибка загрузки изображения');
+      return false;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Функция для удаления изображения
+  const handleImageDelete = () => {
+    editForm.setFieldsValue({ cover_image: null });
+    setEditingItem({
+      ...editingItem,
+      cover_image: null
+    });
+    message.success('Изображение удалено');
   };
 
   const articleColumns = [
@@ -548,6 +599,55 @@ const AdminPanel: React.FC = () => {
                     rules={[{ required: true, message: 'Введите заголовок' }]}
                   >
                     <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="cover_image"
+                    label="Обложка"
+                  >
+                    <div>
+                      {editingItem?.cover_image && (
+                        <div style={{ marginBottom: 16 }}>
+                          <Image
+                            src={editingItem.cover_image}
+                            alt="Текущая обложка"
+                            style={{ 
+                              maxWidth: 200, 
+                              maxHeight: 200, 
+                              objectFit: 'cover',
+                              borderRadius: 8,
+                              border: '1px solid #d9d9d9'
+                            }}
+                          />
+                          <div style={{ marginTop: 8 }}>
+                            <Button 
+                              type="text" 
+                              danger 
+                              icon={<DeleteImageOutlined />}
+                              onClick={handleImageDelete}
+                              size="small"
+                            >
+                              Удалить обложку
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Upload
+                        beforeUpload={handleImageUpload}
+                        showUploadList={false}
+                        accept="image/*"
+                        disabled={uploadingImage}
+                      >
+                        <Button 
+                          icon={<UploadOutlined />} 
+                          loading={uploadingImage}
+                          disabled={uploadingImage}
+                        >
+                          {editingItem?.cover_image ? 'Заменить обложку' : 'Загрузить обложку'}
+                        </Button>
+                      </Upload>
+                    </div>
                   </Form.Item>
                   
                   <Form.Item

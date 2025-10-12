@@ -151,6 +151,7 @@ router.put('/:id', authenticateToken, requireAdmin, [
   body('event_date').isISO8601().withMessage('Дата события должна быть в формате ISO 8601'),
   body('price').optional().trim(),
   body('registration_link').optional().isURL().withMessage('Ссылка на регистрацию должна быть валидным URL'),
+  body('cover_image').optional().isURL().withMessage('Обложка должна быть валидным URL'),
   body('is_published').optional().isBoolean().withMessage('Статус публикации должен быть boolean')
 ], async (req, res) => {
   try {
@@ -160,7 +161,7 @@ router.put('/:id', authenticateToken, requireAdmin, [
     }
 
     const { id } = req.params;
-    const { title, description, location, event_date, price, registration_link, is_published } = req.body;
+    const { title, description, location, event_date, price, registration_link, cover_image, is_published } = req.body;
 
     // Проверяем, существует ли событие
     const eventCheck = await query('SELECT * FROM events WHERE id = $1', [id]);
@@ -181,9 +182,9 @@ router.put('/:id', authenticateToken, requireAdmin, [
     const hasUpdatedAt = structureCheck.rows.some(row => row.column_name === 'updated_at');
     
     // Строим динамический запрос UPDATE
-    let updateFields = ['title = $2', 'description = $3', 'location = $4', 'event_date = $5', 'price = $6', 'registration_link = $7'];
-    let queryParams = [id, title, description, location, event_date, price, registration_link];
-    let paramIndex = 8;
+    let updateFields = ['title = $2', 'description = $3', 'location = $4', 'event_date = $5', 'price = $6', 'registration_link = $7', 'cover_image = $8'];
+    let queryParams = [id, title, description, location, event_date, price, registration_link, cover_image];
+    let paramIndex = 9;
     
     if (hasIsPublished) {
       updateFields.push(`is_published = $${paramIndex}`);

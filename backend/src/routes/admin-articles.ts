@@ -118,7 +118,8 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
 router.put('/:id', authenticateToken, requireAdmin, [
   body('title').trim().isLength({ min: 5 }).withMessage('Заголовок должен содержать минимум 5 символов'),
   body('content').trim().isLength({ min: 50 }).withMessage('Содержимое должно содержать минимум 50 символов'),
-  body('is_published').isBoolean().withMessage('Статус публикации должен быть boolean')
+  body('is_published').isBoolean().withMessage('Статус публикации должен быть boolean'),
+  body('cover_image').optional().isURL().withMessage('Обложка должна быть валидным URL')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -127,7 +128,7 @@ router.put('/:id', authenticateToken, requireAdmin, [
     }
 
     const { id } = req.params;
-    const { title, content, is_published } = req.body;
+    const { title, content, cover_image, is_published } = req.body;
 
     // Получаем информацию о статье и авторе
     const articleResult = await query(`
@@ -146,9 +147,9 @@ router.put('/:id', authenticateToken, requireAdmin, [
     // Обновляем статью
     await query(`
       UPDATE articles 
-      SET title = $1, content = $2, is_published = $3, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4
-    `, [title, content, is_published, id]);
+      SET title = $1, content = $2, cover_image = $3, is_published = $4, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $5
+    `, [title, content, cover_image, is_published, id]);
 
     // Создаем внутреннее уведомление для автора
     await createArticleEditedNotification(article.author_id, title, is_published);
