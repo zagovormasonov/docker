@@ -85,12 +85,13 @@ const ExpertProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [loadingArticles, setLoadingArticles] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
-  const [customSocials, setCustomSocials] = useState<Array<{name: string, url: string}>>([]);
+  const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
 
   useEffect(() => {
     fetchExpert();
     fetchArticles();
     fetchFavoriteStatus();
+    fetchCustomSocials();
   }, [id]);
 
   const fetchFavoriteStatus = async () => {
@@ -124,6 +125,16 @@ const ExpertProfilePage = () => {
       console.error('Ошибка загрузки статей:', error);
     } finally {
       setLoadingArticles(false);
+    }
+  };
+
+  const fetchCustomSocials = async () => {
+    if (!id) return;
+    try {
+      const response = await api.get(`/users/${id}/custom-socials`);
+      setCustomSocials(response.data);
+    } catch (error) {
+      console.error('Ошибка загрузки кастомных соцсетей:', error);
     }
   };
 

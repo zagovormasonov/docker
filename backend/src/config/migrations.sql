@@ -60,11 +60,22 @@ CREATE TABLE IF NOT EXISTS article_favorites (
 -- 7. Добавляем счетчик лайков к статьям
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0;
 
--- 8. Индексы для оптимизации
+-- 8. Таблица кастомных соцсетей
+CREATE TABLE IF NOT EXISTS custom_socials (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  url VARCHAR(500) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 9. Индексы для оптимизации
 CREATE INDEX IF NOT EXISTS idx_reviews_expert ON reviews(expert_id);
 CREATE INDEX IF NOT EXISTS idx_events_author ON events(author_id);
 CREATE INDEX IF NOT EXISTS idx_events_city ON events(city);
 CREATE INDEX IF NOT EXISTS idx_events_published ON events(is_published);
 CREATE INDEX IF NOT EXISTS idx_article_likes_article ON article_likes(article_id);
 CREATE INDEX IF NOT EXISTS idx_article_favorites_user ON article_favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_custom_socials_user ON custom_socials(user_id);
 

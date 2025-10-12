@@ -72,7 +72,7 @@ const ProfilePage = () => {
   const [showAddSocial, setShowAddSocial] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
   const [newSocialUrl, setNewSocialUrl] = useState('');
-  const [customSocials, setCustomSocials] = useState<Array<{name: string, url: string}>>([]);
+  const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
 
   useEffect(() => {
     fetchTopics();
@@ -139,6 +139,7 @@ const ProfilePage = () => {
       console.error('Ошибка загрузки кастомных соцсетей:', error);
     }
   };
+
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -214,14 +215,13 @@ const ProfilePage = () => {
     
     try {
       // Отправляем на сервер
-      await api.post('/users/custom-socials', {
+      const response = await api.post('/users/custom-socials', {
         name: newSocialName.trim(),
         url: newSocialUrl.trim()
       });
       
       // Добавляем новую соцсеть в состояние
-      const newSocial = { name: newSocialName.trim(), url: newSocialUrl.trim() };
-      setCustomSocials([...customSocials, newSocial]);
+      setCustomSocials([...customSocials, response.data]);
       message.success(`Соцсеть "${newSocialName}" добавлена`);
       setNewSocialName('');
       setNewSocialUrl('');
@@ -236,6 +236,17 @@ const ProfilePage = () => {
     setNewSocialName('');
     setNewSocialUrl('');
     setShowAddSocial(false);
+  };
+
+  const handleDeleteSocial = async (socialId: number) => {
+    try {
+      await api.delete(`/users/custom-socials/${socialId}`);
+      setCustomSocials(customSocials.filter(social => social.id !== socialId));
+      message.success('Соцсеть удалена');
+    } catch (error) {
+      console.error('Ошибка удаления соцсети:', error);
+      message.error('Ошибка удаления соцсети');
+    }
   };
 
   const handleAddService = async (values: any) => {
@@ -533,8 +544,8 @@ const ProfilePage = () => {
             {customSocials.length > 0 && (
               <Form.Item label="Добавленные соцсети">
                 <Space direction="vertical" style={{ width: '100%' }}>
-                  {customSocials.map((social, index) => (
-                    <div key={index} style={{
+                  {customSocials.map((social) => (
+                    <div key={social.id} style={{
                       padding: 12,
                       border: '1px solid #d9d9d9',
                       borderRadius: 6,
@@ -551,10 +562,7 @@ const ProfilePage = () => {
                         type="text" 
                         danger 
                         size="small"
-                        onClick={() => {
-                          setCustomSocials(customSocials.filter((_, i) => i !== index));
-                          message.success('Соцсеть удалена');
-                        }}
+                        onClick={() => handleDeleteSocial(social.id)}
                       >
                         Удалить
                       </Button>
