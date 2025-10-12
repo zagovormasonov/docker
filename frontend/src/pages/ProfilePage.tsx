@@ -72,6 +72,7 @@ const ProfilePage = () => {
   const [showAddSocial, setShowAddSocial] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
   const [newSocialUrl, setNewSocialUrl] = useState('');
+  const [customSocials, setCustomSocials] = useState<Array<{name: string, url: string}>>([]);
 
   useEffect(() => {
     fetchTopics();
@@ -201,7 +202,9 @@ const ProfilePage = () => {
       return;
     }
     
-    // Здесь можно добавить логику сохранения новой соцсети
+    // Добавляем новую соцсеть в состояние
+    const newSocial = { name: newSocialName.trim(), url: newSocialUrl.trim() };
+    setCustomSocials([...customSocials, newSocial]);
     message.success(`Соцсеть "${newSocialName}" добавлена`);
     setNewSocialName('');
     setNewSocialUrl('');
@@ -504,6 +507,41 @@ const ProfilePage = () => {
             >
               <Input size="large" placeholder="+79001234567" />
             </Form.Item>
+
+            {/* Отображение добавленных соцсетей */}
+            {customSocials.length > 0 && (
+              <Form.Item label="Добавленные соцсети">
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  {customSocials.map((social, index) => (
+                    <div key={index} style={{
+                      padding: 12,
+                      border: '1px solid #d9d9d9',
+                      borderRadius: 6,
+                      backgroundColor: '#fafafa',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <Space>
+                        <Text strong>{social.name}</Text>
+                        <Text type="secondary">{social.url}</Text>
+                      </Space>
+                      <Button 
+                        type="text" 
+                        danger 
+                        size="small"
+                        onClick={() => {
+                          setCustomSocials(customSocials.filter((_, i) => i !== index));
+                          message.success('Соцсеть удалена');
+                        }}
+                      >
+                        Удалить
+                      </Button>
+                    </div>
+                  ))}
+                </Space>
+              </Form.Item>
+            )}
 
             {/* Кнопка добавления новой соцсети */}
             <Form.Item>

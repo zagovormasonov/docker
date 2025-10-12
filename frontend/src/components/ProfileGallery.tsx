@@ -18,7 +18,9 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EyeOutlined,
-  UploadOutlined
+  UploadOutlined,
+  LeftOutlined,
+  RightOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 
@@ -44,6 +46,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageCount, setImageCount] = useState(0);
 
   console.log('🖼️ ProfileGallery props:', { userId, isOwner });
@@ -166,9 +169,29 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
   };
 
   const handlePreview = (image: GalleryImage) => {
+    const index = images.findIndex(img => img.id === image.id);
+    setCurrentImageIndex(index);
     setPreviewImage(image.image_url);
     setPreviewTitle('Фотография'); // Упрощенное название
     setPreviewVisible(true);
+  };
+
+  const handlePrevious = () => {
+    if (currentImageIndex > 0) {
+      const newIndex = currentImageIndex - 1;
+      setCurrentImageIndex(newIndex);
+      setPreviewImage(images[newIndex].image_url);
+      setPreviewTitle('Фотография');
+    }
+  };
+
+  const handleNext = () => {
+    if (currentImageIndex < images.length - 1) {
+      const newIndex = currentImageIndex + 1;
+      setCurrentImageIndex(newIndex);
+      setPreviewImage(images[newIndex].image_url);
+      setPreviewTitle('Фотография');
+    }
   };
 
 
@@ -314,75 +337,58 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
             ))}
             </Carousel>
           </div>
-          
-          {/* Сетка для просмотра всех фотографий */}
-          <Row gutter={[16, 16]}>
-            {images.map((image) => (
-              <Col xs={12} sm={8} md={6} lg={4} key={image.id}>
-                <Card
-                  hoverable
-                  cover={
-                    <div style={{ height: 200, overflow: 'hidden' }}>
-                      <Image
-                        src={image.image_url}
-                        alt={image.image_name}
-                        style={{ width: '100%', height: 200, objectFit: 'cover' }}
-                        preview={false}
-                        onClick={() => handlePreview(image)}
-                      />
-                    </div>
-                  }
-                  actions={isOwner ? [
-                    <Button
-                      key="view"
-                      type="text"
-                      icon={<EyeOutlined />}
-                      onClick={() => handlePreview(image)}
-                    />,
-                    <Popconfirm
-                      key="delete"
-                      title="Удалить фотографию?"
-                      description="Это действие нельзя отменить"
-                      onConfirm={() => handleDelete(image.id)}
-                      okText="Да"
-                      cancelText="Нет"
-                    >
-                      <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                      />
-                    </Popconfirm>
-                  ] : [
-                    <Button
-                      key="view"
-                      type="text"
-                      icon={<EyeOutlined />}
-                      onClick={() => handlePreview(image)}
-                    />
-                  ]}
-                  bodyStyle={{ padding: 0 }}
-                >
-                </Card>
-              </Col>
-            ))}
-          </Row>
         </>
       )}
 
       <Modal
         open={previewVisible}
-        title={previewTitle}
+        title={`${previewTitle} (${currentImageIndex + 1} из ${images.length})`}
         footer={null}
         onCancel={() => setPreviewVisible(false)}
         width="80%"
         style={{ top: 20 }}
       >
-        <img
-          alt={previewTitle}
-          style={{ width: '100%' }}
-          src={previewImage}
-        />
+        <div style={{ position: 'relative' }}>
+          <img
+            alt={previewTitle}
+            style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain' }}
+            src={previewImage}
+          />
+          
+          {/* Кнопки навигации */}
+          {images.length > 1 && (
+            <>
+              <Button
+                type="primary"
+                shape="circle"
+                icon={<LeftOutlined />}
+                onClick={handlePrevious}
+                disabled={currentImageIndex === 0}
+                style={{
+                  position: 'absolute',
+                  left: 20,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10
+                }}
+              />
+              <Button
+                type="primary"
+                shape="circle"
+                icon={<RightOutlined />}
+                onClick={handleNext}
+                disabled={currentImageIndex === images.length - 1}
+                style={{
+                  position: 'absolute',
+                  right: 20,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10
+                }}
+              />
+            </>
+          )}
+        </div>
       </Modal>
     </div>
   );

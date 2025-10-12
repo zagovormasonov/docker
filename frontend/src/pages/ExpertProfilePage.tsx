@@ -202,11 +202,15 @@ const ExpertProfilePage = () => {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!expert) return;
 
-    // Создаем отдельную страницу с информацией об эксперте
-    const sharePageContent = `
+    try {
+      // Создаем уникальный ID для страницы
+      const shareId = `expert-${expert.id}-${Date.now()}`;
+      
+      // Создаем отдельную страницу с информацией об эксперте
+      const sharePageContent = `
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -354,25 +358,40 @@ const ExpertProfilePage = () => {
 </body>
 </html>`;
 
-    // Создаем blob с HTML содержимым
-    const blob = new Blob([sharePageContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    
-    // Открываем новую страницу
-    const newWindow = window.open(url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-    
-    if (newWindow) {
-      message.success('Страница профиля открыта в новом окне');
-    } else {
-      // Fallback - копируем ссылку на текущую страницу
-      const shareUrl = window.location.href;
-      const shareText = `🌟 ${expert.name}\n\n${expert.bio || 'Духовный наставник'}\n\n📍 ${expert.city || 'Город не указан'}\n\n🎯 Направления:\n${expert.topics?.map(topic => `• ${topic.name}`).join('\n') || 'Не указаны'}\n\n📞 Контакты:\n${expert.telegram_url ? `Telegram: ${expert.telegram_url}` : ''}\n${expert.whatsapp ? `WhatsApp: ${expert.whatsapp}` : ''}\n\n🌐 soulsynergy.ru\nSoulSynergy - пространство совместного духовного развития`;
-      
-      navigator.clipboard.writeText(`${shareText}\n\nСсылка: ${shareUrl}`).then(() => {
-        message.success('Информация скопирована в буфер обмена');
-      }).catch(() => {
-        message.error('Не удалось скопировать информацию');
+      // Отправляем данные на сервер для создания постоянной ссылки
+      const response = await api.post('/share/expert-profile', {
+        expertId: expert.id,
+        shareId: shareId,
+        content: sharePageContent
       });
+      
+      const shareUrl = `${window.location.origin}/share/${shareId}`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: `Профиль эксперта ${expert.name}`,
+          text: `Посмотрите профиль эксперта ${expert.name} на SoulSynergy`,
+          url: shareUrl
+        }).catch((error) => {
+          console.log('Ошибка поделиться:', error);
+          // Fallback к копированию
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            message.success('Ссылка скопирована в буфер обмена');
+          }).catch(() => {
+            message.error('Не удалось скопировать ссылку');
+          });
+        });
+      } else {
+        // Fallback для браузеров без поддержки Web Share API
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          message.success('Ссылка скопирована в буфер обмена');
+        }).catch(() => {
+          message.error('Не удалось скопировать ссылку');
+        });
+      }
+    } catch (error) {
+      console.error('Ошибка создания ссылки для поделиться:', error);
+      message.error('Ошибка создания ссылки для поделиться');
     }
   };
 
