@@ -131,7 +131,7 @@ const ExpertProfilePage = () => {
   const fetchCustomSocials = async () => {
     if (!id) return;
     try {
-      const response = await api.get(`/users/${id}/custom-socials`);
+      const response = await api.get(`/users/custom-socials/${id}`);
       setCustomSocials(response.data);
     } catch (error) {
       console.error('Ошибка загрузки кастомных соцсетей:', error);
