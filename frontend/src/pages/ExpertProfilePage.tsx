@@ -27,7 +27,8 @@ import {
   FileTextOutlined,
   StarOutlined,
   StarFilled,
-  PlusOutlined
+  PlusOutlined,
+  ShareAltOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -201,6 +202,37 @@ const ExpertProfilePage = () => {
     }
   };
 
+  const handleShare = () => {
+    if (!expert) return;
+
+    const shareText = `${expert.name}
+
+${expert.bio || 'Духовный наставник'}
+
+Направления:
+${expert.topics?.map(topic => `• ${topic.name}`).join('\n') || 'Не указаны'}
+
+Контакты:
+${expert.telegram_url ? `Telegram: ${expert.telegram_url}` : ''}
+${expert.whatsapp ? `WhatsApp: ${expert.whatsapp}` : ''}
+
+SoulSynergy - пространство совместного духовного развития`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: `Профиль эксперта ${expert.name}`,
+        text: shareText,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(shareText).then(() => {
+        message.success('Информация скопирована в буфер обмена');
+      }).catch(() => {
+        message.error('Не удалось скопировать информацию');
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 100 }}>
@@ -216,6 +248,27 @@ const ExpertProfilePage = () => {
   return (
     <div className="container">
       <Card>
+        {/* Кнопка поделиться в правом верхнем углу */}
+        <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
+          <Button
+            type="text"
+            icon={<ShareAltOutlined />}
+            onClick={handleShare}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              border: '1px solid #d9d9d9',
+              borderRadius: '50%',
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+            }}
+            title="Поделиться профилем"
+          />
+        </div>
+        
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <Space align="start" size="large">
             <Avatar
@@ -300,18 +353,12 @@ const ExpertProfilePage = () => {
           })()}
 
           {/* Социальные сети */}
-          {(expert.vk_url || expert.telegram_url || expert.whatsapp) && (
+          {(expert.telegram_url || expert.whatsapp) && (
             <>
               <Divider />
               <div>
                 <Title level={4}><LinkOutlined /> Контакты и социальные сети</Title>
                 <Space direction="vertical" size="small">
-                  {expert.vk_url && (
-                    <a href={expert.vk_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <img src="/vk.png" alt="VK" style={{ width: 20, height: 20 }} />
-                      VK: {expert.vk_url}
-                    </a>
-                  )}
                   {expert.telegram_url && (
                     <a href={expert.telegram_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <img src="/tg.png" alt="Telegram" style={{ width: 20, height: 20 }} />

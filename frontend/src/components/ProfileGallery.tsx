@@ -11,7 +11,8 @@ import {
   Popconfirm,
   Row,
   Col,
-  Spin
+  Spin,
+  Carousel
 } from 'antd';
 import {
   PlusOutlined,
@@ -225,57 +226,140 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
           </Text>
         </Card>
       ) : (
-        <Row gutter={[16, 16]}>
-          {images.map((image) => (
-            <Col xs={12} sm={8} md={6} lg={4} key={image.id}>
-              <Card
-                hoverable
-                cover={
-                  <div style={{ height: 150, overflow: 'hidden' }}>
-                    <Image
-                      src={image.image_url}
-                      alt={image.image_name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      preview={false}
+        <>
+          {/* Карусель для листания */}
+          <Carousel
+            dots={true}
+            infinite={true}
+            speed={500}
+            slidesToShow={Math.min(4, images.length)}
+            slidesToScroll={1}
+            responsive={[
+              {
+                breakpoint: 1200,
+                settings: {
+                  slidesToShow: 3,
+                }
+              },
+              {
+                breakpoint: 768,
+                settings: {
+                  slidesToShow: 2,
+                }
+              },
+              {
+                breakpoint: 480,
+                settings: {
+                  slidesToShow: 1,
+                }
+              }
+            ]}
+            style={{ marginBottom: 16 }}
+          >
+            {images.map((image) => (
+              <div key={image.id} style={{ padding: '0 8px' }}>
+                <Card
+                  hoverable
+                  cover={
+                    <div style={{ height: 200, overflow: 'hidden' }}>
+                      <Image
+                        src={image.image_url}
+                        alt={image.image_name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        preview={false}
+                        onClick={() => handlePreview(image)}
+                      />
+                    </div>
+                  }
+                  actions={isOwner ? [
+                    <Button
+                      key="view"
+                      type="text"
+                      icon={<EyeOutlined />}
+                      onClick={() => handlePreview(image)}
+                    />,
+                    <Popconfirm
+                      key="delete"
+                      title="Удалить фотографию?"
+                      description="Это действие нельзя отменить"
+                      onConfirm={() => handleDelete(image.id)}
+                      okText="Да"
+                      cancelText="Нет"
+                    >
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                      />
+                    </Popconfirm>
+                  ] : [
+                    <Button
+                      key="view"
+                      type="text"
+                      icon={<EyeOutlined />}
                       onClick={() => handlePreview(image)}
                     />
-                  </div>
-                }
-                actions={isOwner ? [
-                  <Button
-                    key="view"
-                    type="text"
-                    icon={<EyeOutlined />}
-                    onClick={() => handlePreview(image)}
-                  />,
-                  <Popconfirm
-                    key="delete"
-                    title="Удалить фотографию?"
-                    description="Это действие нельзя отменить"
-                    onConfirm={() => handleDelete(image.id)}
-                    okText="Да"
-                    cancelText="Нет"
-                  >
+                  ]}
+                  bodyStyle={{ padding: 0 }}
+                >
+                </Card>
+              </div>
+            ))}
+          </Carousel>
+          
+          {/* Сетка для просмотра всех фотографий */}
+          <Row gutter={[16, 16]}>
+            {images.map((image) => (
+              <Col xs={12} sm={8} md={6} lg={4} key={image.id}>
+                <Card
+                  hoverable
+                  cover={
+                    <div style={{ height: 150, overflow: 'hidden' }}>
+                      <Image
+                        src={image.image_url}
+                        alt={image.image_name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        preview={false}
+                        onClick={() => handlePreview(image)}
+                      />
+                    </div>
+                  }
+                  actions={isOwner ? [
                     <Button
+                      key="view"
                       type="text"
-                      danger
-                      icon={<DeleteOutlined />}
+                      icon={<EyeOutlined />}
+                      onClick={() => handlePreview(image)}
+                    />,
+                    <Popconfirm
+                      key="delete"
+                      title="Удалить фотографию?"
+                      description="Это действие нельзя отменить"
+                      onConfirm={() => handleDelete(image.id)}
+                      okText="Да"
+                      cancelText="Нет"
+                    >
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                      />
+                    </Popconfirm>
+                  ] : [
+                    <Button
+                      key="view"
+                      type="text"
+                      icon={<EyeOutlined />}
+                      onClick={() => handlePreview(image)}
                     />
-                  </Popconfirm>
-                ] : [
-                  <Button
-                    key="view"
-                    type="text"
-                    icon={<EyeOutlined />}
-                    onClick={() => handlePreview(image)}
-                  />
-                ]}
-                bodyStyle={{ padding: 0 }}
-              >
-              </Card>
-            </Col>
-          ))}
-        </Row>
+                  ]}
+                  bodyStyle={{ padding: 0 }}
+                >
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </>
       )}
 
       <Modal

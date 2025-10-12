@@ -224,6 +224,11 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleViewDetails = (item: Article | Event, type: 'article' | 'event') => {
+    setEditingItem({ ...item, type });
+    setEditModalVisible(true);
+  };
+
   const articleColumns = [
     {
       title: 'Заголовок',
@@ -263,6 +268,13 @@ const AdminPanel: React.FC = () => {
       key: 'actions',
       render: (_, record: Article) => (
         <Space>
+          <Button 
+            icon={<EyeOutlined />} 
+            onClick={() => handleViewDetails(record, 'article')}
+            size="small"
+          >
+            Просмотр
+          </Button>
           <Button 
             icon={<EditOutlined />} 
             onClick={() => handleEdit(record, 'article')}
@@ -335,6 +347,13 @@ const AdminPanel: React.FC = () => {
       key: 'actions',
       render: (_, record: Event) => (
         <Space>
+          <Button 
+            icon={<EyeOutlined />} 
+            onClick={() => handleViewDetails(record, 'event')}
+            size="small"
+          >
+            Просмотр
+          </Button>
           <Button 
             icon={<EditOutlined />} 
             onClick={() => handleEdit(record, 'event')}
@@ -475,11 +494,93 @@ const AdminPanel: React.FC = () => {
         style={{ top: 20 }}
       >
         <Tabs
-          defaultActiveKey="edit"
-          items={[
-            {
-              key: 'edit',
-              label: 'Редактирование',
+          defaultActiveKey="view"
+        items={[
+          {
+            key: 'view',
+            label: 'Полная информация',
+            children: (
+              <div>
+                <Row gutter={[16, 16]}>
+                  <Col span={24}>
+                    <Card title="Основная информация">
+                      <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                          <strong>ID:</strong> {editingItem?.id}
+                        </Col>
+                        <Col span={12}>
+                          <strong>Автор:</strong> {editingItem?.author_name}
+                        </Col>
+                        <Col span={12}>
+                          <strong>Email автора:</strong> {editingItem?.author_email}
+                        </Col>
+                        <Col span={12}>
+                          <strong>Статус:</strong> 
+                          <Tag color={editingItem?.is_published ? 'green' : 'orange'} style={{ marginLeft: 8 }}>
+                            {editingItem?.is_published ? 'Опубликовано' : 'Не опубликовано'}
+                          </Tag>
+                        </Col>
+                        <Col span={12}>
+                          <strong>Создано:</strong> {dayjs(editingItem?.created_at).format('DD.MM.YYYY HH:mm:ss')}
+                        </Col>
+                        <Col span={12}>
+                          <strong>Обновлено:</strong> {dayjs(editingItem?.updated_at).format('DD.MM.YYYY HH:mm:ss')}
+                        </Col>
+                      </Row>
+                    </Card>
+                  </Col>
+                  
+                  <Col span={24}>
+                    <Card title={editingItem?.type === 'article' ? 'Содержимое статьи' : 'Описание события'}>
+                      <Typography.Title level={4}>{editingItem?.title}</Typography.Title>
+                      
+                      {editingItem?.cover_image && (
+                        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                          <Image 
+                            src={editingItem.cover_image} 
+                            alt="Обложка" 
+                            style={{ maxWidth: '100%', height: 'auto' }}
+                          />
+                        </div>
+                      )}
+                      
+                      <div 
+                        dangerouslySetInnerHTML={{ 
+                          __html: renderHtmlContent(editingItem?.content || '') 
+                        }}
+                        style={{
+                          lineHeight: '1.6',
+                          fontSize: '16px',
+                          color: '#333'
+                        }}
+                      />
+                    </Card>
+                  </Col>
+                  
+                  {editingItem?.type === 'event' && (
+                    <Col span={24}>
+                      <Card title="Детали события">
+                        <Row gutter={[16, 16]}>
+                          <Col span={12}>
+                            <strong>Место проведения:</strong> {editingItem?.location}
+                          </Col>
+                          <Col span={12}>
+                            <strong>Дата события:</strong> {dayjs(editingItem?.event_date).format('DD.MM.YYYY HH:mm')}
+                          </Col>
+                          <Col span={12}>
+                            <strong>Тип:</strong> {editingItem?.is_online ? 'Онлайн' : 'Офлайн'}
+                          </Col>
+                        </Row>
+                      </Card>
+                    </Col>
+                  )}
+                </Row>
+              </div>
+            ),
+          },
+          {
+            key: 'edit',
+            label: 'Редактирование',
               children: (
                 <Form form={editForm} layout="vertical">
                   <Form.Item

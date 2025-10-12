@@ -187,7 +187,20 @@ const ModerationPage = () => {
       return (
         <div>
           <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
-            <Text strong>Автор:</Text> {item.author_name} ({item.author_email})
+            <Row gutter={[16, 8]}>
+              <Col span={12}>
+                <Text strong>Автор:</Text> {item.author_name} ({item.author_email})
+              </Col>
+              <Col span={12}>
+                <Text strong>ID:</Text> {item.id}
+              </Col>
+              <Col span={12}>
+                <Text strong>Создано:</Text> {new Date(item.created_at).toLocaleString('ru-RU')}
+              </Col>
+              <Col span={12}>
+                <Text strong>Обновлено:</Text> {new Date(item.updated_at).toLocaleString('ru-RU')}
+              </Col>
+            </Row>
           </div>
           <Title level={3}>{item.title}</Title>
           {item.cover_image && (
@@ -219,7 +232,20 @@ const ModerationPage = () => {
       return (
         <div>
           <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
-            <Text strong>Автор:</Text> {item.author_name} ({item.author_email})
+            <Row gutter={[16, 8]}>
+              <Col span={12}>
+                <Text strong>Автор:</Text> {item.author_name} ({item.author_email})
+              </Col>
+              <Col span={12}>
+                <Text strong>ID:</Text> {item.id}
+              </Col>
+              <Col span={12}>
+                <Text strong>Создано:</Text> {new Date(item.created_at).toLocaleString('ru-RU')}
+              </Col>
+              <Col span={12}>
+                <Text strong>Обновлено:</Text> {new Date(item.updated_at).toLocaleString('ru-RU')}
+              </Col>
+            </Row>
           </div>
           <Title level={3}>{item.title}</Title>
           {item.cover_image && (
@@ -247,18 +273,16 @@ const ModerationPage = () => {
           />
           <Divider />
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={8}>
               <Text strong>Тип события:</Text> <Tag>{item.event_type}</Tag>
             </Col>
-            <Col span={12}>
+            <Col span={8}>
               <Text strong>Формат:</Text> <Tag color={item.is_online ? 'blue' : 'green'}>
                 {item.is_online ? 'Онлайн' : 'Офлайн'}
               </Tag>
             </Col>
-          </Row>
-          <Row gutter={16} style={{ marginTop: 8 }}>
-            <Col span={12}>
-              <Text strong>Дата события:</Text> {new Date(item.event_date).toLocaleDateString('ru-RU')}
+            <Col span={8}>
+              <Text strong>Дата события:</Text> {new Date(item.event_date).toLocaleString('ru-RU')}
             </Col>
           </Row>
         </div>
