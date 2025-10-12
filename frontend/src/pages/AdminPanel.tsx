@@ -81,6 +81,7 @@ const AdminPanel: React.FC = () => {
   const [editForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState('articles');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [currentCoverImage, setCurrentCoverImage] = useState<string | null>(null);
   
   // Хук для управления темой
   const { isDark, toggleTheme } = useTheme();
@@ -253,6 +254,7 @@ const AdminPanel: React.FC = () => {
     }
     
     editForm.setFieldsValue(formData);
+    setCurrentCoverImage(item.cover_image || null);
   };
 
   // Функция для загрузки изображения
@@ -277,6 +279,9 @@ const AdminPanel: React.FC = () => {
         cover_image: response.data.imageUrl
       });
       
+      // Обновляем текущее изображение для отображения
+      setCurrentCoverImage(response.data.imageUrl);
+      
       message.success('Изображение загружено успешно!');
       return false; // Предотвращаем автоматическую загрузку
     } catch (error) {
@@ -295,6 +300,7 @@ const AdminPanel: React.FC = () => {
       ...editingItem,
       cover_image: null
     });
+    setCurrentCoverImage(null);
     message.success('Изображение удалено');
   };
 
@@ -608,10 +614,10 @@ const AdminPanel: React.FC = () => {
                     label="Обложка"
                   >
                     <div>
-                      {editingItem?.cover_image && (
+                      {currentCoverImage && (
                         <div style={{ marginBottom: 16 }}>
                           <Image
-                            src={editingItem.cover_image}
+                            src={currentCoverImage}
                             alt="Текущая обложка"
                             style={{ 
                               maxWidth: 200, 
@@ -646,7 +652,7 @@ const AdminPanel: React.FC = () => {
                           loading={uploadingImage}
                           disabled={uploadingImage}
                         >
-                          {editingItem?.cover_image ? 'Заменить обложку' : 'Загрузить обложку'}
+                          {currentCoverImage ? 'Заменить обложку' : 'Загрузить обложку'}
                         </Button>
                       </Upload>
                     </div>
@@ -695,10 +701,10 @@ const AdminPanel: React.FC = () => {
               <Card title={editingItem?.type === 'article' ? 'Содержимое статьи' : 'Описание события'}>
                 <Typography.Title level={4}>{editingItem?.title}</Typography.Title>
                 
-                {editingItem?.cover_image && (
+                {currentCoverImage && (
                   <div style={{ textAlign: 'center', marginBottom: 16 }}>
                     <Image 
-                      src={editingItem.cover_image} 
+                      src={currentCoverImage} 
                       alt="Обложка" 
                       style={{ maxWidth: '100%', height: 'auto' }}
                     />
