@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input, Carousel } from 'antd';
+import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input } from 'antd';
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -226,121 +226,91 @@ const HomePage = () => {
           </Text>
         </div>
       ) : (
-        <>
-          {/* Карусель для листания статей */}
-          <div style={{ position: 'relative', marginBottom: 24 }}>
-            <Carousel
-              dots={true}
-              infinite={true}
-              speed={500}
-              slidesToShow={Math.min(3, filteredArticles.length)}
-              slidesToScroll={1}
-              arrows={true}
-              prevArrow={<div className="custom-prev-arrow">‹</div>}
-              nextArrow={<div className="custom-next-arrow">›</div>}
-              responsive={[
-                {
-                  breakpoint: 1200,
-                  settings: {
-                    slidesToShow: 2,
-                    arrows: true,
-                  }
-                },
-                {
-                  breakpoint: 768,
-                  settings: {
-                    slidesToShow: 1,
-                    arrows: true,
-                  }
+        <Row gutter={[24, 24]}>
+          {filteredArticles.map((article) => (
+            <Col xs={24} sm={12} lg={8} key={article.id}>
+              <Card
+                hoverable
+                cover={
+                  article.cover_image ? (
+                    <div style={{ height: 200, overflow: 'hidden' }}>
+                      <img
+                        src={article.cover_image}
+                        alt={article.title}
+                        style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{
+                      height: 200,
+                      background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: 48
+                    }}>
+                      ✨
+                    </div>
+                  )
                 }
-              ]}
-            >
-              {filteredArticles.map((article) => (
-                <div key={article.id} style={{ padding: '0 8px' }}>
-                  <Card
-                    hoverable
-                    cover={
-                      article.cover_image ? (
-                        <div style={{ height: 200, overflow: 'hidden' }}>
-                          <img
-                            src={article.cover_image}
-                            alt={article.title}
-                            style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                onClick={() => navigate(`/articles/${article.id}`)}
+                style={{ height: '100%' }}
+              >
+                <Meta
+                  title={
+                    <Title level={4} ellipsis={{ rows: 1 }} style={{ marginBottom: 12 }}>
+                      {article.title}
+                    </Title>
+                  }
+                  description={
+                    <>
+                      <Paragraph ellipsis={{ rows: 3 }} style={{ color: '#86868b', marginBottom: 16 }}>
+                        {stripHtml(article.content)}
+                      </Paragraph>
+                      
+                      <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                        <Space 
+                          style={{ cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/experts/${article.author_id}`);
+                          }}
+                        >
+                          <Avatar 
+                            size="small" 
+                            src={article.author_avatar}
+                            icon={!article.author_avatar && <UserOutlined />}
                           />
-                        </div>
-                      ) : (
-                        <div style={{
-                          height: 200,
-                          background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: 48
-                        }}>
-                          ✨
-                        </div>
-                      )
-                    }
-                    onClick={() => navigate(`/articles/${article.id}`)}
-                    style={{ height: '100%' }}
-                  >
-                    <Meta
-                      title={
-                        <Title level={4} ellipsis={{ rows: 1 }} style={{ marginBottom: 12 }}>
-                          {article.title}
-                        </Title>
-                      }
-                      description={
-                        <>
-                          <Paragraph ellipsis={{ rows: 2 }} style={{ color: '#86868b', marginBottom: 16 }}>
-                            {stripHtml(article.content)}
-                          </Paragraph>
-                          
-                          <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                            <Space 
-                              style={{ cursor: 'pointer' }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/experts/${article.author_id}`);
-                              }}
-                            >
-                              <Avatar 
-                                size="small" 
-                                src={article.author_avatar}
-                                icon={!article.author_avatar && <UserOutlined />}
-                              />
-                              <Text type="secondary" style={{ transition: 'color 0.3s' }} className="author-link">
-                                {article.author_name}
-                              </Text>
-                            </Space>
-                            
-                            <Space split="•">
-                              <Space size={4}>
-                                <HeartOutlined />
-                                <Text type="secondary">{article.likes_count || 0}</Text>
-                              </Space>
-                              <Space size={4}>
-                                <EyeOutlined />
-                                <Text type="secondary">{article.views}</Text>
-                              </Space>
-                              <Space size={4}>
-                                <ClockCircleOutlined />
-                                <Text type="secondary">
-                                  {dayjs(article.created_at).format('DD MMM YYYY')}
-                                </Text>
-                              </Space>
-                            </Space>
+                          <Text type="secondary" style={{ transition: 'color 0.3s' }} className="author-link">
+                            {article.author_name}
+                          </Text>
+                        </Space>
+                        
+                        <Space split="•">
+                          <Space size={4}>
+                            <HeartOutlined />
+                            <Text type="secondary">{article.likes_count || 0}</Text>
                           </Space>
-                        </>
-                      }
-                    />
-                  </Card>
-                </div>
-              ))}
-            </Carousel>
-          </div>
-        </>
+                          <Space size={4}>
+                            <EyeOutlined />
+                            <Text type="secondary">{article.views}</Text>
+                          </Space>
+                          <Space size={4}>
+                            <ClockCircleOutlined />
+                            <Text type="secondary">
+                              {dayjs(article.created_at).format('DD MMM YYYY')}
+                            </Text>
+                          </Space>
+                        </Space>
+                      </Space>
+                    </>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
       )}
     </div>
   );

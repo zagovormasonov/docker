@@ -77,6 +77,7 @@ const ProfilePage = () => {
   useEffect(() => {
     fetchTopics();
     fetchCities();
+    fetchCustomSocials();
     if (user?.userType === 'expert') {
       fetchServices();
     }
@@ -127,6 +128,15 @@ const ProfilePage = () => {
       setServices(response.data.services || []);
     } catch (error) {
       console.error('Ошибка загрузки услуг:', error);
+    }
+  };
+
+  const fetchCustomSocials = async () => {
+    try {
+      const response = await api.get('/users/custom-socials');
+      setCustomSocials(response.data);
+    } catch (error) {
+      console.error('Ошибка загрузки кастомных соцсетей:', error);
     }
   };
 
@@ -196,19 +206,30 @@ const ProfilePage = () => {
     }
   };
 
-  const handleAddSocial = () => {
+  const handleAddSocial = async () => {
     if (!newSocialName.trim() || !newSocialUrl.trim()) {
       message.error('Заполните все поля');
       return;
     }
     
-    // Добавляем новую соцсеть в состояние
-    const newSocial = { name: newSocialName.trim(), url: newSocialUrl.trim() };
-    setCustomSocials([...customSocials, newSocial]);
-    message.success(`Соцсеть "${newSocialName}" добавлена`);
-    setNewSocialName('');
-    setNewSocialUrl('');
-    setShowAddSocial(false);
+    try {
+      // Отправляем на сервер
+      await api.post('/users/custom-socials', {
+        name: newSocialName.trim(),
+        url: newSocialUrl.trim()
+      });
+      
+      // Добавляем новую соцсеть в состояние
+      const newSocial = { name: newSocialName.trim(), url: newSocialUrl.trim() };
+      setCustomSocials([...customSocials, newSocial]);
+      message.success(`Соцсеть "${newSocialName}" добавлена`);
+      setNewSocialName('');
+      setNewSocialUrl('');
+      setShowAddSocial(false);
+    } catch (error) {
+      console.error('Ошибка добавления соцсети:', error);
+      message.error('Ошибка добавления соцсети');
+    }
   };
 
   const handleCancelSocial = () => {
