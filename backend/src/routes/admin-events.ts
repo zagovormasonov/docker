@@ -151,7 +151,12 @@ router.put('/:id', authenticateToken, requireAdmin, [
   body('event_date').isISO8601().withMessage('Дата события должна быть в формате ISO 8601'),
   body('price').optional().trim(),
   body('registration_link').optional().isURL().withMessage('Ссылка на регистрацию должна быть валидным URL'),
-  body('cover_image').optional().isURL().withMessage('Обложка должна быть валидным URL'),
+  body('cover_image').optional().isString().withMessage('Обложка должна быть строкой').custom((value) => {
+    if (value && !value.startsWith('/uploads/')) {
+      throw new Error('Обложка должна быть путем к файлу в папке uploads');
+    }
+    return true;
+  }),
   body('is_published').optional().isBoolean().withMessage('Статус публикации должен быть boolean')
 ], async (req, res) => {
   try {
