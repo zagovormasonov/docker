@@ -234,23 +234,29 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
             speed={500}
             slidesToShow={Math.min(4, images.length)}
             slidesToScroll={1}
+            arrows={true}
+            prevArrow={<div className="custom-prev-arrow">‹</div>}
+            nextArrow={<div className="custom-next-arrow">›</div>}
             responsive={[
               {
                 breakpoint: 1200,
                 settings: {
                   slidesToShow: 3,
+                  arrows: true,
                 }
               },
               {
                 breakpoint: 768,
                 settings: {
                   slidesToShow: 2,
+                  arrows: true,
                 }
               },
               {
                 breakpoint: 480,
                 settings: {
                   slidesToShow: 1,
+                  arrows: true,
                 }
               }
             ]}

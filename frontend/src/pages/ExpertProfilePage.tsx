@@ -371,23 +371,25 @@ SoulSynergy - пространство совместного духовного
                       WhatsApp: {expert.whatsapp}
                     </Text>
                   )}
-                  {/* Кнопка добавления новой соцсети */}
-                  <Button 
-                    type="dashed" 
-                    icon={<PlusOutlined />}
-                    style={{ 
-                      marginTop: 8,
-                      borderStyle: 'dashed',
-                      borderColor: '#d9d9d9',
-                      color: '#8c8c8c'
-                    }}
-                    onClick={() => {
-                      // Здесь можно добавить модальное окно для добавления новой соцсети
-                      message.info('Функция добавления соцсетей в разработке');
-                    }}
-                  >
-                    Добавить соцсеть
-                  </Button>
+                  {/* Кнопка добавления новой соцсети - только для владельца профиля */}
+                  {user?.id === expert.id && (
+                    <Button 
+                      type="dashed" 
+                      icon={<PlusOutlined />}
+                      style={{ 
+                        marginTop: 8,
+                        borderStyle: 'dashed',
+                        borderColor: '#d9d9d9',
+                        color: '#8c8c8c'
+                      }}
+                      onClick={() => {
+                        // Здесь можно добавить модальное окно для добавления новой соцсети
+                        message.info('Функция добавления соцсетей в разработке');
+                      }}
+                    >
+                      Добавить соцсеть
+                    </Button>
+                  )}
                 </Space>
               </div>
             </>

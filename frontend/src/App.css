@@ -261,6 +261,45 @@ body {
   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
 }
 
+/* Стили для карусели галереи */
+.custom-prev-arrow,
+.custom-next-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d9d9d9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.custom-prev-arrow:hover,
+.custom-next-arrow:hover {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.custom-prev-arrow {
+  left: -20px;
+}
+
+.custom-next-arrow {
+  right: -20px;
+}
+
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
   .home-search-container {
@@ -271,5 +310,20 @@ body {
     height: 45px;
     font-size: 14px;
     padding: 0 16px;
+  }
+  
+  .custom-prev-arrow,
+  .custom-next-arrow {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+  
+  .custom-prev-arrow {
+    left: -15px;
+  }
+  
+  .custom-next-arrow {
+    right: -15px;
   }
 }
