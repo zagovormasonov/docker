@@ -47,6 +47,7 @@ interface Article {
   id: number;
   title: string;
   content: string;
+  cover_image?: string;
   is_published: boolean;
   author_name: string;
   author_email: string;
@@ -61,6 +62,7 @@ interface Event {
   description: string;
   location: string;
   event_date: string;
+  cover_image?: string;
   is_published: boolean;
   author_name: string;
   author_email: string;
