@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
 import pool from '../config/database';
 
 const router = Router();
 
 // Получить кастомные соцсети пользователя
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId;
     
     const result = await pool.query(
       'SELECT id, name, url, created_at FROM custom_socials WHERE user_id = $1 ORDER BY created_at DESC',
@@ -39,9 +39,9 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Добавить кастомную соцсеть
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId;
     const { name, url } = req.body;
     
     if (!name || !url) {
@@ -61,9 +61,9 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Обновить кастомную соцсеть
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId;
     const { id } = req.params;
     const { name, url } = req.body;
     
@@ -88,9 +88,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Удалить кастомную соцсеть
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId;
     const { id } = req.params;
     
     const result = await pool.query(
