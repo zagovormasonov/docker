@@ -38,6 +38,7 @@ interface Article {
   author_name: string;
   author_email: string;
   created_at: string;
+  updated_at: string;
   cover_image?: string;
 }
 
@@ -48,6 +49,7 @@ interface Event {
   author_name: string;
   author_email: string;
   created_at: string;
+  updated_at: string;
   cover_image?: string;
   event_date: string;
   event_type: string;
