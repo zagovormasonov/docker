@@ -16,10 +16,10 @@ const Layout = () => {
         <Space direction="vertical" size="small">
           <Text>SoulSynergy © 2025 — Синергия в единстве</Text>
           <Space size="large">
-            <Link to="/oferta" style={{ color: '#666', textDecoration: 'none' }}>
+            <Link to="/offer" style={{ color: '#666', textDecoration: 'none' }}>
               Публичная оферта
             </Link>
-            <Link to="/privacy-policy" style={{ color: '#666', textDecoration: 'none' }}>
+            <Link to="/privacy" style={{ color: '#666', textDecoration: 'none' }}>
               Политика конфиденциальности
             </Link>
           </Space>

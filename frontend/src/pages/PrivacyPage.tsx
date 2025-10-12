@@ -1,11 +1,22 @@
 import React from 'react';
-import { Typography, Card } from 'antd';
+import { Typography, Card, Button } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
 
 const PrivacyPage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="container" style={{ paddingTop: 24, paddingBottom: 48 }}>
+      <Button 
+        icon={<ArrowLeftOutlined />} 
+        onClick={() => navigate(-1)}
+        style={{ marginBottom: 16 }}
+      >
+        Назад
+      </Button>
       <Card>
         <Title level={1} style={{ textAlign: 'center', marginBottom: 32 }}>
           Политика конфиденциальности и обработки персональных данных
@@ -160,7 +171,7 @@ const PrivacyPage: React.FC = () => {
         <Paragraph>15.2. Администрация сайта вправе вносить изменения в настоящую Политику конфиденциальности без согласия Пользователя.</Paragraph>
         <Paragraph>15.3. Новая Политика конфиденциальности вступает в силу с момента её размещения на веб-сайте Платформы, если иное не предусмотрено новой редакцией Политики конфиденциальности.</Paragraph>
         <Paragraph>15.4. В данном документе будут отражены любые изменения политики обработки персональных данных Оператором. Политика действует бессрочно до замены ее новой версией.</Paragraph>
-        <Paragraph>15.5. Актуальная версия Политики в свободном доступе расположена в сети Интернет по адресу <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">https://soulsynergy.ru/privacy</a>.</Paragraph>
+        <Paragraph>15.5. Актуальная версия Политики в свободном доступе расположена в сети Интернет по адресу <a href="/privacy" target="_blank" rel="noopener noreferrer">https://soulsynergy.ru/privacy</a>.</Paragraph>
 
         <Paragraph style={{ marginTop: 32, textAlign: 'center', color: '#666' }}>
           <strong>Дата последнего обновления: 12.10.2025</strong>

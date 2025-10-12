@@ -80,8 +80,8 @@ function App() {
                 <Route path="my-articles" element={<ProtectedRoute><MyArticlesPage /></ProtectedRoute>} />
                 <Route path="moderation" element={<ProtectedRoute><ModerationPage /></ProtectedRoute>} />
                 <Route path="admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
-                <Route path="oferta" element={<OfertaPage />} />
-                <Route path="privacy-policy" element={<PrivacyPage />} />
+                <Route path="offer" element={<OfertaPage />} />
+                <Route path="privacy" element={<PrivacyPage />} />
               </Route>
             </Routes>
           </BrowserRouter>

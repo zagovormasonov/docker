@@ -1,11 +1,22 @@
 import React from 'react';
-import { Typography, Card } from 'antd';
+import { Typography, Card, Button } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
 
 const OfertaPage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="container" style={{ paddingTop: 24, paddingBottom: 48 }}>
+      <Button 
+        icon={<ArrowLeftOutlined />} 
+        onClick={() => navigate(-1)}
+        style={{ marginBottom: 16 }}
+      >
+        Назад
+      </Button>
       <Card>
         <Title level={1} style={{ textAlign: 'center', marginBottom: 32 }}>
           Публичная оферта
@@ -79,7 +90,7 @@ const OfertaPage: React.FC = () => {
         <Title level={2}>3. Обработка информации</Title>
         <Paragraph>
           Отношения по обработке персональных данных регулируются Политикой конфиденциальности по адресу: 
-          <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">https://soulsynergy.ru/privacy-policy</a>.
+          <a href="/privacy" target="_blank" rel="noopener noreferrer">https://soulsynergy.ru/privacy</a>.
         </Paragraph>
         <Paragraph>Согласие на обработку данных считается выраженным в момент акцепта настоящей Оферты.</Paragraph>
 
