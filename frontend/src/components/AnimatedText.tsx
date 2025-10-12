@@ -16,7 +16,8 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
   className,
   style 
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // Начинаем с рандомного индекса
+  const [currentIndex, setCurrentIndex] = useState(Math.floor(Math.random() * texts.length));
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
