@@ -220,6 +220,18 @@ export const initDatabase = async () => {
       console.log('⚠️ Ошибка удаления старых колонок:', error.message);
     }
 
+    // Таблица кастомных соцсетей
+    await query(`
+      CREATE TABLE IF NOT EXISTS custom_socials (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        url VARCHAR(500) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Индексы
     await query(`CREATE INDEX IF NOT EXISTS idx_reviews_expert ON reviews(expert_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_events_date ON events(event_date)`);
@@ -228,6 +240,7 @@ export const initDatabase = async () => {
     await query(`CREATE INDEX IF NOT EXISTS idx_events_organizer ON events(organizer_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_article_likes_article ON article_likes(article_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_article_favorites_user ON article_favorites(user_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_custom_socials_user ON custom_socials(user_id)`);
 
     // Вставляем тематики
     const topics = [

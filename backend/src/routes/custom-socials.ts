@@ -44,8 +44,14 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     const userId = req.userId;
     const { name, url } = req.body;
     
+    console.log('📝 Добавление кастомной соцсети:', { userId, name, url });
+    
     if (!name || !url) {
       return res.status(400).json({ error: 'Название и ссылка обязательны' });
+    }
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Пользователь не авторизован' });
     }
     
     const result = await pool.query(
@@ -53,10 +59,14 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       [userId, name, url]
     );
     
+    console.log('✅ Кастомная соцсеть добавлена:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Ошибка добавления кастомной соцсети:', error);
-    res.status(500).json({ error: 'Ошибка добавления кастомной соцсети' });
+    console.error('❌ Ошибка добавления кастомной соцсети:', error);
+    res.status(500).json({ 
+      error: 'Ошибка добавления кастомной соцсети',
+      details: error.message 
+    });
   }
 });
 
