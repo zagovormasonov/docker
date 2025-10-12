@@ -229,15 +229,20 @@ const AdminPanel: React.FC = () => {
     setEditModalVisible(true);
     
     // Инициализируем форму данными
-    editForm.setFieldsValue({
+    const formData: any = {
       title: item.title,
-      content: item.content || item.description,
-      is_published: item.is_published,
-      ...(type === 'event' && {
-        location: item.location,
-        event_date: item.event_date ? dayjs(item.event_date) : null
-      })
-    });
+      is_published: item.is_published
+    };
+    
+    if (type === 'article') {
+      formData.content = (item as Article).content;
+    } else {
+      formData.content = (item as Event).description;
+      formData.location = (item as Event).location;
+      formData.event_date = (item as Event).event_date ? dayjs((item as Event).event_date) : null;
+    }
+    
+    editForm.setFieldsValue(formData);
   };
 
   const articleColumns = [
