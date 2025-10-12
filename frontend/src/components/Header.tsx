@@ -382,9 +382,15 @@ const Header = () => {
                 )}
                 <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                   <Avatar
+                    size={48}
                     src={user.avatarUrl}
                     icon={!user.avatarUrl && <UserOutlined />}
-                    style={{ cursor: 'pointer', backgroundColor: '#6366f1' }}
+                    style={{ 
+                      cursor: 'pointer', 
+                      backgroundColor: '#6366f1',
+                      border: '3px solid #6366f1',
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+                    }}
                   />
                 </Dropdown>
               </>

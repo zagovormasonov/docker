@@ -26,7 +26,8 @@ import {
   HeartOutlined,
   FileTextOutlined,
   StarOutlined,
-  StarFilled
+  StarFilled,
+  PlusOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -221,7 +222,11 @@ const ExpertProfilePage = () => {
               size={120}
               src={expert.avatar_url}
               icon={!expert.avatar_url && <UserOutlined />}
-              style={{ backgroundColor: '#6366f1' }}
+              style={{ 
+                backgroundColor: '#6366f1',
+                border: '4px solid #6366f1',
+                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+              }}
             />
 
             <div style={{ flex: 1 }}>
@@ -319,6 +324,23 @@ const ExpertProfilePage = () => {
                       WhatsApp: {expert.whatsapp}
                     </Text>
                   )}
+                  {/* Кнопка добавления новой соцсети */}
+                  <Button 
+                    type="dashed" 
+                    icon={<PlusOutlined />}
+                    style={{ 
+                      marginTop: 8,
+                      borderStyle: 'dashed',
+                      borderColor: '#d9d9d9',
+                      color: '#8c8c8c'
+                    }}
+                    onClick={() => {
+                      // Здесь можно добавить модальное окно для добавления новой соцсети
+                      message.info('Функция добавления соцсетей в разработке');
+                    }}
+                  >
+                    Добавить соцсеть
+                  </Button>
                 </Space>
               </div>
             </>
@@ -330,7 +352,11 @@ const ExpertProfilePage = () => {
               <div>
                 <Title level={4}>Тематики</Title>
                 <Space wrap>
-                  {expert.topics.map((topic) => (
+                  {expert.topics
+                    .filter((topic, index, self) => 
+                      self.findIndex(t => t.id === topic.id) === index
+                    )
+                    .map((topic) => (
                     <Tag key={topic.id} color="purple" style={{ fontSize: 14, padding: '4px 12px' }}>
                       {topic.name}
                     </Tag>
