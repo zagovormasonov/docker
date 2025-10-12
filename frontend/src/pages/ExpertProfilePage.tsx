@@ -85,6 +85,7 @@ const ExpertProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [loadingArticles, setLoadingArticles] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [customSocials, setCustomSocials] = useState<Array<{name: string, url: string}>>([]);
 
   useEffect(() => {
     fetchExpert();
@@ -358,35 +359,51 @@ const ExpertProfilePage = () => {
 </body>
 </html>`;
 
-      // Отправляем данные на сервер для создания постоянной ссылки
-      const response = await api.post('/share/expert-profile', {
-        expertId: expert.id,
-        shareId: shareId,
-        content: sharePageContent
-      });
+      // Создаем blob с HTML содержимым
+      const blob = new Blob([sharePageContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
       
-      const shareUrl = `${window.location.origin}/share/${shareId}`;
+      // Открываем новую страницу
+      const newWindow = window.open(url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
       
-      if (navigator.share) {
-        navigator.share({
-          title: `Профиль эксперта ${expert.name}`,
-          text: `Посмотрите профиль эксперта ${expert.name} на SoulSynergy`,
-          url: shareUrl
-        }).catch((error) => {
-          console.log('Ошибка поделиться:', error);
-          // Fallback к копированию
-          navigator.clipboard.writeText(shareUrl).then(() => {
-            message.success('Ссылка скопирована в буфер обмена');
-          }).catch(() => {
-            message.error('Не удалось скопировать ссылку');
+      if (newWindow) {
+        message.success('Страница профиля открыта в новом окне');
+        
+        // Также предлагаем поделиться ссылкой на текущую страницу
+        const currentUrl = window.location.href;
+        const shareText = `🌟 ${expert.name}\n\n${expert.bio || 'Духовный наставник'}\n\n📍 ${expert.city || 'Город не указан'}\n\n🎯 Направления:\n${expert.topics?.map(topic => `• ${topic.name}`).join('\n') || 'Не указаны'}\n\n📞 Контакты:\n${expert.telegram_url ? `Telegram: ${expert.telegram_url}` : ''}\n${expert.whatsapp ? `WhatsApp: ${expert.whatsapp}` : ''}\n\n🌐 soulsynergy.ru\nSoulSynergy - пространство совместного духовного развития`;
+        
+        if (navigator.share) {
+          navigator.share({
+            title: `Профиль эксперта ${expert.name}`,
+            text: shareText,
+            url: currentUrl
+          }).catch((error) => {
+            console.log('Ошибка поделиться:', error);
+            // Fallback к копированию
+            navigator.clipboard.writeText(`${shareText}\n\nСсылка: ${currentUrl}`).then(() => {
+              message.success('Информация скопирована в буфер обмена');
+            }).catch(() => {
+              message.error('Не удалось скопировать информацию');
+            });
           });
-        });
+        } else {
+          // Fallback для браузеров без поддержки Web Share API
+          navigator.clipboard.writeText(`${shareText}\n\nСсылка: ${currentUrl}`).then(() => {
+            message.success('Информация скопирована в буфер обмена');
+          }).catch(() => {
+            message.error('Не удалось скопировать информацию');
+          });
+        }
       } else {
-        // Fallback для браузеров без поддержки Web Share API
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          message.success('Ссылка скопирована в буфер обмена');
+        // Fallback если не удалось открыть новое окно
+        const currentUrl = window.location.href;
+        const shareText = `🌟 ${expert.name}\n\n${expert.bio || 'Духовный наставник'}\n\n📍 ${expert.city || 'Город не указан'}\n\n🎯 Направления:\n${expert.topics?.map(topic => `• ${topic.name}`).join('\n') || 'Не указаны'}\n\n📞 Контакты:\n${expert.telegram_url ? `Telegram: ${expert.telegram_url}` : ''}\n${expert.whatsapp ? `WhatsApp: ${expert.whatsapp}` : ''}\n\n🌐 soulsynergy.ru\nSoulSynergy - пространство совместного духовного развития`;
+        
+        navigator.clipboard.writeText(`${shareText}\n\nСсылка: ${currentUrl}`).then(() => {
+          message.success('Информация скопирована в буфер обмена');
         }).catch(() => {
-          message.error('Не удалось скопировать ссылку');
+          message.error('Не удалось скопировать информацию');
         });
       }
     } catch (error) {
@@ -533,6 +550,24 @@ const ExpertProfilePage = () => {
                       WhatsApp: {expert.whatsapp}
                     </Text>
                   )}
+                  
+                  {/* Отображение кастомных соцсетей */}
+                  {customSocials.map((social, index) => (
+                    <div key={index} style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8,
+                      padding: 8,
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 6,
+                      marginTop: 8
+                    }}>
+                      <Text style={{ fontSize: 16, fontWeight: 500 }}>{social.name}:</Text>
+                      <a href={social.url} target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1' }}>
+                        {social.url}
+                      </a>
+                    </div>
+                  ))}
                   {/* Кнопка добавления новой соцсети - только для владельца профиля */}
                   {user?.id === expert.id && (
                     <Button 
