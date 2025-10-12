@@ -272,7 +272,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
                       <Image
                         src={image.image_url}
                         alt={image.image_name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{ width: '100%', height: 200, objectFit: 'cover' }}
                         preview={false}
                         onClick={() => handlePreview(image)}
                       />
@@ -322,11 +322,11 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
                 <Card
                   hoverable
                   cover={
-                    <div style={{ height: 150, overflow: 'hidden' }}>
+                    <div style={{ height: 200, overflow: 'hidden' }}>
                       <Image
                         src={image.image_url}
                         alt={image.image_name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{ width: '100%', height: 200, objectFit: 'cover' }}
                         preview={false}
                         onClick={() => handlePreview(image)}
                       />

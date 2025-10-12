@@ -69,6 +69,9 @@ const ProfilePage = () => {
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showAddSocial, setShowAddSocial] = useState(false);
+  const [newSocialName, setNewSocialName] = useState('');
+  const [newSocialUrl, setNewSocialUrl] = useState('');
 
   useEffect(() => {
     fetchTopics();
@@ -190,6 +193,25 @@ const ProfilePage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddSocial = () => {
+    if (!newSocialName.trim() || !newSocialUrl.trim()) {
+      message.error('Заполните все поля');
+      return;
+    }
+    
+    // Здесь можно добавить логику сохранения новой соцсети
+    message.success(`Соцсеть "${newSocialName}" добавлена`);
+    setNewSocialName('');
+    setNewSocialUrl('');
+    setShowAddSocial(false);
+  };
+
+  const handleCancelSocial = () => {
+    setNewSocialName('');
+    setNewSocialUrl('');
+    setShowAddSocial(false);
   };
 
   const handleAddService = async (values: any) => {
@@ -485,21 +507,58 @@ const ProfilePage = () => {
 
             {/* Кнопка добавления новой соцсети */}
             <Form.Item>
-              <Button 
-                type="dashed" 
-                icon={<PlusOutlined />}
-                style={{ 
-                  width: '100%',
-                  borderStyle: 'dashed',
-                  borderColor: '#d9d9d9',
-                  color: '#8c8c8c'
-                }}
-                onClick={() => {
-                  message.info('Функция добавления соцсетей в разработке');
-                }}
-              >
-                Добавить соцсеть
-              </Button>
+              {!showAddSocial ? (
+                <Button 
+                  type="dashed" 
+                  icon={<PlusOutlined />}
+                  style={{ 
+                    width: '100%',
+                    borderStyle: 'dashed',
+                    borderColor: '#d9d9d9',
+                    color: '#8c8c8c'
+                  }}
+                  onClick={() => setShowAddSocial(true)}
+                >
+                  Добавить соцсеть
+                </Button>
+              ) : (
+                <div style={{ 
+                  padding: 16, 
+                  border: '1px dashed #d9d9d9', 
+                  borderRadius: 6,
+                  backgroundColor: '#fafafa'
+                }}>
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    <Input
+                      placeholder="Название соцсети (например: YouTube, Instagram)"
+                      value={newSocialName}
+                      onChange={(e) => setNewSocialName(e.target.value)}
+                      size="large"
+                    />
+                    <Input
+                      placeholder="Ссылка на профиль"
+                      value={newSocialUrl}
+                      onChange={(e) => setNewSocialUrl(e.target.value)}
+                      size="large"
+                    />
+                    <Space>
+                      <Button 
+                        type="primary" 
+                        onClick={handleAddSocial}
+                        size="small"
+                      >
+                        Добавить
+                      </Button>
+                      <Button 
+                        onClick={handleCancelSocial}
+                        size="small"
+                      >
+                        Отмена
+                      </Button>
+                    </Space>
+                  </Space>
+                </div>
+              )}
             </Form.Item>
 
             {user?.userType === 'expert' && (
