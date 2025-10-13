@@ -233,27 +233,13 @@ const HomePage = () => {
               <Card
                 hoverable
                 cover={
-                  article.cover_image ? (
-                    <div style={{ height: 200, overflow: 'hidden' }}>
-                      <img
-                        src={article.cover_image}
-                        alt={article.title}
-                        style={{ width: '100%', height: 200, objectFit: 'cover' }}
-                      />
-                    </div>
-                  ) : (
-                    <div style={{
-                      height: 200,
-                      background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: 48
-                    }}>
-                      ✨
-                    </div>
-                  )
+                  <div style={{ height: 200, overflow: 'hidden' }}>
+                    <img
+                      src={article.cover_image || '/art.jpg'}
+                      alt={article.title}
+                      style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                    />
+                  </div>
                 }
                 onClick={() => navigate(`/articles/${article.id}`)}
                 style={{ height: '100%' }}
@@ -280,7 +266,7 @@ const HomePage = () => {
                         >
                           <Avatar 
                             size="small" 
-                            src={article.author_avatar}
+                            src={article.author_avatar || '/emp.jpg'}
                             icon={!article.author_avatar && <UserOutlined />}
                           />
                           <Text type="secondary" style={{ transition: 'color 0.3s' }} className="author-link">

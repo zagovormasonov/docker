@@ -237,7 +237,7 @@ const ExpertsPage = () => {
                     avatar={
                       <Avatar
                         size={64}
-                        src={expert.avatar_url}
+                        src={expert.avatar_url || '/emp.jpg'}
                         icon={!expert.avatar_url && <UserOutlined />}
                         style={{ backgroundColor: '#6366f1' }}
                       />

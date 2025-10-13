@@ -351,7 +351,7 @@ const ProfilePage = () => {
           <div style={{ textAlign: 'center' }}>
             <Avatar
               size={100}
-              src={user?.avatarUrl}
+              src={user?.avatarUrl || '/emp.jpg'}
               icon={!user?.avatarUrl && <UserOutlined />}
               style={{ backgroundColor: '#6366f1', marginBottom: 16 }}
             />

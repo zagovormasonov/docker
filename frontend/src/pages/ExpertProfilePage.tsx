@@ -463,7 +463,7 @@ const ExpertProfilePage = () => {
           <Space align="start" size="large">
             <Avatar
               size={120}
-              src={expert.avatar_url}
+              src={expert.avatar_url || '/emp.jpg'}
               icon={!expert.avatar_url && <UserOutlined />}
               style={{ 
                 backgroundColor: '#6366f1',
@@ -704,27 +704,13 @@ const ExpertProfilePage = () => {
                       hoverable
                       onClick={() => navigate(`/articles/${article.id}`)}
                       cover={
-                        article.cover_image ? (
-                          <div style={{ height: 200, overflow: 'hidden' }}>
-                            <img
-                              src={article.cover_image}
-                              alt={article.title}
-                              style={{ width: '100%', height: 200, objectFit: 'cover' }}
-                            />
-                          </div>
-                        ) : (
-                          <div style={{
-                            height: 200,
-                            background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: 48
-                          }}>
-                            ✨
-                          </div>
-                        )
+                        <div style={{ height: 200, overflow: 'hidden' }}>
+                          <img
+                            src={article.cover_image || '/art.jpg'}
+                            alt={article.title}
+                            style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                          />
+                        </div>
                       }
                     >
                       <Card.Meta

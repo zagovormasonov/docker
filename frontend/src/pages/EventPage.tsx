@@ -132,15 +132,13 @@ const EventPage = () => {
     <div style={{ padding: '24px', maxWidth: 1000, margin: '0 auto' }}>
       <Card>
         {/* Обложка */}
-        {event.cover_image && (
-          <div style={{ marginBottom: 24 }}>
-            <Image
-              src={event.cover_image}
-              alt={event.title}
-              style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 8 }}
-            />
-          </div>
-        )}
+        <div style={{ marginBottom: 24 }}>
+          <Image
+            src={event.cover_image || '/eve.jpg'}
+            alt={event.title}
+            style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 8 }}
+          />
+        </div>
 
         {/* Заголовок и действия */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>

@@ -249,77 +249,38 @@ const EventsPage = () => {
               <Card
                 hoverable
                 cover={
-                  event.cover_image ? (
-                    <div style={{ height: 200, overflow: 'hidden', position: 'relative' }}>
-                      <img
-                        src={event.cover_image}
-                        alt={event.title}
-                        style={{ width: '100%', height: 200, objectFit: 'cover' }}
-                      />
-                      <Button
-                        type="text"
-                        icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          toggleFavorite(event.id, e);
-                        }}
-                        style={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          zIndex: 10,
-                          color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
-                          border: 'none',
-                          background: 'rgba(255, 255, 255, 0.9)',
-                          borderRadius: '50%',
-                          width: 32,
-                          height: 32,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div style={{
-                      height: 200,
-                      background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 64,
-                      position: 'relative'
-                    }}>
-                      🎉
-                      <Button
-                        type="text"
-                        icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          toggleFavorite(event.id, e);
-                        }}
-                        style={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          zIndex: 10,
-                          color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
-                          border: 'none',
-                          background: 'rgba(255, 255, 255, 0.9)',
-                          borderRadius: '50%',
-                          width: 32,
-                          height: 32,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                    </div>
-                  )
+                  <div style={{ height: 200, overflow: 'hidden', position: 'relative' }}>
+                    <img
+                      src={event.cover_image || '/eve.jpg'}
+                      alt={event.title}
+                      style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                    />
+                    <Button
+                      type="text"
+                      icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleFavorite(event.id, e);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        zIndex: 10,
+                        color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
+                        border: 'none',
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        borderRadius: '50%',
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                  </div>
                 }
                 onClick={() => navigate(`/events/${event.id}`)}
               >

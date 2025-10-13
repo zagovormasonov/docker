@@ -383,7 +383,7 @@ const Header = () => {
                 <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                   <Avatar
                     size={48}
-                    src={user.avatarUrl}
+                    src={user.avatarUrl || '/emp.jpg'}
                     icon={!user.avatarUrl && <UserOutlined />}
                     style={{ 
                       cursor: 'pointer', 
