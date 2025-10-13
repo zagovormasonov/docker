@@ -70,7 +70,30 @@ CREATE TABLE IF NOT EXISTS custom_socials (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 9. Индексы для оптимизации
+-- 9. Очистка дублирующихся тематик
+-- Удаляем дублирующиеся тематики, которые были указаны пользователем
+DELETE FROM topics WHERE name IN (
+    'Гвоздестояние, Садху',
+    'Кинезиология, PDTR-терапия', 
+    'Расстановки, системные расстановки',
+    'Тантра',
+    'Хьюман дизайн',
+    'Хьюман Дизайн',
+    'Гвоздестояние',
+    'Кинезиология', 
+    'Расстановки'
+);
+
+-- Удаляем возможные дубликаты с разным написанием
+DELETE FROM topics WHERE LOWER(TRIM(name)) IN (
+    'гвоздестояние',
+    'кинезиология', 
+    'расстановки',
+    'тантра',
+    'хьюман дизайн'
+);
+
+-- 10. Индексы для оптимизации
 CREATE INDEX IF NOT EXISTS idx_reviews_expert ON reviews(expert_id);
 CREATE INDEX IF NOT EXISTS idx_events_author ON events(author_id);
 CREATE INDEX IF NOT EXISTS idx_events_city ON events(city);

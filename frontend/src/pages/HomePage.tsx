@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input } from 'antd';
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
+import { Gem, ClockPlus } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import AnimatedText from '../components/AnimatedText';
@@ -178,7 +179,7 @@ const HomePage = () => {
               key: 'new', 
               label: (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <img src="/new.png" alt="Новые" style={{ width: 40, height: 40 }} />
+                  <ClockPlus size={24} color="#6366f1" />
                   Новые статьи
                 </span>
               )
@@ -187,7 +188,7 @@ const HomePage = () => {
               key: 'popular', 
               label: (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <img src="/pop.png" alt="Популярные" style={{ width: 40, height: 40 }} />
+                  <Gem size={24} color="#6366f1" />
                   Популярные
                 </span>
               )
