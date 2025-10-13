@@ -26,6 +26,7 @@ import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
+import './ArticlePage.css';
 
 dayjs.locale('ru');
 
@@ -144,20 +145,18 @@ const ArticlePage = () => {
       </div>
 
       <Card>
-        {article.cover_image && (
-          <div style={{ marginBottom: 24, borderRadius: 8, overflow: 'hidden' }}>
-            <img
-              src={article.cover_image}
-              alt={article.title}
-              style={{
-                width: '100%',
-                height: 400,
-                objectFit: 'cover',
-                display: 'block'
-              }}
-            />
-          </div>
-        )}
+        <div style={{ marginBottom: 24, borderRadius: 8, overflow: 'hidden' }}>
+          <img
+            src={article.cover_image || '/art.jpg'}
+            alt={article.title}
+            style={{
+              width: '100%',
+              height: 400,
+              objectFit: 'cover',
+              display: 'block'
+            }}
+          />
+        </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <Title level={1} style={{ margin: 0, flex: 1 }}>
@@ -213,7 +212,7 @@ const ArticlePage = () => {
             onClick={() => navigate(`/experts/${article.author_id}`)}
           >
             <Avatar
-              src={article.author_avatar}
+              src={article.author_avatar || '/emp.jpg'}
               icon={!article.author_avatar && <UserOutlined />}
               size={56}
             />
@@ -251,7 +250,10 @@ const ArticlePage = () => {
           style={{ 
             fontSize: 16, 
             lineHeight: 1.8,
-            color: '#1d1d1f'
+            color: '#1d1d1f',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            maxWidth: '100%'
           }}
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
