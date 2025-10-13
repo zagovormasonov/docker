@@ -119,8 +119,8 @@ router.put('/:id', authenticateToken, requireAdmin, [
   body('title').trim().isLength({ min: 5 }).withMessage('Заголовок должен содержать минимум 5 символов'),
   body('content').trim().isLength({ min: 50 }).withMessage('Содержимое должно содержать минимум 50 символов'),
   body('is_published').isBoolean().withMessage('Статус публикации должен быть boolean'),
-  body('cover_image').optional().isString().withMessage('Обложка должна быть строкой').custom((value) => {
-    if (value && !value.startsWith('/uploads/')) {
+  body('cover_image').optional().custom((value) => {
+    if (value !== null && value !== undefined && value !== '' && !value.startsWith('/uploads/')) {
       throw new Error('Обложка должна быть путем к файлу в папке uploads');
     }
     return true;
