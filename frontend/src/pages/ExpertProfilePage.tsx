@@ -460,7 +460,8 @@ const ExpertProfilePage = () => {
         </div>
         
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Space align="start" size="large">
+          {/* Аватар и основная информация */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
             <Avatar
               size={120}
               src={expert.avatar_url || '/emp.jpg'}
@@ -471,8 +472,8 @@ const ExpertProfilePage = () => {
                 boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
               }}
             />
-
-            <div style={{ flex: 1 }}>
+            
+            <div style={{ textAlign: 'center', width: '100%' }}>
               <Title level={2} style={{ marginBottom: 8 }}>{expert.name}</Title>
               
               {expert.city && (
@@ -481,41 +482,46 @@ const ExpertProfilePage = () => {
                   <Text type="secondary">{expert.city}</Text>
                 </Space>
               )}
-
-              {expert.bio && (
-                <Paragraph style={{ fontSize: 16, color: '#86868b', marginBottom: 16 }}>
-                  {expert.bio}
-                </Paragraph>
-              )}
-
-              {/* Показываем кнопки только если это не собственный профиль */}
-              {user?.id !== expert.id && (
-                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                  <Button
-                    type="primary"
-                    size="large"
-                    icon={<MessageOutlined />}
-                    onClick={handleContactExpert}
-                    style={{ width: '100%' }}
-                  >
-                    Связаться с экспертом
-                  </Button>
-                  <Button
-                    size="large"
-                    icon={isFavorited ? <StarFilled /> : <StarOutlined />}
-                    onClick={toggleFavorite}
-                    style={{
-                      color: isFavorited ? '#faad14' : '#8c8c8c',
-                      borderColor: isFavorited ? '#faad14' : '#d9d9d9',
-                      width: '100%'
-                    }}
-                  >
-                    {isFavorited ? 'В избранном' : 'Добавить в избранное'}
-                  </Button>
-                </Space>
-              )}
             </div>
-          </Space>
+          </div>
+
+          {/* Описание эксперта */}
+          {expert.bio && (
+            <div style={{ width: '100%' }}>
+              <Paragraph style={{ fontSize: 16, color: '#86868b', marginBottom: 16, textAlign: 'center' }}>
+                {expert.bio}
+              </Paragraph>
+            </div>
+          )}
+
+          {/* Кнопки действий */}
+          {user?.id !== expert.id && (
+            <div style={{ width: '100%' }}>
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<MessageOutlined />}
+                  onClick={handleContactExpert}
+                  style={{ width: '100%' }}
+                >
+                  Связаться с экспертом
+                </Button>
+                <Button
+                  size="large"
+                  icon={isFavorited ? <StarFilled /> : <StarOutlined />}
+                  onClick={toggleFavorite}
+                  style={{
+                    color: isFavorited ? '#faad14' : '#8c8c8c',
+                    borderColor: isFavorited ? '#faad14' : '#d9d9d9',
+                    width: '100%'
+                  }}
+                >
+                  {isFavorited ? 'В избранном' : 'Добавить в избранное'}
+                </Button>
+              </Space>
+            </div>
+          )}
 
           {/* Типы консультаций */}
           {expert.consultation_types && (() => {
