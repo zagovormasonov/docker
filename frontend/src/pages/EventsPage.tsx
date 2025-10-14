@@ -199,15 +199,16 @@ const EventsPage = () => {
     <div style={{ padding: '24px', maxWidth: 1400, margin: '0 auto' }}>
       <div style={{
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        flexDirection: 'column',
+        gap: 16,
         marginBottom: 24
       }}>
         <Title level={2} style={{ margin: 0 }}>События</Title>
-        <Space>
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Button
             icon={<FilterOutlined />}
             onClick={() => setFilterModalVisible(true)}
+            style={{ width: '100%' }}
           >
             Фильтры
           </Button>
@@ -216,6 +217,7 @@ const EventsPage = () => {
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => navigate('/events/create')}
+              style={{ width: '100%' }}
             >
               Создать событие
             </Button>

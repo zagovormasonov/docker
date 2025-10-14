@@ -490,12 +490,13 @@ const ExpertProfilePage = () => {
 
               {/* Показываем кнопки только если это не собственный профиль */}
               {user?.id !== expert.id && (
-                <Space>
+                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                   <Button
                     type="primary"
                     size="large"
                     icon={<MessageOutlined />}
                     onClick={handleContactExpert}
+                    style={{ width: '100%' }}
                   >
                     Связаться с экспертом
                   </Button>
@@ -505,7 +506,8 @@ const ExpertProfilePage = () => {
                     onClick={toggleFavorite}
                     style={{
                       color: isFavorited ? '#faad14' : '#8c8c8c',
-                      borderColor: isFavorited ? '#faad14' : '#d9d9d9'
+                      borderColor: isFavorited ? '#faad14' : '#d9d9d9',
+                      width: '100%'
                     }}
                   >
                     {isFavorited ? 'В избранном' : 'Добавить в избранное'}

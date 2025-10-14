@@ -158,22 +158,21 @@ const ArticlePage = () => {
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-          <Title level={1} style={{ margin: 0, flex: 1 }}>
+        <div style={{ marginBottom: 24 }}>
+          <Title level={1} style={{ margin: 0, marginBottom: 16 }}>
             {article.title}
           </Title>
           
-          <Space>
-            {isAuthor && (
-              <Button
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={() => navigate(`/edit-article/${article.id}`)}
-              >
-                Редактировать
-              </Button>
-            )}
-          </Space>
+          {isAuthor && (
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => navigate(`/edit-article/${article.id}`)}
+              style={{ marginBottom: 16 }}
+            >
+              Редактировать
+            </Button>
+          )}
         </div>
 
         <Space size="middle" style={{ marginBottom: 24 }}>
@@ -194,14 +193,16 @@ const ArticlePage = () => {
         </Space>
 
         <Tooltip title="Перейти в профиль автора">
-          <Space
+          <div
             style={{ 
               marginBottom: 24, 
               cursor: 'pointer',
               padding: '12px',
               borderRadius: 8,
               transition: 'all 0.3s',
-              display: 'inline-flex'
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#f5f5f5';
@@ -211,12 +212,12 @@ const ArticlePage = () => {
             }}
             onClick={() => navigate(`/experts/${article.author_id}`)}
           >
-            <Avatar
-              src={article.author_avatar || '/emp.jpg'}
-              icon={!article.author_avatar && <UserOutlined />}
-              size={56}
-            />
-            <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Avatar
+                src={article.author_avatar || '/emp.jpg'}
+                icon={!article.author_avatar && <UserOutlined />}
+                size={56}
+              />
               <div>
                 <Text strong style={{ fontSize: 16 }}>
                   {article.author_name}
@@ -225,22 +226,22 @@ const ArticlePage = () => {
                   Автор
                 </Text>
               </div>
-              <Space size={4} split="•" style={{ marginTop: 4 }}>
-                <Space size={4}>
-                  <ClockCircleOutlined />
-                  <Text type="secondary" style={{ fontSize: 13 }}>
-                    {dayjs(article.created_at).format('DD MMMM YYYY')}
-                  </Text>
-                </Space>
-                <Space size={4}>
-                  <EyeOutlined />
-                  <Text type="secondary" style={{ fontSize: 13 }}>
-                    {article.views} просмотров
-                  </Text>
-                </Space>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <Space size={4}>
+                <ClockCircleOutlined />
+                <Text type="secondary" style={{ fontSize: 13 }}>
+                  {dayjs(article.created_at).format('DD MMMM YYYY')}
+                </Text>
+              </Space>
+              <Space size={4}>
+                <EyeOutlined />
+                <Text type="secondary" style={{ fontSize: 13 }}>
+                  {article.views} просмотров
+                </Text>
               </Space>
             </div>
-          </Space>
+          </div>
         </Tooltip>
 
         <Divider />
