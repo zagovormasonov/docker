@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Typography, Radio, Modal } from 'antd';
+import { Form, Input, Button, Card, message, Typography, Radio, Modal, Checkbox } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import emailjs from '@emailjs/browser';
@@ -9,6 +9,7 @@ const { Title, Text } = Typography;
 
 const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -153,10 +154,29 @@ const RegisterPage = () => {
           </Form.Item>
 
           <Form.Item>
+            <Checkbox
+              checked={consentChecked}
+              onChange={(e) => setConsentChecked(e.target.checked)}
+            >
+              <Text>
+                Регистрируясь я соглашаюсь с{' '}
+                <Link to="/offer" target="_blank" style={{ color: '#6366f1' }}>
+                  публичной офертой
+                </Link>
+                {' '}и{' '}
+                <Link to="/privacy" target="_blank" style={{ color: '#6366f1' }}>
+                  политикой конфиденциальности
+                </Link>
+              </Text>
+            </Checkbox>
+          </Form.Item>
+
+          <Form.Item>
             <Button
               type="primary"
               htmlType="submit"
               loading={loading}
+              disabled={!consentChecked}
               block
               style={{ height: 48 }}
             >
