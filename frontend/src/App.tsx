@@ -25,6 +25,7 @@ import ModerationPage from './pages/ModerationPage';
 import AdminPanel from './pages/AdminPanel';
 import OfertaPage from './pages/OfertaPage';
 import PrivacyPage from './pages/PrivacyPage';
+import UserAgreementPage from './pages/UserAgreementPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -82,6 +83,7 @@ function App() {
                 <Route path="admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                 <Route path="offer" element={<OfertaPage />} />
                 <Route path="privacy" element={<PrivacyPage />} />
+                <Route path="user-agreement" element={<UserAgreementPage />} />
               </Route>
             </Routes>
           </BrowserRouter>

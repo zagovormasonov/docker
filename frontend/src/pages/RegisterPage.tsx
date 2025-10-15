@@ -163,6 +163,10 @@ const RegisterPage = () => {
                 <Link to="/offer" target="_blank" style={{ color: '#6366f1' }}>
                   публичной офертой
                 </Link>
+                {', '}
+                <Link to="/user-agreement" target="_blank" style={{ color: '#6366f1' }}>
+                  пользовательским соглашением
+                </Link>
                 {' '}и{' '}
                 <Link to="/privacy" target="_blank" style={{ color: '#6366f1' }}>
                   политикой конфиденциальности

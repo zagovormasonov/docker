@@ -22,6 +22,9 @@ const Layout = () => {
             <Link to="/privacy" style={{ color: '#666', textDecoration: 'none' }}>
               Политика конфиденциальности
             </Link>
+            <Link to="/user-agreement" style={{ color: '#666', textDecoration: 'none' }}>
+              Пользовательское соглашение
+            </Link>
           </Space>
         </Space>
       </Footer>
