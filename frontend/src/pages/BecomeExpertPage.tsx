@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, Button, Typography, Space, Radio, message, Modal } from 'antd';
 import { ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,9 +18,30 @@ interface PaymentPlan {
 
 const BecomeExpertPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { user, updateUser, register } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string>('free');
   const [loading, setLoading] = useState(false);
+  const [registrationData, setRegistrationData] = useState<any>(null);
+
+  useEffect(() => {
+    // Проверяем, пришли ли мы с регистрации
+    const fromRegistration = searchParams.get('from') === 'registration';
+    const planFromUrl = searchParams.get('plan');
+    
+    if (fromRegistration) {
+      // Загружаем данные регистрации из localStorage
+      const savedData = localStorage.getItem('registrationData');
+      if (savedData) {
+        setRegistrationData(JSON.parse(savedData));
+      }
+      
+      // Устанавливаем предвыбранный план
+      if (planFromUrl === 'yearly') {
+        setSelectedPlan('yearly');
+      }
+    }
+  }, [searchParams]);
 
   const paymentPlans: PaymentPlan[] = [
     {
@@ -52,30 +73,53 @@ const BecomeExpertPage: React.FC = () => {
       // Бесплатное становление экспертом
       setLoading(true);
       try {
-        const response = await fetch('/api/users/become-expert', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
+        // Если есть данные регистрации, сначала регистрируем пользователя
+        if (registrationData) {
+          const result = await register(
+            registrationData.email, 
+            registrationData.password, 
+            registrationData.name, 
+            'expert'
+          );
+          
+          // Очищаем данные регистрации
+          localStorage.removeItem('registrationData');
+          
           Modal.success({
-            title: 'Поздравляем!',
-            content: 'Теперь вы эксперт! Обновите страницу для применения изменений.',
+            title: 'Регистрация и активация эксперта успешны!',
+            content: 'Теперь вы зарегистрированы как эксперт. Проверьте email для подтверждения аккаунта.',
             onOk: () => {
-              updateUser({ ...user, userType: 'expert' });
+              updateUser({ ...result.user, userType: 'expert' });
               navigate('/profile');
             }
           });
         } else {
-          const error = await response.json();
-          message.error(error.error || 'Ошибка становления экспертом');
+          // Обычное становление экспертом для уже зарегистрированного пользователя
+          const response = await fetch('/api/users/become-expert', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            Modal.success({
+              title: 'Поздравляем!',
+              content: 'Теперь вы эксперт! Обновите страницу для применения изменений.',
+              onOk: () => {
+                updateUser({ ...user, userType: 'expert' });
+                navigate('/profile');
+              }
+            });
+          } else {
+            const error = await response.json();
+            message.error(error.error || 'Ошибка становления экспертом');
+          }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Ошибка:', error);
-        message.error('Ошибка соединения с сервером');
+        message.error(error.response?.data?.error || 'Ошибка соединения с сервером');
       } finally {
         setLoading(false);
       }
@@ -86,6 +130,19 @@ const BecomeExpertPage: React.FC = () => {
 
       setLoading(true);
       try {
+        // Если есть данные регистрации, сначала регистрируем пользователя
+        if (registrationData) {
+          const result = await register(
+            registrationData.email, 
+            registrationData.password, 
+            registrationData.name, 
+            'expert'
+          );
+          
+          // Очищаем данные регистрации
+          localStorage.removeItem('registrationData');
+        }
+
         // Создаем платеж через Юкассу
         const response = await fetch('/api/payments/create', {
           method: 'POST',
@@ -134,8 +191,22 @@ const BecomeExpertPage: React.FC = () => {
 
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <Title level={1} style={{ textAlign: 'center', marginBottom: 32 }}>
-          Стать экспертом
+          {registrationData ? 'Завершите регистрацию эксперта' : 'Стать экспертом'}
         </Title>
+        
+        {registrationData && (
+          <Card style={{ marginBottom: 24, background: '#f6ffed', border: '1px solid #b7eb8f' }}>
+            <div style={{ textAlign: 'center' }}>
+              <Text style={{ color: '#52c41a', fontWeight: 600 }}>
+                Регистрация: {registrationData.name} ({registrationData.email})
+              </Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                После оплаты ваш аккаунт будет активирован как эксперт
+              </Text>
+            </div>
+          </Card>
+        )}
 
         <ExpertBenefitsCard showPricing={false} />
 
