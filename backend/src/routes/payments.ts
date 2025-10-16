@@ -82,7 +82,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       },
       confirmation: {
         type: 'redirect',
-        return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment-success`
+        return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment-success?payment_id=${paymentId}`
       },
       description: description,
       metadata: {

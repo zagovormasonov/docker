@@ -19,7 +19,7 @@ interface PaymentPlan {
 const BecomeExpertPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, updateUser, register } = useAuth();
+  const { user, updateUser, register, login } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string>('free');
   const [loading, setLoading] = useState(false);
   const [registrationData, setRegistrationData] = useState<any>(null);
@@ -85,11 +85,13 @@ const BecomeExpertPage: React.FC = () => {
           // Очищаем данные регистрации
           localStorage.removeItem('registrationData');
           
+          // Автоматически авторизуем пользователя
+          await login(registrationData.email, registrationData.password);
+          
           Modal.success({
             title: 'Регистрация и активация эксперта успешны!',
             content: 'Теперь вы зарегистрированы как эксперт. Проверьте email для подтверждения аккаунта.',
             onOk: () => {
-              updateUser({ ...result.user, userType: 'expert' });
               navigate('/profile');
             }
           });
@@ -138,6 +140,9 @@ const BecomeExpertPage: React.FC = () => {
             registrationData.name, 
             'expert'
           );
+          
+          // Автоматически авторизуем пользователя
+          await login(registrationData.email, registrationData.password);
           
           // Очищаем данные регистрации
           localStorage.removeItem('registrationData');
