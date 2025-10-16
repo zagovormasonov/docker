@@ -32,6 +32,7 @@ import adminEventsRoutes from './routes/admin-events';
 import notificationsRoutes from './routes/notifications';
 import galleryRoutes from './routes/gallery';
 import customSocialsRoutes from './routes/custom-socials';
+import paymentsRoutes from './routes/payments';
 
 dotenv.config();
 
@@ -83,6 +84,7 @@ app.use('/api/admin/events', adminEventsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/users/custom-socials', customSocialsRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // Socket.IO для чатов
 const userSockets = new Map<number, string>();

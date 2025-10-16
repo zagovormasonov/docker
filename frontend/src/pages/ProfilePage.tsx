@@ -27,6 +27,7 @@ import {
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
+import ExpertBenefitsCard from '../components/ExpertBenefitsCard';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -330,18 +331,8 @@ const ProfilePage = () => {
     return false; // Предотвращаем автоматическую загрузку
   };
 
-  const handleBecomeExpert = async () => {
-    try {
-      const response = await api.post('/users/become-expert');
-      message.success('Поздравляем! Теперь вы эксперт! Обновите страницу для применения изменений.');
-      // Обновляем локальный стейт
-      updateUser({ ...user, userType: 'expert' });
-      // Перезагружаем страницу для применения всех изменений
-      window.location.reload();
-    } catch (error: any) {
-      console.error('Ошибка становления экспертом:', error);
-      message.error(error.response?.data?.error || 'Ошибка становления экспертом');
-    }
+  const handleBecomeExpert = () => {
+    navigate('/become-expert');
   };
 
   return (
@@ -410,64 +401,7 @@ const ProfilePage = () => {
           {user?.userType === 'client' && (
             <>
               <Divider />
-              <Card 
-                style={{ 
-                  background: 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)',
-                  border: 'none',
-                  borderRadius: 16
-                }}
-              >
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <Title level={3} style={{ color: '#1d1d1f', marginBottom: 16 }}>
-                    🚀 Станьте экспертом прямо сейчас!
-                  </Title>
-                  <div style={{ marginBottom: 20 }}>
-                    <Text 
-                      style={{ 
-                        fontSize: 24, 
-                        textDecoration: 'line-through', 
-                        color: '#86868b',
-                        marginRight: 12
-                      }}
-                    >
-                      3499 ₽/мес
-                    </Text>
-                    <div 
-                      style={{ 
-                        display: 'inline-block',
-                        background: '#ff4d4f',
-                        color: 'white',
-                        padding: '4px 12px',
-                        borderRadius: 20,
-                        fontSize: 14,
-                        fontWeight: 600
-                      }}
-                    >
-                      СЕЙЧАС БЕСПЛАТНО!
-                    </div>
-                  </div>
-                  <Paragraph style={{ fontSize: 16, color: '#1d1d1f', marginBottom: 24 }}>
-                    Получите все права эксперта: создавайте статьи, добавляйте услуги, 
-                    общайтесь с клиентами и зарабатывайте на своей экспертизе!
-                  </Paragraph>
-                  <Button
-                    type="primary"
-                    size="large"
-                    onClick={handleBecomeExpert}
-                    style={{
-                      height: 48,
-                      fontSize: 16,
-                      fontWeight: 600,
-                      background: '#1d1d1f',
-                      border: 'none',
-                      borderRadius: 24,
-                      padding: '0 32px'
-                    }}
-                  >
-                    Стать экспертом
-                  </Button>
-                </div>
-              </Card>
+              <ExpertBenefitsCard />
             </>
           )}
 

@@ -26,6 +26,8 @@ import AdminPanel from './pages/AdminPanel';
 import OfertaPage from './pages/OfertaPage';
 import PrivacyPage from './pages/PrivacyPage';
 import UserAgreementPage from './pages/UserAgreementPage';
+import BecomeExpertPage from './pages/BecomeExpertPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -84,6 +86,8 @@ function App() {
                 <Route path="offer" element={<OfertaPage />} />
                 <Route path="privacy" element={<PrivacyPage />} />
                 <Route path="user-agreement" element={<UserAgreementPage />} />
+                <Route path="become-expert" element={<ProtectedRoute><BecomeExpertPage /></ProtectedRoute>} />
+                <Route path="payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
               </Route>
             </Routes>
           </BrowserRouter>
