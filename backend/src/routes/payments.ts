@@ -45,8 +45,19 @@ const YOOKASSA_API_URL = 'https://api.yookassa.ru/v3/payments';
 // Создание платежа
 router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    console.log('Создание платежа:', req.body);
     const { planId, amount, description } = req.body;
     const userId = req.userId;
+
+    // Проверяем обязательные поля
+    if (!planId || !amount || !description) {
+      return res.status(400).json({ error: 'Отсутствуют обязательные поля: planId, amount, description' });
+    }
+
+    // Проверяем конфигурацию Юкассы
+    if (YOOKASSA_SHOP_ID === 'YOUR_SHOP_ID' || YOOKASSA_SECRET_KEY === 'YOUR_SECRET_KEY') {
+      return res.status(500).json({ error: 'Не настроены данные Юкассы. Проверьте переменные окружения YOOKASSA_SHOP_ID и YOOKASSA_SECRET_KEY' });
+    }
 
     // Проверяем, что пользователь еще не эксперт
     const userResult = await query(
@@ -65,12 +76,21 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
     }
 
     // Создаем запись о платеже в базе данных
-    const paymentResult = await query(
-      `INSERT INTO payments (user_id, plan_id, amount, description, status, created_at) 
-       VALUES ($1, $2, $3, $4, 'pending', CURRENT_TIMESTAMP) 
-       RETURNING id`,
-      [userId, planId, amount, description]
-    );
+    let paymentResult;
+    try {
+      paymentResult = await query(
+        `INSERT INTO payments (user_id, plan_id, amount, description, status, created_at) 
+         VALUES ($1, $2, $3, $4, 'pending', CURRENT_TIMESTAMP) 
+         RETURNING id`,
+        [userId, planId, amount, description]
+      );
+    } catch (dbError) {
+      console.error('Ошибка создания записи платежа в БД:', dbError);
+      return res.status(500).json({ 
+        error: 'Ошибка создания записи платежа. Возможно, таблица payments не создана. Выполните SQL скрипт CREATE-PAYMENTS-TABLE.sql',
+        details: dbError.message 
+      });
+    }
 
     const paymentId = paymentResult.rows[0].id;
 
@@ -92,18 +112,32 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       }
     };
 
-    const yookassaResponse = await fetch(YOOKASSA_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64')}`,
-        'Content-Type': 'application/json',
-        'Idempotence-Key': paymentId.toString()
-      },
-      body: JSON.stringify(paymentData)
-    });
+    let yookassaResponse;
+    try {
+      yookassaResponse = await fetch(YOOKASSA_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64')}`,
+          'Content-Type': 'application/json',
+          'Idempotence-Key': paymentId.toString()
+        },
+        body: JSON.stringify(paymentData)
+      });
+    } catch (fetchError) {
+      console.error('Ошибка запроса к Юкассе:', fetchError);
+      return res.status(500).json({ 
+        error: 'Ошибка соединения с Юкассой',
+        details: fetchError.message 
+      });
+    }
 
     if (!yookassaResponse.ok) {
-      throw new Error('Ошибка создания платежа в Юкассе');
+      const errorText = await yookassaResponse.text();
+      console.error('Ошибка Юкассы:', yookassaResponse.status, errorText);
+      return res.status(500).json({ 
+        error: 'Ошибка создания платежа в Юкассе',
+        details: `Статус: ${yookassaResponse.status}, Ответ: ${errorText}`
+      });
     }
 
     const yookassaData = await yookassaResponse.json() as YooKassaPaymentResponse;
