@@ -2,6 +2,39 @@ import express from 'express';
 import { query } from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 
+// Типы для API Юкассы
+interface YooKassaPaymentResponse {
+  id: string;
+  status: string;
+  confirmation?: {
+    type: string;
+    confirmation_url?: string;
+  };
+  amount: {
+    value: string;
+    currency: string;
+  };
+  description: string;
+  metadata: {
+    payment_id: string;
+    user_id: string;
+    plan_id: string;
+  };
+}
+
+interface YooKassaWebhookEvent {
+  event: string;
+  object: {
+    id: string;
+    status: string;
+    metadata: {
+      payment_id: string;
+      user_id: string;
+      plan_id: string;
+    };
+  };
+}
+
 const router = express.Router();
 
 // Конфигурация Юкассы (замените на ваши данные)
@@ -73,7 +106,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       throw new Error('Ошибка создания платежа в Юкассе');
     }
 
-    const yookassaData = await yookassaResponse.json();
+    const yookassaData = await yookassaResponse.json() as YooKassaPaymentResponse;
 
     // Обновляем запись о платеже с ID от Юкассы
     await query(
@@ -96,7 +129,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
 // Webhook для обработки уведомлений от Юкассы
 router.post('/webhook', async (req, res) => {
   try {
-    const { event, object } = req.body;
+    const { event, object }: YooKassaWebhookEvent = req.body;
 
     if (event === 'payment.succeeded') {
       const { id: yookassaPaymentId, metadata } = object;
