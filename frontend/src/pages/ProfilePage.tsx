@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   Form,
@@ -61,6 +62,7 @@ const CONSULTATION_TYPES = [
 
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [cities, setCities] = useState<City[]>([]);
