@@ -28,6 +28,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import UserAgreementPage from './pages/UserAgreementPage';
 import BecomeExpertPage from './pages/BecomeExpertPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import ExpertLandingPage from './pages/ExpertLandingPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -59,6 +60,7 @@ function App() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/expert-landing" element={<ExpertLandingPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />

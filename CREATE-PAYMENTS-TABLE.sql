@@ -26,4 +26,3 @@ COMMENT ON COLUMN payments.status IS 'Статус платежа: pending, succ
 COMMENT ON COLUMN payments.yookassa_payment_id IS 'ID платежа в системе Юкассы';
 COMMENT ON COLUMN payments.created_at IS 'Дата создания записи';
 COMMENT ON COLUMN payments.updated_at IS 'Дата последнего обновления записи';
-

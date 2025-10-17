@@ -38,7 +38,7 @@ const RegisterPage = () => {
   };
 
   const onFinish = async (values: any) => {
-    // Если выбран тип "эксперт", переходим на страницу оплаты
+    // Если выбран тип "эксперт", переходим на лендинг эксперта
     if (values.userType === 'expert') {
       // Сохраняем данные формы в localStorage для последующего использования
       localStorage.setItem('registrationData', JSON.stringify({
@@ -48,8 +48,8 @@ const RegisterPage = () => {
         userType: values.userType
       }));
       
-      // Переходим на страницу оплаты с предвыбранным тарифом "годовой"
-      navigate('/become-expert?plan=yearly&from=registration');
+      // Переходим на лендинг эксперта
+      navigate('/expert-landing');
       return;
     }
 
@@ -157,87 +157,87 @@ const RegisterPage = () => {
 
           <Form.Item
             name="userType"
-            label="Тип аккаунта"
             rules={[{ required: true }]}
           >
             <Radio.Group 
               onChange={(e) => setSelectedUserType(e.target.value)}
+              style={{ width: '100%' }}
             >
-              <Radio.Button value="client" style={{ width: '48%', textAlign: 'center' }}>
-                Клиент
-              </Radio.Button>
-              <Radio.Button value="expert" style={{ width: '48%', textAlign: 'center', marginLeft: '4%' }}>
-                Эксперт
-              </Radio.Button>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                <Radio value="client" style={{ flex: 1 }}>
+                  <Card
+                    style={{
+                      height: '200px',
+                      border: selectedUserType === 'client' ? '2px solid #6366f1' : '1px solid #d9d9d9',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      padding: '20px',
+                      background: selectedUserType === 'client' ? '#f0f9ff' : '#fff'
+                    }}
+                  >
+                    <Title level={3} style={{ margin: '0 0 12px 0', color: '#1d1d1f' }}>
+                      Я - клиент
+                    </Title>
+                    <Text style={{ fontSize: '14px', color: '#666', lineHeight: '1.5' }}>
+                      Найдите лучших специалистов, получите ценные знания, откройте новые горизонты!
+                    </Text>
+                    <Text style={{ fontSize: '12px', color: '#999', marginTop: '12px' }}>
+                      Вы можете изменить тип аккаунта и стать экспертом позже
+                    </Text>
+                  </Card>
+                </Radio>
+                
+                <Radio value="expert" style={{ flex: 1 }}>
+                  <Card
+                    style={{
+                      height: '200px',
+                      border: selectedUserType === 'expert' ? '2px solid #6366f1' : '1px solid #d9d9d9',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      padding: '20px',
+                      background: selectedUserType === 'expert' ? '#f0f9ff' : '#fff'
+                    }}
+                  >
+                    <Title level={3} style={{ margin: '0 0 12px 0', color: '#1d1d1f' }}>
+                      Я - эксперт
+                    </Title>
+                    <Text style={{ fontSize: '14px', color: '#666', lineHeight: '1.5' }}>
+                      Монетизируйте свои знания, расширяйте аудиторию, станьте лидером мнений!
+                    </Text>
+                    <div style={{ marginTop: '12px' }}>
+                      <Text style={{ fontSize: '12px', color: '#999' }}>Пожизненный доступ</Text>
+                      <div style={{ marginTop: '4px' }}>
+                        <Text style={{ 
+                          textDecoration: 'line-through', 
+                          color: '#86868b',
+                          fontSize: '14px',
+                          marginRight: '8px'
+                        }}>
+                          3369 Р
+                        </Text>
+                        <Text style={{ 
+                          color: '#ff4d4f',
+                          fontSize: '16px',
+                          fontWeight: '600'
+                        }}>
+                          990 Руб.
+                        </Text>
+                      </div>
+                    </div>
+                  </Card>
+                </Radio>
+              </div>
             </Radio.Group>
           </Form.Item>
 
-          {/* Блок преимуществ эксперта */}
-          {selectedUserType === 'expert' && (
-            <Card 
-              style={{ 
-                background: 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)',
-                border: 'none',
-                borderRadius: 12,
-                marginBottom: 16
-              }}
-            >
-              <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                <Title level={4} style={{ color: '#1d1d1f', marginBottom: 12 }}>
-                  🚀 Преимущества эксперта
-                </Title>
-                
-                <div style={{ marginBottom: 16 }}>
-                  <Text 
-                    style={{ 
-                      fontSize: 20, 
-                      textDecoration: 'line-through', 
-                      color: '#86868b',
-                      marginRight: 12
-                    }}
-                  >
-                    3499 ₽/мес
-                  </Text>
-                  <div 
-                    style={{ 
-                      display: 'inline-block',
-                      background: '#ff4d4f',
-                      color: 'white',
-                      padding: '4px 12px',
-                      borderRadius: 20,
-                      fontSize: 12,
-                      fontWeight: 600
-                    }}
-                  >
-                    СЕЙЧАС 990 ₽/год!
-                  </div>
-                </div>
-                
-                <Space direction="vertical" size={8} style={{ width: '100%', marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                    <Text style={{ fontSize: 14, color: '#1d1d1f' }}>Персональный профиль в каталоге</Text>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                    <Text style={{ fontSize: 14, color: '#1d1d1f' }}>Публикация и продажа курсов</Text>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                    <Text style={{ fontSize: 14, color: '#1d1d1f' }}>Размещение мероприятий</Text>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                    <Text style={{ fontSize: 14, color: '#1d1d1f' }}>Прямая продажа услуг</Text>
-                  </div>
-                </Space>
-                
-                <Text style={{ fontSize: 12, color: '#666' }}>
-                  После регистрации вы перейдете на страницу оплаты
-                </Text>
-              </div>
-            </Card>
-          )}
 
           <Form.Item>
             <Checkbox
@@ -249,29 +249,46 @@ const RegisterPage = () => {
                 <Link to="/offer" target="_blank" style={{ color: '#6366f1' }}>
                   публичной офертой
                 </Link>
-                {', '}
+                {' '}и{' '}
                 <Link to="/user-agreement" target="_blank" style={{ color: '#6366f1' }}>
                   пользовательским соглашением
-                </Link>
-                {' '}и{' '}
-                <Link to="/privacy" target="_blank" style={{ color: '#6366f1' }}>
-                  политикой конфиденциальности
                 </Link>
               </Text>
             </Checkbox>
           </Form.Item>
 
           <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              disabled={!consentChecked}
-              block
-              style={{ height: 48 }}
-            >
-              {selectedUserType === 'expert' ? 'Перейти к оплате' : 'Зарегистрироваться'}
-            </Button>
+            {selectedUserType === 'expert' ? (
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <Button
+                  type="default"
+                  onClick={() => navigate('/expert-landing')}
+                  style={{ flex: 1, height: 48 }}
+                >
+                  Узнать о преимуществах Эксперта
+                </Button>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={loading}
+                  disabled={!consentChecked}
+                  style={{ flex: 1, height: 48 }}
+                >
+                  Продолжить регистрацию
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                disabled={!consentChecked}
+                block
+                style={{ height: 48 }}
+              >
+                Зарегистрироваться
+              </Button>
+            )}
           </Form.Item>
 
           <div style={{ textAlign: 'center' }}>
