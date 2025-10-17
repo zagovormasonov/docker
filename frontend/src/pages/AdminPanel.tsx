@@ -155,7 +155,7 @@ const AdminPanel: React.FC = () => {
   }
 
   // Проверяем, что данные загружены
-  if (loading || users.length === 0) {
+  if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Title level={2}>Загрузка...</Title>
@@ -166,39 +166,30 @@ const AdminPanel: React.FC = () => {
 
   const fetchArticles = async () => {
     try {
-      setLoading(true);
       const response = await axios.get('/admin/articles');
       setArticles(response.data.articles);
     } catch (error) {
       message.error('Ошибка загрузки статей');
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchEvents = async () => {
     try {
-      setLoading(true);
       const response = await axios.get('/admin/events');
       setEvents(response.data.events);
     } catch (error) {
       message.error('Ошибка загрузки событий');
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchUsers = async () => {
     try {
-      setLoading(true);
       const response = await axios.get('/admin/users');
       console.log('API Response:', response.data);
       setUsers(response.data.users || response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
       message.error('Ошибка загрузки пользователей');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -219,6 +210,7 @@ const AdminPanel: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setLoading(true);
         await Promise.all([
           fetchArticles(),
           fetchEvents(),
@@ -226,6 +218,8 @@ const AdminPanel: React.FC = () => {
         ]);
       } catch (error) {
         console.error('Error loading admin data:', error);
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -610,16 +604,6 @@ const AdminPanel: React.FC = () => {
   };
 
   const stats = getStats();
-
-  // Дополнительная проверка на случай, если данные еще не загружены
-  if (!users || !articles || !events) {
-    return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <Title level={2}>Загрузка...</Title>
-        <p>Инициализация административной панели...</p>
-      </div>
-    );
-  }
 
   return (
     <div style={{ padding: '24px' }}>
