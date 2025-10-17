@@ -233,7 +233,7 @@ const AdminPanel: React.FC = () => {
       console.log('Articles set successfully');
     } catch (error) {
       console.error('Error fetching articles:', error);
-      message.error('Ошибка загрузки статей');
+      console.error('Ошибка загрузки статей');
       setArticles([]);
     }
   };
@@ -250,7 +250,7 @@ const AdminPanel: React.FC = () => {
       console.log('Events set successfully');
     } catch (error) {
       console.error('Error fetching events:', error);
-      message.error('Ошибка загрузки событий');
+      console.error('Ошибка загрузки событий');
       setEvents([]);
     }
   };
@@ -267,7 +267,7 @@ const AdminPanel: React.FC = () => {
       console.log('Users set successfully');
     } catch (error) {
       console.error('Error fetching users:', error);
-      message.error('Ошибка загрузки пользователей');
+      console.error('Ошибка загрузки пользователей');
       setUsers([]);
     }
   };
@@ -279,10 +279,10 @@ const AdminPanel: React.FC = () => {
         userType: newStatus
       });
       
-      message.success(`Пользователь ${newStatus === 'expert' ? 'назначен' : 'лишен'} статуса эксперта`);
+      console.log(`Пользователь ${newStatus === 'expert' ? 'назначен' : 'лишен'} статуса эксперта`);
       fetchUsers();
     } catch (error) {
-      message.error('Ошибка изменения статуса пользователя');
+      console.error('Ошибка изменения статуса пользователя');
     }
   };
 
@@ -309,7 +309,7 @@ const AdminPanel: React.FC = () => {
           cover_image: values.cover_image,
           is_published: values.is_published
         });
-        message.success('Статья обновлена');
+        console.log('Статья обновлена');
         fetchArticles();
       } else {
         await axios.put(`/admin/events/${editingItem.id}`, {
@@ -320,14 +320,14 @@ const AdminPanel: React.FC = () => {
           event_date: values.event_date.toISOString(),
           is_published: values.is_published
         });
-        message.success('Событие обновлено');
+        console.log('Событие обновлено');
         fetchEvents();
       }
       
       setEditModalVisible(false);
       setEditingItem(null);
     } catch (error) {
-      message.error('Ошибка обновления');
+      console.error('Ошибка обновления');
     }
   };
 
@@ -335,15 +335,15 @@ const AdminPanel: React.FC = () => {
     try {
       if (type === 'article') {
         await axios.delete(`/admin/articles/${id}`);
-        message.success('Статья удалена');
+        console.log('Статья удалена');
         fetchArticles();
       } else {
         await axios.delete(`/admin/events/${id}`);
-        message.success('Событие удалено');
+        console.log('Событие удалено');
         fetchEvents();
       }
     } catch (error) {
-      message.error('Ошибка удаления');
+      console.error('Ошибка удаления');
     }
   };
 
@@ -406,10 +406,10 @@ const AdminPanel: React.FC = () => {
       setCurrentCoverImage(imageUrl);
       console.log('🖼️ Обновляем currentCoverImage:', imageUrl);
       
-      message.success('Изображение загружено успешно!');
+      console.log('Изображение загружено успешно!');
     } catch (error) {
       console.error('Ошибка загрузки изображения:', error);
-      message.error('Ошибка загрузки изображения');
+      console.error('Ошибка загрузки изображения');
     } finally {
       setUploadingImage(false);
     }
@@ -423,7 +423,7 @@ const AdminPanel: React.FC = () => {
       cover_image: null
     });
     setCurrentCoverImage(null);
-    message.success('Изображение удалено');
+    console.log('Изображение удалено');
   };
 
   const articleColumns = [
