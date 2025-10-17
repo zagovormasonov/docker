@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Typography, Radio, Modal, Checkbox, Space, Divider } from 'antd';
-import { MailOutlined, LockOutlined, UserOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, message, Typography, Modal, Checkbox } from 'antd';
+import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import emailjs from '@emailjs/browser';
 
@@ -10,7 +10,6 @@ const { Title, Text } = Typography;
 const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
-  const [selectedUserType, setSelectedUserType] = useState('client');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -38,56 +37,10 @@ const RegisterPage = () => {
   };
 
   const onFinish = async (values: any) => {
-    // Если выбран тип "эксперт", регистрируем и переходим к оплате
-    if (values.userType === 'expert') {
-      setLoading(true);
-      try {
-        // Сначала регистрируем пользователя
-        const result = await register(values.email, values.password, values.name, 'expert');
-        
-        // Создаем платеж через Юкассу
-        const paymentResponse = await fetch('/api/payments/create', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${result.token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            planId: 'lifetime',
-            amount: 990,
-            description: 'Пожизненный доступ к функциям эксперта'
-          })
-        });
-
-        if (paymentResponse.ok) {
-          const paymentData = await paymentResponse.json();
-          
-          // Перенаправляем на страницу оплаты Юкассы
-          if (paymentData.payment_url) {
-            window.location.href = paymentData.payment_url;
-          } else {
-            message.error('Ошибка создания платежа');
-          }
-        } else {
-          const error = await paymentResponse.json();
-          message.error(error.error || 'Ошибка создания платежа');
-        }
-      } catch (error: any) {
-        if (error.response?.status === 409) {
-          message.error('Email уже занят в системе. Пожалуйста, введите другой email.');
-        } else {
-          message.error(error.response?.data?.error || 'Ошибка регистрации');
-        }
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
-    // Обычная регистрация для клиентов
+    // Обычная регистрация клиента
     setLoading(true);
     try {
-      const result = await register(values.email, values.password, values.name, values.userType);
+      const result = await register(values.email, values.password, values.name, 'client');
       
       // Отправка email верификации
       const emailSent = await sendVerificationEmail(
@@ -112,7 +65,11 @@ const RegisterPage = () => {
         message.warning('Регистрация выполнена, но не удалось отправить email. Обратитесь в поддержку.');
       }
     } catch (error: any) {
-      message.error(error.response?.data?.error || 'Ошибка регистрации');
+      if (error.response?.status === 409) {
+        message.error('Email уже занят в системе. Пожалуйста, введите другой email.');
+      } else {
+        message.error(error.response?.data?.error || 'Ошибка регистрации');
+      }
     } finally {
       setLoading(false);
     }
@@ -186,123 +143,7 @@ const RegisterPage = () => {
             />
           </Form.Item>
 
-          <Form.Item
-            name="userType"
-            label="Тип аккаунта"
-            rules={[{ required: true }]}
-          >
-            <Radio.Group 
-              onChange={(e) => setSelectedUserType(e.target.value)}
-            >
-              <Radio.Button 
-                value="client" 
-                style={{ 
-                  width: '50%', 
-                  textAlign: 'center', 
-                  whiteSpace: 'nowrap',
-                  background: selectedUserType === 'client' ? '#6366f1' : '#fff',
-                  color: selectedUserType === 'client' ? '#fff' : '#000',
-                  borderColor: selectedUserType === 'client' ? '#6366f1' : '#d9d9d9'
-                }}
-              >
-                Я - клиент
-              </Radio.Button>
-              <Radio.Button 
-                value="expert" 
-                style={{ 
-                  width: '50%', 
-                  textAlign: 'center', 
-                  marginLeft: '0%', 
-                  whiteSpace: 'nowrap',
-                  background: selectedUserType === 'expert' ? '#6366f1' : '#fff',
-                  color: selectedUserType === 'expert' ? '#fff' : '#000',
-                  borderColor: selectedUserType === 'expert' ? '#6366f1' : '#d9d9d9'
-                }}
-              >
-                Я - эксперт
-              </Radio.Button>
-            </Radio.Group>
-          </Form.Item>
 
-          {/* Блок описания для клиента */}
-          {selectedUserType === 'client' && (
-            <Card 
-              style={{ 
-                background: '#fff',
-                border: '1px solid #e8e8e8',
-                borderRadius: 12,
-                marginBottom: 16,
-                minHeight: '200px'
-              }}
-            >
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <Title level={3} style={{ margin: '0 0 16px 0', color: '#1d1d1f' }}>
-                  Я - клиент
-                </Title>
-                <Text style={{ fontSize: '16px', color: '#666', lineHeight: '1.5', display: 'block', marginBottom: '16px' }}>
-                  Найдите лучших специалистов, получите ценные знания, откройте новые горизонты!
-                </Text>
-                <Text style={{ fontSize: '14px', color: '#999' }}>
-                  Вы можете изменить тип аккаунта и стать экспертом позже
-                </Text>
-              </div>
-            </Card>
-          )}
-
-          {/* Блок преимуществ эксперта */}
-          {selectedUserType === 'expert' && (
-            <Card 
-              style={{ 
-                background: 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)',
-                border: 'none',
-                borderRadius: 12,
-                marginBottom: 16,
-                minHeight: '200px'
-              }}
-            >
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <Text style={{ fontSize: 16, color: '#1d1d1f', marginBottom: 16, display: 'block', lineHeight: '1.5' }}>
-                  Монетизируйте свои знания, расширяйте аудиторию, станьте лидером мнений!
-                </Text>
-                
-                <div style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 8 }}>
-                    Пожизненный доступ
-                  </Text>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
-                    <Text style={{ 
-                      fontSize: 24, 
-                      fontWeight: 600,
-                      color: '#1d1d1f'
-                    }}>
-                      990 ₽
-                    </Text>
-                    <Text style={{ 
-                      fontSize: 16, 
-                      textDecoration: 'line-through', 
-                      color: '#86868b'
-                    }}>
-                      3369 ₽
-                    </Text>
-                  </div>
-                </div>
-                
-                <Button 
-                  type="link"
-                  onClick={() => navigate('/expert-landing')}
-                  style={{ 
-                    color: '#6366f1',
-                    padding: 0,
-                    height: 'auto',
-                    fontSize: 14,
-                    fontWeight: 500
-                  }}
-                >
-                  Узнать о преимуществах Эксперта
-                </Button>
-              </div>
-            </Card>
-          )}
 
           <Form.Item>
             <Checkbox
@@ -331,7 +172,7 @@ const RegisterPage = () => {
               block
               style={{ height: 48 }}
             >
-              {selectedUserType === 'expert' ? 'Перейти к оплате' : 'Зарегистрироваться'}
+              Зарегистрироваться
             </Button>
           </Form.Item>
 
