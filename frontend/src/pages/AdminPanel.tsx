@@ -86,6 +86,23 @@ const AdminPanel: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Логирование изменений состояния
+  useEffect(() => {
+    console.log('Users state changed:', users);
+  }, [users]);
+
+  useEffect(() => {
+    console.log('Articles state changed:', articles);
+  }, [articles]);
+
+  useEffect(() => {
+    console.log('Events state changed:', events);
+  }, [events]);
+
+  useEffect(() => {
+    console.log('Loading state changed:', loading);
+  }, [loading]);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editForm] = Form.useForm();
@@ -175,8 +192,12 @@ const AdminPanel: React.FC = () => {
   const fetchArticles = async () => {
     try {
       const response = await axios.get('/admin/articles');
-      setArticles(response.data.articles);
+      console.log('Articles API Response:', response.data);
+      const articlesData = response.data.articles || response.data;
+      console.log('Setting articles:', articlesData);
+      setArticles(articlesData);
     } catch (error) {
+      console.error('Error fetching articles:', error);
       message.error('Ошибка загрузки статей');
     }
   };
@@ -184,8 +205,12 @@ const AdminPanel: React.FC = () => {
   const fetchEvents = async () => {
     try {
       const response = await axios.get('/admin/events');
-      setEvents(response.data.events);
+      console.log('Events API Response:', response.data);
+      const eventsData = response.data.events || response.data;
+      console.log('Setting events:', eventsData);
+      setEvents(eventsData);
     } catch (error) {
+      console.error('Error fetching events:', error);
       message.error('Ошибка загрузки событий');
     }
   };
@@ -194,7 +219,9 @@ const AdminPanel: React.FC = () => {
     try {
       const response = await axios.get('/admin/users');
       console.log('API Response:', response.data);
-      setUsers(response.data.users || response.data);
+      const usersData = response.data.users || response.data;
+      console.log('Setting users:', usersData);
+      setUsers(usersData);
     } catch (error) {
       console.error('Error fetching users:', error);
       message.error('Ошибка загрузки пользователей');
@@ -218,16 +245,19 @@ const AdminPanel: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('Starting data load...');
         setLoading(true);
         await Promise.all([
           fetchArticles(),
           fetchEvents(),
           fetchUsers()
         ]);
+        console.log('Data load completed');
       } catch (error) {
         console.error('Error loading admin data:', error);
       } finally {
         setLoading(false);
+        console.log('Loading set to false');
       }
     };
     
