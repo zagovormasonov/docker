@@ -646,24 +646,44 @@ const AdminPanel: React.FC = () => {
   ];
 
   const getStats = () => {
-    const publishedArticles = (articles || []).filter(a => a && a.is_published).length;
-    const unpublishedArticles = (articles || []).filter(a => a && !a.is_published).length;
-    const publishedEvents = (events || []).filter(e => e && e.is_published).length;
-    const unpublishedEvents = (events || []).filter(e => e && !e.is_published).length;
-    const expertUsers = (users || []).filter(u => u && u.userType === 'expert').length;
-    const clientUsers = (users || []).filter(u => u && u.userType === 'client').length;
+    try {
+      const publishedArticles = (articles || []).filter(a => a && a.is_published).length;
+      const unpublishedArticles = (articles || []).filter(a => a && !a.is_published).length;
+      const publishedEvents = (events || []).filter(e => e && e.is_published).length;
+      const unpublishedEvents = (events || []).filter(e => e && !e.is_published).length;
+      const expertUsers = (users || []).filter(u => u && u.userType === 'expert').length;
+      const clientUsers = (users || []).filter(u => u && u.userType === 'client').length;
 
-    return {
-      publishedArticles,
-      unpublishedArticles,
-      publishedEvents,
-      unpublishedEvents,
-      expertUsers,
-      clientUsers,
-    };
+      return {
+        publishedArticles,
+        unpublishedArticles,
+        publishedEvents,
+        unpublishedEvents,
+        expertUsers,
+        clientUsers,
+      };
+    } catch (error) {
+      console.error('Error in getStats:', error);
+      return {
+        publishedArticles: 0,
+        unpublishedArticles: 0,
+        publishedEvents: 0,
+        unpublishedEvents: 0,
+        expertUsers: 0,
+        clientUsers: 0,
+      };
+    }
   };
 
-  const stats = getStats();
+  // Вычисляем статистику только если данные загружены
+  const stats = loading ? {
+    publishedArticles: 0,
+    unpublishedArticles: 0,
+    publishedEvents: 0,
+    unpublishedEvents: 0,
+    expertUsers: 0,
+    clientUsers: 0,
+  } : getStats();
 
   return (
     <div style={{ padding: '24px' }}>
