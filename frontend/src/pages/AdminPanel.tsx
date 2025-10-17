@@ -91,7 +91,7 @@ const AdminPanel: React.FC = () => {
   console.log('Initial state - loading:', loading, 'user:', user?.userType);
 
   // Упрощенная версия для отладки
-  const [debugMode, setDebugMode] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
 
   // Определяем функции загрузки ПЕРЕД useEffect
   const fetchUsers = async () => {
@@ -109,17 +109,51 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // Основной useEffect для загрузки данных - ТЕСТИРУЕМ ТОЛЬКО ПОЛЬЗОВАТЕЛЕЙ
+  const fetchArticles = async () => {
+    try {
+      console.log('fetchArticles called');
+      const response = await axios.get('/admin/articles');
+      console.log('Articles API Response:', response.data);
+      const articlesData = response.data.articles || response.data;
+      console.log('Setting articles:', articlesData);
+      setArticles(Array.isArray(articlesData) ? articlesData : []);
+      console.log('Articles set successfully');
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      setArticles([]);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      console.log('fetchEvents called');
+      const response = await axios.get('/admin/events');
+      console.log('Events API Response:', response.data);
+      const eventsData = response.data.events || response.data;
+      console.log('Setting events:', eventsData);
+      setEvents(Array.isArray(eventsData) ? eventsData : []);
+      console.log('Events set successfully');
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setEvents([]);
+    }
+  };
+
+  // Основной useEffect для загрузки данных - ЗАГРУЖАЕМ ВСЕ ДАННЫЕ
   useEffect(() => {
-    console.log('useEffect triggered - TESTING ONLY USERS');
+    console.log('useEffect triggered - LOADING ALL DATA');
     const loadData = async () => {
       try {
         console.log('Starting data load...');
         setLoading(true);
         
-        // Загружаем только пользователей для тестирования
-        console.log('Fetching users only...');
-        await fetchUsers();
+        // Загружаем все данные параллельно
+        console.log('Fetching all data...');
+        await Promise.all([
+          fetchUsers(),
+          fetchArticles(),
+          fetchEvents()
+        ]);
         
         console.log('Data load completed');
         setLoading(false);
