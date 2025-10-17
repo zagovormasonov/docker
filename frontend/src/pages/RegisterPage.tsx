@@ -194,10 +194,31 @@ const RegisterPage = () => {
             <Radio.Group 
               onChange={(e) => setSelectedUserType(e.target.value)}
             >
-              <Radio.Button value="client" style={{ width: '50%', textAlign: 'center', whiteSpace: 'nowrap' }}>
+              <Radio.Button 
+                value="client" 
+                style={{ 
+                  width: '50%', 
+                  textAlign: 'center', 
+                  whiteSpace: 'nowrap',
+                  background: selectedUserType === 'client' ? '#6366f1' : '#fff',
+                  color: selectedUserType === 'client' ? '#fff' : '#000',
+                  borderColor: selectedUserType === 'client' ? '#6366f1' : '#d9d9d9'
+                }}
+              >
                 Я - клиент
               </Radio.Button>
-              <Radio.Button value="expert" style={{ width: '50%', textAlign: 'center', marginLeft: '0%', whiteSpace: 'nowrap' }}>
+              <Radio.Button 
+                value="expert" 
+                style={{ 
+                  width: '50%', 
+                  textAlign: 'center', 
+                  marginLeft: '0%', 
+                  whiteSpace: 'nowrap',
+                  background: selectedUserType === 'expert' ? '#6366f1' : '#fff',
+                  color: selectedUserType === 'expert' ? '#fff' : '#000',
+                  borderColor: selectedUserType === 'expert' ? '#6366f1' : '#d9d9d9'
+                }}
+              >
                 Я - эксперт
               </Radio.Button>
             </Radio.Group>
@@ -267,13 +288,12 @@ const RegisterPage = () => {
                 </div>
                 
                 <Button 
-                  type="primary"
+                  type="link"
                   onClick={() => navigate('/expert-landing')}
                   style={{ 
-                    background: '#6366f1',
-                    border: 'none',
-                    borderRadius: 8,
-                    height: 40,
+                    color: '#6366f1',
+                    padding: 0,
+                    height: 'auto',
                     fontSize: 14,
                     fontWeight: 500
                   }}

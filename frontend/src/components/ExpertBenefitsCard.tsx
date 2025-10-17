@@ -15,6 +15,40 @@ const ExpertBenefitsCard: React.FC<ExpertBenefitsCardProps> = ({ showPricing = t
     navigate('/become-expert');
   };
 
+  const handlePayment = async () => {
+    try {
+      // Создаем платеж через Юкассу
+      const response = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          planId: 'lifetime',
+          amount: 990,
+          description: 'Пожизненный доступ к функциям эксперта'
+        })
+      });
+
+      if (response.ok) {
+        const paymentData = await response.json();
+        
+        // Перенаправляем на страницу оплаты Юкассы
+        if (paymentData.payment_url) {
+          window.location.href = paymentData.payment_url;
+        } else {
+          console.error('Ошибка создания платежа');
+        }
+      } else {
+        const error = await response.json();
+        console.error(error.error || 'Ошибка создания платежа');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+    }
+  };
+
   return (
     <Card 
       style={{ 
@@ -121,22 +155,40 @@ const ExpertBenefitsCard: React.FC<ExpertBenefitsCardProps> = ({ showPricing = t
           </div>
         </Space>
         
-        <Button
-          type="primary"
-          size="large"
-          onClick={handleBecomeExpert}
-          style={{
-            height: 48,
-            fontSize: 16,
-            fontWeight: 600,
-            background: '#1d1d1f',
-            border: 'none',
-            borderRadius: 24,
-            padding: '0 32px'
-          }}
-        >
-          Стать экспертом
-        </Button>
+        <Space size="large">
+          <Button
+            type="primary"
+            size="large"
+            onClick={handlePayment}
+            style={{
+              height: 48,
+              fontSize: 16,
+              fontWeight: 600,
+              background: '#6366f1',
+              border: 'none',
+              borderRadius: 24,
+              padding: '0 32px'
+            }}
+          >
+            Перейти к оплате
+          </Button>
+          <Button
+            size="large"
+            onClick={handleBecomeExpert}
+            style={{
+              height: 48,
+              fontSize: 16,
+              fontWeight: 600,
+              background: '#1d1d1f',
+              border: 'none',
+              borderRadius: 24,
+              padding: '0 32px',
+              color: '#fff'
+            }}
+          >
+            Стать экспертом
+          </Button>
+        </Space>
       </div>
     </Card>
   );
