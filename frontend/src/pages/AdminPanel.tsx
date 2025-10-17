@@ -172,12 +172,12 @@ const AdminPanel: React.FC = () => {
   }
 
   // Проверяем, что данные загружены
-  if (loading || users.length === 0 || articles.length === 0 || events.length === 0) {
+  if (loading || !users || !articles || !events || users.length === 0 || articles.length === 0 || events.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Title level={2}>Загрузка...</Title>
         <p>Загружаем данные административной панели...</p>
-        <p>Пользователи: {users.length}, Статьи: {articles.length}, События: {events.length}</p>
+        <p>Пользователи: {users?.length || 0}, Статьи: {articles?.length || 0}, События: {events?.length || 0}</p>
       </div>
     );
   }
@@ -196,10 +196,12 @@ const AdminPanel: React.FC = () => {
       console.log('Articles API Response:', response.data);
       const articlesData = response.data.articles || response.data;
       console.log('Setting articles:', articlesData);
-      setArticles(articlesData);
+      console.log('Articles data type:', typeof articlesData, 'isArray:', Array.isArray(articlesData));
+      setArticles(Array.isArray(articlesData) ? articlesData : []);
     } catch (error) {
       console.error('Error fetching articles:', error);
       message.error('Ошибка загрузки статей');
+      setArticles([]);
     }
   };
 
@@ -209,10 +211,12 @@ const AdminPanel: React.FC = () => {
       console.log('Events API Response:', response.data);
       const eventsData = response.data.events || response.data;
       console.log('Setting events:', eventsData);
-      setEvents(eventsData);
+      console.log('Events data type:', typeof eventsData, 'isArray:', Array.isArray(eventsData));
+      setEvents(Array.isArray(eventsData) ? eventsData : []);
     } catch (error) {
       console.error('Error fetching events:', error);
       message.error('Ошибка загрузки событий');
+      setEvents([]);
     }
   };
 
@@ -222,10 +226,12 @@ const AdminPanel: React.FC = () => {
       console.log('API Response:', response.data);
       const usersData = response.data.users || response.data;
       console.log('Setting users:', usersData);
-      setUsers(usersData);
+      console.log('Users data type:', typeof usersData, 'isArray:', Array.isArray(usersData));
+      setUsers(Array.isArray(usersData) ? usersData : []);
     } catch (error) {
       console.error('Error fetching users:', error);
       message.error('Ошибка загрузки пользователей');
+      setUsers([]);
     }
   };
 
@@ -659,9 +665,9 @@ const AdminPanel: React.FC = () => {
       {/* Простая отладочная информация */}
       <div style={{ marginBottom: '24px', padding: '16px', background: '#f5f5f5', borderRadius: '8px' }}>
         <h3>Отладочная информация:</h3>
-        <p>Пользователи: {users?.length || 0}</p>
-        <p>Статьи: {articles?.length || 0}</p>
-        <p>События: {events?.length || 0}</p>
+        <p>Пользователи: {users?.length || 0} (тип: {typeof users})</p>
+        <p>Статьи: {articles?.length || 0} (тип: {typeof articles})</p>
+        <p>События: {events?.length || 0} (тип: {typeof events})</p>
         <p>Загрузка: {loading ? 'Да' : 'Нет'}</p>
       </div>
       
