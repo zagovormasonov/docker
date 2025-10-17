@@ -55,7 +55,7 @@ const ExpertLandingPage: React.FC = () => {
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <Button 
           icon={<ArrowLeftOutlined />} 
-          onClick={() => navigate('/register')}
+          onClick={() => navigate(-1)}
           style={{ marginBottom: 24 }}
         >
           Назад
