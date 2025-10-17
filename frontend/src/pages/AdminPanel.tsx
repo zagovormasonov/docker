@@ -661,8 +661,7 @@ const AdminPanel: React.FC = () => {
 
   const stats = getStats();
 
-  try {
-    return (
+  return (
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <Title level={2} style={{ margin: 0 }}>Панель администратора</Title>
@@ -980,17 +979,7 @@ const AdminPanel: React.FC = () => {
         </div>
       </Modal>
     </div>
-    );
-  } catch (error) {
-    console.error('Error rendering AdminPanel:', error);
-    return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <Title level={2}>Ошибка рендера</Title>
-        <p>Произошла ошибка при отображении панели администратора</p>
-        <p>Ошибка: {error instanceof Error ? error.message : 'Неизвестная ошибка'}</p>
-      </div>
-    );
-  }
+  );
 };
 
 export default AdminPanel;
