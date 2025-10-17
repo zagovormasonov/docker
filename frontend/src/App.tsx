@@ -88,8 +88,8 @@ function App() {
                 <Route path="offer" element={<OfertaPage />} />
                 <Route path="privacy" element={<PrivacyPage />} />
                 <Route path="user-agreement" element={<UserAgreementPage />} />
-                <Route path="become-expert" element={<ProtectedRoute><BecomeExpertPage /></ProtectedRoute>} />
-                <Route path="payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
+                <Route path="become-expert" element={<BecomeExpertPage />} />
+                <Route path="payment-success" element={<PaymentSuccessPage />} />
               </Route>
             </Routes>
           </BrowserRouter>
