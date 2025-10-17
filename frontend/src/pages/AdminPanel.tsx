@@ -93,6 +93,14 @@ const AdminPanel: React.FC = () => {
   // Упрощенная версия для отладки
   const [debugMode, setDebugMode] = useState(true);
 
+  // Определяем функции загрузки ПЕРЕД useEffect
+  const fetchUsers = async () => {
+    console.log('fetchUsers called - MINIMAL VERSION');
+    // Минимальная версия без try-catch и сложной логики
+    setUsers([]);
+    console.log('Users set to empty array');
+  };
+
   // Основной useEffect для загрузки данных - ТЕСТИРУЕМ ТОЛЬКО ПОЛЬЗОВАТЕЛЕЙ
   useEffect(() => {
     console.log('useEffect triggered - TESTING ONLY USERS');
@@ -269,13 +277,6 @@ const AdminPanel: React.FC = () => {
       console.error('Ошибка загрузки событий');
       setEvents([]);
     }
-  };
-
-  const fetchUsers = async () => {
-    console.log('fetchUsers called - MINIMAL VERSION');
-    // Минимальная версия без try-catch и сложной логики
-    setUsers([]);
-    console.log('Users set to empty array');
   };
 
   const handleToggleExpertStatus = async (userId: number, currentStatus: string) => {
