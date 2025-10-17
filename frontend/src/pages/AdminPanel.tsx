@@ -154,6 +154,16 @@ const AdminPanel: React.FC = () => {
     );
   }
 
+  // Проверяем, что данные загружены
+  if (loading && users.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Title level={2}>Загрузка...</Title>
+        <p>Загружаем данные административной панели...</p>
+      </div>
+    );
+  }
+
   const fetchArticles = async () => {
     try {
       setLoading(true);
@@ -182,8 +192,10 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       const response = await axios.get('/admin/users');
-      setUsers(response.data);
+      console.log('API Response:', response.data);
+      setUsers(response.data.users || response.data);
     } catch (error) {
+      console.error('Error fetching users:', error);
       message.error('Ошибка загрузки пользователей');
     } finally {
       setLoading(false);
@@ -545,24 +557,27 @@ const AdminPanel: React.FC = () => {
     {
       title: 'Действия',
       key: 'actions',
-      render: (record: User) => (
-        <Space>
-          <Popconfirm
-            title={record.userType === 'expert' ? 'Лишить статуса эксперта?' : 'Назначить экспертом?'}
-            description={`Пользователь ${record.name} будет ${record.userType === 'expert' ? 'лишен' : 'назначен'} статуса эксперта`}
-            onConfirm={() => handleToggleExpertStatus(record.id, record.userType)}
-            okText="Да"
-            cancelText="Нет"
-          >
-            <Button 
-              type={record.userType === 'expert' ? 'default' : 'primary'}
-              size="small"
+      render: (record: User) => {
+        if (!record || !record.userType) return null;
+        return (
+          <Space>
+            <Popconfirm
+              title={record.userType === 'expert' ? 'Лишить статуса эксперта?' : 'Назначить экспертом?'}
+              description={`Пользователь ${record.name} будет ${record.userType === 'expert' ? 'лишен' : 'назначен'} статуса эксперта`}
+              onConfirm={() => handleToggleExpertStatus(record.id, record.userType)}
+              okText="Да"
+              cancelText="Нет"
             >
-              {record.userType === 'expert' ? 'Лишить статуса' : 'Назначить экспертом'}
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+              <Button 
+                type={record.userType === 'expert' ? 'default' : 'primary'}
+                size="small"
+              >
+                {record.userType === 'expert' ? 'Лишить статуса' : 'Назначить экспертом'}
+              </Button>
+            </Popconfirm>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -571,8 +586,8 @@ const AdminPanel: React.FC = () => {
     const unpublishedArticles = articles.filter(a => !a.is_published).length;
     const publishedEvents = events.filter(e => e.is_published).length;
     const unpublishedEvents = events.filter(e => !e.is_published).length;
-    const expertUsers = users.filter(u => u.userType === 'expert').length;
-    const clientUsers = users.filter(u => u.userType === 'client').length;
+    const expertUsers = users.filter(u => u && u.userType === 'expert').length;
+    const clientUsers = users.filter(u => u && u.userType === 'client').length;
 
     return {
       publishedArticles,
