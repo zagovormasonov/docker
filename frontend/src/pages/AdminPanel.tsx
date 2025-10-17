@@ -93,32 +93,12 @@ const AdminPanel: React.FC = () => {
   // Упрощенная версия для отладки
   const [debugMode, setDebugMode] = useState(true);
 
-  // Основной useEffect для загрузки данных
+  // Основной useEffect для загрузки данных - ВРЕМЕННО ОТКЛЮЧЕН
   useEffect(() => {
-    console.log('useEffect triggered');
-    const loadData = async () => {
-      try {
-        console.log('Starting data load...');
-        setLoading(true);
-        
-        // Загружаем данные последовательно для лучшей отладки
-        console.log('Fetching articles...');
-        await fetchArticles();
-        console.log('Fetching events...');
-        await fetchEvents();
-        console.log('Fetching users...');
-        await fetchUsers();
-        
-        console.log('Data load completed');
-        setLoading(false);
-        console.log('Loading set to false');
-      } catch (error) {
-        console.error('Error loading admin data:', error);
-        setLoading(false);
-      }
-    };
-    
-    loadData();
+    console.log('useEffect triggered - DATA LOADING DISABLED FOR DEBUG');
+    // Временно отключаем загрузку данных для отладки
+    setLoading(false);
+    console.log('Loading set to false (debug mode)');
   }, []);
 
   // Логирование изменений состояния
