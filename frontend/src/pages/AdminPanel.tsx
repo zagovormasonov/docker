@@ -192,12 +192,14 @@ const AdminPanel: React.FC = () => {
 
   const fetchArticles = async () => {
     try {
+      console.log('fetchArticles called');
       const response = await axios.get('/admin/articles');
       console.log('Articles API Response:', response.data);
       const articlesData = response.data.articles || response.data;
       console.log('Setting articles:', articlesData);
       console.log('Articles data type:', typeof articlesData, 'isArray:', Array.isArray(articlesData));
       setArticles(Array.isArray(articlesData) ? articlesData : []);
+      console.log('Articles set successfully');
     } catch (error) {
       console.error('Error fetching articles:', error);
       message.error('Ошибка загрузки статей');
@@ -207,12 +209,14 @@ const AdminPanel: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
+      console.log('fetchEvents called');
       const response = await axios.get('/admin/events');
       console.log('Events API Response:', response.data);
       const eventsData = response.data.events || response.data;
       console.log('Setting events:', eventsData);
       console.log('Events data type:', typeof eventsData, 'isArray:', Array.isArray(eventsData));
       setEvents(Array.isArray(eventsData) ? eventsData : []);
+      console.log('Events set successfully');
     } catch (error) {
       console.error('Error fetching events:', error);
       message.error('Ошибка загрузки событий');
@@ -222,12 +226,14 @@ const AdminPanel: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log('fetchUsers called');
       const response = await axios.get('/admin/users');
       console.log('API Response:', response.data);
       const usersData = response.data.users || response.data;
       console.log('Setting users:', usersData);
       console.log('Users data type:', typeof usersData, 'isArray:', Array.isArray(usersData));
       setUsers(Array.isArray(usersData) ? usersData : []);
+      console.log('Users set successfully');
     } catch (error) {
       console.error('Error fetching users:', error);
       message.error('Ошибка загрузки пользователей');
@@ -250,22 +256,23 @@ const AdminPanel: React.FC = () => {
   };
 
   useEffect(() => {
+    console.log('useEffect triggered');
     const loadData = async () => {
       try {
         console.log('Starting data load...');
         setLoading(true);
-        await Promise.all([
-          fetchArticles(),
-          fetchEvents(),
-          fetchUsers()
-        ]);
-        console.log('Data load completed');
         
-        // Дополнительная проверка, что все данные загружены
-        setTimeout(() => {
-          setLoading(false);
-          console.log('Loading set to false after timeout');
-        }, 100);
+        // Загружаем данные последовательно для лучшей отладки
+        console.log('Fetching articles...');
+        await fetchArticles();
+        console.log('Fetching events...');
+        await fetchEvents();
+        console.log('Fetching users...');
+        await fetchUsers();
+        
+        console.log('Data load completed');
+        setLoading(false);
+        console.log('Loading set to false');
       } catch (error) {
         console.error('Error loading admin data:', error);
         setLoading(false);
