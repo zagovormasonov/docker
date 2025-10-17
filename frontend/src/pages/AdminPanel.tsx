@@ -81,11 +81,14 @@ interface User {
 }
 
 const AdminPanel: React.FC = () => {
+  console.log('AdminPanel component rendering...');
   const { user } = useAuth();
+  console.log('User from useAuth:', user);
   const [articles, setArticles] = useState<Article[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  console.log('Initial state - loading:', loading, 'user:', user?.userType);
 
   // Логирование изменений состояния
   useEffect(() => {
@@ -172,7 +175,7 @@ const AdminPanel: React.FC = () => {
   }
 
   // Проверяем, что данные загружены
-  if (loading || !users || !articles || !events || users.length === 0 || articles.length === 0 || events.length === 0) {
+  if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Title level={2}>Загрузка...</Title>
