@@ -85,7 +85,7 @@ const AdminPanel: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Логирование изменений состояния
   useEffect(() => {
@@ -172,11 +172,12 @@ const AdminPanel: React.FC = () => {
   }
 
   // Проверяем, что данные загружены
-  if (loading) {
+  if (loading || users.length === 0 || articles.length === 0 || events.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Title level={2}>Загрузка...</Title>
         <p>Загружаем данные административной панели...</p>
+        <p>Пользователи: {users.length}, Статьи: {articles.length}, События: {events.length}</p>
       </div>
     );
   }
@@ -253,11 +254,15 @@ const AdminPanel: React.FC = () => {
           fetchUsers()
         ]);
         console.log('Data load completed');
+        
+        // Дополнительная проверка, что все данные загружены
+        setTimeout(() => {
+          setLoading(false);
+          console.log('Loading set to false after timeout');
+        }, 100);
       } catch (error) {
         console.error('Error loading admin data:', error);
-      } finally {
         setLoading(false);
-        console.log('Loading set to false');
       }
     };
     
