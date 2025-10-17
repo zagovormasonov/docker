@@ -157,104 +157,101 @@ const RegisterPage = () => {
 
           <Form.Item
             name="userType"
+            label="Тип аккаунта"
             rules={[{ required: true }]}
           >
             <Radio.Group 
               onChange={(e) => setSelectedUserType(e.target.value)}
-              style={{ width: '100%' }}
             >
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-                <Radio value="client" style={{ flex: 1, height: 'auto' }}>
-                  <Card
-                    style={{
-                      height: '200px',
-                      border: selectedUserType === 'client' ? '2px solid #6366f1' : '1px solid #d9d9d9',
-                      borderRadius: '12px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      textAlign: 'center',
-                      padding: '20px',
-                      background: selectedUserType === 'client' ? '#f0f9ff' : '#fff',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Title level={3} style={{ margin: '0 0 12px 0', color: '#1d1d1f' }}>
-                      Я - клиент
-                    </Title>
-                    <Text style={{ fontSize: '14px', color: '#666', lineHeight: '1.5', marginBottom: '12px' }}>
-                      Найдите лучших специалистов, получите ценные знания, откройте новые горизонты!
-                    </Text>
-                    <Text style={{ fontSize: '12px', color: '#999' }}>
-                      Вы можете изменить тип аккаунта и стать экспертом позже
-                    </Text>
-                  </Card>
-                </Radio>
-                
-                <Radio value="expert" style={{ flex: 1, height: 'auto' }}>
-                  <Card
-                    style={{
-                      height: '200px',
-                      border: selectedUserType === 'expert' ? '2px solid #6366f1' : '1px solid #d9d9d9',
-                      borderRadius: '12px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      textAlign: 'center',
-                      padding: '20px',
-                      background: selectedUserType === 'expert' ? '#f0f9ff' : '#fff',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Title level={3} style={{ margin: '0 0 12px 0', color: '#1d1d1f' }}>
-                      Я - эксперт
-                    </Title>
-                    <Text style={{ fontSize: '14px', color: '#666', lineHeight: '1.5', marginBottom: '12px' }}>
-                      Монетизируйте свои знания, расширяйте аудиторию, станьте лидером мнений!
-                    </Text>
-                    <div>
-                      <Text style={{ fontSize: '12px', color: '#999', display: 'block', marginBottom: '4px' }}>
-                        Пожизненный доступ
-                      </Text>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                        <Text style={{ 
-                          textDecoration: 'line-through', 
-                          color: '#86868b',
-                          fontSize: '14px'
-                        }}>
-                          3369 Р
-                        </Text>
-                        <Text style={{ 
-                          color: '#ff4d4f',
-                          fontSize: '16px',
-                          fontWeight: '600'
-                        }}>
-                          990 Руб.
-                        </Text>
-                      </div>
-                      <Button 
-                        type="link" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate('/expert-landing');
-                        }}
-                        style={{ 
-                          color: '#6366f1',
-                          padding: 0,
-                          height: 'auto',
-                          fontSize: 12
-                        }}
-                      >
-                        Узнать о преимуществах Эксперта
-                      </Button>
-                    </div>
-                  </Card>
-                </Radio>
-              </div>
+              <Radio.Button value="client" style={{ width: '48%', textAlign: 'center' }}>
+                Я - клиент
+              </Radio.Button>
+              <Radio.Button value="expert" style={{ width: '48%', textAlign: 'center', marginLeft: '4%' }}>
+                Я - эксперт
+              </Radio.Button>
             </Radio.Group>
           </Form.Item>
+
+          {/* Блок описания для клиента */}
+          {selectedUserType === 'client' && (
+            <Card 
+              style={{ 
+                background: '#fff',
+                border: '1px solid #e8e8e8',
+                borderRadius: 12,
+                marginBottom: 16,
+                minHeight: '200px'
+              }}
+            >
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <Title level={3} style={{ margin: '0 0 16px 0', color: '#1d1d1f' }}>
+                  Я - клиент
+                </Title>
+                <Text style={{ fontSize: '16px', color: '#666', lineHeight: '1.5', display: 'block', marginBottom: '16px' }}>
+                  Найдите лучших специалистов, получите ценные знания, откройте новые горизонты!
+                </Text>
+                <Text style={{ fontSize: '14px', color: '#999' }}>
+                  Вы можете изменить тип аккаунта и стать экспертом позже
+                </Text>
+              </div>
+            </Card>
+          )}
+
+          {/* Блок преимуществ эксперта */}
+          {selectedUserType === 'expert' && (
+            <Card 
+              style={{ 
+                background: 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)',
+                border: 'none',
+                borderRadius: 12,
+                marginBottom: 16,
+                minHeight: '200px'
+              }}
+            >
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <Text style={{ fontSize: 16, color: '#1d1d1f', marginBottom: 16, display: 'block', lineHeight: '1.5' }}>
+                  Монетизируйте свои знания, расширяйте аудиторию, станьте лидером мнений!
+                </Text>
+                
+                <div style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 8 }}>
+                    Пожизненный доступ
+                  </Text>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
+                    <Text style={{ 
+                      fontSize: 24, 
+                      fontWeight: 600,
+                      color: '#1d1d1f'
+                    }}>
+                      990 ₽
+                    </Text>
+                    <Text style={{ 
+                      fontSize: 16, 
+                      textDecoration: 'line-through', 
+                      color: '#86868b'
+                    }}>
+                      3369 ₽
+                    </Text>
+                  </div>
+                </div>
+                
+                <Button 
+                  type="primary"
+                  onClick={() => navigate('/expert-landing')}
+                  style={{ 
+                    background: '#6366f1',
+                    border: 'none',
+                    borderRadius: 8,
+                    height: 40,
+                    fontSize: 14,
+                    fontWeight: 500
+                  }}
+                >
+                  Узнать о преимуществах Эксперта
+                </Button>
+              </div>
+            </Card>
+          )}
 
           <Form.Item>
             <Checkbox
