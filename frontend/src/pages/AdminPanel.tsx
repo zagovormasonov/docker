@@ -95,10 +95,18 @@ const AdminPanel: React.FC = () => {
 
   // Определяем функции загрузки ПЕРЕД useEffect
   const fetchUsers = async () => {
-    console.log('fetchUsers called - MINIMAL VERSION');
-    // Минимальная версия без try-catch и сложной логики
-    setUsers([]);
-    console.log('Users set to empty array');
+    try {
+      console.log('fetchUsers called - REAL API VERSION');
+      const response = await axios.get('/admin/users');
+      console.log('Users API Response:', response.data);
+      const usersData = response.data.users || response.data;
+      console.log('Setting users:', usersData);
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      console.log('Users set successfully');
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]);
+    }
   };
 
   // Основной useEffect для загрузки данных - ТЕСТИРУЕМ ТОЛЬКО ПОЛЬЗОВАТЕЛЕЙ
