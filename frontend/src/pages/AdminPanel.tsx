@@ -287,40 +287,6 @@ const AdminPanel: React.FC = () => {
     eventsCount: events?.length || 0
   });
 
-  const fetchArticles = async () => {
-    try {
-      console.log('fetchArticles called');
-      const response = await axios.get('/admin/articles');
-      console.log('Articles API Response:', response.data);
-      const articlesData = response.data.articles || response.data;
-      console.log('Setting articles:', articlesData);
-      console.log('Articles data type:', typeof articlesData, 'isArray:', Array.isArray(articlesData));
-      setArticles(Array.isArray(articlesData) ? articlesData : []);
-      console.log('Articles set successfully');
-    } catch (error) {
-      console.error('Error fetching articles:', error);
-      console.error('Ошибка загрузки статей');
-      setArticles([]);
-    }
-  };
-
-  const fetchEvents = async () => {
-    try {
-      console.log('fetchEvents called');
-      const response = await axios.get('/admin/events');
-      console.log('Events API Response:', response.data);
-      const eventsData = response.data.events || response.data;
-      console.log('Setting events:', eventsData);
-      console.log('Events data type:', typeof eventsData, 'isArray:', Array.isArray(eventsData));
-      setEvents(Array.isArray(eventsData) ? eventsData : []);
-      console.log('Events set successfully');
-    } catch (error) {
-      console.error('Error fetching events:', error);
-      console.error('Ошибка загрузки событий');
-      setEvents([]);
-    }
-  };
-
   const handleToggleExpertStatus = async (userId: number, currentStatus: string) => {
     try {
       const newStatus = currentStatus === 'expert' ? 'client' : 'expert';
