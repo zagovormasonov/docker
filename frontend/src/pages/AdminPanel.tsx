@@ -155,7 +155,7 @@ const AdminPanel: React.FC = () => {
   }
 
   // Проверяем, что данные загружены
-  if (loading && users.length === 0) {
+  if (loading || users.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Title level={2}>Загрузка...</Title>
@@ -217,9 +217,19 @@ const AdminPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchArticles();
-    fetchEvents();
-    fetchUsers();
+    const loadData = async () => {
+      try {
+        await Promise.all([
+          fetchArticles(),
+          fetchEvents(),
+          fetchUsers()
+        ]);
+      } catch (error) {
+        console.error('Error loading admin data:', error);
+      }
+    };
+    
+    loadData();
   }, []);
 
   const handleEdit = (item: Article | Event, type: 'article' | 'event') => {
@@ -394,7 +404,7 @@ const AdminPanel: React.FC = () => {
       title: 'Создана',
       dataIndex: 'created_at',
       key: 'created_at',
-      render: (date: string) => dayjs(date).format('DD.MM.YYYY HH:mm'),
+      render: (date: string) => date ? dayjs(date).format('DD.MM.YYYY HH:mm') : '-',
     },
     {
       title: 'Действия',
@@ -452,7 +462,7 @@ const AdminPanel: React.FC = () => {
       title: 'Дата',
       dataIndex: 'event_date',
       key: 'event_date',
-      render: (date: string) => dayjs(date).format('DD.MM.YYYY HH:mm'),
+      render: (date: string) => date ? dayjs(date).format('DD.MM.YYYY HH:mm') : '-',
     },
     {
       title: 'Автор',
@@ -552,7 +562,7 @@ const AdminPanel: React.FC = () => {
       title: 'Дата регистрации',
       dataIndex: 'created_at',
       key: 'created_at',
-      render: (date: string) => dayjs(date).format('DD.MM.YYYY HH:mm'),
+      render: (date: string) => date ? dayjs(date).format('DD.MM.YYYY HH:mm') : '-',
     },
     {
       title: 'Действия',
@@ -582,12 +592,12 @@ const AdminPanel: React.FC = () => {
   ];
 
   const getStats = () => {
-    const publishedArticles = articles.filter(a => a.is_published).length;
-    const unpublishedArticles = articles.filter(a => !a.is_published).length;
-    const publishedEvents = events.filter(e => e.is_published).length;
-    const unpublishedEvents = events.filter(e => !e.is_published).length;
-    const expertUsers = users.filter(u => u && u.userType === 'expert').length;
-    const clientUsers = users.filter(u => u && u.userType === 'client').length;
+    const publishedArticles = (articles || []).filter(a => a && a.is_published).length;
+    const unpublishedArticles = (articles || []).filter(a => a && !a.is_published).length;
+    const publishedEvents = (events || []).filter(e => e && e.is_published).length;
+    const unpublishedEvents = (events || []).filter(e => e && !e.is_published).length;
+    const expertUsers = (users || []).filter(u => u && u.userType === 'expert').length;
+    const clientUsers = (users || []).filter(u => u && u.userType === 'client').length;
 
     return {
       publishedArticles,
@@ -600,6 +610,16 @@ const AdminPanel: React.FC = () => {
   };
 
   const stats = getStats();
+
+  // Дополнительная проверка на случай, если данные еще не загружены
+  if (!users || !articles || !events) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Title level={2}>Загрузка...</Title>
+        <p>Инициализация административной панели...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '24px' }}>
@@ -681,11 +701,11 @@ const AdminPanel: React.FC = () => {
         items={[
           {
             key: 'articles',
-            label: `Статьи (${articles.length})`,
+            label: `Статьи (${(articles || []).length})`,
             children: (
               <Table
                 columns={articleColumns}
-                dataSource={articles}
+                dataSource={articles || []}
                 loading={loading}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
@@ -694,11 +714,11 @@ const AdminPanel: React.FC = () => {
           },
           {
             key: 'events',
-            label: `События (${events.length})`,
+            label: `События (${(events || []).length})`,
             children: (
               <Table
                 columns={eventColumns}
-                dataSource={events}
+                dataSource={events || []}
                 loading={loading}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
@@ -707,11 +727,11 @@ const AdminPanel: React.FC = () => {
           },
           {
             key: 'users',
-            label: `Пользователи (${users.length})`,
+            label: `Пользователи (${(users || []).length})`,
             children: (
               <Table
                 columns={userColumns}
-                dataSource={users}
+                dataSource={users || []}
                 loading={loading}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
