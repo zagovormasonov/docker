@@ -273,17 +273,16 @@ const AdminPanel: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log('fetchUsers called');
-      const response = await axios.get('/admin/users');
-      console.log('API Response:', response.data);
-      const usersData = response.data.users || response.data;
-      console.log('Setting users:', usersData);
-      console.log('Users data type:', typeof usersData, 'isArray:', Array.isArray(usersData));
-      setUsers(Array.isArray(usersData) ? usersData : []);
-      console.log('Users set successfully');
+      console.log('fetchUsers called - SIMPLIFIED VERSION');
+      // Временно используем моковые данные вместо API запроса
+      const mockUsers = [
+        { id: 1, name: 'Test User', email: 'test@example.com', userType: 'client' }
+      ];
+      console.log('Setting mock users:', mockUsers);
+      setUsers(mockUsers);
+      console.log('Mock users set successfully');
     } catch (error) {
-      console.error('Error fetching users:', error);
-      console.error('Ошибка загрузки пользователей');
+      console.error('Error in fetchUsers:', error);
       setUsers([]);
     }
   };
