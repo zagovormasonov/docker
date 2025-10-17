@@ -71,10 +71,20 @@ interface Event {
   status: string;
 }
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  userType: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const AdminPanel: React.FC = () => {
   const { user } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -168,9 +178,36 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/admin/users');
+      setUsers(response.data);
+    } catch (error) {
+      message.error('Ошибка загрузки пользователей');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleExpertStatus = async (userId: number, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'expert' ? 'client' : 'expert';
+      await axios.put(`/admin/users/${userId}/expert-status`, {
+        userType: newStatus
+      });
+      
+      message.success(`Пользователь ${newStatus === 'expert' ? 'назначен' : 'лишен'} статуса эксперта`);
+      fetchUsers();
+    } catch (error) {
+      message.error('Ошибка изменения статуса пользователя');
+    }
+  };
+
   useEffect(() => {
     fetchArticles();
     fetchEvents();
+    fetchUsers();
   }, []);
 
   const handleEdit = (item: Article | Event, type: 'article' | 'event') => {
@@ -465,17 +502,85 @@ const AdminPanel: React.FC = () => {
     },
   ];
 
+  const userColumns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+    },
+    {
+      title: 'Имя',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string) => (
+        <Space>
+          <UserOutlined />
+          <span>{text}</span>
+        </Space>
+      ),
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+      ellipsis: true,
+    },
+    {
+      title: 'Тип аккаунта',
+      dataIndex: 'userType',
+      key: 'userType',
+      render: (userType: string) => (
+        <Tag color={userType === 'expert' ? 'green' : 'blue'}>
+          {userType === 'expert' ? 'Эксперт' : 'Клиент'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Дата регистрации',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (date: string) => dayjs(date).format('DD.MM.YYYY HH:mm'),
+    },
+    {
+      title: 'Действия',
+      key: 'actions',
+      render: (record: User) => (
+        <Space>
+          <Popconfirm
+            title={record.userType === 'expert' ? 'Лишить статуса эксперта?' : 'Назначить экспертом?'}
+            description={`Пользователь ${record.name} будет ${record.userType === 'expert' ? 'лишен' : 'назначен'} статуса эксперта`}
+            onConfirm={() => handleToggleExpertStatus(record.id, record.userType)}
+            okText="Да"
+            cancelText="Нет"
+          >
+            <Button 
+              type={record.userType === 'expert' ? 'default' : 'primary'}
+              size="small"
+            >
+              {record.userType === 'expert' ? 'Лишить статуса' : 'Назначить экспертом'}
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
   const getStats = () => {
     const publishedArticles = articles.filter(a => a.is_published).length;
     const unpublishedArticles = articles.filter(a => !a.is_published).length;
     const publishedEvents = events.filter(e => e.is_published).length;
     const unpublishedEvents = events.filter(e => !e.is_published).length;
+    const expertUsers = users.filter(u => u.userType === 'expert').length;
+    const clientUsers = users.filter(u => u.userType === 'client').length;
 
     return {
       publishedArticles,
       unpublishedArticles,
       publishedEvents,
-      unpublishedEvents
+      unpublishedEvents,
+      expertUsers,
+      clientUsers,
     };
   };
 
@@ -532,6 +637,29 @@ const AdminPanel: React.FC = () => {
         </Col>
       </Row>
 
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={12}>
+          <Card>
+            <Statistic
+              title="Эксперты"
+              value={stats.expertUsers}
+              prefix={<UserOutlined />}
+              valueStyle={{ color: '#3f8600' }}
+            />
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card>
+            <Statistic
+              title="Клиенты"
+              value={stats.clientUsers}
+              prefix={<UserOutlined />}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
       <Tabs 
         activeKey={activeTab} 
         onChange={setActiveTab}
@@ -556,6 +684,19 @@ const AdminPanel: React.FC = () => {
               <Table
                 columns={eventColumns}
                 dataSource={events}
+                loading={loading}
+                rowKey="id"
+                pagination={{ pageSize: 10 }}
+              />
+            ),
+          },
+          {
+            key: 'users',
+            label: `Пользователи (${users.length})`,
+            children: (
+              <Table
+                columns={userColumns}
+                dataSource={users}
                 loading={loading}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
