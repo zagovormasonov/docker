@@ -90,6 +90,34 @@ const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   console.log('Initial state - loading:', loading, 'user:', user?.userType);
 
+  // Основной useEffect для загрузки данных
+  useEffect(() => {
+    console.log('useEffect triggered');
+    const loadData = async () => {
+      try {
+        console.log('Starting data load...');
+        setLoading(true);
+        
+        // Загружаем данные последовательно для лучшей отладки
+        console.log('Fetching articles...');
+        await fetchArticles();
+        console.log('Fetching events...');
+        await fetchEvents();
+        console.log('Fetching users...');
+        await fetchUsers();
+        
+        console.log('Data load completed');
+        setLoading(false);
+        console.log('Loading set to false');
+      } catch (error) {
+        console.error('Error loading admin data:', error);
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+
   // Логирование изменений состояния
   useEffect(() => {
     console.log('Users state changed:', users);
@@ -257,33 +285,6 @@ const AdminPanel: React.FC = () => {
       message.error('Ошибка изменения статуса пользователя');
     }
   };
-
-  useEffect(() => {
-    console.log('useEffect triggered');
-    const loadData = async () => {
-      try {
-        console.log('Starting data load...');
-        setLoading(true);
-        
-        // Загружаем данные последовательно для лучшей отладки
-        console.log('Fetching articles...');
-        await fetchArticles();
-        console.log('Fetching events...');
-        await fetchEvents();
-        console.log('Fetching users...');
-        await fetchUsers();
-        
-        console.log('Data load completed');
-        setLoading(false);
-        console.log('Loading set to false');
-      } catch (error) {
-        console.error('Error loading admin data:', error);
-        setLoading(false);
-      }
-    };
-    
-    loadData();
-  }, []);
 
   const handleEdit = (item: Article | Event, type: 'article' | 'event') => {
     setEditingItem({ ...item, type });
