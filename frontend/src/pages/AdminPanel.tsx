@@ -272,26 +272,10 @@ const AdminPanel: React.FC = () => {
   };
 
   const fetchUsers = async () => {
-    try {
-      console.log('fetchUsers called - SIMPLIFIED VERSION');
-      // Временно используем моковые данные вместо API запроса
-      const mockUsers: User[] = [
-        { 
-          id: 1, 
-          name: 'Test User', 
-          email: 'test@example.com', 
-          userType: 'client',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-      console.log('Setting mock users:', mockUsers);
-      setUsers(mockUsers);
-      console.log('Mock users set successfully');
-    } catch (error) {
-      console.error('Error in fetchUsers:', error);
-      setUsers([]);
-    }
+    console.log('fetchUsers called - MINIMAL VERSION');
+    // Минимальная версия без try-catch и сложной логики
+    setUsers([]);
+    console.log('Users set to empty array');
   };
 
   const handleToggleExpertStatus = async (userId: number, currentStatus: string) => {
