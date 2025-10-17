@@ -164,6 +164,14 @@ const AdminPanel: React.FC = () => {
     );
   }
 
+  // Отладочная информация
+  console.log('Rendering AdminPanel with data:', {
+    loading,
+    usersCount: users?.length || 0,
+    articlesCount: articles?.length || 0,
+    eventsCount: events?.length || 0
+  });
+
   const fetchArticles = async () => {
     try {
       const response = await axios.get('/admin/articles');
@@ -605,11 +613,21 @@ const AdminPanel: React.FC = () => {
 
   const stats = getStats();
 
-  return (
+  try {
+    return (
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <Title level={2} style={{ margin: 0 }}>Панель администратора</Title>
         <ThemeSwitch isDark={isDark} onChange={toggleTheme} />
+      </div>
+      
+      {/* Простая отладочная информация */}
+      <div style={{ marginBottom: '24px', padding: '16px', background: '#f5f5f5', borderRadius: '8px' }}>
+        <h3>Отладочная информация:</h3>
+        <p>Пользователи: {users?.length || 0}</p>
+        <p>Статьи: {articles?.length || 0}</p>
+        <p>События: {events?.length || 0}</p>
+        <p>Загрузка: {loading ? 'Да' : 'Нет'}</p>
       </div>
       
       {/* Статистика */}
@@ -618,7 +636,7 @@ const AdminPanel: React.FC = () => {
           <Card>
             <Statistic
               title="Опубликованные статьи"
-              value={stats.publishedArticles}
+              value={stats?.publishedArticles || 0}
               prefix={<FileTextOutlined />}
               valueStyle={{ color: '#3f8600' }}
             />
@@ -628,7 +646,7 @@ const AdminPanel: React.FC = () => {
           <Card>
             <Statistic
               title="На модерации"
-              value={stats.unpublishedArticles}
+              value={stats?.unpublishedArticles || 0}
               prefix={<FileTextOutlined />}
               valueStyle={{ color: '#cf1322' }}
             />
@@ -638,7 +656,7 @@ const AdminPanel: React.FC = () => {
           <Card>
             <Statistic
               title="Опубликованные события"
-              value={stats.publishedEvents}
+              value={stats?.publishedEvents || 0}
               prefix={<CalendarOutlined />}
               valueStyle={{ color: '#3f8600' }}
             />
@@ -648,7 +666,7 @@ const AdminPanel: React.FC = () => {
           <Card>
             <Statistic
               title="События на модерации"
-              value={stats.unpublishedEvents}
+              value={stats?.unpublishedEvents || 0}
               prefix={<CalendarOutlined />}
               valueStyle={{ color: '#cf1322' }}
             />
@@ -661,7 +679,7 @@ const AdminPanel: React.FC = () => {
           <Card>
             <Statistic
               title="Эксперты"
-              value={stats.expertUsers}
+              value={stats?.expertUsers || 0}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#3f8600' }}
             />
@@ -671,7 +689,7 @@ const AdminPanel: React.FC = () => {
           <Card>
             <Statistic
               title="Клиенты"
-              value={stats.clientUsers}
+              value={stats?.clientUsers || 0}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#1890ff' }}
             />
@@ -914,7 +932,17 @@ const AdminPanel: React.FC = () => {
         </div>
       </Modal>
     </div>
-  );
+    );
+  } catch (error) {
+    console.error('Error rendering AdminPanel:', error);
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Title level={2}>Ошибка рендера</Title>
+        <p>Произошла ошибка при отображении панели администратора</p>
+        <p>Ошибка: {error instanceof Error ? error.message : 'Неизвестная ошибка'}</p>
+      </div>
+    );
+  }
 };
 
 export default AdminPanel;
