@@ -163,10 +163,10 @@ const RegisterPage = () => {
             <Radio.Group 
               onChange={(e) => setSelectedUserType(e.target.value)}
             >
-              <Radio.Button value="client" style={{ width: '48%', textAlign: 'center' }}>
+              <Radio.Button value="client" style={{ width: '48%', textAlign: 'center', whiteSpace: 'nowrap' }}>
                 Я - клиент
               </Radio.Button>
-              <Radio.Button value="expert" style={{ width: '48%', textAlign: 'center', marginLeft: '4%' }}>
+              <Radio.Button value="expert" style={{ width: '48%', textAlign: 'center', marginLeft: '4%', whiteSpace: 'nowrap' }}>
                 Я - эксперт
               </Radio.Button>
             </Radio.Group>
