@@ -275,8 +275,15 @@ const AdminPanel: React.FC = () => {
     try {
       console.log('fetchUsers called - SIMPLIFIED VERSION');
       // Временно используем моковые данные вместо API запроса
-      const mockUsers = [
-        { id: 1, name: 'Test User', email: 'test@example.com', userType: 'client' }
+      const mockUsers: User[] = [
+        { 
+          id: 1, 
+          name: 'Test User', 
+          email: 'test@example.com', 
+          userType: 'client',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
       ];
       console.log('Setting mock users:', mockUsers);
       setUsers(mockUsers);
