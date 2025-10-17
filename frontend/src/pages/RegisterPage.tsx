@@ -38,18 +38,49 @@ const RegisterPage = () => {
   };
 
   const onFinish = async (values: any) => {
-    // Если выбран тип "эксперт", переходим на лендинг эксперта
+    // Если выбран тип "эксперт", регистрируем и переходим к оплате
     if (values.userType === 'expert') {
-      // Сохраняем данные формы в localStorage для последующего использования
-      localStorage.setItem('registrationData', JSON.stringify({
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        userType: values.userType
-      }));
-      
-      // Переходим на лендинг эксперта
-      navigate('/expert-landing');
+      setLoading(true);
+      try {
+        // Сначала регистрируем пользователя
+        const result = await register(values.email, values.password, values.name, 'expert');
+        
+        // Создаем платеж через Юкассу
+        const paymentResponse = await fetch('/api/payments/create', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${result.token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            planId: 'lifetime',
+            amount: 990,
+            description: 'Пожизненный доступ к функциям эксперта'
+          })
+        });
+
+        if (paymentResponse.ok) {
+          const paymentData = await paymentResponse.json();
+          
+          // Перенаправляем на страницу оплаты Юкассы
+          if (paymentData.payment_url) {
+            window.location.href = paymentData.payment_url;
+          } else {
+            message.error('Ошибка создания платежа');
+          }
+        } else {
+          const error = await paymentResponse.json();
+          message.error(error.error || 'Ошибка создания платежа');
+        }
+      } catch (error: any) {
+        if (error.response?.status === 409) {
+          message.error('Email уже занят в системе. Пожалуйста, введите другой email.');
+        } else {
+          message.error(error.response?.data?.error || 'Ошибка регистрации');
+        }
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -163,10 +194,10 @@ const RegisterPage = () => {
             <Radio.Group 
               onChange={(e) => setSelectedUserType(e.target.value)}
             >
-              <Radio.Button value="client" style={{ width: '48%', textAlign: 'center', whiteSpace: 'nowrap' }}>
+              <Radio.Button value="client" style={{ width: '50%', textAlign: 'center', whiteSpace: 'nowrap' }}>
                 Я - клиент
               </Radio.Button>
-              <Radio.Button value="expert" style={{ width: '48%', textAlign: 'center', marginLeft: '4%', whiteSpace: 'nowrap' }}>
+              <Radio.Button value="expert" style={{ width: '50%', textAlign: 'center', marginLeft: '0%', whiteSpace: 'nowrap' }}>
                 Я - эксперт
               </Radio.Button>
             </Radio.Group>
@@ -280,7 +311,7 @@ const RegisterPage = () => {
               block
               style={{ height: 48 }}
             >
-              {selectedUserType === 'expert' ? 'Продолжить регистрацию' : 'Зарегистрироваться'}
+              {selectedUserType === 'expert' ? 'Перейти к оплате' : 'Зарегистрироваться'}
             </Button>
           </Form.Item>
 

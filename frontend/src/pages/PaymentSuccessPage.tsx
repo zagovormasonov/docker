@@ -35,6 +35,23 @@ const PaymentSuccessPage: React.FC = () => {
           
           if (data.status === 'succeeded' && data.user_type === 'expert') {
             updateUser({ ...user, userType: 'expert' });
+            
+            // Отправляем письмо с подтверждением регистрации
+            try {
+              await fetch('/api/auth/send-confirmation-email', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  email: user?.email,
+                  name: user?.name
+                })
+              });
+            } catch (error) {
+              console.error('Ошибка отправки письма подтверждения:', error);
+            }
           }
         } else {
           message.error('Ошибка проверки статуса платежа');
@@ -81,6 +98,7 @@ const PaymentSuccessPage: React.FC = () => {
               </Title>
               <Paragraph style={{ fontSize: 16, marginBottom: 24 }}>
                 Поздравляем! Вы успешно стали экспертом. Теперь у вас есть доступ ко всем функциям эксперта.
+                На ваш email отправлено письмо с подтверждением регистрации.
               </Paragraph>
               
               <Space direction="vertical" size={16} style={{ width: '100%', marginBottom: 32 }}>
