@@ -90,6 +90,9 @@ const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   console.log('Initial state - loading:', loading, 'user:', user?.userType);
 
+  // Упрощенная версия для отладки
+  const [debugMode, setDebugMode] = useState(true);
+
   // Основной useEffect для загрузки данных
   useEffect(() => {
     console.log('useEffect triggered');
@@ -198,6 +201,23 @@ const AdminPanel: React.FC = () => {
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Title level={2}>Доступ запрещен</Title>
         <p>Эта страница доступна только администраторам</p>
+      </div>
+    );
+  }
+
+  // Временная упрощенная версия для отладки
+  if (debugMode) {
+    return (
+      <div style={{ padding: '24px' }}>
+        <Title level={2}>Панель администратора (Отладка)</Title>
+        <div style={{ marginBottom: '24px', padding: '16px', background: '#f5f5f5', borderRadius: '8px' }}>
+          <h3>Отладочная информация:</h3>
+          <p>Пользователи: {users?.length || 0} (тип: {typeof users})</p>
+          <p>Статьи: {articles?.length || 0} (тип: {typeof articles})</p>
+          <p>События: {events?.length || 0} (тип: {typeof events})</p>
+          <p>Загрузка: {loading ? 'Да' : 'Нет'}</p>
+          <Button onClick={() => setDebugMode(false)}>Переключить в обычный режим</Button>
+        </div>
       </div>
     );
   }
