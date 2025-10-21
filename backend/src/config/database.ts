@@ -69,6 +69,21 @@ export const initDatabase = async () => {
       )
     `);
 
+    // Таблица готовых продуктов
+    await query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        expert_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        price DECIMAL(10, 2),
+        product_type VARCHAR(50) CHECK (product_type IN ('digital', 'physical', 'service')),
+        image_url VARCHAR(500),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Таблица статей
     await query(`
       CREATE TABLE IF NOT EXISTS articles (
@@ -112,6 +127,9 @@ export const initDatabase = async () => {
     await query(`CREATE INDEX IF NOT EXISTS idx_articles_published ON articles(is_published)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_messages_chat ON messages(chat_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_expert_topics_expert ON expert_topics(expert_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_products_expert_id ON products(expert_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_products_created_at ON products(created_at)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_products_product_type ON products(product_type)`);
 
     // Добавляем новые поля и таблицы (миграции)
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS vk_url VARCHAR(500)`);

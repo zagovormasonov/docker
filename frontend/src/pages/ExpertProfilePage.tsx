@@ -49,6 +49,15 @@ interface Service {
   service_type: string;
 }
 
+interface Product {
+  id: number;
+  title: string;
+  description: string;
+  price?: number;
+  product_type: string;
+  image_url?: string;
+}
+
 interface Article {
   id: number;
   title: string;
@@ -73,6 +82,7 @@ interface ExpertProfile {
   consultation_types?: string;
   topics: Array<{ id: number; name: string }>;
   services: Service[];
+  products: Product[];
   created_at: string;
 }
 
@@ -192,6 +202,34 @@ const ExpertProfilePage = () => {
     } catch (error) {
       console.error('Ошибка заказа услуги:', error);
       message.error('Ошибка заказа услуги');
+    }
+  };
+
+  const handleBuyProduct = async (product: Product) => {
+    if (!user) {
+      message.warning('Необходимо войти в систему');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      // Создаем или находим чат с экспертом
+      const response = await api.post('/chats/create', { otherUserId: expert?.id });
+      const chatId = response.data.id;
+      
+      // Отправляем сообщение о продукте
+      const productMessage = `🛍️ Хочу купить продукт: "${product.title}"${product.price ? ` (${product.price} ₽)` : ''}. ${product.description}`;
+      
+      await api.post(`/chats/${chatId}/messages`, {
+        content: productMessage
+      });
+      
+      // Переходим в чат
+      navigate(`/chats/${chatId}`);
+      message.success('Сообщение о продукте отправлено в чат!');
+    } catch (error) {
+      console.error('Ошибка покупки продукта:', error);
+      message.error('Ошибка покупки продукта');
     }
   };
 
@@ -679,6 +717,64 @@ const ExpertProfilePage = () => {
                             type="primary"
                             size="small"
                             onClick={() => handleBuyService(service)}
+                            style={{ marginLeft: 16, minWidth: 80 }}
+                          >
+                            Купить
+                          </Button>
+                        </div>
+                      </Card>
+                    </List.Item>
+                  )}
+                />
+              </div>
+            </>
+          )}
+
+          {expert.products && expert.products.length > 0 && (
+            <>
+              <Divider />
+              <div>
+                <Title level={4}>Готовые продукты</Title>
+                <List
+                  dataSource={expert.products}
+                  renderItem={(product) => (
+                    <List.Item>
+                      <Card style={{ width: '100%' }} size="small">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            <Title level={5}>{product.title}</Title>
+                            <Paragraph type="secondary">{product.description}</Paragraph>
+                            
+                            <Space split="•">
+                              {product.price && (
+                                <Space>
+                                  <DollarOutlined />
+                                  <Text>{product.price} ₽</Text>
+                                </Space>
+                              )}
+                              <Tag color={
+                                product.product_type === 'digital' ? 'blue' :
+                                product.product_type === 'physical' ? 'green' : 'purple'
+                              }>
+                                {product.product_type === 'digital' ? 'Цифровой' :
+                                 product.product_type === 'physical' ? 'Физический' : 'Услуга'}
+                              </Tag>
+                            </Space>
+                            
+                            {product.image_url && (
+                              <div style={{ marginTop: 8 }}>
+                                <img 
+                                  src={product.image_url} 
+                                  alt={product.title}
+                                  style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 4 }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <Button
+                            type="primary"
+                            onClick={() => handleBuyProduct(product)}
                             style={{ marginLeft: 16, minWidth: 80 }}
                           >
                             Купить

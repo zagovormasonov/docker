@@ -109,10 +109,17 @@ router.get('/:id', async (req, res) => {
       [id]
     );
 
+    // Получение продуктов
+    const productsResult = await query(
+      `SELECT * FROM products WHERE expert_id = $1 ORDER BY created_at DESC`,
+      [id]
+    );
+
     res.json({
       ...expert,
       topics: topicsResult.rows,
-      services: servicesResult.rows
+      services: servicesResult.rows,
+      products: productsResult.rows
     });
   } catch (error) {
     console.error('Ошибка получения профиля:', error);

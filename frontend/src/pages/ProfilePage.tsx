@@ -52,6 +52,15 @@ interface Service {
   service_type: string;
 }
 
+interface Product {
+  id: number;
+  title: string;
+  description: string;
+  price?: number;
+  product_type: string;
+  image_url?: string;
+}
+
 const CONSULTATION_TYPES = [
   'Онлайн',
   'Офлайн',
@@ -67,10 +76,14 @@ const ProfilePage = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [serviceForm] = Form.useForm();
+  const [productForm] = Form.useForm();
   const [showServiceForm, setShowServiceForm] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showAddSocial, setShowAddSocial] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
@@ -83,6 +96,7 @@ const ProfilePage = () => {
     fetchCustomSocials();
     if (user?.userType === 'expert') {
       fetchServices();
+      fetchProducts();
     }
   }, []);
 
@@ -131,6 +145,15 @@ const ProfilePage = () => {
       setServices(response.data.services || []);
     } catch (error) {
       console.error('Ошибка загрузки услуг:', error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await api.get('/products');
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Ошибка загрузки продуктов:', error);
     }
   };
 
@@ -291,6 +314,48 @@ const ProfilePage = () => {
     } catch (error) {
       console.error('Ошибка удаления услуги:', error);
       message.error('Ошибка удаления услуги');
+    }
+  };
+
+  const handleAddProduct = async (values: any) => {
+    try {
+      if (editingProduct) {
+        await api.put(`/products/${editingProduct.id}`, values);
+        message.success('Продукт обновлен!');
+        setEditingProduct(null);
+      } else {
+        await api.post('/products', values);
+        message.success('Продукт добавлен!');
+      }
+      productForm.resetFields();
+      setShowProductForm(false);
+      fetchProducts();
+    } catch (error) {
+      console.error('Ошибка сохранения продукта:', error);
+      message.error('Ошибка сохранения продукта');
+    }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setShowProductForm(true);
+    productForm.setFieldsValue({
+      title: product.title,
+      description: product.description,
+      price: product.price,
+      productType: product.product_type,
+      imageUrl: product.image_url
+    });
+  };
+
+  const handleDeleteProduct = async (productId: number) => {
+    try {
+      await api.delete(`/products/${productId}`);
+      message.success('Продукт удален');
+      fetchProducts();
+    } catch (error) {
+      console.error('Ошибка удаления продукта:', error);
+      message.error('Ошибка удаления продукта');
     }
   };
 
@@ -743,13 +808,149 @@ const ProfilePage = () => {
                     </List.Item>
                   )}
                 />
-              </div>
-            </>
-          )}
-        </Space>
-      </Card>
-    </div>
-  );
-};
+
+                <Divider />
+                
+                {/* Секция готовых продуктов */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <Title level={4} style={{ margin: 0 }}>Готовые продукты</Title>
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => setShowProductForm(!showProductForm)}
+                    >
+                      Добавить продукт
+                    </Button>
+                  </div>
+
+                  {showProductForm && (
+                    <Card style={{ marginBottom: 16 }}>
+                      <Form
+                        form={productForm}
+                        layout="vertical"
+                        onFinish={handleAddProduct}
+                      >
+                        <Form.Item
+                          name="title"
+                          label="Название"
+                          rules={[{ required: true, message: 'Введите название продукта' }]}
+                        >
+                          <Input placeholder="Например: Готовая раскладка таро" />
+                        </Form.Item>
+
+                        <Form.Item
+                          name="description"
+                          label="Описание"
+                          rules={[{ required: true, message: 'Введите описание продукта' }]}
+                        >
+                          <TextArea rows={3} placeholder="Опишите ваш продукт..." />
+                        </Form.Item>
+
+                        <Space style={{ width: '100%' }} size="middle">
+                          <Form.Item name="price" label="Цена (₽)">
+                            <Input type="number" placeholder="1500" />
+                          </Form.Item>
+
+                          <Form.Item
+                            name="productType"
+                            label="Тип"
+                            rules={[{ required: true, message: 'Выберите тип' }]}
+                          >
+                            <Select style={{ width: 150 }} placeholder="Тип">
+                              <Select.Option value="digital">Цифровой</Select.Option>
+                              <Select.Option value="physical">Физический</Select.Option>
+                              <Select.Option value="service">Услуга</Select.Option>
+                            </Select>
+                          </Form.Item>
+                        </Space>
+
+                        <Form.Item name="imageUrl" label="URL изображения">
+                          <Input placeholder="https://example.com/image.jpg" />
+                        </Form.Item>
+
+                        <Form.Item>
+                          <Space>
+                            <Button type="primary" htmlType="submit">
+                              {editingProduct ? 'Сохранить' : 'Добавить'}
+                            </Button>
+                            <Button onClick={() => {
+                              setShowProductForm(false);
+                              setEditingProduct(null);
+                              productForm.resetFields();
+                            }}>
+                              Отмена
+                            </Button>
+                          </Space>
+                        </Form.Item>
+                      </Form>
+                    </Card>
+                  )}
+
+                  <List
+                    dataSource={products}
+                    locale={{ emptyText: 'Нет добавленных продуктов' }}
+                    renderItem={(product) => (
+                      <List.Item
+                        actions={[
+                          <Button
+                            icon={<EditOutlined />}
+                            onClick={() => handleEditProduct(product)}
+                          >
+                            Редактировать
+                          </Button>,
+                          <Popconfirm
+                            title="Удалить продукт?"
+                            description="Это действие нельзя отменить"
+                            onConfirm={() => handleDeleteProduct(product.id)}
+                            okText="Да"
+                            cancelText="Нет"
+                          >
+                            <Button danger icon={<DeleteOutlined />}>
+                              Удалить
+                            </Button>
+                          </Popconfirm>
+                        ]}
+                      >
+                        <List.Item.Meta
+                          title={
+                            <Space>
+                              {product.title}
+                              <Tag color={
+                                product.product_type === 'digital' ? 'blue' :
+                                product.product_type === 'physical' ? 'green' : 'purple'
+                              }>
+                                {product.product_type === 'digital' ? 'Цифровой' :
+                                 product.product_type === 'physical' ? 'Физический' : 'Услуга'}
+                              </Tag>
+                            </Space>
+                          }
+                          description={
+                            <>
+                              <div>{product.description}</div>
+                              <Space style={{ marginTop: 8 }}>
+                                {product.price && <Text strong>{product.price} ₽</Text>}
+                                {product.image_url && (
+                                  <img 
+                                    src={product.image_url} 
+                                    alt={product.title}
+                                    style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
+                                  />
+                                )}
+                              </Space>
+                            </>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                </div>
+              </>
+            )}
+          </Space>
+        </Card>
+      </div>
+    );
+  };
 
 export default ProfilePage;
