@@ -693,9 +693,8 @@ const ProfilePage = () => {
                     </List.Item>
                   )}
                 />
-              </div>
 
-              <Divider />
+                <Divider />
                 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -832,8 +831,8 @@ const ProfilePage = () => {
                     )}
                   />
                 </div>
-            </>
-          )}
+              </>
+            )}
         </Space>
       </Card>
     </div>

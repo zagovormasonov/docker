@@ -13,6 +13,7 @@ import {
   Upload,
   Divider,
   List,
+  Modal,
   Popconfirm,
   Tag
 } from 'antd';
@@ -29,7 +30,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
 import ExpertBenefitsCard from '../components/ExpertBenefitsCard';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 interface Topic {
@@ -101,6 +102,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (user) {
+      // Правильная обработка тематик - проверяем формат данных
       const topicsValue = user.topics 
         ? user.topics.map((t: any) => typeof t === 'object' ? t.id : t)
         : [];
@@ -326,6 +328,10 @@ const ProfilePage = () => {
     return false;
   };
 
+  const handleBecomeExpert = () => {
+    navigate('/become-expert');
+  };
+
   return (
     <div className="container" style={{ maxWidth: 800 }}>
       <Card>
@@ -352,6 +358,7 @@ const ProfilePage = () => {
             <Title level={3}>{user?.name}</Title>
             <Text type="secondary">{user?.email}</Text>
             
+            {/* Отображение биографии */}
             {user?.bio && (
               <div style={{ marginTop: 16 }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>О себе:</Text>
@@ -359,6 +366,7 @@ const ProfilePage = () => {
               </div>
             )}
             
+            {/* Отображение тематик пользователя */}
             {user?.topics && user.topics.length > 0 && (
               <div style={{ marginTop: 16 }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>Тематики:</Text>
@@ -372,6 +380,7 @@ const ProfilePage = () => {
               </div>
             )}
             
+            {/* Отображение типов консультаций */}
             {user?.consultationTypes && user.consultationTypes.length > 0 && (
               <div style={{ marginTop: 16 }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>Типы консультаций:</Text>
@@ -465,6 +474,7 @@ const ProfilePage = () => {
               />
             </Form.Item>
 
+            {/* Кастомные соцсети */}
             {customSocials.length > 0 && (
               <Form.Item label="Дополнительные соцсети">
                 <Space direction="vertical" style={{ width: '100%' }}>
@@ -560,6 +570,7 @@ const ProfilePage = () => {
             <>
               <Divider />
               
+              {/* Галерея фотографий */}
               <div>
                 <ProfileGallery userId={user.id} isOwner={true} />
               </div>
@@ -647,14 +658,12 @@ const ProfilePage = () => {
                     <List.Item
                       actions={[
                         <Button
-                          key="edit"
                           icon={<EditOutlined />}
                           onClick={() => handleEditService(service)}
                         >
                           Редактировать
                         </Button>,
                         <Popconfirm
-                          key="delete"
                           title="Удалить услугу?"
                           description="Это действие нельзя отменить"
                           onConfirm={() => handleDeleteService(service.id)}
@@ -693,10 +702,10 @@ const ProfilePage = () => {
                     </List.Item>
                   )}
                 />
-              </div>
 
-              <Divider />
+                <Divider />
                 
+                {/* Секция готовых продуктов */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <Title level={4} style={{ margin: 0 }}>Готовые продукты</Title>
@@ -779,14 +788,12 @@ const ProfilePage = () => {
                       <List.Item
                         actions={[
                           <Button
-                            key="edit"
                             icon={<EditOutlined />}
                             onClick={() => handleEditProduct(product)}
                           >
                             Редактировать
                           </Button>,
                           <Popconfirm
-                            key="delete"
                             title="Удалить продукт?"
                             description="Это действие нельзя отменить"
                             onConfirm={() => handleDeleteProduct(product.id)}
@@ -832,8 +839,8 @@ const ProfilePage = () => {
                     )}
                   />
                 </div>
-            </>
-          )}
+              </>
+            )}
         </Space>
       </Card>
     </div>
