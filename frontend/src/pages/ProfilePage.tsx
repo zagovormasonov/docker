@@ -84,6 +84,7 @@ const ProfilePage = () => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [productImageUploading, setProductImageUploading] = useState(false);
   const [showAddSocial, setShowAddSocial] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
   const [newSocialUrl, setNewSocialUrl] = useState('');
@@ -322,6 +323,30 @@ const ProfilePage = () => {
       message.error('Ошибка загрузки аватара');
     } finally {
       setUploading(false);
+    }
+    return false;
+  };
+
+  const handleProductImageUpload = async (file: File) => {
+    setProductImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const uploadResponse = await api.post('/upload/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const imageUrl = uploadResponse.data.url;
+      productForm.setFieldsValue({ imageUrl });
+      message.success('Изображение загружено!');
+    } catch (error) {
+      console.error('Ошибка загрузки изображения:', error);
+      message.error('Ошибка загрузки изображения');
+    } finally {
+      setProductImageUploading(false);
     }
     return false;
   };
@@ -750,8 +775,52 @@ const ProfilePage = () => {
                           </Form.Item>
                         </Space>
 
-                        <Form.Item name="imageUrl" label="URL изображения">
-                          <Input placeholder="https://example.com/image.jpg" />
+                        <Form.Item name="imageUrl" label="Изображение продукта">
+                          <Space direction="vertical" style={{ width: '100%' }}>
+                            <Upload
+                              name="image"
+                              listType="picture-card"
+                              showUploadList={false}
+                              beforeUpload={handleProductImageUpload}
+                              accept="image/*"
+                            >
+                              <div>
+                                <PlusOutlined />
+                                <div style={{ marginTop: 8 }}>
+                                  {productImageUploading ? 'Загрузка...' : 'Загрузить фото'}
+                                </div>
+                              </div>
+                            </Upload>
+                            {productForm.getFieldValue('imageUrl') && (
+                              <div style={{ textAlign: 'center' }}>
+                                <img 
+                                  src={productForm.getFieldValue('imageUrl')} 
+                                  alt="Предварительный просмотр"
+                                  style={{ 
+                                    maxWidth: 200, 
+                                    maxHeight: 200, 
+                                    objectFit: 'cover',
+                                    borderRadius: 8,
+                                    border: '1px solid #d9d9d9'
+                                  }}
+                                />
+                                <div style={{ marginTop: 8 }}>
+                                  <Button 
+                                    size="small" 
+                                    onClick={() => {
+                                      productForm.setFieldsValue({ imageUrl: '' });
+                                    }}
+                                  >
+                                    Удалить
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                            <Input 
+                              placeholder="Или введите URL изображения" 
+                              style={{ marginTop: 8 }}
+                            />
+                          </Space>
                         </Form.Item>
 
                         <Form.Item>
