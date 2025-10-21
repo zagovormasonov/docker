@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест авторизации</title>
+</head>
+<body>
+    <h1>Тест авторизации SoulSynergy</h1>
+    
+    <div>
+        <h2>1. Получите токен</h2>
+        <p>Войдите в приложение и откройте Developer Tools (F12) → Application → Local Storage → найдите токен</p>
+        <input type="text" id="token" placeholder="Вставьте ваш JWT токен сюда" style="width: 500px;">
+    </div>
+    
+    <div>
+        <h2>2. Тестирование</h2>
+        <button onclick="testAuth()">Тест аутентификации</button>
+        <button onclick="testExpert()">Тест прав эксперта</button>
+        <button onclick="testProducts()">Тест создания продукта</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        function getToken() {
+            return document.getElementById('token').value;
+        }
+        
+        function log(message) {
+            document.getElementById('results').innerHTML += '<div>' + message + '</div>';
+        }
+        
+        async function testAuth() {
+            const token = getToken();
+            if (!token) {
+                log('❌ Введите токен');
+                return;
+            }
+            
+            try {
+                const response = await fetch('https://soulsynergy.ru/api/test/test-auth', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                const data = await response.json();
+                log('✅ Тест аутентификации: ' + JSON.stringify(data));
+            } catch (error) {
+                log('❌ Ошибка: ' + error.message);
+            }
+        }
+        
+        async function testExpert() {
+            const token = getToken();
+            if (!token) {
+                log('❌ Введите токен');
+                return;
+            }
+            
+            try {
+                const response = await fetch('https://soulsynergy.ru/api/test/test-expert', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                const data = await response.json();
+                log('✅ Тест прав эксперта: ' + JSON.stringify(data));
+            } catch (error) {
+                log('❌ Ошибка: ' + error.message);
+            }
+        }
+        
+        async function testProducts() {
+            const token = getToken();
+            if (!token) {
+                log('❌ Введите токен');
+                return;
+            }
+            
+            try {
+                const response = await fetch('https://soulsynergy.ru/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: 'Тестовый продукт',
+                        description: 'Описание тестового продукта',
+                        price: 1000,
+                        productType: 'digital',
+                        imageUrl: 'https://example.com/image.jpg'
+                    })
+                });
+                const data = await response.json();
+                log('✅ Тест создания продукта: ' + JSON.stringify(data));
+            } catch (error) {
+                log('❌ Ошибка: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
