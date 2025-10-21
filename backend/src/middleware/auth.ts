@@ -27,9 +27,9 @@ export const authenticateToken = (
       return res.status(403).json({ error: 'Недействительный токен' });
     }
 
-    console.log('✅ Токен валиден, пользователь:', user.userId, 'тип:', user.userType);
+    console.log('✅ Токен валиден, пользователь:', user.userId, 'тип:', user.userType || user.user_type);
     req.userId = user.userId;
-    req.userType = user.userType;
+    req.userType = user.userType || user.user_type;
     
     // Дополнительная проверка
     if (!req.userId) {
@@ -41,13 +41,41 @@ export const authenticateToken = (
   });
 };
 
-export const requireExpert = (
+export const requireExpert = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
+  console.log('🔍 Проверка прав эксперта для пользователя:', req.userId, 'тип:', req.userType);
+  
   if (req.userType !== 'expert') {
+    console.log('❌ Пользователь не является экспертом по токену');
     return res.status(403).json({ error: 'Доступно только для экспертов' });
   }
-  next();
+  
+  // Дополнительная проверка в базе данных
+  try {
+    const { query } = await import('../config/database');
+    const result = await query(
+      'SELECT user_type FROM users WHERE id = $1',
+      [req.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      console.log('❌ Пользователь не найден в базе данных');
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+    
+    const dbUserType = result.rows[0].user_type;
+    if (dbUserType !== 'expert') {
+      console.log('❌ Пользователь не является экспертом в базе данных:', dbUserType);
+      return res.status(403).json({ error: 'Доступно только для экспертов' });
+    }
+    
+    console.log('✅ Пользователь подтвержден как эксперт');
+    next();
+  } catch (error) {
+    console.error('❌ Ошибка проверки прав эксперта:', error);
+    return res.status(500).json({ error: 'Ошибка проверки прав доступа' });
+  }
 };
