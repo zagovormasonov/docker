@@ -35,6 +35,7 @@ import galleryRoutes from './routes/gallery';
 import customSocialsRoutes from './routes/custom-socials';
 import paymentsRoutes from './routes/payments';
 import productsRoutes from './routes/products';
+import testAuthRoutes from './routes/test-auth';
 
 dotenv.config();
 
@@ -89,6 +90,7 @@ app.use('/api/gallery', galleryRoutes);
 app.use('/api/users/custom-socials', customSocialsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/products', productsRoutes);
+app.use('/api/test', testAuthRoutes);
 
 // Socket.IO для чатов
 const userSockets = new Map<number, string>();
