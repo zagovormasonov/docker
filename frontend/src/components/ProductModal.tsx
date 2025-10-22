@@ -76,21 +76,25 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, visible, onClose, 
             </Paragraph>
           </div>
           
-          <Space split="•" size="large">
+          <div>
             {product.price && (
-              <Space>
-                <DollarOutlined />
-                <Text strong style={{ fontSize: '18px' }}>{product.price} ₽</Text>
-              </Space>
+              <div style={{ marginBottom: 12 }}>
+                <Space>
+                  <DollarOutlined />
+                  <Text strong style={{ fontSize: '18px' }}>{product.price} ₽</Text>
+                </Space>
+              </div>
             )}
-            <Tag color={
-              product.product_type === 'digital' ? 'blue' :
-              product.product_type === 'physical' ? 'green' : 'purple'
-            } style={{ fontSize: '14px', padding: '4px 12px' }}>
-              {product.product_type === 'digital' ? 'Цифровой продукт' :
-               product.product_type === 'physical' ? 'Физический продукт' : 'Услуга'}
-            </Tag>
-          </Space>
+            <div>
+              <Tag color={
+                product.product_type === 'digital' ? 'blue' :
+                product.product_type === 'physical' ? 'green' : 'purple'
+              } style={{ fontSize: '14px', padding: '4px 12px' }}>
+                {product.product_type === 'digital' ? 'Цифровой продукт' :
+                 product.product_type === 'physical' ? 'Физический продукт' : 'Услуга'}
+              </Tag>
+            </div>
+          </div>
         </Space>
       </Card>
     </Modal>
