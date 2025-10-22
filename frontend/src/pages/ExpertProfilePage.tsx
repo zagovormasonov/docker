@@ -705,20 +705,22 @@ const ExpertProfilePage = () => {
                             <Paragraph type="secondary">{service.description}</Paragraph>
                             
                             <div>
-                              <Space split="•" style={{ marginBottom: 8 }}>
-                                {service.price && (
+                              {service.price && (
+                                <div style={{ marginBottom: 8 }}>
                                   <Space>
                                     <DollarOutlined />
                                     <Text>{service.price} ₽</Text>
                                   </Space>
-                                )}
-                                {service.duration && (
+                                </div>
+                              )}
+                              {service.duration && (
+                                <div style={{ marginBottom: 8 }}>
                                   <Space>
                                     <ClockCircleOutlined />
                                     <Text>{service.duration} мин</Text>
                                   </Space>
-                                )}
-                              </Space>
+                                </div>
+                              )}
                               <div>
                                 <Tag color={
                                   service.service_type === 'online' ? 'blue' :
@@ -782,15 +784,15 @@ const ExpertProfilePage = () => {
                             </Paragraph>
                             
                             <div>
-                              <Space split="•" style={{ marginBottom: 8 }}>
-                                {product.price && (
+                              {product.price && (
+                                <div style={{ marginBottom: 8 }}>
                                   <Space>
                                     <DollarOutlined />
                                     <Text>{product.price} ₽</Text>
                                   </Space>
-                                )}
-                              </Space>
-                              <div>
+                                </div>
+                              )}
+                              <div style={{ marginBottom: 8 }}>
                                 <Tag color={
                                   product.product_type === 'digital' ? 'blue' :
                                   product.product_type === 'physical' ? 'green' : 'purple'

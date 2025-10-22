@@ -926,18 +926,29 @@ const ProfilePage = () => {
                                 {product.description}
                               </div>
                               <div style={{ marginTop: 8 }}>
+                                {product.price && (
+                                  <div style={{ marginBottom: 8 }}>
+                                    <Text strong>{product.price} ₽</Text>
+                                  </div>
+                                )}
                                 <div style={{ marginBottom: 8 }}>
-                                  {product.price && <Text strong>{product.price} ₽</Text>}
+                                  <Tag color={
+                                    product.product_type === 'digital' ? 'blue' :
+                                    product.product_type === 'physical' ? 'green' : 'purple'
+                                  }>
+                                    {product.product_type === 'digital' ? 'Цифровой' :
+                                     product.product_type === 'physical' ? 'Физический' : 'Услуга'}
+                                  </Tag>
                                 </div>
-                                <div>
-                                  {product.image_url && (
+                                {product.image_url && (
+                                  <div>
                                     <img 
                                       src={product.image_url} 
                                       alt={product.title}
                                       style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
                                     />
-                                  )}
-                                </div>
+                                  </div>
+                                )}
                               </div>
                             </>
                           }
