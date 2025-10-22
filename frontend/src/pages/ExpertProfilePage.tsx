@@ -33,6 +33,7 @@ import {
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
+import ProductModal from '../components/ProductModal';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -54,7 +55,7 @@ interface Product {
   title: string;
   description: string;
   price?: number;
-  product_type: string;
+  product_type: 'digital' | 'physical' | 'service';
   image_url?: string;
 }
 
@@ -96,6 +97,8 @@ const ExpertProfilePage = () => {
   const [loadingArticles, setLoadingArticles] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productModalVisible, setProductModalVisible] = useState(false);
 
   useEffect(() => {
     fetchExpert();
@@ -203,6 +206,16 @@ const ExpertProfilePage = () => {
       console.error('Ошибка заказа услуги:', error);
       message.error('Ошибка заказа услуги');
     }
+  };
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setProductModalVisible(true);
+  };
+
+  const handleProductModalClose = () => {
+    setProductModalVisible(false);
+    setSelectedProduct(null);
   };
 
   const handleBuyProduct = async (product: Product) => {
@@ -474,6 +487,7 @@ const ExpertProfilePage = () => {
   }
 
   return (
+    <>
     <div className="container">
       <Card>
         {/* Кнопка поделиться в правом верхнем углу */}
@@ -739,11 +753,29 @@ const ExpertProfilePage = () => {
                   dataSource={expert.products}
                   renderItem={(product) => (
                     <List.Item>
-                      <Card style={{ width: '100%' }} size="small">
+                      <Card 
+                        style={{ width: '100%', cursor: 'pointer' }} 
+                        size="small"
+                        hoverable
+                        onClick={() => handleProductClick(product)}
+                      >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
                             <Title level={5}>{product.title}</Title>
-                            <Paragraph type="secondary">{product.description}</Paragraph>
+                            <Paragraph 
+                              type="secondary"
+                              ellipsis={{ 
+                                rows: 4, 
+                                expandable: false,
+                                symbol: '...'
+                              }}
+                              style={{ 
+                                marginBottom: 8,
+                                whiteSpace: 'pre-wrap'
+                              }}
+                            >
+                              {product.description}
+                            </Paragraph>
                             
                             <Space split="•">
                               {product.price && (
@@ -774,7 +806,10 @@ const ExpertProfilePage = () => {
                           
                           <Button
                             type="primary"
-                            onClick={() => handleBuyProduct(product)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBuyProduct(product);
+                            }}
                             style={{ marginLeft: 16, minWidth: 80 }}
                           >
                             Купить
@@ -863,6 +898,14 @@ const ExpertProfilePage = () => {
         </Space>
       </Card>
     </div>
+    
+    <ProductModal
+      product={selectedProduct}
+      visible={productModalVisible}
+      onClose={handleProductModalClose}
+      onBuy={handleBuyProduct}
+    />
+    </>
   );
 };
 

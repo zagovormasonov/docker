@@ -28,6 +28,7 @@ import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
 import ExpertBenefitsCard from '../components/ExpertBenefitsCard';
+import ProductModal from '../components/ProductModal';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -88,6 +89,8 @@ const ProfilePage = () => {
   const [showAddSocial, setShowAddSocial] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
   const [newSocialUrl, setNewSocialUrl] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productModalVisible, setProductModalVisible] = useState(false);
   const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
 
   useEffect(() => {
@@ -300,6 +303,20 @@ const ProfilePage = () => {
       console.error('Ошибка удаления продукта:', error);
       message.error('Ошибка удаления продукта');
     }
+  };
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setProductModalVisible(true);
+  };
+
+  const handleProductModalClose = () => {
+    setProductModalVisible(false);
+    setSelectedProduct(null);
+  };
+
+  const handleBuyProduct = async (product: Product) => {
+    message.info('Функция покупки будет доступна в полной версии');
   };
 
   const handleAvatarUpload = async (file: File) => {
@@ -753,8 +770,12 @@ const ProfilePage = () => {
                           name="description"
                           label="Описание"
                           rules={[{ required: true, message: 'Введите описание продукта' }]}
+                          extra="Используйте Enter для переноса строк. Переносы будут сохранены в описании."
                         >
-                          <TextArea rows={3} placeholder="Опишите ваш продукт..." />
+                          <TextArea 
+                            rows={4} 
+                            placeholder="Опишите ваш продукт...&#10;Можно использовать переносы строк&#10;для лучшего форматирования текста" 
+                          />
                         </Form.Item>
 
                         <Space style={{ width: '100%' }} size="middle">
@@ -848,6 +869,12 @@ const ProfilePage = () => {
                       <List.Item
                         actions={[
                           <Button
+                            key="view"
+                            onClick={() => handleProductClick(product)}
+                          >
+                            Просмотр
+                          </Button>,
+                          <Button
                             key="edit"
                             icon={<EditOutlined />}
                             onClick={() => handleEditProduct(product)}
@@ -883,7 +910,20 @@ const ProfilePage = () => {
                           }
                           description={
                             <>
-                              <div>{product.description}</div>
+                              <div 
+                                style={{ 
+                                  whiteSpace: 'pre-wrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 4,
+                                  WebkitBoxOrient: 'vertical',
+                                  lineHeight: '1.4',
+                                  maxHeight: '5.6em'
+                                }}
+                              >
+                                {product.description}
+                              </div>
                               <Space style={{ marginTop: 8 }}>
                                 {product.price && <Text strong>{product.price} ₽</Text>}
                                 {product.image_url && (
@@ -906,6 +946,13 @@ const ProfilePage = () => {
         </Space>
       </Card>
     </div>
+    
+    <ProductModal
+      product={selectedProduct}
+      visible={productModalVisible}
+      onClose={handleProductModalClose}
+      onBuy={handleBuyProduct}
+    />
   );
 };
 
