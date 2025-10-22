@@ -925,16 +925,20 @@ const ProfilePage = () => {
                               >
                                 {product.description}
                               </div>
-                              <Space style={{ marginTop: 8 }}>
-                                {product.price && <Text strong>{product.price} ₽</Text>}
-                                {product.image_url && (
-                                  <img 
-                                    src={product.image_url} 
-                                    alt={product.title}
-                                    style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
-                                  />
-                                )}
-                              </Space>
+                              <div style={{ marginTop: 8 }}>
+                                <div style={{ marginBottom: 8 }}>
+                                  {product.price && <Text strong>{product.price} ₽</Text>}
+                                </div>
+                                <div>
+                                  {product.image_url && (
+                                    <img 
+                                      src={product.image_url} 
+                                      alt={product.title}
+                                      style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
+                                    />
+                                  )}
+                                </div>
+                              </div>
                             </>
                           }
                         />

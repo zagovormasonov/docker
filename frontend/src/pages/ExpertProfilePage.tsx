@@ -704,27 +704,31 @@ const ExpertProfilePage = () => {
                             <Title level={5}>{service.title}</Title>
                             <Paragraph type="secondary">{service.description}</Paragraph>
                             
-                            <Space split="•">
-                              {service.price && (
-                                <Space>
-                                  <DollarOutlined />
-                                  <Text>{service.price} ₽</Text>
-                                </Space>
-                              )}
-                              {service.duration && (
-                                <Space>
-                                  <ClockCircleOutlined />
-                                  <Text>{service.duration} мин</Text>
-                                </Space>
-                              )}
-                              <Tag color={
-                                service.service_type === 'online' ? 'blue' :
-                                service.service_type === 'offline' ? 'green' : 'purple'
-                              }>
-                                {service.service_type === 'online' ? 'Онлайн' :
-                                 service.service_type === 'offline' ? 'Офлайн' : 'Онлайн/Офлайн'}
-                              </Tag>
-                            </Space>
+                            <div>
+                              <Space split="•" style={{ marginBottom: 8 }}>
+                                {service.price && (
+                                  <Space>
+                                    <DollarOutlined />
+                                    <Text>{service.price} ₽</Text>
+                                  </Space>
+                                )}
+                                {service.duration && (
+                                  <Space>
+                                    <ClockCircleOutlined />
+                                    <Text>{service.duration} мин</Text>
+                                  </Space>
+                                )}
+                              </Space>
+                              <div>
+                                <Tag color={
+                                  service.service_type === 'online' ? 'blue' :
+                                  service.service_type === 'offline' ? 'green' : 'purple'
+                                }>
+                                  {service.service_type === 'online' ? 'Онлайн' :
+                                   service.service_type === 'offline' ? 'Офлайн' : 'Онлайн/Офлайн'}
+                                </Tag>
+                              </div>
+                            </div>
                           </div>
                           
                           <Button
@@ -777,21 +781,25 @@ const ExpertProfilePage = () => {
                               {product.description}
                             </Paragraph>
                             
-                            <Space split="•">
-                              {product.price && (
-                                <Space>
-                                  <DollarOutlined />
-                                  <Text>{product.price} ₽</Text>
-                                </Space>
-                              )}
-                              <Tag color={
-                                product.product_type === 'digital' ? 'blue' :
-                                product.product_type === 'physical' ? 'green' : 'purple'
-                              }>
-                                {product.product_type === 'digital' ? 'Цифровой' :
-                                 product.product_type === 'physical' ? 'Физический' : 'Услуга'}
-                              </Tag>
-                            </Space>
+                            <div>
+                              <Space split="•" style={{ marginBottom: 8 }}>
+                                {product.price && (
+                                  <Space>
+                                    <DollarOutlined />
+                                    <Text>{product.price} ₽</Text>
+                                  </Space>
+                                )}
+                              </Space>
+                              <div>
+                                <Tag color={
+                                  product.product_type === 'digital' ? 'blue' :
+                                  product.product_type === 'physical' ? 'green' : 'purple'
+                                }>
+                                  {product.product_type === 'digital' ? 'Цифровой' :
+                                   product.product_type === 'physical' ? 'Физический' : 'Услуга'}
+                                </Tag>
+                              </div>
+                            </div>
                             
                             {product.image_url && (
                               <div style={{ marginTop: 8 }}>
