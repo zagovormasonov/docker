@@ -369,6 +369,7 @@ const ProfilePage = () => {
   };
 
   return (
+    <>
     <div className="container" style={{ maxWidth: 800 }}>
       <Card>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -953,6 +954,7 @@ const ProfilePage = () => {
       onClose={handleProductModalClose}
       onBuy={handleBuyProduct}
     />
+    </>
   );
 };
 
