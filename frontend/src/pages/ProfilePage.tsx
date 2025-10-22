@@ -57,7 +57,7 @@ interface Product {
   title: string;
   description: string;
   price?: number;
-  product_type: string;
+  product_type: 'digital' | 'physical' | 'service';
   image_url?: string;
 }
 
