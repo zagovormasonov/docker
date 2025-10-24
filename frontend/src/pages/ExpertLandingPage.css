@@ -17,6 +17,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
+  transition: transform 0.1s ease-out;
 }
 
 .header-text-container {
@@ -190,6 +191,7 @@
 @media (max-width: 768px) {
   .header-image {
     height: 600px;
+    transition: none;
   }
   
   .header-text-main {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -9,6 +9,19 @@ const { Title, Paragraph } = Typography;
 const ExpertLandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Отключаем параллакс на мобильных устройствах для лучшей производительности
+      if (window.innerWidth > 768) {
+        setScrollY(window.scrollY);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handlePayment = async () => {
     setLoading(true);
@@ -83,7 +96,12 @@ const ExpertLandingPage: React.FC = () => {
   return (
     <div className="expert-landing-container">
       {/* Header Image */}
-      <div className="header-image">
+      <div 
+        className="header-image"
+        style={{
+          transform: `translateY(${scrollY * 0.5}px)`
+        }}
+      >
         <div className="header-text-container">
           <div className="header-text-main">
             СТАНЬТЕ ТЕМ, КТО ВДОХНОВЛЯЕТ
