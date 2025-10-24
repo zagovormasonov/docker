@@ -95,30 +95,16 @@
 
 .feature-content {
   flex: 1;
-  padding: 40px;
-  background-color: #f8f4ff;
-  border-radius: 16px;
-  border: 1px solid #e8d5ff;
   position: relative;
 }
 
 .feature-image {
   flex: 1;
   height: 300px;
-  background-color: #f0f0f0;
   border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   margin: 0 20px;
   position: relative;
   overflow: hidden;
-}
-
-.feature-image-placeholder {
-  font-size: 64px;
-  opacity: 0.3;
-  color: #8b5cf6;
 }
 
 .feature-title {
@@ -206,7 +192,6 @@
   }
   
   .feature-content {
-    padding: 30px 20px;
     margin-bottom: 20px;
   }
   
