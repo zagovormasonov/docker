@@ -82,11 +82,8 @@ const ExpertLandingPage: React.FC = () => {
 
   return (
     <div className="expert-landing-container">
-      {/* Header Image Placeholder */}
+      {/* Header Image */}
       <div className="header-image">
-        <div className="header-icon-main">🧘‍♀️</div>
-        <div className="header-icon-1">✨</div>
-        <div className="header-icon-2">🌟</div>
       </div>
 
       {/* Back Button */}
