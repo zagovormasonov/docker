@@ -101,7 +101,7 @@ const ExpertLandingPage: React.FC = () => {
       <div 
         className="header-image"
         style={{
-          transform: `translateY(${scrollY * 0.3}px)`
+          backgroundPosition: `center ${50 + scrollY * 0.8}%`
         }}
       >
         <div className="header-text-container">
