@@ -84,6 +84,14 @@ const ExpertLandingPage: React.FC = () => {
     <div className="expert-landing-container">
       {/* Header Image */}
       <div className="header-image">
+        <div className="header-text-container">
+          <div className="header-text-main">
+            СТАНЬТЕ ТЕМ, КТО ВДОХНОВЛЯЕТ
+          </div>
+          <div className="header-text-subtitle">
+            SOUL SYNERGY: СИНЕРГИЯ В ЕДИНСТВЕ
+          </div>
+        </div>
       </div>
 
       {/* Back Button */}
