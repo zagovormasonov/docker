@@ -171,6 +171,9 @@ const ExpertLandingPage: React.FC = () => {
           </Button>
         </div>
       </div>
+      
+      {/* Footer Background Image */}
+      <div className="footer-bg"></div>
     </div>
   );
 };
