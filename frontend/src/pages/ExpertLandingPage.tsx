@@ -110,22 +110,25 @@ const ExpertLandingPage: React.FC = () => {
           <div className="title-line"></div>
         </div>
 
-        {/* Features Grid */}
-        <div className="features-grid">
+        {/* Features Container */}
+        <div className="features-container">
           {features.map((feature, index) => (
-            <div key={index} className="feature-card">
-              {/* Icon Placeholder */}
-              <div className="feature-icon">
-                {feature.icon}
+            <div key={index} className="feature-block">
+              <div className="feature-content">
+                <Title level={3} className="feature-title">
+                  {feature.title}
+                </Title>
+                
+                <Paragraph className="feature-description">
+                  {feature.description}
+                </Paragraph>
               </div>
               
-              <Title level={3} className="feature-title">
-                {feature.title}
-              </Title>
-              
-              <Paragraph className="feature-description">
-                {feature.description}
-              </Paragraph>
+              <div className="feature-image">
+                <div className="feature-image-placeholder">
+                  {feature.icon}
+                </div>
+              </div>
             </div>
           ))}
         </div>

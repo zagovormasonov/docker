@@ -78,28 +78,47 @@
   margin: 0 auto;
 }
 
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 30px;
+.features-container {
   margin-bottom: 80px;
 }
 
-.feature-card {
-  background-color: #f8f4ff;
+.feature-block {
+  display: flex;
+  align-items: center;
+  margin-bottom: 60px;
+  min-height: 300px;
+}
+
+.feature-block:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.feature-content {
+  flex: 1;
   padding: 40px;
+  background-color: #f8f4ff;
   border-radius: 16px;
   border: 1px solid #e8d5ff;
   position: relative;
-  min-height: 280px;
 }
 
-.feature-icon {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 48px;
+.feature-image {
+  flex: 1;
+  height: 300px;
+  background-color: #f0f0f0;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-image-placeholder {
+  font-size: 64px;
   opacity: 0.3;
+  color: #8b5cf6;
 }
 
 .feature-title {
@@ -107,7 +126,7 @@
   margin-bottom: 20px;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .feature-description {
@@ -119,13 +138,21 @@
 }
 
 .cta-section {
-  background-color: #f8f4ff;
+  background: linear-gradient(rgba(248, 244, 255, 0.85), rgba(248, 244, 255, 0.85)), url('/bg.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-attachment: local;
   padding: 60px 40px;
   border-radius: 20px;
   text-align: center;
   margin-bottom: 40px;
   position: relative;
   overflow: hidden;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .cta-pattern-1 {
@@ -173,18 +200,25 @@
     padding: 0 20px;
   }
   
-  .features-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .feature-block {
+    flex-direction: column !important;
+    margin-bottom: 40px;
   }
   
-  .feature-card {
+  .feature-content {
     padding: 30px 20px;
-    min-height: auto;
+    margin-bottom: 20px;
+  }
+  
+  .feature-image {
+    height: 200px;
+    margin: 0;
   }
   
   .cta-section {
     padding: 40px 20px;
+    min-height: 300px;
+    background-position: center center;
   }
   
   .title {
