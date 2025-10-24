@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Typography, Card, Space, Divider } from 'antd';
-import { ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Button, Typography } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import './ExpertLandingPage.css';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 const ExpertLandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -46,157 +47,109 @@ const ExpertLandingPage: React.FC = () => {
     }
   };
 
+  const features = [
+    {
+      title: "ВАША АНКЕТА",
+      description: "Сделайте себя заметным для клиентов вашего города и вашего направления. Настройте ваши социальные сети, персональные ссылки и информацию.",
+      icon: "👤"
+    },
+    {
+      title: "ВАШИ УСЛУГИ", 
+      description: "Вас легко найдут, благодаря удобному расширенному поиску. Размещайте ваши персональные услуги и получайте стабильные заказы.",
+      icon: "🛠️"
+    },
+    {
+      title: "ВАШИ ЗНАНИЯ",
+      description: "Ваши знания будут доступны не только на нашей платформе, но и в поисковиках Google, Yandex и других. Публикуйте ваши статьи и материалы, вдохновляйте читателей и становитесь узнаваемым",
+      icon: "📚"
+    },
+    {
+      title: "ВАШИ МЕРОПРИЯТИЯ",
+      description: "Пусть о вашем мероприятии узнают все! Организуйте ваши офлайн мероприятия: тренинги, семинары, ретриты, мастер-классы",
+      icon: "🎯"
+    },
+    {
+      title: "ВАШИ ЦИФРОВЫЕ ПРОДУКТЫ",
+      description: "Найдите свою аудиторию и монетизируйте свой опыт! Размещайте и продавайте ваши уникальные обучающие программы, полезные курсы и вебинары.",
+      icon: "💻"
+    },
+    {
+      title: "ВАШ БРЕНД",
+      description: "Наслаждайтесь! Пока вы занимаетесь тем, что любите, наша платформа заботится о вашем успехе. Прозрачные оценки и отзывы реальных людей помогут вам завоевать доверие и стать по-настоящему узнаваемым экспертом.",
+      icon: "⭐"
+    }
+  ];
+
   return (
-    <div style={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-      padding: '20px'
-    }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div className="expert-landing-container">
+      {/* Header Image Placeholder */}
+      <div className="header-image">
+        <div className="header-icon-main">🧘‍♀️</div>
+        <div className="header-icon-1">✨</div>
+        <div className="header-icon-2">🌟</div>
+      </div>
+
+      {/* Back Button */}
+      <div className="back-button-container">
         <Button 
           icon={<ArrowLeftOutlined />} 
           onClick={() => navigate(-1)}
-          style={{ marginBottom: 24 }}
+          className="back-button"
         >
           Назад
         </Button>
+      </div>
 
-        <Card style={{ 
-          borderRadius: 16,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          marginBottom: 24
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <Title level={1} style={{ color: '#1d1d1f', marginBottom: 16 }}>
-              Привилегии эксперта
-            </Title>
-            <Paragraph style={{ fontSize: 18, color: '#666', marginBottom: 32 }}>
-              Приобретая профессиональный профиль, вы получаете прямой доступ к активной аудитории, 
-              выбирающей осознанное развитие и готовой к трансформации.
-            </Paragraph>
-          </div>
-
-          <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>
-            Преимущества экспертной подписки
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Title Section */}
+        <div className="title-section">
+          <Title level={1} className="title">
+            ВОЗМОЖНОСТИ ЭКСПЕРТА:
           </Title>
+          <div className="title-line"></div>
+        </div>
 
-          <Space direction="vertical" size={24} style={{ width: '100%' }}>
-            <Card style={{ border: '1px solid #e8e8e8', borderRadius: 12 }}>
-              <Title level={3} style={{ color: '#1d1d1f', marginBottom: 12 }}>
-                Ваша анкета
-              </Title>
-              <Paragraph style={{ color: '#666', margin: 0 }}>
-                Настройте ваши социальные сети, персональные ссылки и информацию. 
-                Сделайте себя заметным для клиентов вашего города и вашего направления.
-              </Paragraph>
-            </Card>
-
-            <Card style={{ border: '1px solid #e8e8e8', borderRadius: 12 }}>
-              <Title level={3} style={{ color: '#1d1d1f', marginBottom: 12 }}>
-                Ваши услуги
-              </Title>
-              <Paragraph style={{ color: '#666', margin: 0 }}>
-                Размещайте ваши персональные услуги и получайте стабильные заказы. 
-                Вас легко найдут, благодаря удобному расширенному поиску
-              </Paragraph>
-            </Card>
-
-            <Card style={{ border: '1px solid #e8e8e8', borderRadius: 12 }}>
-              <Title level={3} style={{ color: '#1d1d1f', marginBottom: 12 }}>
-                Ваши знания
-              </Title>
-              <Paragraph style={{ color: '#666', margin: 0 }}>
-                Публикуйте ваши статьи и материалы, вдохновляйте читателей и становитесь узнаваемым экспертом. 
-                Ваши знания будут доступны не только на нашей платформе, но и в поисковиках Google, Yandex и других.
-              </Paragraph>
-            </Card>
-
-            <Card style={{ border: '1px solid #e8e8e8', borderRadius: 12 }}>
-              <Title level={3} style={{ color: '#1d1d1f', marginBottom: 12 }}>
-                Ваши мероприятия
-              </Title>
-              <Paragraph style={{ color: '#666', margin: 0 }}>
-                Организуйте ваши офлайн мероприятия: тренинги, семинары, ретриты, мастер-классы. 
-                Пусть о вашем мероприятии узнают все!
-              </Paragraph>
-            </Card>
-
-            <Card style={{ border: '1px solid #e8e8e8', borderRadius: 12 }}>
-              <Title level={3} style={{ color: '#1d1d1f', marginBottom: 12 }}>
-                Ваши цифровые продукты
-              </Title>
-              <Paragraph style={{ color: '#666', margin: 0 }}>
-                Размещайте и продавайте ваши уникальные обучающие программы, полезные курсы и вебинары. 
-                Найдите свою аудиторию и монетизируйте свой опыт!
-              </Paragraph>
-            </Card>
-
-            <Card style={{ border: '1px solid #e8e8e8', borderRadius: 12 }}>
-              <Title level={3} style={{ color: '#1d1d1f', marginBottom: 12 }}>
-                Ваш бренд
-              </Title>
-              <Paragraph style={{ color: '#666', margin: 0 }}>
-                Наслаждайтесь! Пока вы занимаетесь тем, что любите, наша платформа заботится о вашем успехе. 
-                Прозрачные оценки и отзывы реальных людей помогут вам завоевать доверие и стать по-настоящему узнаваемым экспертом.
-              </Paragraph>
-            </Card>
-          </Space>
-
-          <Divider />
-
-          <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <Title level={3} style={{ color: '#1d1d1f', marginBottom: 16 }}>
-              Станьте тем, кто вдохновляет
-            </Title>
-            <Paragraph style={{ fontSize: 16, color: '#666', marginBottom: 24 }}>
-              Выберите профессиональный профиль эксперта — и начните формировать свой личный бренд, 
-              который будет работать на вас!
-            </Paragraph>
-          </div>
-
-          <div style={{ textAlign: 'center' }}>
-            <Button
-              type="primary"
-              size="large"
-              loading={loading}
-              onClick={handlePayment}
-              style={{
-                height: 56,
-                fontSize: 18,
-                fontWeight: 600,
-                background: '#1d1d1f',
-                border: 'none',
-                borderRadius: 28,
-                padding: '0 48px',
-                marginBottom: 16
-              }}
-            >
-              Перейти к оплате
-            </Button>
-            <div style={{ marginTop: 16 }}>
-              <Text style={{ fontSize: 14, color: '#999' }}>
-                Пожизненный доступ за 990 ₽
-              </Text>
-              <div style={{ marginTop: 8 }}>
-                <Text style={{ 
-                  textDecoration: 'line-through', 
-                  color: '#86868b',
-                  fontSize: 16,
-                  marginRight: 12
-                }}>
-                  3369 Р
-                </Text>
-                <Text style={{ 
-                  color: '#ff4d4f',
-                  fontSize: 20,
-                  fontWeight: '600'
-                }}>
-                  990 Руб.
-                </Text>
+        {/* Features Grid */}
+        <div className="features-grid">
+          {features.map((feature, index) => (
+            <div key={index} className="feature-card">
+              {/* Icon Placeholder */}
+              <div className="feature-icon">
+                {feature.icon}
               </div>
+              
+              <Title level={3} className="feature-title">
+                {feature.title}
+              </Title>
+              
+              <Paragraph className="feature-description">
+                {feature.description}
+              </Paragraph>
             </div>
-          </div>
-        </Card>
+          ))}
+        </div>
+
+        {/* Call to Action Section */}
+        <div className="cta-section">
+          {/* Background Pattern Placeholder */}
+          <div className="cta-pattern-1">🌸</div>
+          <div className="cta-pattern-2">🌺</div>
+          
+          <Title level={2} className="cta-title">
+            Выберите профессиональный профиль эксперта — и начните формировать свой личный бренд, который будет работать на вас!
+          </Title>
+          
+          <Button
+            type="primary"
+            size="large"
+            loading={loading}
+            onClick={handlePayment}
+            className="cta-button"
+          >
+            Перейти к оплате
+          </Button>
+        </div>
       </div>
     </div>
   );
