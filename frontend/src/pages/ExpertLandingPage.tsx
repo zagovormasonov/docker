@@ -15,7 +15,9 @@ const ExpertLandingPage: React.FC = () => {
     const handleScroll = () => {
       // Отключаем параллакс на мобильных устройствах для лучшей производительности
       if (window.innerWidth > 768) {
-        setScrollY(window.scrollY);
+        const maxScroll = 400; // Максимальное смещение в пикселях
+        const currentScroll = Math.min(window.scrollY, maxScroll);
+        setScrollY(currentScroll);
       }
     };
 
@@ -99,7 +101,7 @@ const ExpertLandingPage: React.FC = () => {
       <div 
         className="header-image"
         style={{
-          transform: `translateY(${scrollY * 0.5}px)`
+          transform: `translateY(${scrollY * 0.3}px)`
         }}
       >
         <div className="header-text-container">
