@@ -117,7 +117,7 @@
 .feature-image {
   width: 480px;
   height: 480px;
-  border-radius: 16px;
+  border-radius: 1000px;
   margin: 0 20px;
   position: relative;
   overflow: hidden;
@@ -370,7 +370,7 @@
   }
   
   .feature-image {
-    height: 250px;
+    height: 300px;
   }
   
   .cta-section {
