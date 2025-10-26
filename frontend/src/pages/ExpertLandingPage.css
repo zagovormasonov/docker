@@ -125,7 +125,7 @@
 }
 
 .feature-title {
-  color: #6932A1;
+  color: rgb(105, 50, 161);
   margin-bottom: 20px;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
@@ -190,8 +190,8 @@
 
 .faq-question {
   padding: 20px 30px;
-  background-color: #6932A1;
-  color: #ffffff;
+  background-color: #ebe0ff;
+  color: #000000;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   font-size: 18px;
@@ -203,7 +203,7 @@
 }
 
 .faq-question:hover {
-  background-color: #5a2a8f;
+  background-color: #d4c5f9;
 }
 
 .faq-answer {
@@ -223,6 +223,7 @@
 .faq-icon {
   font-size: 20px;
   transition: transform 0.3s ease;
+  color: #000000;
 }
 
 .faq-icon.active {
