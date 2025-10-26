@@ -300,6 +300,10 @@
   .feature-block {
     padding: 20px;
   }
+
+  .feature-title {
+    font-size: 24px !important;
+  }
   
   .feature-image {
     width: 300px;
