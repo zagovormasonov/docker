@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from 'antd';
 import { ArrowLeftOutlined, DownOutlined } from '@ant-design/icons';
+import ExpertLandingSkeleton from '../components/ExpertLandingSkeleton';
 import './ExpertLandingPage.css';
 
 const { Title, Paragraph } = Typography;
@@ -11,6 +12,7 @@ const ExpertLandingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +26,15 @@ const ExpertLandingPage: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Имитация загрузки страницы
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 2000); // 2 секунды загрузки
+
+    return () => clearTimeout(timer);
   }, []);
 
   const toggleFaq = (index: number) => {
@@ -112,7 +123,11 @@ const ExpertLandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="expert-landing-container">
+    <>
+      {isPageLoading ? (
+        <ExpertLandingSkeleton />
+      ) : (
+        <div className="expert-landing-container">
       {/* Header Image */}
       <div 
         className="header-image"
@@ -235,6 +250,8 @@ const ExpertLandingPage: React.FC = () => {
       {/* Footer Background Image */}
       <div className="footer-bg"></div>
     </div>
+      )}
+    </>
   );
 };
 
