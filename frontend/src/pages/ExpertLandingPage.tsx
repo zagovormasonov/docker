@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DownOutlined } from '@ant-design/icons';
 import './ExpertLandingPage.css';
 
 const { Title, Paragraph } = Typography;
@@ -10,6 +10,7 @@ const ExpertLandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +25,10 @@ const ExpertLandingPage: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   const handlePayment = async () => {
     setLoading(true);
@@ -95,6 +100,17 @@ const ExpertLandingPage: React.FC = () => {
     }
   ];
 
+  const faqData = [
+    {
+      question: "Пункт 1",
+      answer: "Подробности 1"
+    },
+    {
+      question: "Пункт 2", 
+      answer: "Подробности 2"
+    }
+  ];
+
   return (
     <div className="expert-landing-container">
       {/* Header Image */}
@@ -123,7 +139,7 @@ const ExpertLandingPage: React.FC = () => {
         >
           Назад
         </Button>
-      </div>
+          </div>
 
       {/* Main Content */}
       <div className="main-content">
@@ -142,11 +158,11 @@ const ExpertLandingPage: React.FC = () => {
               <div className="feature-content">
                 <Title level={3} className="feature-title">
                   {feature.title}
-                </Title>
+              </Title>
                 
                 <Paragraph className="feature-description">
                   {feature.description}
-                </Paragraph>
+              </Paragraph>
               </div>
               
               <div className="feature-image">
@@ -172,24 +188,48 @@ const ExpertLandingPage: React.FC = () => {
 
         {/* Call to Action Section */}
         <div className="cta-section">
-          {/* Background Pattern Placeholder */}
-          <div className="cta-pattern-1">🌸</div>
-          <div className="cta-pattern-2">🌺</div>
-          
-          <Title level={2} className="cta-title">
-            Выберите профессиональный профиль эксперта — и начните формировать свой личный бренд, который будет работать на вас!
+          <div className="cta-content">
+            <Title level={2} className="cta-title">
+              Выберите профессиональный профиль эксперта — и начните формировать свой личный бренд, который будет работать на вас!
+            </Title>
+
+            <Button
+              type="primary"
+              size="large"
+              loading={loading}
+              onClick={handlePayment}
+              className="cta-button"
+            >
+              Перейти к оплате
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      {/* FAQ Section */}
+      <div className="faq-section">
+        <div className="main-content">
+          <Title level={2} className="faq-title">
+            Часто задаваемые вопросы
           </Title>
           
-          <Button
-            type="primary"
-            size="large"
-            loading={loading}
-            onClick={handlePayment}
-            className="cta-button"
-          >
-            Перейти к оплате
-          </Button>
-        </div>
+          {faqData.map((faq, index) => (
+            <div key={index} className="faq-item">
+              <div 
+                className="faq-question"
+                onClick={() => toggleFaq(index)}
+              >
+                <span>{faq.question}</span>
+                <DownOutlined 
+                  className={`faq-icon ${openFaq === index ? 'active' : ''}`}
+                />
+              </div>
+              <div className={`faq-answer ${openFaq === index ? 'active' : ''}`}>
+                {faq.answer}
+              </div>
+            </div>
+          ))}
+          </div>
       </div>
       
       {/* Footer Background Image */}
