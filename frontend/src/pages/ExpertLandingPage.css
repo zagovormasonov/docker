@@ -94,6 +94,9 @@
   align-items: center;
   margin-bottom: 60px;
   min-height: 300px;
+  padding: 30px;
+  background-color: #f8f4ff;
+  border-radius: 12px;
 }
 
 .feature-block:nth-child(even) {
@@ -103,9 +106,6 @@
 .feature-content {
   flex: 1;
   position: relative;
-  background-color: #f8f4ff;
-  padding: 30px;
-  border-radius: 12px;
   margin-right: 20px;
 }
 
@@ -128,7 +128,7 @@
   color: #6932A1;
   margin-bottom: 20px;
   font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 24px;
 }
 
@@ -182,7 +182,7 @@
 
 .faq-item {
   margin-bottom: 20px;
-  background-color: #ffffff;
+  background-color: #f8f4ff;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -291,6 +291,10 @@
     margin-bottom: 20px;
     margin-right: 0;
     margin-left: 0;
+  }
+  
+  .feature-block {
+    padding: 20px;
   }
   
   .feature-image {
