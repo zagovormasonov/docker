@@ -2,8 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from 'antd';
 import { ArrowLeftOutlined, DownOutlined } from '@ant-design/icons';
-import ExpertLandingSkeleton from '../components/ExpertLandingSkeleton';
 import './ExpertLandingPage.css';
+
+// Предзагрузка изображений
+const preloadImages = () => {
+  const imageUrls = [
+    '/hero.png',
+    '/anketa.png',
+    '/serv.png',
+    '/events.png',
+    '/prod.png',
+    '/brand.png',
+    '/bg.png'
+  ];
+  
+  imageUrls.forEach(url => {
+    const img = new Image();
+    img.src = url;
+  });
+};
 
 const { Title, Paragraph } = Typography;
 
@@ -12,9 +29,11 @@ const ExpertLandingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
+    // Предзагружаем изображения при загрузке компонента
+    preloadImages();
+    
     const handleScroll = () => {
       // Отключаем параллакс на мобильных устройствах для лучшей производительности
       if (window.innerWidth > 768) {
@@ -26,15 +45,6 @@ const ExpertLandingPage: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Имитация загрузки страницы
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 2000); // 2 секунды загрузки
-
-    return () => clearTimeout(timer);
   }, []);
 
   const toggleFaq = (index: number) => {
@@ -92,7 +102,7 @@ const ExpertLandingPage: React.FC = () => {
     {
       title: "ВАШИ ЗНАНИЯ",
       description: "Ваши знания будут доступны не только на нашей платформе, но и в поисковиках Google, Yandex и других. Публикуйте ваши статьи и материалы, вдохновляйте читателей и становитесь узнаваемым",
-      image: "/know.png" // Заглушка, так как изображение не указано
+      image: "/anketa.png" // Заглушка, так как изображение не указано
     },
     {
       title: "ВАШИ МЕРОПРИЯТИЯ",
@@ -123,11 +133,7 @@ const ExpertLandingPage: React.FC = () => {
   ];
 
   return (
-    <>
-      {isPageLoading ? (
-        <ExpertLandingSkeleton />
-      ) : (
-        <div className="expert-landing-container">
+    <div className="expert-landing-container">
       {/* Header Image */}
       <div 
         className="header-image"
@@ -184,6 +190,8 @@ const ExpertLandingPage: React.FC = () => {
                 <img 
                   src={feature.image} 
                   alt={feature.title}
+                  loading="lazy"
+                  decoding="async"
                   style={{
                     width: '100%',
                     height: '100%',
@@ -250,8 +258,6 @@ const ExpertLandingPage: React.FC = () => {
       {/* Footer Background Image */}
       <div className="footer-bg"></div>
     </div>
-      )}
-    </>
   );
 };
 
