@@ -380,4 +380,8 @@
   .footer-bg {
     height: 250px;
   }
+  
+  .feature-title {
+    font-size: 24px;
+  }
 }
