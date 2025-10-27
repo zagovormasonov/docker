@@ -3,6 +3,7 @@
   min-height: 100vh;
   background-color: #ffffff;
   font-family: 'Montserrat', sans-serif;
+  overflow-x: hidden;
 }
 
 .header-image {
@@ -161,14 +162,17 @@
 
 .footer-bg {
   width: 100vw;
-  height: auto;
-  min-height: 400px;
+  height: 600px;
   background: url('/bg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   will-change: auto;
-  margin-left: calc(-50vw + 50%);
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
 
 .faq-section {
@@ -319,8 +323,7 @@
   }
   
   .footer-bg {
-    height: auto;
-    min-height: 300px;
+    height: 500px;
   }
   
   .faq-section {
@@ -389,8 +392,7 @@
   }
   
   .footer-bg {
-    height: auto;
-    min-height: 250px;
+    height: 400px;
   }
 }
 
