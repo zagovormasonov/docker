@@ -19,7 +19,9 @@ import {
   DeleteOutlined,
   EyeOutlined,
   PlusOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  FolderOutlined,
+  FolderOpenOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import dayjs from 'dayjs';
@@ -35,6 +37,7 @@ interface Article {
   content: string;
   cover_image?: string;
   is_published: boolean;
+  archived: boolean;
   views: number;
   created_at: string;
   updated_at: string;
@@ -85,6 +88,28 @@ const MyArticlesPage = () => {
     }
   };
 
+  const handleArchive = async (id: number) => {
+    try {
+      await api.post(`/articles/${id}/archive`);
+      message.success('Статья успешно архивирована!');
+      fetchArticles();
+    } catch (error: any) {
+      console.error('Ошибка архивирования статьи:', error);
+      message.error(error.response?.data?.error || 'Ошибка архивирования статьи');
+    }
+  };
+
+  const handleUnarchive = async (id: number) => {
+    try {
+      await api.post(`/articles/${id}/unarchive`);
+      message.success('Статья успешно разархивирована!');
+      fetchArticles();
+    } catch (error: any) {
+      console.error('Ошибка разархивирования статьи:', error);
+      message.error(error.response?.data?.error || 'Ошибка разархивирования статьи');
+    }
+  };
+
   const stripHtml = (html: string) => {
     if (!html) return '';
     const tmp = document.createElement('div');
@@ -96,14 +121,23 @@ const MyArticlesPage = () => {
     <div className="container" style={{ maxWidth: 900 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <Title level={2}>Мои статьи</Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => navigate('/create-article')}
-          size="large"
-        >
-          Создать статью
-        </Button>
+        <Space>
+          <Button
+            icon={<FolderOutlined />}
+            onClick={() => navigate('/archived-articles')}
+            size="large"
+          >
+            Архив статей
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/create-article')}
+            size="large"
+          >
+            Создать статью
+          </Button>
+        </Space>
       </div>
 
       {articles.length === 0 && !loading ? (
@@ -163,11 +197,18 @@ const MyArticlesPage = () => {
                     {article.title}
                   </Title>
 
-                  {/* Статус публикации */}
+                  {/* Статус публикации и архива */}
                   <div>
-                    <Tag color={article.is_published ? 'green' : 'orange'} style={{ fontSize: 13 }}>
-                      {article.is_published ? '✓ Опубликовано' : '○ Черновик'}
-                    </Tag>
+                    <Space wrap>
+                      <Tag color={article.is_published ? 'green' : 'orange'} style={{ fontSize: 13 }}>
+                        {article.is_published ? '✓ Опубликовано' : '○ Черновик'}
+                      </Tag>
+                      {article.archived && (
+                        <Tag color="purple" icon={<FolderOutlined />} style={{ fontSize: 13 }}>
+                          Архив
+                        </Tag>
+                      )}
+                    </Space>
                   </div>
 
                   {/* Превью текста */}
@@ -221,6 +262,23 @@ const MyArticlesPage = () => {
                     >
                       {article.is_published ? 'Снять' : 'Опубликовать'}
                     </Button>
+                    {!article.archived ? (
+                      <Button
+                        icon={<FolderOutlined />}
+                        onClick={() => handleArchive(article.id)}
+                        size="small"
+                      >
+                        В архив
+                      </Button>
+                    ) : (
+                      <Button
+                        icon={<FolderOpenOutlined />}
+                        onClick={() => handleUnarchive(article.id)}
+                        size="small"
+                      >
+                        Из архива
+                      </Button>
+                    )}
                     <Popconfirm
                       title="Удалить статью?"
                       description="Это действие нельзя отменить"

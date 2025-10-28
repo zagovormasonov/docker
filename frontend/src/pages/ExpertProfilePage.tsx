@@ -34,6 +34,7 @@ import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
 import ProductModal from '../components/ProductModal';
+import '../components/ServiceDescription.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -702,7 +703,10 @@ const ExpertProfilePage = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
                             <Title level={5}>{service.title}</Title>
-                            <Paragraph type="secondary">{service.description}</Paragraph>
+                            <div 
+                              className="service-description"
+                              dangerouslySetInnerHTML={{ __html: service.description }}
+                            />
                             
                             <div>
                               {service.price && (

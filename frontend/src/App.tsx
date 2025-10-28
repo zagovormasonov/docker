@@ -17,6 +17,7 @@ import ProfilePage from './pages/ProfilePage';
 import ChatsPage from './pages/ChatsPage';
 import CreateArticlePage from './pages/CreateArticlePage';
 import MyArticlesPage from './pages/MyArticlesPage';
+import ArchivedArticlesPage from './pages/ArchivedArticlesPage';
 import FavoritesPage from './pages/FavoritesPage';
 import EventsPage from './pages/EventsPage';
 import EventPage from './pages/EventPage';
@@ -83,6 +84,7 @@ function App() {
                 <Route path="create-article" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
                 <Route path="edit-article/:id" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
                 <Route path="my-articles" element={<ProtectedRoute><MyArticlesPage /></ProtectedRoute>} />
+                <Route path="archived-articles" element={<ProtectedRoute><ArchivedArticlesPage /></ProtectedRoute>} />
                 <Route path="moderation" element={<ProtectedRoute><ModerationPage /></ProtectedRoute>} />
                 <Route path="admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                 <Route path="offer" element={<OfertaPage />} />

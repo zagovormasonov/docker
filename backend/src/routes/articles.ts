@@ -22,6 +22,81 @@ router.get('/my/articles', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
+// Получение архивированных статей пользователя
+router.get('/my/archived', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      `SELECT * FROM articles 
+       WHERE author_id = $1 AND archived = true
+       ORDER BY created_at DESC`,
+      [req.userId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Ошибка получения архивированных статей:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Архивирование статьи
+router.post('/:id/archive', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    // Проверяем, что статья принадлежит пользователю
+    const articleResult = await query(
+      'SELECT * FROM articles WHERE id = $1 AND author_id = $2',
+      [id, userId]
+    );
+
+    if (articleResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Статья не найдена или у вас нет прав на её редактирование' });
+    }
+
+    // Архивируем статью
+    await query(
+      'UPDATE articles SET archived = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+      [id]
+    );
+
+    res.json({ message: 'Статья успешно архивирована' });
+  } catch (error) {
+    console.error('Ошибка архивирования статьи:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Разархивирование статьи
+router.post('/:id/unarchive', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    // Проверяем, что статья принадлежит пользователю
+    const articleResult = await query(
+      'SELECT * FROM articles WHERE id = $1 AND author_id = $2',
+      [id, userId]
+    );
+
+    if (articleResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Статья не найдена или у вас нет прав на её редактирование' });
+    }
+
+    // Разархивируем статью
+    await query(
+      'UPDATE articles SET archived = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+      [id]
+    );
+
+    res.json({ message: 'Статья успешно разархивирована' });
+  } catch (error) {
+    console.error('Ошибка разархивирования статьи:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Получение статей конкретного автора
 router.get('/author/:authorId', async (req, res) => {
   try {
@@ -72,7 +147,7 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// Получение всех опубликованных статей
+// Получение всех опубликованных статей (не архивированных)
 router.get('/', async (req, res) => {
   try {
     const { sort = 'new' } = req.query;
@@ -91,6 +166,7 @@ router.get('/', async (req, res) => {
          FROM articles a
          JOIN users u ON a.author_id = u.id
          WHERE a.is_published = true 
+         AND (a.archived = false OR a.archived IS NULL)
          AND (a.moderation_status = 'approved' OR a.moderation_status IS NULL)
          ORDER BY ${orderBy}
          LIMIT 100`
@@ -104,6 +180,7 @@ router.get('/', async (req, res) => {
          FROM articles a
          JOIN users u ON a.author_id = u.id
          WHERE a.is_published = true
+         AND (a.archived = false OR a.archived IS NULL)
          ORDER BY ${orderBy}
          LIMIT 100`
       );
