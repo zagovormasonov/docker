@@ -23,7 +23,7 @@ import {
 import api from '../api/axios';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
-import './MyArticlesPage.css';
+import './ArchivedArticlesPage.css';
 
 dayjs.locale('ru');
 
