@@ -1,4 +1,5 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { query } from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 
@@ -196,7 +197,7 @@ router.post('/become-expert', authenticateToken, async (req: AuthRequest, res) =
   try {
     // Проверяем, что пользователь еще не эксперт
     const userResult = await query(
-      'SELECT user_type FROM users WHERE id = $1',
+      'SELECT id, email, name, user_type FROM users WHERE id = $1',
       [req.userId]
     );
 
@@ -216,9 +217,23 @@ router.post('/become-expert', authenticateToken, async (req: AuthRequest, res) =
       ['expert', req.userId]
     );
 
+    // Генерируем новый токен с обновленным userType
+    const newToken = jwt.sign(
+      { userId: user.id, userType: 'expert' },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '30d' }
+    );
+
     res.json({ 
       message: 'Поздравляем! Теперь вы эксперт!',
-      userType: 'expert'
+      userType: 'expert',
+      token: newToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        userType: 'expert'
+      }
     });
   } catch (error) {
     console.error('Ошибка становления экспертом:', error);

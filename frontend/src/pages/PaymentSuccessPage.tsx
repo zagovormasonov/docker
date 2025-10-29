@@ -9,7 +9,7 @@ const { Title, Paragraph } = Typography;
 const PaymentSuccessPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, login } = useAuth();
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<any>(null);
 
@@ -34,7 +34,33 @@ const PaymentSuccessPage: React.FC = () => {
           setPaymentStatus(data);
           
           if (data.status === 'succeeded' && data.user_type === 'expert') {
-            updateUser({ ...user, userType: 'expert' });
+            // Обновляем токен через refresh endpoint
+            try {
+              const refreshResponse = await fetch('/api/auth/refresh-token', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+              });
+              
+              if (refreshResponse.ok) {
+                const refreshData = await refreshResponse.json();
+                if (refreshData.token && refreshData.user) {
+                  localStorage.setItem('token', refreshData.token);
+                  await login(refreshData.token, refreshData.user);
+                } else {
+                  // Fallback: обновляем только локальное состояние
+                  updateUser({ ...user, userType: 'expert' });
+                }
+              } else {
+                // Fallback: обновляем только локальное состояние
+                updateUser({ ...user, userType: 'expert' });
+              }
+            } catch (refreshError) {
+              console.error('Ошибка обновления токена:', refreshError);
+              // Fallback: обновляем только локальное состояние
+              updateUser({ ...user, userType: 'expert' });
+            }
             
             // Отправляем письмо с подтверждением регистрации
             try {

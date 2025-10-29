@@ -106,11 +106,21 @@ const BecomeExpertPage: React.FC = () => {
           });
 
           if (response.ok) {
+            const data = await response.json();
+            
+            // Сохраняем новый токен и обновляем пользователя
+            if (data.token && data.user) {
+              localStorage.setItem('token', data.token);
+              await login(data.token, data.user);
+            } else {
+              // Fallback: обновляем только локальное состояние
+              updateUser({ ...user, userType: 'expert' });
+            }
+            
             Modal.success({
               title: 'Поздравляем!',
-              content: 'Теперь вы эксперт! Обновите страницу для применения изменений.',
+              content: 'Теперь вы эксперт! Вы можете публиковать статьи и события.',
               onOk: () => {
-                updateUser({ ...user, userType: 'expert' });
                 navigate('/profile');
               }
             });
