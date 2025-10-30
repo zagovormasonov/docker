@@ -56,12 +56,17 @@ const ArticlePage = () => {
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     fetchArticle();
     if (user) {
       fetchInteractionStatus();
     }
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [id, user]);
 
   const fetchArticle = async () => {
@@ -226,11 +231,12 @@ const ArticlePage = () => {
           )}
         </div>
 
-        <Space size="middle" style={{ marginBottom: 24 }}>
+        <Space size="middle" style={{ marginBottom: 24, width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
           <Button
             size="large"
             icon={liked ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
             onClick={handleLike}
+            block={isMobile}
           >
             {likesCount}
           </Button>
@@ -238,6 +244,7 @@ const ArticlePage = () => {
             size="large"
             icon={favorited ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
             onClick={handleFavorite}
+            block={isMobile}
           >
             {favorited ? 'В избранном' : 'В избранное'}
           </Button>
@@ -245,6 +252,7 @@ const ArticlePage = () => {
             size="large"
             icon={<ShareAltOutlined />}
             onClick={handleShare}
+            block={isMobile}
           >
             Поделиться
           </Button>
@@ -330,7 +338,7 @@ const ArticlePage = () => {
           <Text strong style={{ fontSize: 16, marginBottom: 16, display: 'block' }}>
             Понравилась статья? Поделитесь своими эмоциями!
           </Text>
-          <Space size="large">
+          <Space size="large" style={{ width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
             <Button
               size="large"
               icon={liked ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
@@ -341,6 +349,7 @@ const ArticlePage = () => {
                 fontSize: 16,
                 fontWeight: 500
               }}
+              block={isMobile}
             >
               {liked ? 'Лайкнуто' : 'Лайк'} ({likesCount})
             </Button>
@@ -354,6 +363,7 @@ const ArticlePage = () => {
                 fontSize: 16,
                 fontWeight: 500
               }}
+              block={isMobile}
             >
               {favorited ? 'В избранном' : 'В избранное'}
             </Button>
@@ -367,6 +377,7 @@ const ArticlePage = () => {
                 fontSize: 16,
                 fontWeight: 500
               }}
+              block={isMobile}
             >
               Поделиться
             </Button>

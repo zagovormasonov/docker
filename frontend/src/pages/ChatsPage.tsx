@@ -290,7 +290,7 @@ const ChatsPage = () => {
     return (
       <div className="container">
         <Card
-          style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}
+          style={{ height: 'calc(100vh - 160px)', display: 'flex', flexDirection: 'column' }}
           bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0 }}
         >
           <div style={{ 
@@ -320,7 +320,8 @@ const ChatsPage = () => {
               padding: 24,
               display: 'flex',
               flexDirection: 'column',
-              gap: 16
+              gap: 16,
+              paddingBottom: 96
             }}
           >
             {messages.map((message) => (
@@ -401,7 +402,7 @@ const ChatsPage = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div style={{ padding: 16, borderTop: '1px solid #f0f0f0' }}>
+          <div style={{ padding: 16, borderTop: '1px solid #f0f0f0', position: 'sticky', bottom: 0, background: 'white' }}>
             <Space.Compact style={{ width: '100%' }}>
               <Input
                 value={messageText}
