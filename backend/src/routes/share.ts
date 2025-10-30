@@ -31,10 +31,12 @@ router.get('/articles/:id', async (req, res) => {
     };
 
     const description = stripHtml(article.content).slice(0, 180);
-    const hostBase = `${req.protocol}://${req.get('host')}`; // напр., https://example.com:3001
+    const forwardedProto = (req.headers['x-forwarded-proto'] as string) || req.protocol;
+    const forwardedHost = (req.headers['x-forwarded-host'] as string) || req.get('host') || '';
+    const hostBase = `${forwardedProto}://${forwardedHost}`;
     const frontendUrl = process.env.FRONTEND_URL && process.env.FRONTEND_URL.startsWith('http')
       ? process.env.FRONTEND_URL.replace(/\/$/, '')
-      : hostBase.replace(/:\d+$/, ''); // убираем порт, если нужно
+      : hostBase.replace(/:\d+$/, '');
 
     // Нормализуем обложку в абсолютный URL
     const rawCover: string = article.cover_image || '/logo.png';
