@@ -31,8 +31,17 @@ router.get('/articles/:id', async (req, res) => {
     };
 
     const description = stripHtml(article.content).slice(0, 180);
-    const cover = article.cover_image || '/logo.png';
-    const frontendUrl = process.env.FRONTEND_URL || '';
+    const hostBase = `${req.protocol}://${req.get('host')}`; // напр., https://example.com:3001
+    const frontendUrl = process.env.FRONTEND_URL && process.env.FRONTEND_URL.startsWith('http')
+      ? process.env.FRONTEND_URL.replace(/\/$/, '')
+      : hostBase.replace(/:\d+$/, ''); // убираем порт, если нужно
+
+    // Нормализуем обложку в абсолютный URL
+    const rawCover: string = article.cover_image || '/logo.png';
+    const cover = rawCover.startsWith('http')
+      ? rawCover
+      : `${hostBase}${rawCover.startsWith('/') ? '' : '/'}${rawCover}`;
+
     const spaUrl = `${frontendUrl}/articles/${article.id}`;
     const pageTitle = `${article.title} — SoulSynergy`;
 
