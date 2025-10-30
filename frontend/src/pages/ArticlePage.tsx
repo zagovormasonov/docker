@@ -357,6 +357,19 @@ const ArticlePage = () => {
             >
               {favorited ? 'В избранном' : 'В избранное'}
             </Button>
+            <Button
+              size="large"
+              icon={<ShareAltOutlined />}
+              onClick={handleShare}
+              style={{ 
+                height: 48,
+                padding: '0 24px',
+                fontSize: 16,
+                fontWeight: 500
+              }}
+            >
+              Поделиться
+            </Button>
           </Space>
         </div>
       </Card>

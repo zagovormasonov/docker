@@ -333,7 +333,7 @@ const ChatsPage = () => {
               >
                 <div
                   style={{
-                    maxWidth: '70%',
+                    maxWidth: '85vw',
                     display: 'flex',
                     gap: 8,
                     flexDirection: message.sender_id === user?.id ? 'row-reverse' : 'row',
@@ -363,7 +363,8 @@ const ChatsPage = () => {
                       wordWrap: 'break-word',
                       wordBreak: 'break-word',
                       overflowWrap: 'anywhere',
-                      whiteSpace: 'pre-wrap'
+                        whiteSpace: 'pre-wrap',
+                        maxWidth: '100%'
                       }}
                     >
                       {message.content}
@@ -566,7 +567,8 @@ const ChatsPage = () => {
                               wordWrap: 'break-word',
                               wordBreak: 'break-word',
                               overflowWrap: 'anywhere',
-                              whiteSpace: 'pre-wrap'
+                              whiteSpace: 'pre-wrap',
+                              maxWidth: '100%'
                             }}
                           >
                             {message.content}
