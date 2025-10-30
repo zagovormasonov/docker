@@ -360,8 +360,10 @@ const ChatsPage = () => {
                         padding: '12px 16px',
                         borderRadius: 12,
                         marginBottom: 4,
-                        wordWrap: 'break-word',
-                        wordBreak: 'break-word'
+                      wordWrap: 'break-word',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere',
+                      whiteSpace: 'pre-wrap'
                       }}
                     >
                       {message.content}
@@ -562,7 +564,9 @@ const ChatsPage = () => {
                               borderRadius: 12,
                               marginBottom: 4,
                               wordWrap: 'break-word',
-                              wordBreak: 'break-word'
+                              wordBreak: 'break-word',
+                              overflowWrap: 'anywhere',
+                              whiteSpace: 'pre-wrap'
                             }}
                           >
                             {message.content}

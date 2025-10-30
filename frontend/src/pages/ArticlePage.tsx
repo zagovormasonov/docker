@@ -20,7 +20,8 @@ import {
   HeartOutlined,
   HeartFilled,
   StarOutlined,
-  StarFilled
+  StarFilled,
+  ShareAltOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -68,6 +69,45 @@ const ArticlePage = () => {
       const response = await api.get(`/articles/${id}`);
       setArticle(response.data);
       setLikesCount(response.data.likes_count || 0);
+      // Обновляем заголовок и базовые мета-теги
+      try {
+        document.title = `${response.data.title} — SoulSynergy`;
+        const setTag = (name: string, content: string) => {
+          if (!content) return;
+          let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+          if (!tag) {
+            tag = document.createElement('meta');
+            tag.setAttribute('name', name);
+            document.head.appendChild(tag);
+          }
+          tag.setAttribute('content', content);
+        };
+        const setOg = (property: string, content: string) => {
+          if (!content) return;
+          let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+          if (!tag) {
+            tag = document.createElement('meta');
+            tag.setAttribute('property', property);
+            document.head.appendChild(tag);
+          }
+          tag.setAttribute('content', content);
+        };
+        const text = (() => {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = response.data.content || '';
+          const str = (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
+          return str.slice(0, 180);
+        })();
+        const cover = response.data.cover_image || '/art.jpg';
+        const pageUrl = `${window.location.origin}/articles/${response.data.id}`;
+        setTag('description', text);
+        setOg('og:title', response.data.title);
+        setOg('og:description', text);
+        setOg('og:image', cover);
+        setOg('og:url', pageUrl);
+        setOg('og:type', 'article');
+        setOg('twitter:card', 'summary_large_image');
+      } catch {}
     } catch (error: any) {
       console.error('Ошибка загрузки статьи:', error);
       message.error(error.response?.data?.error || 'Ошибка загрузки статьи');
@@ -133,6 +173,17 @@ const ArticlePage = () => {
 
   const isAuthor = user?.id === article.author_id;
 
+  const handleShare = async () => {
+    if (!article) return;
+    const shareUrl = `${window.location.origin}/share/articles/${article.id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      message.success('Ссылка скопирована в буфер');
+    } catch (e) {
+      message.error('Не удалось скопировать ссылку');
+    }
+  };
+
   return (
     <div className="container" style={{ maxWidth: 900 }}>
       <div style={{ marginBottom: 16 }}>
@@ -189,6 +240,13 @@ const ArticlePage = () => {
             onClick={handleFavorite}
           >
             {favorited ? 'В избранном' : 'В избранное'}
+          </Button>
+          <Button
+            size="large"
+            icon={<ShareAltOutlined />}
+            onClick={handleShare}
+          >
+            Поделиться
           </Button>
         </Space>
 

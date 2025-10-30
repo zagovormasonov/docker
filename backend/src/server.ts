@@ -37,6 +37,7 @@ import paymentsRoutes from './routes/payments';
 import productsRoutes from './routes/products';
 import testAuthRoutes from './routes/test-auth';
 import refreshTokenRoutes from './routes/refresh-token';
+import shareRoutes from './routes/share';
 
 dotenv.config();
 
@@ -93,6 +94,8 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/test', testAuthRoutes);
 app.use('/api/auth', refreshTokenRoutes);
+// Публичные страницы шаринга для соцсетей (с SSR OG-мета)
+app.use('/share', shareRoutes);
 
 // Socket.IO для чатов
 const userSockets = new Map<number, string>();
