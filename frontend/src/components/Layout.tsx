@@ -22,10 +22,10 @@ const Layout = () => {
   return (
     <AntLayout style={{ minHeight: '100vh', background: '#fafafa' }}>
       <Header />
-      <Content style={{ padding: '24px 0', paddingBottom: isMobile && isChatsRoute ? 110 : 0 }}>
+      <Content style={{ padding: '24px 0' }}>
         <Outlet />
       </Content>
-      <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0', padding: '24px 0', position: isMobile && isChatsRoute ? 'fixed' : 'static', bottom: isMobile && isChatsRoute ? 0 : undefined, left: isMobile && isChatsRoute ? 0 : undefined, right: isMobile && isChatsRoute ? 0 : undefined, width: isMobile && isChatsRoute ? '100%' : undefined, zIndex: isMobile && isChatsRoute ? 998 : undefined }}>
+      <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0', padding: '24px 0' }}>
         <Space direction="vertical" size="small">
           <Text>SoulSynergy © 2025 — Синергия в единстве</Text>
           <Space size="large">
