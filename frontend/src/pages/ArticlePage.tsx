@@ -351,7 +351,7 @@ const ArticlePage = () => {
               }}
               block={isMobile}
             >
-              {liked ? 'Лайкнуто' : 'Лайк'} ({likesCount})
+              Лайк ({likesCount})
             </Button>
             <Button
               size="large"
