@@ -237,6 +237,7 @@ const ArticlePage = () => {
             icon={liked ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
             onClick={handleLike}
             block={isMobile}
+            style={{ borderRadius: 999, fontSize: isMobile ? 14 : undefined }}
           >
             {likesCount}
           </Button>
@@ -245,6 +246,7 @@ const ArticlePage = () => {
             icon={favorited ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
             onClick={handleFavorite}
             block={isMobile}
+            style={{ borderRadius: 999, fontSize: isMobile ? 14 : undefined }}
           >
             {favorited ? 'В избранном' : 'В избранное'}
           </Button>
@@ -253,6 +255,7 @@ const ArticlePage = () => {
             icon={<ShareAltOutlined />}
             onClick={handleShare}
             block={isMobile}
+            style={{ borderRadius: 999, fontSize: isMobile ? 14 : undefined }}
           >
             Поделиться
           </Button>
@@ -346,8 +349,9 @@ const ArticlePage = () => {
               style={{ 
                 height: 48,
                 padding: '0 24px',
-                fontSize: 16,
-                fontWeight: 500
+                fontSize: isMobile ? 14 : 16,
+                fontWeight: 500,
+                borderRadius: 999
               }}
               block={isMobile}
             >
@@ -360,8 +364,9 @@ const ArticlePage = () => {
               style={{ 
                 height: 48,
                 padding: '0 24px',
-                fontSize: 16,
-                fontWeight: 500
+                fontSize: isMobile ? 14 : 16,
+                fontWeight: 500,
+                borderRadius: 999
               }}
               block={isMobile}
             >
@@ -374,8 +379,9 @@ const ArticlePage = () => {
               style={{ 
                 height: 48,
                 padding: '0 24px',
-                fontSize: 16,
-                fontWeight: 500
+                fontSize: isMobile ? 14 : 16,
+                fontWeight: 500,
+                borderRadius: 999
               }}
               block={isMobile}
             >
