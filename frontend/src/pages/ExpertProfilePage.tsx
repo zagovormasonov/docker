@@ -11,7 +11,8 @@ import {
   Divider,
   Spin,
   message,
-  Empty
+  Empty,
+  Modal
 } from 'antd';
 import {
   UserOutlined,
@@ -158,6 +159,8 @@ const ExpertProfilePage = () => {
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
   };
+
+  const [servicePreview, setServicePreview] = useState<{ visible: boolean; service: Service | null }>({ visible: false, service: null });
 
   const handleContactExpert = async () => {
     if (!user) {
@@ -699,14 +702,16 @@ const ExpertProfilePage = () => {
                   dataSource={expert.services}
                   renderItem={(service) => (
                     <List.Item>
-                      <Card style={{ width: '100%' }} size="small">
+                      <Card style={{ width: '100%', cursor: 'pointer' }} size="small" hoverable onClick={() => setServicePreview({ visible: true, service })}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
                             <Title level={5}>{service.title}</Title>
-                            <div 
-                              className="service-description"
-                              dangerouslySetInnerHTML={{ __html: service.description }}
-                            />
+                            <div className="service-description" style={{ color: '#595959' }}>
+                              {(() => {
+                                const text = stripHtml(service.description);
+                                return text.length > 100 ? `${text.slice(0, 100)}…` : text;
+                              })()}
+                            </div>
                             
                             <div>
                               {service.price && (
@@ -753,6 +758,20 @@ const ExpertProfilePage = () => {
               </div>
             </>
           )}
+
+          {/* Модалка полного описания услуги */}
+          <Modal
+            title={servicePreview.service?.title}
+            open={servicePreview.visible}
+            onCancel={() => setServicePreview({ visible: false, service: null })}
+            footer={null}
+            width={800}
+          >
+            <div
+              className="service-description"
+              dangerouslySetInnerHTML={{ __html: servicePreview.service?.description || '' }}
+            />
+          </Modal>
 
           {expert.products && expert.products.length > 0 && (
             <>
