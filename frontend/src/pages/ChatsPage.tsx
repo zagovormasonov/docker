@@ -321,7 +321,7 @@ const ChatsPage = () => {
               display: 'flex',
               flexDirection: 'column',
               gap: 16,
-              paddingBottom: 96
+              paddingBottom: 180
             }}
           >
             {messages.map((message) => (
@@ -402,7 +402,7 @@ const ChatsPage = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div style={{ padding: 16, borderTop: '1px solid #f0f0f0', position: 'sticky', bottom: 0, background: 'white' }}>
+          <div style={{ padding: 16, borderTop: '1px solid #f0f0f0', position: 'fixed', left: 0, right: 0, bottom: 88, background: 'white', zIndex: 997 }}>
             <Space.Compact style={{ width: '100%' }}>
               <Input
                 value={messageText}
