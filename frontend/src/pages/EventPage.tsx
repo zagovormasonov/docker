@@ -5,7 +5,7 @@ import {
 } from 'antd';
 import {
   CalendarOutlined, EnvironmentOutlined, DollarOutlined, LinkOutlined,
-  EditOutlined, GlobalOutlined, HomeOutlined, UserOutlined, StarOutlined, StarFilled
+  EditOutlined, GlobalOutlined, HomeOutlined, UserOutlined, StarOutlined, StarFilled, ShareAltOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../api/axios';
@@ -41,10 +41,15 @@ const EventPage = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     fetchEvent();
     fetchFavoriteStatus();
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [id]);
 
   const fetchFavoriteStatus = async () => {
@@ -93,6 +98,17 @@ const EventPage = () => {
 
   const isEventTomorrow = (eventDate: string) => {
     return dayjs(eventDate).isSame(dayjs().add(1, 'day'), 'day');
+  };
+
+  const handleShare = async () => {
+    if (!event) return;
+    const url = `${window.location.origin}/share/events/${event.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      message.success('Ссылка скопирована в буфер');
+    } catch {
+      message.error('Не удалось скопировать ссылку');
+    }
   };
 
   const toggleFavorite = async () => {
@@ -169,6 +185,13 @@ const EventPage = () => {
                 {isFavorited ? 'В избранном' : 'Добавить в избранное'}
               </Button>
             )}
+            <Button
+              icon={<ShareAltOutlined />}
+              onClick={handleShare}
+              style={{ borderRadius: 999, fontSize: isMobile ? 14 : undefined }}
+            >
+              Поделиться
+            </Button>
             {canEdit && (
               <Button
                 type="primary"
