@@ -157,7 +157,16 @@ const EventPage = () => {
         </div>
 
         {/* Заголовок и действия */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: isMobile ? 'flex-start' : 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: 16,
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 12 : 0
+          }}
+        >
           <div style={{ flex: 1 }}>
             <Space wrap style={{ marginBottom: 8 }}>
               <Tag color={getEventTypeColor(event.event_type)} style={{ fontSize: 14 }}>
@@ -172,7 +181,7 @@ const EventPage = () => {
             </Space>
             <Title level={2} style={{ marginBottom: 0 }}>{event.title}</Title>
           </div>
-          <Space>
+          <Space direction={isMobile ? 'vertical' : 'horizontal'} style={{ width: isMobile ? '100%' : 'auto' }}>
             {!canEdit && (
               <Button
                 icon={isFavorited ? <StarFilled /> : <StarOutlined />}
@@ -181,6 +190,7 @@ const EventPage = () => {
                   color: isFavorited ? '#faad14' : '#8c8c8c',
                   borderColor: isFavorited ? '#faad14' : '#d9d9d9'
                 }}
+                block={isMobile}
               >
                 {isFavorited ? 'В избранном' : 'Добавить в избранное'}
               </Button>
@@ -189,6 +199,7 @@ const EventPage = () => {
               icon={<ShareAltOutlined />}
               onClick={handleShare}
               style={{ borderRadius: 999, fontSize: isMobile ? 14 : undefined }}
+              block={isMobile}
             >
               Поделиться
             </Button>
@@ -197,6 +208,7 @@ const EventPage = () => {
                 type="primary"
                 icon={<EditOutlined />}
                 onClick={() => navigate(`/events/edit/${event.id}`)}
+                block={isMobile}
               >
                 Редактировать
               </Button>
