@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Card, Typography, Space, Tag, Button, Spin, Divider, Avatar, Image, message
+  Card, Typography, Space, Tag, Button, Spin, Divider, Avatar, message
 } from 'antd';
 import {
   CalendarOutlined, EnvironmentOutlined, DollarOutlined, LinkOutlined,
@@ -148,11 +148,16 @@ const EventPage = () => {
     <div style={{ padding: '24px', maxWidth: 1000, margin: '0 auto' }}>
       <Card>
         {/* Обложка */}
-        <div style={{ marginBottom: 24 }}>
-          <Image
+        <div style={{ marginBottom: 24, borderRadius: 8, overflow: 'hidden' }}>
+          <img
             src={event.cover_image || '/eve.jpg'}
             alt={event.title}
-            style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 8 }}
+            style={{
+              width: '100%',
+              height: 400,
+              objectFit: 'cover',
+              display: 'block'
+            }}
           />
         </div>
 
