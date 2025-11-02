@@ -351,18 +351,23 @@ const ProfilePage = () => {
 
       const avatarUrl = uploadResponse.data.url;
       
-      // Обновляем превью на реальный URL
-      setTempAvatarUrl(null);
+      // Обновляем превью на реальный URL сразу - пользователь видит новый аватар во время загрузки
+      // Формируем полный URL если это относительный путь
+      const fullAvatarUrl = avatarUrl.startsWith('http') 
+        ? avatarUrl 
+        : `${window.location.origin}${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
+      setTempAvatarUrl(fullAvatarUrl);
       
       const response = await api.put('/users/profile', { avatarUrl });
       updateUser(response.data);
       setUploadProgress(100);
       message.success('Аватар успешно загружен!');
       
-      // Сбрасываем прогресс через небольшую задержку
+      // После небольшой задержки сбрасываем temp, чтобы показывался аватар из user (который уже обновлен)
       setTimeout(() => {
         setUploadProgress(0);
-      }, 1000);
+        setTempAvatarUrl(null); // Теперь user.avatarUrl содержит новый URL, больше не нужен temp
+      }, 1500);
     } catch (error) {
       console.error('Ошибка загрузки аватара:', error);
       message.error('Ошибка загрузки аватара');
