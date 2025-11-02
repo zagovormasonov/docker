@@ -88,6 +88,7 @@ const ProfilePage = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [tempAvatarUrl, setTempAvatarUrl] = useState<string | null>(null);
+  const [lastUploadedAvatarUrl, setLastUploadedAvatarUrl] = useState<string | null>(null);
   const [productImageUploading, setProductImageUploading] = useState(false);
   const [showAddSocial, setShowAddSocial] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
@@ -105,6 +106,32 @@ const ProfilePage = () => {
       fetchProducts();
     }
   }, []);
+
+  // Отслеживаем обновление user.avatarUrl и сбрасываем tempAvatarUrl когда они совпадают
+  useEffect(() => {
+    if (lastUploadedAvatarUrl && user?.avatarUrl) {
+      // Нормализуем оба URL для сравнения
+      const userAvatarNormalized = user.avatarUrl.startsWith('http') 
+        ? user.avatarUrl 
+        : `${window.location.origin}${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`;
+      
+      // Извлекаем путь из lastUploadedAvatarUrl для сравнения
+      const lastUploadedPath = lastUploadedAvatarUrl.includes(window.location.origin)
+        ? lastUploadedAvatarUrl.split(window.location.origin)[1]
+        : lastUploadedAvatarUrl;
+      
+      // Если user.avatarUrl совпадает с последним загруженным, сбрасываем временные значения
+      if (userAvatarNormalized === lastUploadedAvatarUrl || user.avatarUrl === lastUploadedPath) {
+        // user.avatarUrl обновился корректно, можно убрать временные значения
+        setTempAvatarUrl(null);
+        setLastUploadedAvatarUrl(null);
+      } else if (user.avatarUrl !== lastUploadedPath && lastUploadedAvatarUrl) {
+        // Если user.avatarUrl не совпадает с последним загруженным (возможно старый), 
+        // оставляем lastUploadedAvatarUrl чтобы показывался новый аватар
+        // Не сбрасываем lastUploadedAvatarUrl, чтобы новый аватар продолжал отображаться
+      }
+    }
+  }, [user?.avatarUrl, lastUploadedAvatarUrl]);
 
   useEffect(() => {
     if (user) {
@@ -357,17 +384,19 @@ const ProfilePage = () => {
         ? avatarUrl 
         : `${window.location.origin}${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
       setTempAvatarUrl(fullAvatarUrl);
+      setLastUploadedAvatarUrl(fullAvatarUrl); // Сохраняем для проверки в useEffect
       
       const response = await api.put('/users/profile', { avatarUrl });
-      updateUser(response.data);
+      // Важно: обновляем пользователя с правильным avatarUrl
+      const updatedUser = { ...response.data, avatarUrl };
+      updateUser(updatedUser);
       setUploadProgress(100);
       message.success('Аватар успешно загружен!');
       
-      // После небольшой задержки сбрасываем temp, чтобы показывался аватар из user (который уже обновлен)
+      // Сбрасываем только прогресс, tempAvatarUrl будет сброшен в useEffect когда user.avatarUrl обновится
       setTimeout(() => {
         setUploadProgress(0);
-        setTempAvatarUrl(null); // Теперь user.avatarUrl содержит новый URL, больше не нужен temp
-      }, 1500);
+      }, 1000);
     } catch (error) {
       console.error('Ошибка загрузки аватара:', error);
       message.error('Ошибка загрузки аватара');
@@ -412,8 +441,13 @@ const ProfilePage = () => {
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
               <Avatar
                 size={100}
-                src={tempAvatarUrl || user?.avatarUrl || '/emp.jpg'}
-                icon={!tempAvatarUrl && !user?.avatarUrl && <UserOutlined />}
+                src={
+                  tempAvatarUrl || 
+                  lastUploadedAvatarUrl || 
+                  user?.avatarUrl || 
+                  '/emp.jpg'
+                }
+                icon={!tempAvatarUrl && !lastUploadedAvatarUrl && !user?.avatarUrl && <UserOutlined />}
                 style={{ backgroundColor: '#6366f1' }}
               />
               {uploading && (
