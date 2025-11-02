@@ -14,7 +14,8 @@ import {
   Divider,
   List,
   Popconfirm,
-  Tag
+  Tag,
+  Progress
 } from 'antd';
 import { 
   UserOutlined, 
@@ -85,6 +86,8 @@ const ProfilePage = () => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [tempAvatarUrl, setTempAvatarUrl] = useState<string | null>(null);
   const [productImageUploading, setProductImageUploading] = useState(false);
   const [showAddSocial, setShowAddSocial] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
@@ -320,7 +323,16 @@ const ProfilePage = () => {
   };
 
   const handleAvatarUpload = async (file: File) => {
+    // Создаем превью сразу после выбора файла
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setTempAvatarUrl(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
     setUploading(true);
+    setUploadProgress(0);
+    
     try {
       const formData = new FormData();
       formData.append('image', file);
@@ -329,15 +341,33 @@ const ProfilePage = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        },
       });
 
       const avatarUrl = uploadResponse.data.url;
+      
+      // Обновляем превью на реальный URL
+      setTempAvatarUrl(null);
+      
       const response = await api.put('/users/profile', { avatarUrl });
       updateUser(response.data);
-      message.success('Аватар обновлен!');
+      setUploadProgress(100);
+      message.success('Аватар успешно загружен!');
+      
+      // Сбрасываем прогресс через небольшую задержку
+      setTimeout(() => {
+        setUploadProgress(0);
+      }, 1000);
     } catch (error) {
       console.error('Ошибка загрузки аватара:', error);
       message.error('Ошибка загрузки аватара');
+      setTempAvatarUrl(null);
+      setUploadProgress(0);
     } finally {
       setUploading(false);
     }
@@ -374,12 +404,36 @@ const ProfilePage = () => {
       <Card>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center' }}>
-            <Avatar
-              size={100}
-              src={user?.avatarUrl || '/emp.jpg'}
-              icon={!user?.avatarUrl && <UserOutlined />}
-              style={{ backgroundColor: '#6366f1', marginBottom: 16 }}
-            />
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
+              <Avatar
+                size={100}
+                src={tempAvatarUrl || user?.avatarUrl || '/emp.jpg'}
+                icon={!tempAvatarUrl && !user?.avatarUrl && <UserOutlined />}
+                style={{ backgroundColor: '#6366f1' }}
+              />
+              {uploading && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  borderRadius: '50%'
+                }}>
+                  <Progress
+                    type="circle"
+                    percent={uploadProgress}
+                    size={80}
+                    strokeColor="#6366f1"
+                    format={(percent) => `${percent}%`}
+                  />
+                </div>
+              )}
+            </div>
             <div style={{ marginTop: 16, marginBottom: 16 }}>
               <Upload
                 accept="image/*"
@@ -391,6 +445,15 @@ const ProfilePage = () => {
                   {uploading ? 'Загрузка...' : 'Загрузить аватар'}
                 </Button>
               </Upload>
+              {uploading && uploadProgress > 0 && (
+                <div style={{ marginTop: 8, maxWidth: 200, margin: '8px auto 0' }}>
+                  <Progress
+                    percent={uploadProgress}
+                    strokeColor="#6366f1"
+                    showInfo={true}
+                  />
+                </div>
+              )}
             </div>
             <Title level={3}>{user?.name}</Title>
             <Text type="secondary">{user?.email}</Text>
