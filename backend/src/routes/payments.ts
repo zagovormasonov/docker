@@ -237,7 +237,7 @@ async function processSuccessfulPayment(payment: any) {
 }
 
 // Функция для проверки статуса платежа через API Юкассы
-async function checkPaymentStatusFromYooKassa(yookassaPaymentId: string) {
+async function checkPaymentStatusFromYooKassa(yookassaPaymentId: string): Promise<{ status: string } | null> {
   try {
     const response = await fetch(`${YOOKASSA_API_URL}/${yookassaPaymentId}`, {
       method: 'GET',
@@ -253,7 +253,8 @@ async function checkPaymentStatusFromYooKassa(yookassaPaymentId: string) {
     }
 
     const paymentData = await response.json();
-    return paymentData;
+    // Нам важен только статус
+    return { status: paymentData.status as string };
   } catch (error) {
     console.error('Ошибка запроса статуса платежа в Юкассе:', error);
     return null;
