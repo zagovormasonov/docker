@@ -149,12 +149,17 @@ router.put('/:id', authenticateToken, requireAdmin, [
 
     const article = articleResult.rows[0];
 
-    // Обновляем статью
+    // Обновляем статью. Важно: cover_image сохраняем, если в запросе не передан
     await query(`
       UPDATE articles 
-      SET title = $1, content = $2, cover_image = $3, is_published = $4, updated_at = CURRENT_TIMESTAMP
+      SET 
+        title = COALESCE($1, title),
+        content = COALESCE($2, content),
+        cover_image = COALESCE($3, cover_image),
+        is_published = COALESCE($4, is_published),
+        updated_at = CURRENT_TIMESTAMP
       WHERE id = $5
-    `, [title, content, cover_image, is_published, id]);
+    `, [title, content, cover_image ?? null, is_published, id]);
 
     // Создаем внутреннее уведомление для автора
     await createArticleEditedNotification(article.author_id, title, is_published);
