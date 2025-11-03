@@ -14,7 +14,7 @@ const PaymentSuccessPage: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<any>(null);
 
   useEffect(() => {
-    const checkPaymentStatus = async () => {
+    const checkPaymentStatus = async (retryCount = 0) => {
       try {
         const paymentId = searchParams.get('payment_id');
         if (!paymentId) {
@@ -33,8 +33,21 @@ const PaymentSuccessPage: React.FC = () => {
           const data = await response.json();
           setPaymentStatus(data);
           
-          if (data.status === 'succeeded' && data.user_type === 'expert') {
-            // Обновляем токен через refresh endpoint
+          // Если платеж еще pending, повторяем проверку (fallback механизм)
+          if (data.status === 'pending' && retryCount < 5) {
+            console.log(`Платеж еще обрабатывается, повторная проверка через 3 секунды... (попытка ${retryCount + 1}/5)`);
+            setTimeout(() => {
+              checkPaymentStatus(retryCount + 1);
+            }, 3000);
+            return;
+          }
+          
+          if (data.status === 'succeeded') {
+            // Обновляем пользователя на эксперта независимо от user_type в ответе
+            const updatedUser = { ...user, userType: 'expert' };
+            updateUser(updatedUser);
+            
+            // Обновляем токен через refresh endpoint для получения актуальных данных
             try {
               const refreshResponse = await fetch('/api/auth/refresh-token', {
                 method: 'POST',
@@ -48,18 +61,11 @@ const PaymentSuccessPage: React.FC = () => {
                 if (refreshData.token && refreshData.user) {
                   localStorage.setItem('token', refreshData.token);
                   await login(refreshData.token, refreshData.user);
-                } else {
-                  // Fallback: обновляем только локальное состояние
-                  updateUser({ ...user, userType: 'expert' });
                 }
-              } else {
-                // Fallback: обновляем только локальное состояние
-                updateUser({ ...user, userType: 'expert' });
               }
             } catch (refreshError) {
               console.error('Ошибка обновления токена:', refreshError);
-              // Fallback: обновляем только локальное состояние
-              updateUser({ ...user, userType: 'expert' });
+              // Пользователь уже обновлен через updateUser выше
             }
             
             // Отправляем письмо с подтверждением регистрации
