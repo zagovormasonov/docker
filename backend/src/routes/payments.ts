@@ -252,7 +252,7 @@ async function checkPaymentStatusFromYooKassa(yookassaPaymentId: string): Promis
       return null;
     }
 
-    const paymentData = await response.json();
+    const paymentData: any = await response.json();
     // Нам важен только статус
     return { status: paymentData.status as string };
   } catch (error) {
