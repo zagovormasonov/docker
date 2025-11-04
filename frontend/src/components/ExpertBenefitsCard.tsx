@@ -121,38 +121,6 @@ const ExpertBenefitsCard: React.FC<ExpertBenefitsCardProps> = ({ showPricing = t
       >
         Выбрать тариф
       </Button>
-
-      <div style={{ 
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 16,
-        flexWrap: 'wrap'
-      }}>
-        <Text style={{ 
-          fontSize: 16, 
-          textDecoration: 'line-through', 
-          color: '#86868b',
-          fontFamily: 'Montserrat, sans-serif',
-          fontWeight: 500
-        }}>
-          3369 ₽
-        </Text>
-        <div style={{
-          background: 'linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%)',
-          padding: '8px 24px',
-          borderRadius: 20
-        }}>
-          <Text style={{ 
-            fontSize: 28, 
-            fontWeight: 700,
-            color: '#fff',
-            fontFamily: 'Montserrat, sans-serif'
-          }}>
-            990 ₽
-          </Text>
-        </div>
-      </div>
     </div>
   );
 };
