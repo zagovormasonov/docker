@@ -335,14 +335,14 @@ const ExpertLandingPage: React.FC = () => {
                 fontFamily: 'Montserrat, sans-serif',
                 fontSize: 44,
                 fontWeight: 700,
-                color: '#6366f1',
+                color: 'black',
                 margin: '12px 0 24px 0'
               }}>
                 790₽
               </div>
               <p style={{
                 fontSize: 14,
-                color: '#666666',
+                color: 'gray',
                 lineHeight: 1.6,
                 margin: '0 0 24px 0',
                 fontFamily: 'Montserrat, sans-serif',
