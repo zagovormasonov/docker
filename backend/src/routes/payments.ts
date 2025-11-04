@@ -79,7 +79,7 @@ function verifyYooKassaWebhookSignature(body: string, signature: string, secret:
 router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
   try {
     console.log('Создание платежа:', req.body);
-    const { planId, amount, description } = req.body;
+    const { planId, amount, description, isRecurring, recurringInterval } = req.body;
     const userId = req.userId;
 
     // Проверяем обязательные поля
@@ -128,7 +128,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
     const paymentId = paymentResult.rows[0].id;
 
     // Создаем платеж в Юкассе
-    const paymentData = {
+    const paymentData: any = {
       amount: {
         value: amount.toFixed(2),
         currency: 'RUB'
@@ -144,6 +144,26 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
         plan_id: planId
       }
     };
+
+    // Если это рекуррентный платеж (подписка)
+    if (isRecurring && recurringInterval) {
+      paymentData.receipt = {
+        customer: {
+          email: user.email || 'customer@example.com'
+        },
+        items: [
+          {
+            description: description,
+            quantity: 1,
+            amount: {
+              value: amount.toFixed(2),
+              currency: 'RUB'
+            },
+            vat_code: 1
+          }
+        ]
+      };
+    }
 
     let yookassaResponse;
     try {

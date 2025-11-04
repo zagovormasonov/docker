@@ -52,7 +52,7 @@ const ExpertLandingPage: React.FC = () => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const handlePayment = async () => {
+  const handlePayment = async (amount: number, isMonthly: boolean) => {
     setLoading(true);
     try {
       // Создаем платеж через Юкассу
@@ -63,9 +63,13 @@ const ExpertLandingPage: React.FC = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          planId: 'lifetime',
-          amount: 990,
-          description: 'Пожизненный доступ к функциям эксперта'
+          planId: isMonthly ? 'monthly' : 'yearly',
+          amount: amount,
+          description: isMonthly 
+            ? 'Ежемесячная подписка на функции эксперта'
+            : 'Ежегодная подписка на функции эксперта',
+          isRecurring: true,
+          recurringInterval: isMonthly ? 'month' : 'year'
         })
       });
 
@@ -247,176 +251,196 @@ const ExpertLandingPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Call to Action Section */}
-        <div className="cta-section">
-          <div className="cta-content">
-            <Title level={2} className="cta-title">
-              Выберите профессиональный профиль эксперта — и начните формировать свой личный бренд, который будет работать на вас!
-            </Title>
-
-            {/* Pricing Cards */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 24,
-              marginTop: 48,
-              marginBottom: 32
+        {/* Call to Action Section - без подложки, на весь контейнер */}
+        <div style={{
+          marginBottom: 40
+        }}>
+          <div style={{
+            textAlign: 'center',
+            marginBottom: 48
+          }}>
+            <Title level={2} style={{
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: 700,
+              fontSize: 32,
+              color: '#1d1d1f',
+              margin: '0 0 16px 0'
             }}>
-              {/* Monthly Plan */}
+              Выберите профессиональный профиль эксперта
+            </Title>
+            
+            <p style={{
+              fontSize: 14,
+              color: '#666666',
+              lineHeight: 1.6,
+              margin: 0,
+              fontFamily: 'Montserrat, sans-serif'
+            }}>
+              Начните формировать свой личный бренд, который будет работать на вас!
+            </p>
+          </div>
+
+          {/* Pricing Cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 24,
+            marginBottom: 32
+          }}>
+            {/* Monthly Plan */}
+            <div style={{
+              background: '#ffffff',
+              borderRadius: 20,
+              padding: 32,
+              textAlign: 'center',
+              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)'
+            }}>
+              <h3 style={{
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: 20,
+                fontWeight: 600,
+                color: '#1d1d1f',
+                margin: '0 0 12px 0'
+              }}>
+                Месячный план
+              </h3>
               <div style={{
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: 44,
+                fontWeight: 700,
+                color: '#6366f1',
+                margin: '12px 0 24px 0'
+              }}>
+                790₽
+              </div>
+              <p style={{
+                fontSize: 14,
+                color: '#666666',
+                lineHeight: 1.6,
+                margin: '0 0 24px 0',
+                fontFamily: 'Montserrat, sans-serif'
+              }}>
+                Месячная подписка - твой комфортный старт. Ты можешь узнать платформу поближе и исследовать все возможности
+              </p>
+              <Button
+                type="primary"
+                size="large"
+                loading={loading}
+                onClick={() => handlePayment(790, true)}
+                style={{
+                  height: 48,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  fontFamily: 'Montserrat, sans-serif',
+                  background: '#d4c5f9',
+                  border: 'none',
+                  borderRadius: 25,
+                  width: '100%',
+                  color: 'rgb(123, 88, 209)'
+                }}
+              >
+                Выбрать
+              </Button>
+            </div>
+
+            {/* Yearly Plan */}
+            <div style={{
+              background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
+              borderRadius: 20,
+              padding: 32,
+              textAlign: 'center',
+              boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: -12,
+                right: 20,
                 background: '#ffffff',
+                color: '#6366f1',
+                padding: '4px 12px',
                 borderRadius: 20,
-                padding: 32,
-                textAlign: 'center',
-                boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)'
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'Montserrat, sans-serif',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
               }}>
-                <h3 style={{
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontSize: 20,
-                  fontWeight: 600,
-                  color: '#1d1d1f',
-                  margin: '0 0 12px 0'
-                }}>
-                  Месячный план
-                </h3>
-                <div style={{
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontSize: 44,
-                  fontWeight: 700,
-                  color: '#6366f1',
-                  margin: '12px 0 24px 0'
-                }}>
-                  790₽
-                </div>
-                <p style={{
-                  fontSize: 14,
-                  color: '#666666',
-                  lineHeight: 1.6,
-                  margin: '0 0 24px 0',
-                  fontFamily: 'Montserrat, sans-serif'
-                }}>
-                  Месячная подписка - твой комфортный старт. Ты можешь узнать платформу поближе и исследовать все возможности
-                </p>
-                <Button
-                  type="primary"
-                  size="large"
-                  onClick={handlePayment}
-                  style={{
-                    height: 48,
-                    fontSize: 16,
-                    fontWeight: 600,
-                    fontFamily: 'Montserrat, sans-serif',
-                    background: '#d4c5f9',
-                    border: 'none',
-                    borderRadius: 25,
-                    width: '100%',
-                    color: '#6366f1'
-                  }}
-                >
-                  Выбрать
-                </Button>
+                Цена раннего доступа
               </div>
 
-              {/* Yearly Plan */}
+              <h3 style={{
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: 20,
+                fontWeight: 600,
+                color: '#ffffff',
+                margin: '0 0 12px 0'
+              }}>
+                Годовой план
+              </h3>
               <div style={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
-                borderRadius: 20,
-                padding: 32,
-                textAlign: 'center',
-                boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
-                position: 'relative',
-                transform: 'scale(1.05)',
-                zIndex: 1
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: 44,
+                fontWeight: 700,
+                color: '#ffffff',
+                margin: '12px 0 8px 0'
               }}>
-                <div style={{
-                  position: 'absolute',
-                  top: -12,
-                  right: 20,
-                  background: '#ffffff',
-                  color: '#6366f1',
-                  padding: '4px 12px',
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  fontFamily: 'Montserrat, sans-serif',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  Цена раннего доступа
-                </div>
-
-                <h3 style={{
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontSize: 20,
-                  fontWeight: 600,
-                  color: '#ffffff',
-                  margin: '0 0 12px 0'
-                }}>
-                  Годовой план
-                </h3>
-                <div style={{
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontSize: 44,
-                  fontWeight: 700,
-                  color: '#ffffff',
-                  margin: '12px 0 8px 0'
-                }}>
-                  1 390₽
-                </div>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  marginBottom: 24,
-                  fontFamily: 'Montserrat, sans-serif'
-                }}>
-                  <span style={{
-                    textDecoration: 'line-through',
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    fontSize: 14
-                  }}>
-                    9 480₽
-                  </span>
-                  <span style={{
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    color: '#ffffff',
-                    padding: '2px 8px',
-                    borderRadius: 12,
-                    fontSize: 12,
-                    fontWeight: 700
-                  }}>
-                    -85%
-                  </span>
-                </div>
-                <p style={{
-                  fontSize: 14,
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  lineHeight: 1.6,
-                  margin: '0 0 24px 0',
-                  fontFamily: 'Montserrat, sans-serif'
-                }}>
-                  Присоединись на целый год - получи лучшие условия! Пока мы в стадии предзапуска действует уникальная цена для первых участников.
-                </p>
-                <Button
-                  type="primary"
-                  size="large"
-                  onClick={handlePayment}
-                  style={{
-                    height: 48,
-                    fontSize: 16,
-                    fontWeight: 600,
-                    fontFamily: 'Montserrat, sans-serif',
-                    background: '#ffffff',
-                    border: 'none',
-                    borderRadius: 25,
-                    width: '100%',
-                    color: '#6366f1'
-                  }}
-                >
-                  Выбрать
-                </Button>
+                1 390₽
               </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                marginBottom: 24,
+                fontFamily: 'Montserrat, sans-serif'
+              }}>
+                <span style={{
+                  textDecoration: 'line-through',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  fontSize: 14
+                }}>
+                  9 480₽
+                </span>
+                <span style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: '#ffffff',
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  fontSize: 12,
+                  fontWeight: 700
+                }}>
+                  -85%
+                </span>
+              </div>
+              <p style={{
+                fontSize: 14,
+                color: 'rgba(255, 255, 255, 0.9)',
+                lineHeight: 1.6,
+                margin: '0 0 24px 0',
+                fontFamily: 'Montserrat, sans-serif'
+              }}>
+                Присоединись на целый год - получи лучшие условия! Пока мы в стадии предзапуска действует уникальная цена для первых участников.
+              </p>
+              <Button
+                type="primary"
+                size="large"
+                loading={loading}
+                onClick={() => handlePayment(1390, false)}
+                style={{
+                  height: 48,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  fontFamily: 'Montserrat, sans-serif',
+                  background: '#ffffff',
+                  border: 'none',
+                  borderRadius: 25,
+                  width: '100%',
+                  color: '#6366f1'
+                }}
+              >
+                Выбрать
+              </Button>
             </div>
           </div>
         </div>
