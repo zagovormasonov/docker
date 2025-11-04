@@ -324,7 +324,11 @@
   
   .cta-section {
     padding: 40px 20px;
-    min-height: 300px;
+    min-height: auto;
+  }
+  
+  .cta-content {
+    max-width: 100%;
   }
   
   .cta-title {
