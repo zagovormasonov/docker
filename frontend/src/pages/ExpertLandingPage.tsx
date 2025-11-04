@@ -30,6 +30,8 @@ const ExpertLandingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [loadingMonthly, setLoadingMonthly] = useState(false);
+  const [loadingYearly, setLoadingYearly] = useState(false);
 
   useEffect(() => {
     // Предзагружаем изображения при загрузке компонента
@@ -45,6 +47,17 @@ const ExpertLandingPage: React.FC = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
+
+    // Проверяем якор #pricing и прокручиваем к секции оплаты
+    if (window.location.hash === '#pricing') {
+      setTimeout(() => {
+        const pricingSection = document.getElementById('pricing-section');
+        if (pricingSection) {
+          pricingSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -53,7 +66,15 @@ const ExpertLandingPage: React.FC = () => {
   };
 
   const handlePayment = async (amount: number, isMonthly: boolean) => {
-    setLoading(true);
+    const isLoading = isMonthly ? loadingMonthly : loadingYearly;
+    if (isLoading) return; // Предотвращаем двойной клик
+
+    if (isMonthly) {
+      setLoadingMonthly(true);
+    } else {
+      setLoadingYearly(true);
+    }
+
     try {
       // Создаем платеж через Юкассу
       const response = await fetch('/api/payments/create', {
@@ -89,7 +110,11 @@ const ExpertLandingPage: React.FC = () => {
     } catch (error) {
       console.error('Ошибка:', error);
     } finally {
-      setLoading(false);
+      if (isMonthly) {
+        setLoadingMonthly(false);
+      } else {
+        setLoadingYearly(false);
+      }
     }
   };
 
@@ -254,7 +279,7 @@ const ExpertLandingPage: React.FC = () => {
         {/* Call to Action Section - без подложки, на весь контейнер */}
         <div style={{
           marginBottom: 40
-        }}>
+        }} id="pricing-section">
           <div style={{
             textAlign: 'center',
             marginBottom: 48
@@ -293,7 +318,9 @@ const ExpertLandingPage: React.FC = () => {
               borderRadius: 20,
               padding: 32,
               textAlign: 'center',
-              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)'
+              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+              display: 'flex',
+              flexDirection: 'column'
             }}>
               <h3 style={{
                 fontFamily: 'Montserrat, sans-serif',
@@ -318,14 +345,15 @@ const ExpertLandingPage: React.FC = () => {
                 color: '#666666',
                 lineHeight: 1.6,
                 margin: '0 0 24px 0',
-                fontFamily: 'Montserrat, sans-serif'
+                fontFamily: 'Montserrat, sans-serif',
+                flex: 1
               }}>
                 Месячная подписка - твой комфортный старт. Ты можешь узнать платформу поближе и исследовать все возможности
               </p>
               <Button
                 type="primary"
                 size="large"
-                loading={loading}
+                loading={loadingMonthly}
                 onClick={() => handlePayment(790, true)}
                 style={{
                   height: 48,
@@ -350,7 +378,9 @@ const ExpertLandingPage: React.FC = () => {
               padding: 32,
               textAlign: 'center',
               boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
-              position: 'relative'
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column'
             }}>
               <div style={{
                 position: 'absolute',
@@ -418,14 +448,15 @@ const ExpertLandingPage: React.FC = () => {
                 color: 'rgba(255, 255, 255, 0.9)',
                 lineHeight: 1.6,
                 margin: '0 0 24px 0',
-                fontFamily: 'Montserrat, sans-serif'
+                fontFamily: 'Montserrat, sans-serif',
+                flex: 1
               }}>
                 Присоединись на целый год - получи лучшие условия! Пока мы в стадии предзапуска действует уникальная цена для первых участников.
               </p>
               <Button
                 type="primary"
                 size="large"
-                loading={loading}
+                loading={loadingYearly}
                 onClick={() => handlePayment(1390, false)}
                 style={{
                   height: 48,

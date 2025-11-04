@@ -22,38 +22,9 @@ const ExpertBenefitsCard: React.FC<ExpertBenefitsCardProps> = ({ showPricing = t
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handlePayment = async () => {
-    try {
-      // Создаем платеж через Юкассу
-      const response = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          planId: 'lifetime',
-          amount: 990,
-          description: 'Пожизненный доступ к функциям эксперта'
-        })
-      });
-
-      if (response.ok) {
-        const paymentData = await response.json();
-        
-        // Перенаправляем на страницу оплаты Юкассы
-        if (paymentData.payment_url) {
-          window.location.href = paymentData.payment_url;
-        } else {
-          console.error('Ошибка создания платежа');
-        }
-      } else {
-        const error = await response.json();
-        console.error(error.error || 'Ошибка создания платежа');
-      }
-    } catch (error) {
-      console.error('Ошибка:', error);
-    }
+  const handleSelectPlan = () => {
+    // Переходим на лендинг и прокручиваем к секции с оплатой
+    navigate('/expert-landing#pricing');
   };
 
   return (
@@ -106,7 +77,7 @@ const ExpertBenefitsCard: React.FC<ExpertBenefitsCardProps> = ({ showPricing = t
       <Button 
         type="primary"
         size="large"
-        onClick={handlePayment}
+        onClick={handleSelectPlan}
         style={{
           height: 52,
           fontSize: 16,
