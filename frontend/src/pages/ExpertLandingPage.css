@@ -153,6 +153,10 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(107, 70, 193, 0.15);
+  border: 1px solid rgba(196, 181, 253, 0.5);
 }
 
 .cta-content {
@@ -258,8 +262,9 @@
   color: #1d1d1f;
   margin-bottom: 30px;
   font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  font-size: 28px;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.4;
 }
 
 .cta-button {
@@ -322,6 +327,10 @@
     min-height: 300px;
   }
   
+  .cta-title {
+    font-size: 24px;
+  }
+  
   .footer-bg {
     height: 500px;
   }
@@ -350,10 +359,6 @@
   
   .feature-title {
     font-size: 32px;
-  }
-  
-  .cta-title {
-    font-size: 22px;
   }
   
   .back-button-container {

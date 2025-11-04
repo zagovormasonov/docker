@@ -264,24 +264,43 @@ const ExpertLandingPage: React.FC = () => {
               Перейти к оплате
             </Button>
             
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <span style={{ 
-                textDecoration: 'line-through', 
+            <div style={{ marginTop: '32px', textAlign: 'center' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 16
+              }}>
+                <span style={{ 
+                  textDecoration: 'line-through', 
+                  color: '#86868b',
+                  fontSize: '18px',
+                  fontFamily: 'Montserrat, sans-serif',
+                  fontWeight: '500'
+                }}>
+                  3369 ₽
+                </span>
+                <span style={{ 
+                  color: '#fff',
+                  fontSize: '32px',
+                  fontWeight: '700',
+                  fontFamily: 'Montserrat, sans-serif',
+                  background: 'linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%)',
+                  padding: '8px 24px',
+                  borderRadius: '20px',
+                  boxShadow: '0 4px 12px rgba(255, 77, 79, 0.3)'
+                }}>
+                  990 ₽
+                </span>
+              </div>
+              <p style={{
+                marginTop: '12px',
+                fontSize: '14px',
                 color: '#86868b',
-                fontSize: '18px',
-                marginRight: '12px',
                 fontFamily: 'Montserrat, sans-serif'
               }}>
-                3369 ₽
-              </span>
-              <span style={{ 
-                color: '#ff4d4f',
-                fontSize: '24px',
-                fontWeight: '600',
-                fontFamily: 'Montserrat, sans-serif'
-              }}>
-                990 ₽
-              </span>
+                Пожизненный доступ без ежемесячных платежей
+              </p>
             </div>
           </div>
         </div>
