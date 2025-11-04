@@ -23,7 +23,7 @@ router.get('/count', async (req, res) => {
 // Получение списка экспертов с фильтрацией
 router.get('/search', async (req, res) => {
   try {
-    const { topics, city, serviceType, search, limit, order } = req.query;
+    const { topics, city, serviceType, search, limit, order, offset } = req.query;
 
     let queryText = `
       SELECT u.id, u.name, u.email, u.avatar_url, u.bio, u.city,
@@ -72,6 +72,14 @@ router.get('/search', async (req, res) => {
       const limitNum = parseInt(limit, 10);
       if (!isNaN(limitNum) && limitNum > 0) {
         queryText += ` LIMIT ${limitNum}`;
+      }
+    }
+
+    // Добавляем OFFSET если указан
+    if (offset && typeof offset === 'string') {
+      const offsetNum = parseInt(offset, 10);
+      if (!isNaN(offsetNum) && offsetNum >= 0) {
+        queryText += ` OFFSET ${offsetNum}`;
       }
     }
 

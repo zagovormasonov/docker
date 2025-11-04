@@ -36,11 +36,14 @@ const ExpertsPage = () => {
   const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState(true);
   const [newExpertsLoading, setNewExpertsLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [searchText, setSearchText] = useState('');
   const [favoriteStatus, setFavoriteStatus] = useState<Record<number, boolean>>({});
   const [newExpertsFavoriteStatus, setNewExpertsFavoriteStatus] = useState<Record<number, boolean>>({});
+  const [newExpertsOffset, setNewExpertsOffset] = useState(6);
+  const [hasMoreExperts, setHasMoreExperts] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -83,6 +86,9 @@ const ExpertsPage = () => {
       const newExpertsData = response.data;
       setNewExperts(newExpertsData);
       
+      // Проверяем, есть ли еще эксперты
+      setHasMoreExperts(newExpertsData.length === 6);
+      
       // Загружаем статус избранного для каждого эксперта
       const favoritePromises = newExpertsData.map((expert: Expert) => 
         api.get(`/expert-interactions/${expert.id}/status`)
@@ -102,6 +108,51 @@ const ExpertsPage = () => {
       console.error('Ошибка загрузки новых экспертов:', error);
     } finally {
       setNewExpertsLoading(false);
+    }
+  };
+
+  const loadMoreExperts = async () => {
+    setLoadingMore(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('limit', '6');
+      params.append('offset', newExpertsOffset.toString());
+      params.append('order', 'newest');
+
+      const response = await api.get(`/experts/search?${params.toString()}`);
+      const moreExpertsData = response.data;
+      
+      // Добавляем новых экспертов к существующим
+      setNewExperts(prev => [...prev, ...moreExpertsData]);
+      
+      // Обновляем offset
+      setNewExpertsOffset(prev => prev + 6);
+      
+      // Проверяем, есть ли еще эксперты
+      setHasMoreExperts(moreExpertsData.length === 6);
+      
+      // Загружаем статус избранного для новых экспертов
+      const favoritePromises = moreExpertsData.map((expert: Expert) => 
+        api.get(`/expert-interactions/${expert.id}/status`)
+      );
+      
+      try {
+        const favoriteResponses = await Promise.all(favoritePromises);
+        const favoriteStatusMap: Record<number, boolean> = {};
+        favoriteResponses.forEach((response, index) => {
+          favoriteStatusMap[moreExpertsData[index].id] = response.data.favorited;
+        });
+        setNewExpertsFavoriteStatus(prev => ({
+          ...prev,
+          ...favoriteStatusMap
+        }));
+      } catch (error) {
+        console.error('Ошибка загрузки статуса избранного:', error);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки дополнительных экспертов:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -341,6 +392,27 @@ const ExpertsPage = () => {
                   </Col>
                 ))}
               </Row>
+              
+              {/* Кнопка "Показать больше" */}
+              {hasMoreExperts && (
+                <div style={{ textAlign: 'center', marginTop: 32 }}>
+                  <Button
+                    type="primary"
+                    size="large"
+                    loading={loadingMore}
+                    onClick={loadMoreExperts}
+                    style={{
+                      minWidth: 200,
+                      height: 48,
+                      fontSize: 16,
+                      fontWeight: 600,
+                      borderRadius: 24
+                    }}
+                  >
+                    Показать больше экспертов
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
