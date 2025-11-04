@@ -120,12 +120,6 @@ const ExpertsPage = () => {
       if (searchText) {
         params.append('search', searchText);
       }
-      
-      // Если нет фильтров, ограничиваем результаты 4 последними экспертами
-      if (!hasFilters) {
-        params.append('limit', '4');
-        params.append('order', 'newest');
-      }
 
       const response = await api.get(`/experts/search?${params.toString()}`);
       const expertsData = response.data;
