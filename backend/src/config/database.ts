@@ -253,7 +253,7 @@ export const initDatabase = async () => {
     // Индексы
     await query(`CREATE INDEX IF NOT EXISTS idx_reviews_expert ON reviews(expert_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_events_date ON events(event_date)`);
-    await query(`CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type)`);
+    await query(`CR EATE INDEX IF NOT EXISTS idx_events_type ON events(event_type)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_events_city ON events(city_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_events_organizer ON events(organizer_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_article_likes_article ON article_likes(article_id)`);

@@ -38,6 +38,8 @@ const ExpertsPage = () => {
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [searchText, setSearchText] = useState('');
   const [favoriteStatus, setFavoriteStatus] = useState<Record<number, boolean>>({});
+  const [displayCount, setDisplayCount] = useState(3);
+  const [loadingMore, setLoadingMore] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +50,8 @@ const ExpertsPage = () => {
 
   useEffect(() => {
     fetchExperts();
+    // Reset display count when filters change
+    setDisplayCount(3);
   }, [selectedTopics, selectedCity, searchText]);
 
   const fetchTopics = async () => {
@@ -121,6 +125,18 @@ const ExpertsPage = () => {
     }
   };
 
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    // Simulate slight delay for better UX
+    setTimeout(() => {
+      setDisplayCount(prev => prev + 3);
+      setLoadingMore(false);
+    }, 300);
+  };
+
+  const displayedExperts = experts.slice(0, displayCount);
+  const hasMore = displayCount < experts.length;
+
   return (
     <div className="container">
       <div className="page-header">
@@ -178,117 +194,138 @@ const ExpertsPage = () => {
         <div style={{ textAlign: 'center', padding: 60 }}>
           <Spin size="large" />
         </div>
-      ) : experts.length === 0 ? (
+      ) : displayedExperts.length === 0 ? (
         <Empty description="Эксперты не найдены" style={{ padding: 60 }} />
       ) : (
-        <Row gutter={[24, 24]}>
-          {experts.map((expert) => (
-            <Col xs={24} sm={12} lg={8} key={expert.id}>
-              <Card
-                hoverable
-                onClick={() => {
-                  // Если пользователь кликает на свой профиль, переходим к редактированию
-                  if (user && user.id === expert.id) {
-                    navigate('/profile');
-                  } else {
-                    navigate(`/experts/${expert.id}`);
-                  }
-                }}
-                style={{ 
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  position: 'relative'
-                }}
-                bodyStyle={{ 
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column'
+        <>
+          <Row gutter={[24, 24]}>
+            {displayedExperts.map((expert) => (
+              <Col xs={24} sm={12} lg={8} key={expert.id}>
+                <Card
+                  hoverable
+                  onClick={() => {
+                    // Если пользователь кликает на свой профиль, переходим к редактированию
+                    if (user && user.id === expert.id) {
+                      navigate('/profile');
+                    } else {
+                      navigate(`/experts/${expert.id}`);
+                    }
+                  }}
+                  style={{ 
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative'
+                  }}
+                  bodyStyle={{ 
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Button
+                    type="text"
+                    icon={favoriteStatus[expert.id] ? <StarFilled /> : <StarOutlined />}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleFavorite(expert.id, e);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      zIndex: 10,
+                      color: favoriteStatus[expert.id] ? '#faad14' : '#8c8c8c',
+                      border: 'none',
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      borderRadius: '50%',
+                      width: 32,
+                      height: 32,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Meta
+                      avatar={
+                        <Avatar
+                          size={64}
+                          src={expert.avatar_url || '/emp.jpg'}
+                          icon={!expert.avatar_url && <UserOutlined />}
+                          style={{ backgroundColor: '#6366f1' }}
+                        />
+                      }
+                      title={
+                        <Space direction="vertical" size={4}>
+                          <Title level={4} style={{ margin: 0 }}>{expert.name}</Title>
+                          {expert.city && (
+                            <Text type="secondary">
+                              <EnvironmentOutlined /> {expert.city}
+                            </Text>
+                          )}
+                        </Space>
+                      }
+                      description={
+                        <Space direction="vertical" size={12} style={{ width: '100%', marginTop: 12, flex: 1 }}>
+                          {expert.bio && (
+                            <Text 
+                              type="secondary" 
+                              style={{ 
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                lineHeight: '1.4',
+                                height: '2.8em'
+                              }}
+                              title={expert.bio}
+                            >
+                              {expert.bio}
+                            </Text>
+                          )}
+                          
+                          {expert.topics && expert.topics.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 'auto' }}>
+                              {expert.topics.slice(0, 2).map((topic, index) => (
+                                <Tag key={index} color="purple">{topic}</Tag>
+                              ))}
+                              {expert.topics.length > 2 && (
+                                <Tag>+{expert.topics.length - 2}</Tag>
+                              )}
+                            </div>
+                          )}
+                        </Space>
+                      }
+                    />
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+
+          {hasMore && (
+            <div style={{ textAlign: 'center', marginTop: 40 }}>
+              <Button
+                size="large"
+                onClick={handleLoadMore}
+                loading={loadingMore}
+                style={{
+                  paddingLeft: 32,
+                  paddingRight: 32,
+                  height: 44,
+                  fontSize: 16,
+                  borderRadius: 8
                 }}
               >
-                <Button
-                  type="text"
-                  icon={favoriteStatus[expert.id] ? <StarFilled /> : <StarOutlined />}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleFavorite(expert.id, e);
-                  }}
-                  style={{
-                    position: 'absolute',
-                    top: 8,
-                    right: 8,
-                    zIndex: 10,
-                    color: favoriteStatus[expert.id] ? '#faad14' : '#8c8c8c',
-                    border: 'none',
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '50%',
-                    width: 32,
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                />
-                
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Meta
-                    avatar={
-                      <Avatar
-                        size={64}
-                        src={expert.avatar_url || '/emp.jpg'}
-                        icon={!expert.avatar_url && <UserOutlined />}
-                        style={{ backgroundColor: '#6366f1' }}
-                      />
-                    }
-                    title={
-                      <Space direction="vertical" size={4}>
-                        <Title level={4} style={{ margin: 0 }}>{expert.name}</Title>
-                        {expert.city && (
-                          <Text type="secondary">
-                            <EnvironmentOutlined /> {expert.city}
-                          </Text>
-                        )}
-                      </Space>
-                    }
-                    description={
-                      <Space direction="vertical" size={12} style={{ width: '100%', marginTop: 12, flex: 1 }}>
-                        {expert.bio && (
-                          <Text 
-                            type="secondary" 
-                            style={{ 
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              lineHeight: '1.4',
-                              height: '2.8em'
-                            }}
-                            title={expert.bio}
-                          >
-                            {expert.bio}
-                          </Text>
-                        )}
-                        
-                        {expert.topics && expert.topics.length > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 'auto' }}>
-                            {expert.topics.slice(0, 2).map((topic, index) => (
-                              <Tag key={index} color="purple">{topic}</Tag>
-                            ))}
-                            {expert.topics.length > 2 && (
-                              <Tag>+{expert.topics.length - 2}</Tag>
-                            )}
-                          </div>
-                        )}
-                      </Space>
-                    }
-                  />
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+                Показать больше экспертов
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
