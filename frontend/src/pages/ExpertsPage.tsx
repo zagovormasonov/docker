@@ -344,17 +344,21 @@ const ExpertsPage = () => {
             </div>
           )}
 
-          {/* Фильтрованный список экспертов */}
-          {experts.length === 0 ? (
-            <Empty description="Эксперты не найдены" style={{ padding: 60 }} />
-          ) : (
-            <Row gutter={[24, 24]}>
-              {experts.map((expert) => (
-                <Col xs={24} sm={12} lg={8} key={expert.id}>
-                  {renderExpertCard(expert, favoriteStatus[expert.id])}
-                </Col>
-              ))}
-            </Row>
+          {/* Фильтрованный список экспертов - показываем только если есть фильтры */}
+          {(selectedTopics.length > 0 || selectedCity || searchText) && (
+            <>
+              {experts.length === 0 ? (
+                <Empty description="Эксперты не найдены" style={{ padding: 60 }} />
+              ) : (
+                <Row gutter={[24, 24]}>
+                  {experts.map((expert) => (
+                    <Col xs={24} sm={12} lg={8} key={expert.id}>
+                      {renderExpertCard(expert, favoriteStatus[expert.id])}
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </>
           )}
         </>
       )}
