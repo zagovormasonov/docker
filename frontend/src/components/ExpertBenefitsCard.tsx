@@ -46,77 +46,106 @@ const ExpertBenefitsCard: React.FC<ExpertBenefitsCardProps> = ({ showPricing = t
   };
 
   return (
-    <Card 
-      style={{ 
-        background: 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)',
-        border: 'none',
-        borderRadius: 12,
-        marginBottom: 16,
-        minHeight: '200px'
-      }}
-    >
-      <div style={{ textAlign: 'center', padding: '20px' }}>
-        <Text style={{ fontSize: 16, color: '#1d1d1f', marginBottom: 16, display: 'block', lineHeight: '1.5' }}>
-          Монетизируйте свои знания, расширяйте аудиторию, станьте лидером мнений!
-        </Text>
-        
-        <div style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 8 }}>
-            Пожизненный доступ
-          </Text>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
-            <Text style={{ 
-              fontSize: 24, 
-              fontWeight: 600,
-              color: '#1d1d1f'
-            }}>
-              990 ₽
-            </Text>
-            <Text style={{ 
-              fontSize: 16, 
-              textDecoration: 'line-through', 
-              color: '#86868b'
-            }}>
-              3369 ₽
-            </Text>
-          </div>
-        </div>
-        
-        <Button 
-          type="link"
+    <div style={{ 
+      background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)',
+      borderRadius: 24,
+      padding: '48px 40px',
+      textAlign: 'center',
+      boxShadow: '0 8px 32px rgba(107, 70, 193, 0.15)',
+      border: '1px solid rgba(196, 181, 253, 0.5)',
+      marginBottom: 16
+    }}>
+      <h2 style={{ 
+        fontFamily: 'Montserrat, sans-serif',
+        fontSize: 32,
+        fontWeight: 700,
+        color: '#1d1d1f',
+        margin: '0 0 16px 0',
+        lineHeight: 1.3
+      }}>
+        Выберите ваш профессиональный профиль
+      </h2>
+      
+      <p style={{ 
+        fontSize: 14,
+        color: '#666666',
+        margin: '0 0 20px 0',
+        lineHeight: 1.6,
+        fontFamily: 'Montserrat, sans-serif'
+      }}>
+        Начните формировать свой личный бренд, который будет работать на вас!
+      </p>
+      
+      <div style={{ 
+        marginBottom: 24
+      }}>
+        <a 
           onClick={() => navigate('/expert-landing')}
           style={{ 
             color: '#6366f1',
-            padding: 0,
-            height: 'auto',
-            fontSize: 14,
+            textDecoration: 'none',
             fontWeight: 500,
-            marginBottom: 16
+            fontSize: 14,
+            fontFamily: 'Montserrat, sans-serif',
+            cursor: 'pointer'
           }}
         >
           Узнать о преимуществах Эксперта
-        </Button>
+        </a>
+      </div>
 
-        <div>
-          <Button
-            type="primary"
-            size="large"
-            onClick={handlePayment}
-            style={{
-              height: 48,
-              fontSize: 16,
-              fontWeight: 600,
-              background: '#6366f1',
-              border: 'none',
-              borderRadius: 8,
-              width: '100%'
-            }}
-          >
-            Перейти к оплате
-          </Button>
+      <Button 
+        type="primary"
+        size="large"
+        onClick={handlePayment}
+        style={{
+          height: 52,
+          fontSize: 16,
+          fontWeight: 600,
+          fontFamily: 'Montserrat, sans-serif',
+          background: '#6366f1',
+          border: 'none',
+          borderRadius: 30,
+          width: '100%',
+          maxWidth: 300,
+          margin: '0 auto 24px'
+        }}
+      >
+        Выбрать тариф
+      </Button>
+
+      <div style={{ 
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16
+      }}>
+        <Text style={{ 
+          fontSize: 16, 
+          textDecoration: 'line-through', 
+          color: '#86868b',
+          fontFamily: 'Montserrat, sans-serif',
+          fontWeight: 500
+        }}>
+          3369 ₽
+        </Text>
+        <div style={{
+          background: 'linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%)',
+          padding: '8px 24px',
+          borderRadius: 20,
+          boxShadow: '0 4px 12px rgba(255, 77, 79, 0.3)'
+        }}>
+          <Text style={{ 
+            fontSize: 28, 
+            fontWeight: 700,
+            color: '#fff',
+            fontFamily: 'Montserrat, sans-serif'
+          }}>
+            990 ₽
+          </Text>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 
