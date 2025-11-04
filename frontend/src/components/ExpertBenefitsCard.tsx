@@ -1,9 +1,8 @@
 import React from 'react';
 import { Card, Button, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { CrownOutlined } from '@ant-design/icons';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface ExpertBenefitsCardProps {
   showPricing?: boolean;
@@ -49,124 +48,73 @@ const ExpertBenefitsCard: React.FC<ExpertBenefitsCardProps> = ({ showPricing = t
   return (
     <Card 
       style={{ 
-        background: 'linear-gradient(135deg, rgb(180, 140, 255) 0%, rgb(240, 200, 255) 100%)',
+        background: 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)',
         border: 'none',
-        borderRadius: 16,
+        borderRadius: 12,
         marginBottom: 16,
-        overflow: 'hidden',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)'
+        minHeight: '200px'
       }}
-      bodyStyle={{ padding: '40px' }}
     >
-      <div style={{ textAlign: 'center' }}>
-        {/* Icon */}
-        <div style={{ marginBottom: 24 }}>
-          <CrownOutlined style={{ fontSize: 48, color: '#fff', opacity: 0.8 }} />
-        </div>
-
-        {/* Main Title */}
-        <Title 
-          level={2} 
-          style={{ 
-            fontFamily: 'Montserrat, sans-serif',
-            fontWeight: 700,
-            color: '#fff',
-            marginBottom: 12,
-            fontSize: 28
-          }}
-        >
-          Выберите профессиональный профиль эксперта
-        </Title>
-        
-        {/* Subtitle */}
-        <Text style={{ 
-          fontSize: 16, 
-          color: '#fff',
-          opacity: 0.95,
-          display: 'block',
-          marginBottom: 24,
-          lineHeight: '1.6'
-        }}>
-          Начните формировать свой личный бренд, который будет работать на вас!
+      <div style={{ textAlign: 'center', padding: '20px' }}>
+        <Text style={{ fontSize: 16, color: '#1d1d1f', marginBottom: 16, display: 'block', lineHeight: '1.5' }}>
+          Монетизируйте свои знания, расширяйте аудиторию, станьте лидером мнений!
         </Text>
         
-        {/* Learn More Link */}
-        <Button 
-          type="link"
-          onClick={() => navigate('/expert-landing')}
-          style={{ 
-            color: '#fff',
-            padding: 0,
-            height: 'auto',
-            fontSize: 14,
-            fontWeight: 600,
-            marginBottom: 24,
-            textDecoration: 'underline'
-          }}
-        >
-          Узнать о преимуществах Эксперта
-        </Button>
-
-        {/* Pricing Section */}
-        <div style={{ marginBottom: 24 }}>
-          <Text style={{ 
-            fontSize: 14, 
-            color: '#fff',
-            opacity: 0.9,
-            display: 'block',
-            marginBottom: 12
-          }}>
-            Пожизненный доступ к полным возможностям:
+        <div style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 14, color: '#666', display: 'block', marginBottom: 8 }}>
+            Пожизненный доступ
           </Text>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
             <Text style={{ 
-              fontSize: 32, 
-              fontWeight: 700,
-              color: '#fff',
-              fontFamily: 'Montserrat, sans-serif'
+              fontSize: 24, 
+              fontWeight: 600,
+              color: '#1d1d1f'
             }}>
               990 ₽
             </Text>
             <Text style={{ 
-              fontSize: 18, 
+              fontSize: 16, 
               textDecoration: 'line-through', 
-              color: '#fff',
-              opacity: 0.7
+              color: '#86868b'
             }}>
               3369 ₽
             </Text>
           </div>
         </div>
         
-        {/* Primary Button */}
-        <Button
-          type="primary"
-          size="large"
-          onClick={handlePayment}
-          style={{
-            height: 52,
-            fontSize: 16,
-            fontWeight: 600,
-            background: '#fff',
-            color: '#7c3aed',
-            border: 'none',
-            borderRadius: 12,
-            width: '100%',
-            fontFamily: 'Montserrat, sans-serif',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-            e.currentTarget.style.transform = 'translateY(-2px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.transform = 'translateY(0)';
+        <Button 
+          type="link"
+          onClick={() => navigate('/expert-landing')}
+          style={{ 
+            color: '#6366f1',
+            padding: 0,
+            height: 'auto',
+            fontSize: 14,
+            fontWeight: 500,
+            marginBottom: 16
           }}
         >
-          Выбрать тариф
+          Узнать о преимуществах Эксперта
         </Button>
+
+        <div>
+          <Button
+            type="primary"
+            size="large"
+            onClick={handlePayment}
+            style={{
+              height: 48,
+              fontSize: 16,
+              fontWeight: 600,
+              background: '#6366f1',
+              border: 'none',
+              borderRadius: 8,
+              width: '100%'
+            }}
+          >
+            Перейти к оплате
+          </Button>
+        </div>
       </div>
     </Card>
   );
