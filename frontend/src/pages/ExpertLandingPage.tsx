@@ -286,7 +286,7 @@ const ExpertLandingPage: React.FC = () => {
               color: '#1d1d1f',
               margin: '0 0 16px 0'
             }}>
-              Выберите профессиональный 3369 эксперта
+              Выберите профессиональный профиль
             </Title>
             
             <p style={{
@@ -326,13 +326,13 @@ const ExpertLandingPage: React.FC = () => {
               }}>
                 Месячный план
               </h3>
-              <div style={{
-                fontFamily: 'Montserrat, sans-serif',
-                fontSize: 44,
-                fontWeight: 700,
-                color: 'black',
-                margin: '12px 0 24px 0'
-              }}>
+                <div style={{
+                  fontFamily: 'Montserrat, sans-serif',
+                  fontSize: 44,
+                  fontWeight: 700,
+                  color: 'black',
+                  margin: '12px 0 24px 0'
+                }}>
                 790₽
               </div>
               <p style={{
