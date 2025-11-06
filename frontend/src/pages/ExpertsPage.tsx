@@ -122,8 +122,12 @@ const ExpertsPage = () => {
       const response = await api.get(`/experts/search?${params.toString()}`);
       const moreExpertsData = response.data;
       
-      // Добавляем новых экспертов к существующим
-      setNewExperts(prev => [...prev, ...moreExpertsData]);
+      // Добавляем новых экспертов к существующим, исключая дубликаты
+      setNewExperts(prev => {
+        const existingIds = new Set(prev.map(expert => expert.id));
+        const uniqueNewExperts = moreExpertsData.filter((expert: Expert) => !existingIds.has(expert.id));
+        return [...prev, ...uniqueNewExperts];
+      });
       
       // Обновляем offset
       setNewExpertsOffset(prev => prev + 6);
@@ -381,8 +385,8 @@ const ExpertsPage = () => {
         </div>
       ) : (
         <>
-          {/* Блок новых экспертов */}
-          {newExperts.length > 0 && (
+          {/* Блок новых экспертов - показываем только если нет активных фильтров */}
+          {newExperts.length > 0 && !(selectedTopics.length > 0 || selectedCity || searchText) && (
             <div style={{ marginBottom: 40 }}>
               <Title level={3} style={{ marginBottom: 24 }}>Новые эксперты</Title>
               <Row gutter={[24, 24]}>
