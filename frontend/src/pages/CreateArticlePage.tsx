@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Switch, Typography, Space, Divider, Spin, Upload, Image } from 'antd';
+import { Form, Input, Button, Card, message, Typography, Space, Divider, Spin, Upload, Image } from 'antd';
 import { ArrowLeftOutlined, PictureOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -34,8 +34,7 @@ const CreateArticlePage = () => {
       
       form.setFieldsValue({
         title: article.title,
-        coverImage: article.cover_image || '',
-        isPublished: article.is_published
+        coverImage: article.cover_image || ''
       });
       setContent(article.content || '');
       setCoverImageUrl(article.cover_image || '');
@@ -59,8 +58,7 @@ const CreateArticlePage = () => {
       const data = {
         title: values.title,
         content,
-        coverImage: coverImageUrl || values.coverImage || null,
-        isPublished: values.isPublished !== false
+        coverImage: coverImageUrl || values.coverImage || null
       };
 
       if (isEdit) {
@@ -77,6 +75,9 @@ const CreateArticlePage = () => {
         if (data.coverImage) {
           setCoverImageUrl(data.coverImage);
         }
+        
+        // После сохранения переходим к списку статей
+        navigate('/my-articles');
       } else {
         const response = await api.post('/articles', data);
         
@@ -87,7 +88,8 @@ const CreateArticlePage = () => {
           message.success('Статья успешно создана!');
         }
         
-        navigate(`/articles/${response.data.id}`);
+        // После создания переходим к списку статей
+        navigate('/my-articles');
       }
     } catch (error: any) {
       console.error('Ошибка сохранения статьи:', error);
@@ -221,7 +223,6 @@ const CreateArticlePage = () => {
           form={form}
           layout="vertical"
           onFinish={onFinish}
-          initialValues={{ isPublished: true }}
         >
           <Form.Item
             name="title"
@@ -325,19 +326,14 @@ const CreateArticlePage = () => {
             </Text>
           </Form.Item>
 
-          <Form.Item
-            name="isPublished"
-            label={<Text strong>Статус</Text>}
-            valuePropName="checked"
-          >
-            <Space>
-              <Switch />
-              <Text>Опубликовать сразу</Text>
-              <Text type="secondary">(можно изменить позже)</Text>
-            </Space>
-          </Form.Item>
-
           <Divider />
+
+          <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
+            <Text type="secondary" style={{ fontSize: 13 }}>
+              💡 Статья будет сохранена как черновик. Чтобы отправить её на модерацию, 
+              нажмите кнопку "Опубликовать" в списке ваших статей.
+            </Text>
+          </Space>
 
           <Form.Item style={{ marginBottom: 0 }}>
             <Space>

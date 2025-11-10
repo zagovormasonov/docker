@@ -40,6 +40,7 @@ interface Article {
   likes_count: number;
   created_at: string;
   updated_at: string;
+  moderation_status?: string;
 }
 
 const ArchivedArticlesPage = () => {

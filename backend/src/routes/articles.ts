@@ -238,25 +238,25 @@ router.post(
 
     try {
       const { title, content, coverImage } = req.body;
-      console.log('📝 Создание статьи:', { title, userId: req.userId });
+      console.log('📝 Создание статьи (черновик):', { title, userId: req.userId });
 
-      // Создаем статью (пробуем с полями модерации, если не получается - без них)
+      // Создаем статью как черновик (БЕЗ отправки на модерацию)
       let result;
       try {
-        console.log('🔍 Пробуем создать статью с полями модерации');
+        console.log('🔍 Создаём статью как черновик');
         result = await query(
           `INSERT INTO articles (author_id, title, content, cover_image, is_published, moderation_status)
-           VALUES ($1, $2, $3, $4, false, 'pending')
+           VALUES ($1, $2, $3, $4, false, 'draft')
            RETURNING *`,
           [req.userId, title, content, coverImage || null]
         );
-        console.log('✅ Статья создана с полями модерации');
+        console.log('✅ Статья создана как черновик');
       } catch (error) {
         // Если поля модерации не существуют, создаем без них
         console.log('⚠️ Поля модерации не найдены, создаем статью без них:', error.message);
         result = await query(
           `INSERT INTO articles (author_id, title, content, cover_image, is_published)
-           VALUES ($1, $2, $3, $4, true)
+           VALUES ($1, $2, $3, $4, false)
            RETURNING *`,
           [req.userId, title, content, coverImage || null]
         );
@@ -265,56 +265,12 @@ router.post(
 
       const article = result.rows[0];
 
-      // Отправляем уведомление администратору только если есть поля модерации
-      if (article.hasOwnProperty('moderation_status') && article.moderation_status === 'pending') {
-        try {
-          console.log('📨 Отправляем уведомление администратору');
-          // Находим администратора
-          const adminResult = await query(
-            'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
-            ['admin', 'samyrize77777@gmail.com']
-          );
-
-          if (adminResult.rows.length > 0) {
-            const admin = adminResult.rows[0];
-            
-            // Создаем или находим чат с администратором
-            let chatResult = await query(
-              'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
-              [req.userId, admin.id]
-            );
-            
-            if (chatResult.rows.length === 0) {
-              chatResult = await query(
-                'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
-                [req.userId, admin.id]
-              );
-            }
-            
-            const chatId = chatResult.rows[0].id;
-            
-            // Отправляем уведомление о новой статье на модерацию
-            await query(
-              `INSERT INTO messages (chat_id, sender_id, content, is_read) 
-               VALUES ($1, $2, $3, false)`,
-              [chatId, req.userId, `📝 Новая статья на модерацию от ${req.body.authorName || 'эксперта'}:\n\n📌 Заголовок: ${title}\n\n📄 Содержание:\n${content.substring(0, 500)}${content.length > 500 ? '...' : ''}\n\n🔗 ID статьи: ${article.id}`]
-            );
-          }
-        } catch (notificationError) {
-          console.error('Ошибка отправки уведомления администратору:', notificationError);
-          // Не прерываем создание статьи из-за ошибки уведомления
-        }
-      }
-
-      // Возвращаем статью с информацией о модерации
-      const response = {
-        ...article,
-        message: article.hasOwnProperty('moderation_status') && article.moderation_status === 'pending' 
-          ? 'Статья отправлена на модерацию. В ближайшее время вы получите ответ в чате.'
-          : 'Статья создана и опубликована'
-      };
+      // НЕ отправляем уведомление администратору при создании черновика
       
-      res.status(201).json(response);
+      res.status(201).json({
+        ...article,
+        message: 'Статья сохранена как черновик. Нажмите "Опубликовать" для отправки на модерацию.'
+      });
     } catch (error) {
       console.error('Ошибка создания статьи:', error);
       res.status(500).json({ error: 'Ошибка сервера' });
@@ -330,11 +286,11 @@ router.put(
   async (req: AuthRequest, res) => {
     try {
       const { id } = req.params;
-      const { title, content, coverImage, isPublished } = req.body;
+      const { title, content, coverImage } = req.body;
 
       console.log('📝 Обновление статьи:', { id, title, userId: req.userId });
 
-      // Сначала получаем текущую статью, чтобы проверить статус модерации
+      // Получаем текущую статью
       const currentArticle = await query(
         'SELECT * FROM articles WHERE id = $1 AND author_id = $2',
         [id, req.userId]
@@ -351,14 +307,16 @@ router.put(
         is_published: article.is_published 
       });
 
-      // Обновляем статью и сбрасываем статус модерации
+      // Обновляем статью БЕЗ изменения статуса модерации
+      // Если статья была черновиком - остается черновиком
+      // Если была на модерации - сбрасываем в черновик для повторной отправки
       const result = await query(
         `UPDATE articles 
          SET title = COALESCE($1, title),
              content = COALESCE($2, content),
              cover_image = COALESCE($3, cover_image),
+             moderation_status = 'draft',
              is_published = false,
-             moderation_status = 'pending',
              moderation_reason = NULL,
              moderated_by = NULL,
              moderated_at = NULL,
@@ -373,11 +331,59 @@ router.put(
       }
 
       const updatedArticle = result.rows[0];
-      console.log('✅ Статья обновлена и отправлена на модерацию:', updatedArticle.id);
+      console.log('✅ Статья обновлена:', updatedArticle.id);
 
-      // Отправляем уведомление администратору о повторной модерации
+      // НЕ отправляем уведомление администратору при обновлении черновика
+
+      res.json({
+        ...updatedArticle,
+        message: 'Статья сохранена. Нажмите "Опубликовать" для отправки на модерацию.'
+      });
+    } catch (error) {
+      console.error('Ошибка обновления статьи:', error);
+      res.status(500).json({ error: 'Ошибка сервера', details: error.message });
+    }
+  }
+);
+
+// Публикация статьи (отправка на модерацию)
+router.post(
+  '/:id/publish',
+  authenticateToken,
+  requireExpert,
+  async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+
+      console.log('📤 Публикация статьи:', { id, userId: req.userId });
+
+      // Получаем текущую статью
+      const currentArticle = await query(
+        'SELECT * FROM articles WHERE id = $1 AND author_id = $2',
+        [id, req.userId]
+      );
+
+      if (currentArticle.rows.length === 0) {
+        return res.status(404).json({ error: 'Статья не найдена' });
+      }
+
+      const article = currentArticle.rows[0];
+
+      // Обновляем статус на "на модерации"
+      const result = await query(
+        `UPDATE articles 
+         SET moderation_status = 'pending',
+             is_published = false,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1 AND author_id = $2
+         RETURNING *`,
+        [id, req.userId]
+      );
+
+      const updatedArticle = result.rows[0];
+
+      // Отправляем уведомление администратору
       try {
-        // Находим администратора
         const adminResult = await query(
           'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
           ['admin', 'samyrize77777@gmail.com']
@@ -401,26 +407,26 @@ router.put(
           
           const chatId = chatResult.rows[0].id;
           
-          // Отправляем уведомление о повторной модерации
+          // Отправляем уведомление о статье на модерацию
           await query(
             `INSERT INTO messages (chat_id, sender_id, content, is_read) 
              VALUES ($1, $2, $3, false)`,
-            [chatId, req.userId, `🔄 Статья отредактирована и отправлена на повторную модерацию:\n\n📌 Название: ${title}\n\n🔗 ID статьи: ${updatedArticle.id}`]
+            [chatId, req.userId, `📝 Статья отправлена на модерацию:\n\n📌 Название: ${article.title}\n\n📄 Содержание:\n${article.content.substring(0, 500)}${article.content.length > 500 ? '...' : ''}\n\n🔗 ID статьи: ${article.id}`]
           );
           
           console.log('📨 Уведомление администратору отправлено');
         }
       } catch (notificationError) {
         console.error('Ошибка отправки уведомления администратору:', notificationError);
-        // Не прерываем обновление статьи из-за ошибки уведомления
+        // Не прерываем публикацию из-за ошибки уведомления
       }
 
       res.json({
         ...updatedArticle,
-        message: 'Статья обновлена и отправлена на повторную модерацию'
+        message: 'Статья отправлена на модерацию. В ближайшее время вы получите ответ в чате.'
       });
     } catch (error) {
-      console.error('Ошибка обновления статьи:', error);
+      console.error('Ошибка публикации статьи:', error);
       res.status(500).json({ error: 'Ошибка сервера', details: error.message });
     }
   }

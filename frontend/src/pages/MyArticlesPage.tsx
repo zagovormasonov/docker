@@ -41,6 +41,7 @@ interface Article {
   views: number;
   created_at: string;
   updated_at: string;
+  moderation_status?: string;
 }
 
 const MyArticlesPage = () => {
@@ -77,14 +78,18 @@ const MyArticlesPage = () => {
     }
   };
 
-  const handleTogglePublish = async (id: number, isPublished: boolean) => {
+  const handlePublish = async (id: number) => {
     try {
-      await api.put(`/articles/${id}`, { isPublished: !isPublished });
-      message.success(isPublished ? 'Статья снята с публикации' : 'Статья опубликована!');
+      const response = await api.post(`/articles/${id}/publish`);
+      if (response.data.message) {
+        message.success(response.data.message);
+      } else {
+        message.success('Статья отправлена на модерацию!');
+      }
       fetchArticles();
     } catch (error: any) {
-      console.error('Ошибка изменения статуса:', error);
-      message.error(error.response?.data?.error || 'Ошибка изменения статуса');
+      console.error('Ошибка публикации статьи:', error);
+      message.error(error.response?.data?.error || 'Ошибка публикации статьи');
     }
   };
 
@@ -200,9 +205,31 @@ const MyArticlesPage = () => {
                   {/* Статус публикации и архива */}
                   <div>
                     <Space wrap>
-                      <Tag color={article.is_published ? 'green' : 'orange'} style={{ fontSize: 13 }}>
-                        {article.is_published ? '✓ Опубликовано' : '○ Черновик'}
-                      </Tag>
+                      {article.moderation_status === 'draft' && (
+                        <Tag color="orange" style={{ fontSize: 13 }}>
+                          ○ Черновик
+                        </Tag>
+                      )}
+                      {article.moderation_status === 'pending' && (
+                        <Tag color="blue" style={{ fontSize: 13 }}>
+                          🔄 На модерации
+                        </Tag>
+                      )}
+                      {article.moderation_status === 'approved' && article.is_published && (
+                        <Tag color="green" style={{ fontSize: 13 }}>
+                          ✓ Опубликовано
+                        </Tag>
+                      )}
+                      {article.moderation_status === 'rejected' && (
+                        <Tag color="red" style={{ fontSize: 13 }}>
+                          ✗ Отклонено
+                        </Tag>
+                      )}
+                      {!article.moderation_status && (
+                        <Tag color={article.is_published ? 'green' : 'orange'} style={{ fontSize: 13 }}>
+                          {article.is_published ? '✓ Опубликовано' : '○ Черновик'}
+                        </Tag>
+                      )}
                       {article.archived && (
                         <Tag color="purple" icon={<FolderOutlined />} style={{ fontSize: 13 }}>
                           Архив
@@ -255,13 +282,16 @@ const MyArticlesPage = () => {
                     >
                       Редактировать
                     </Button>
-                    <Button
-                      onClick={() => handleTogglePublish(article.id, article.is_published)}
-                      type={article.is_published ? 'default' : 'primary'}
-                      size="small"
-                    >
-                      {article.is_published ? 'Снять' : 'Опубликовать'}
-                    </Button>
+                    {(article.moderation_status === 'draft' || article.moderation_status === 'rejected' || !article.moderation_status) && !article.is_published && (
+                      <Button
+                        onClick={() => handlePublish(article.id)}
+                        type="primary"
+                        size="small"
+                        style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                      >
+                        Опубликовать
+                      </Button>
+                    )}
                     {!article.archived ? (
                       <Button
                         icon={<FolderOutlined />}
