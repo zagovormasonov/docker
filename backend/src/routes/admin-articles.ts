@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { query } from '../config/database';
 import { createArticleEditedNotification, createArticleDeletedNotification } from '../utils/notifications';
 import { logAdminAction } from '../utils/adminLogger';
@@ -179,7 +179,7 @@ router.put('/:id', authenticateToken, requireAdmin, [
 });
 
 // Удалить статью
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
 
