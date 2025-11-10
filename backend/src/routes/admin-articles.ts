@@ -3,6 +3,7 @@ import { body, validationResult } from 'express-validator';
 import { authenticateToken } from '../middleware/auth';
 import { query } from '../config/database';
 import { createArticleEditedNotification, createArticleDeletedNotification } from '../utils/notifications';
+import { logAdminAction } from '../utils/adminLogger';
 
 const router = express.Router();
 
@@ -182,22 +183,36 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Получаем информацию о статье и авторе
+    // Получаем информацию о статье, авторе и администраторе
     const articleResult = await query(`
-      SELECT a.*, u.name as author_name, u.email as author_email
+      SELECT a.*, u.name as author_name, u.email as author_email, admin.name as admin_name
       FROM articles a
       JOIN users u ON a.author_id = u.id
-      WHERE a.id = $1
-    `, [id]);
+      CROSS JOIN users admin
+      WHERE a.id = $1 AND admin.id = $2
+    `, [id, req.userId]);
 
     if (articleResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Статья не найдена' });
     }
 
     const article = articleResult.rows[0];
+    const adminName = article.admin_name || 'Администратор';
 
     // Удаляем статью
     await query('DELETE FROM articles WHERE id = $1', [id]);
+
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'delete',
+      entityType: 'article',
+      entityId: parseInt(id),
+      entityTitle: article.title,
+      details: { author_name: article.author_name },
+      req: req
+    });
 
     // Создаем внутреннее уведомление для автора
     await createArticleDeletedNotification(article.author_id, article.title);

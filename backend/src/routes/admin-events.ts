@@ -3,6 +3,7 @@ import { body, validationResult } from 'express-validator';
 import { authenticateToken } from '../middleware/auth';
 import { query } from '../config/database';
 import { createEventEditedNotification, createEventDeletedNotification } from '../utils/notifications';
+import { logAdminAction } from '../utils/adminLogger';
 
 const router = express.Router();
 
@@ -235,16 +236,35 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Сначала получаем информацию о событии для уведомления
-    const eventCheck = await query('SELECT * FROM events WHERE id = $1', [id]);
+    // Получаем информацию о событии и администраторе
+    const eventCheck = await query(`
+      SELECT e.*, admin.name as admin_name 
+      FROM events e
+      CROSS JOIN users admin
+      WHERE e.id = $1 AND admin.id = $2
+    `, [id, req.userId]);
+    
     if (eventCheck.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Событие не найдено' });
     }
 
     const event = eventCheck.rows[0];
+    const adminName = event.admin_name || 'Администратор';
 
     // Удаляем событие
     await query('DELETE FROM events WHERE id = $1', [id]);
+
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'delete',
+      entityType: 'event',
+      entityId: parseInt(id),
+      entityTitle: event.title,
+      details: { organizer_id: event.organizer_id || event.author_id },
+      req: req
+    });
 
     // Отправляем уведомление автору об удалении
     try {
