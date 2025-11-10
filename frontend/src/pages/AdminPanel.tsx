@@ -301,6 +301,21 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleToggleAdminRights = async (userId: number, currentType: string) => {
+    try {
+      const isAdmin = currentType === 'admin';
+      const response = await axios.put(`/admin/users/${userId}/admin-rights`, {
+        grantAdmin: !isAdmin
+      });
+      
+      message.success(response.data.message || (isAdmin ? 'Права администратора отозваны' : 'Права администратора выданы'));
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Ошибка изменения прав администратора:', error);
+      message.error(error.response?.data?.message || 'Ошибка изменения прав администратора');
+    }
+  };
+
   const handleEdit = (item: Article | Event, type: 'article' | 'event') => {
     setEditingItem({ ...item, type });
     editForm.setFieldsValue({
@@ -621,11 +636,20 @@ const AdminPanel: React.FC = () => {
       title: 'Тип аккаунта',
       dataIndex: 'userType',
       key: 'userType',
-      render: (userType: string) => (
-        <Tag color={userType === 'expert' ? 'green' : 'blue'}>
-          {userType === 'expert' ? 'Эксперт' : 'Клиент'}
-        </Tag>
-      ),
+      render: (userType: string) => {
+        let color = 'blue';
+        let text = 'Клиент';
+        
+        if (userType === 'expert') {
+          color = 'green';
+          text = 'Эксперт';
+        } else if (userType === 'admin') {
+          color = 'red';
+          text = 'Администратор';
+        }
+        
+        return <Tag color={color}>{text}</Tag>;
+      },
     },
     {
       title: 'Дата регистрации',
@@ -636,22 +660,53 @@ const AdminPanel: React.FC = () => {
     {
       title: 'Действия',
       key: 'actions',
+      width: 300,
       render: (record: User) => {
         if (!record || !record.userType) return null;
+        const isAdmin = record.userType === 'admin';
+        
         return (
-          <Space>
+          <Space direction="vertical" size="small">
+            {/* Управление статусом эксперта (только для не-админов) */}
+            {!isAdmin && (
+              <Popconfirm
+                title={record.userType === 'expert' ? 'Лишить статуса эксперта?' : 'Назначить экспертом?'}
+                description={`Пользователь ${record.name} будет ${record.userType === 'expert' ? 'лишен' : 'назначен'} статуса эксперта`}
+                onConfirm={() => handleToggleExpertStatus(record.id, record.userType)}
+                okText="Да"
+                cancelText="Нет"
+              >
+                <Button 
+                  type={record.userType === 'expert' ? 'default' : 'primary'}
+                  size="small"
+                  block
+                >
+                  {record.userType === 'expert' ? 'Лишить статуса' : 'Назначить экспертом'}
+                </Button>
+              </Popconfirm>
+            )}
+            
+            {/* Управление правами администратора */}
             <Popconfirm
-              title={record.userType === 'expert' ? 'Лишить статуса эксперта?' : 'Назначить экспертом?'}
-              description={`Пользователь ${record.name} будет ${record.userType === 'expert' ? 'лишен' : 'назначен'} статуса эксперта`}
-              onConfirm={() => handleToggleExpertStatus(record.id, record.userType)}
-              okText="Да"
-              cancelText="Нет"
+              title={isAdmin ? '⚠️ Отозвать права администратора?' : '🔑 Назначить администратором?'}
+              description={
+                isAdmin 
+                  ? `Пользователь ${record.name} больше не сможет управлять системой`
+                  : `Пользователь ${record.name} получит полный доступ к админ-панели`
+              }
+              onConfirm={() => handleToggleAdminRights(record.id, record.userType)}
+              okText="Да, подтверждаю"
+              cancelText="Отмена"
+              okButtonProps={{ danger: isAdmin }}
             >
               <Button 
-                type={record.userType === 'expert' ? 'default' : 'primary'}
+                type={isAdmin ? 'default' : 'primary'}
+                danger={isAdmin}
                 size="small"
+                block
+                style={isAdmin ? {} : { background: '#722ed1', borderColor: '#722ed1' }}
               >
-                {record.userType === 'expert' ? 'Лишить статуса' : 'Назначить экспертом'}
+                {isAdmin ? '🔓 Отозвать права админа' : '🔑 Сделать админом'}
               </Button>
             </Popconfirm>
           </Space>
@@ -668,6 +723,7 @@ const AdminPanel: React.FC = () => {
       const unpublishedEvents = (events || []).filter(e => e && !e.is_published).length;
       const expertUsers = (users || []).filter(u => u && u.userType === 'expert').length;
       const clientUsers = (users || []).filter(u => u && u.userType === 'client').length;
+      const adminUsers = (users || []).filter(u => u && u.userType === 'admin').length;
 
       return {
         publishedArticles,
@@ -676,6 +732,7 @@ const AdminPanel: React.FC = () => {
         unpublishedEvents,
         expertUsers,
         clientUsers,
+        adminUsers,
       };
     } catch (error) {
       console.error('Error in getStats:', error);
@@ -686,6 +743,7 @@ const AdminPanel: React.FC = () => {
         unpublishedEvents: 0,
         expertUsers: 0,
         clientUsers: 0,
+        adminUsers: 0,
       };
     }
   };
@@ -698,6 +756,7 @@ const AdminPanel: React.FC = () => {
     unpublishedEvents: 0,
     expertUsers: 0,
     clientUsers: 0,
+    adminUsers: 0,
   } : getStats();
 
   return (
@@ -787,6 +846,29 @@ const AdminPanel: React.FC = () => {
               value={stats?.clientUsers || 0}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={12}>
+          <Card>
+            <Statistic
+              title="Администраторы"
+              value={stats?.adminUsers || 0}
+              prefix={<UserOutlined />}
+              valueStyle={{ color: '#cf1322' }}
+            />
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card>
+            <Statistic
+              title="Всего пользователей"
+              value={(stats?.expertUsers || 0) + (stats?.clientUsers || 0) + (stats?.adminUsers || 0)}
+              prefix={<UserOutlined />}
+              valueStyle={{ color: '#8c8c8c' }}
             />
           </Card>
         </Col>
