@@ -38,6 +38,7 @@ import productsRoutes from './routes/products';
 import testAuthRoutes from './routes/test-auth';
 import refreshTokenRoutes from './routes/refresh-token';
 import shareRoutes from './routes/share';
+import adminLogsRoutes from './routes/adminLogs';
 
 dotenv.config();
 
@@ -94,6 +95,7 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/test', testAuthRoutes);
 app.use('/api/auth', refreshTokenRoutes);
+app.use('/api/admin/logs', adminLogsRoutes);
 // Публичные страницы шаринга для соцсетей (с SSR OG-мета)
 app.use('/share', shareRoutes);
 

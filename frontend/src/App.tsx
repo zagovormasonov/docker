@@ -24,6 +24,7 @@ import EventPage from './pages/EventPage';
 import CreateEventPage from './pages/CreateEventPage';
 import ModerationPage from './pages/ModerationPage';
 import AdminPanel from './pages/AdminPanel';
+import AdminLogsPage from './pages/AdminLogsPage';
 import OfertaPage from './pages/OfertaPage';
 import PrivacyPage from './pages/PrivacyPage';
 import UserAgreementPage from './pages/UserAgreementPage';
@@ -87,6 +88,7 @@ function App() {
                 <Route path="archived-articles" element={<ProtectedRoute><ArchivedArticlesPage /></ProtectedRoute>} />
                 <Route path="moderation" element={<ProtectedRoute><ModerationPage /></ProtectedRoute>} />
                 <Route path="admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+                <Route path="admin-logs" element={<ProtectedRoute><AdminLogsPage /></ProtectedRoute>} />
                 <Route path="offer" element={<OfertaPage />} />
                 <Route path="privacy" element={<PrivacyPage />} />
                 <Route path="user-agreement" element={<UserAgreementPage />} />

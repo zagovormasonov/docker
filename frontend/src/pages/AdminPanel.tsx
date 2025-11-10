@@ -704,7 +704,16 @@ const AdminPanel: React.FC = () => {
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <Title level={2} style={{ margin: 0 }}>Панель администратора</Title>
-        <ThemeSwitch isDark={isDark} onChange={toggleTheme} />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => window.location.href = '/admin-logs'}
+            style={{ background: '#722ed1', borderColor: '#722ed1' }}
+          >
+            📊 Логи действий
+          </Button>
+          <ThemeSwitch isDark={isDark} onChange={toggleTheme} />
+        </Space>
       </div>
       
       {/* Простая отладочная информация */}

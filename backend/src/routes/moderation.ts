@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { logAdminAction } from '../utils/adminLogger';
 
 console.log('📁 Загружается файл moderation.ts');
 
@@ -381,11 +382,34 @@ router.post('/articles/:id/approve', authenticateToken, requireAdmin, async (req
   try {
     const { id } = req.params;
     
+    // Получаем информацию о статье и админе ДО обновления
+    const articleInfo = await query(
+      `SELECT a.title, u.name as admin_name
+       FROM articles a
+       CROSS JOIN users u
+       WHERE a.id = $1 AND u.id = $2`,
+      [id, req.userId]
+    );
+    
+    const articleTitle = articleInfo.rows[0]?.title || 'Без названия';
+    const adminName = articleInfo.rows[0]?.admin_name || 'Администратор';
+    
     // Обновляем статус статьи и публикуем её
     await query(
       'UPDATE articles SET moderation_status = $1, moderated_by = $2, moderated_at = CURRENT_TIMESTAMP, is_published = true WHERE id = $3',
       ['approved', req.userId, id]
     );
+    
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'approve',
+      entityType: 'article',
+      entityId: parseInt(id),
+      entityTitle: articleTitle,
+      req: req
+    });
     
     // Получаем информацию об авторе и названии статьи для уведомления
     const authorResult = await query(`
@@ -437,11 +461,35 @@ router.post('/articles/:id/reject', authenticateToken, requireAdmin, async (req:
       return res.status(400).json({ error: 'Необходимо указать причину отклонения' });
     }
     
+    // Получаем информацию о статье и админе ДО обновления
+    const articleInfo = await query(
+      `SELECT a.title, u.name as admin_name
+       FROM articles a
+       CROSS JOIN users u
+       WHERE a.id = $1 AND u.id = $2`,
+      [id, req.userId]
+    );
+    
+    const articleTitle = articleInfo.rows[0]?.title || 'Без названия';
+    const adminName = articleInfo.rows[0]?.admin_name || 'Администратор';
+    
     // Обновляем статус статьи
     await query(
       'UPDATE articles SET moderation_status = $1, moderation_reason = $2, moderated_by = $3, moderated_at = CURRENT_TIMESTAMP WHERE id = $4',
       ['rejected', reason, req.userId, id]
     );
+    
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'reject',
+      entityType: 'article',
+      entityId: parseInt(id),
+      entityTitle: articleTitle,
+      details: { reason },
+      req: req
+    });
     
     // Получаем информацию об авторе для уведомления
     const authorResult = await query(`
@@ -501,6 +549,18 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
     const { id } = req.params;
     console.log('📝 ID события для одобрения:', id);
     
+    // Получаем информацию о событии и админе ДО обновления
+    const eventInfo = await query(
+      `SELECT e.title, u.name as admin_name
+       FROM events e
+       CROSS JOIN users u
+       WHERE e.id = $1 AND u.id = $2`,
+      [id, req.userId]
+    );
+    
+    const eventTitle = eventInfo.rows[0]?.title || 'Без названия';
+    const adminName = eventInfo.rows[0]?.admin_name || 'Администратор';
+    
     // Проверяем, какие колонки существуют в таблице events
     const structureCheck = await query(`
       SELECT column_name 
@@ -549,6 +609,17 @@ router.post('/events/:id/approve', authenticateToken, requireAdmin, async (req: 
     
     await query(updateQuery, queryParams);
     console.log('✅ Событие обновлено');
+    
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'approve',
+      entityType: 'event',
+      entityId: parseInt(id),
+      entityTitle: eventTitle,
+      req: req
+    });
     
     // Получаем информацию об авторе и названии события для уведомления
     console.log('Получаем информацию об авторе события:', id);
@@ -646,6 +717,18 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
       return res.status(400).json({ error: 'Необходимо указать причину отклонения' });
     }
     
+    // Получаем информацию о событии и админе ДО обновления
+    const eventInfo = await query(
+      `SELECT e.title, u.name as admin_name
+       FROM events e
+       CROSS JOIN users u
+       WHERE e.id = $1 AND u.id = $2`,
+      [id, req.userId]
+    );
+    
+    const eventTitle = eventInfo.rows[0]?.title || 'Без названия';
+    const adminName = eventInfo.rows[0]?.admin_name || 'Администратор';
+    
     // Проверяем, какие колонки существуют в таблице events
     const structureCheck = await query(`
       SELECT column_name 
@@ -698,6 +781,18 @@ router.post('/events/:id/reject', authenticateToken, requireAdmin, async (req: A
     
     await query(updateQuery, queryParams);
     console.log('✅ Событие отклонено');
+    
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'reject',
+      entityType: 'event',
+      entityId: parseInt(id),
+      entityTitle: eventTitle,
+      details: { reason },
+      req: req
+    });
     
     // Получаем информацию об авторе для уведомления
     console.log('Получаем информацию об авторе события для отклонения:', id);
