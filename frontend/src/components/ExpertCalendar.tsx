@@ -42,10 +42,31 @@ const ExpertCalendar: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState<'schedule' | 'bookings'>('schedule');
 
-  // Форма добавления расписания
-  const [selectedDay, setSelectedDay] = useState<number>(1);
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('18:00');
+  // Форма добавления расписания - для каждого дня недели
+  const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
+  
+  const addSessionForm = (dayOfWeek: number) => {
+    setActiveForms(prev => ({
+      ...prev,
+      [dayOfWeek]: [...(prev[dayOfWeek] || []), { startTime: '09:00', endTime: '18:00' }]
+    }));
+  };
+  
+  const removeSessionForm = (dayOfWeek: number, index: number) => {
+    setActiveForms(prev => ({
+      ...prev,
+      [dayOfWeek]: prev[dayOfWeek].filter((_, i) => i !== index)
+    }));
+  };
+  
+  const updateSessionForm = (dayOfWeek: number, index: number, field: 'startTime' | 'endTime', value: string) => {
+    setActiveForms(prev => ({
+      ...prev,
+      [dayOfWeek]: prev[dayOfWeek].map((form, i) => 
+        i === index ? { ...form, [field]: value } : form
+      )
+    }));
+  };
 
   useEffect(() => {
     loadSchedule();
@@ -70,7 +91,12 @@ const ExpertCalendar: React.FC = () => {
     }
   };
 
-  const handleAddSchedule = async () => {
+  const handleAddSchedule = async (dayOfWeek: number, index: number) => {
+    const form = activeForms[dayOfWeek]?.[index];
+    if (!form) return;
+    
+    const { startTime, endTime } = form;
+    
     if (!startTime || !endTime) {
       setError('Укажите время начала и окончания');
       return;
@@ -91,13 +117,14 @@ const ExpertCalendar: React.FC = () => {
 
     try {
       await axios.post('/schedule/expert/schedule', {
-        dayOfWeek: selectedDay,
+        dayOfWeek,
         startTime,
         endTime,
         slotDuration: 60 // Фиксированная длительность - 1 час
       });
 
-      setSuccess('Расписание добавлено!');
+      setSuccess('Сеанс добавлен!');
+      removeSessionForm(dayOfWeek, index);
       await loadSchedule();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Ошибка добавления расписания');
@@ -141,6 +168,24 @@ const ExpertCalendar: React.FC = () => {
       await loadSchedule();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Ошибка обновления статуса');
+    }
+  };
+
+  const handleCancelBooking = async (bookingId: number) => {
+    if (!confirm('Вы уверены, что хотите отменить эту запись?')) {
+      return;
+    }
+
+    try {
+      await axios.put(`/bookings/expert/bookings/${bookingId}/status`, {
+        status: 'cancelled'
+      });
+
+      setSuccess('Запись отменена');
+      await loadBookings();
+      await loadSchedule();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Ошибка отмены записи');
     }
   };
 
@@ -211,58 +256,78 @@ const ExpertCalendar: React.FC = () => {
       {activeTab === 'schedule' && (
         <div className="availability-section">
           <div className="add-slots-section">
-            <h3>Настройте график работы</h3>
-            <p className="info-text">Выберите дни недели и время, когда вы доступны для записи</p>
+            <h3>➕ Добавить расписание</h3>
+            <p className="info-text">Добавьте сеансы для каждого дня недели. Длительность слота: <strong>1 час</strong></p>
             
-            <div className="schedule-form">
-              <div className="form-group">
-                <label>День недели:</label>
-                <select 
-                  value={selectedDay} 
-                  onChange={(e) => setSelectedDay(parseInt(e.target.value))}
-                  className="form-select"
-                >
-                  {DAYS_OF_WEEK.map(day => (
-                    <option key={day.value} value={day.value}>
-                      {day.label}
-                    </option>
+            <div className="days-schedule-form">
+              {DAYS_OF_WEEK.map(day => (
+                <div key={day.value} className="day-schedule-block">
+                  <h4 className="day-title">{day.label}</h4>
+                  
+                  {/* Существующие сеансы */}
+                  {groupedSchedules[day.value]?.map(schedule => (
+                    <div key={schedule.id} className="existing-session">
+                      <span>🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}</span>
+                      <button
+                        className="btn-delete-small"
+                        onClick={() => handleDeleteSchedule(schedule.id)}
+                        title="Удалить"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
-                </select>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Время начала:</label>
-                  <input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="form-input"
-                  />
+                  
+                  {/* Формы добавления новых сеансов */}
+                  {activeForms[day.value]?.map((form, index) => (
+                    <div key={index} className="session-form">
+                      <div className="time-inputs">
+                        <input
+                          type="time"
+                          value={form.startTime}
+                          onChange={(e) => updateSessionForm(day.value, index, 'startTime', e.target.value)}
+                          className="form-input-small"
+                          placeholder="Начало"
+                        />
+                        <span className="time-separator">-</span>
+                        <input
+                          type="time"
+                          value={form.endTime}
+                          onChange={(e) => updateSessionForm(day.value, index, 'endTime', e.target.value)}
+                          className="form-input-small"
+                          placeholder="Конец"
+                        />
+                      </div>
+                      <div className="session-actions">
+                        <button
+                          className="btn-save-small"
+                          onClick={() => handleAddSchedule(day.value, index)}
+                          disabled={loading}
+                          title="Сохранить"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          className="btn-cancel-small"
+                          onClick={() => removeSessionForm(day.value, index)}
+                          disabled={loading}
+                          title="Отменить"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Кнопка добавления сеанса */}
+                  <button
+                    className="btn-add-session"
+                    onClick={() => addSessionForm(day.value)}
+                  >
+                    + Добавить сеанс
+                  </button>
                 </div>
-
-                <div className="form-group">
-                  <label>Время окончания:</label>
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              <div className="info-note" style={{ marginTop: '16px', marginBottom: '16px' }}>
-                ℹ️ Длительность каждого слота: <strong>1 час</strong>
-              </div>
-
-              <button
-                className="btn btn-primary"
-                onClick={handleAddSchedule}
-                disabled={loading}
-              >
-                {loading ? 'Добавление...' : '✓ Добавить расписание'}
-              </button>
+              ))}
             </div>
           </div>
 
@@ -380,6 +445,15 @@ const ExpertCalendar: React.FC = () => {
                   <div className="booking-details">
                     <p><strong>📅 Дата:</strong> {formatDate(booking.date)}</p>
                     <p><strong>🕐 Время:</strong> {booking.time_slot}</p>
+                  </div>
+
+                  <div className="booking-actions">
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleCancelBooking(booking.id)}
+                    >
+                      ✕ Отменить запись
+                    </button>
                   </div>
                 </div>
               ))}
