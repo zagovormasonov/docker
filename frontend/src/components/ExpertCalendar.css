@@ -1,0 +1,495 @@
+.expert-calendar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.expert-calendar h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.alert-error {
+  background-color: #fee;
+  color: #c33;
+  border: 1px solid #fcc;
+}
+
+.alert-success {
+  background-color: #efe;
+  color: #3a3;
+  border: 1px solid #cfc;
+}
+
+.calendar-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.tab-button {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab-button:hover {
+  color: var(--primary-color);
+}
+
+.tab-button.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.tab-button .badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Доступные даты */
+.availability-section {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.add-slots-section {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-slots-section h3 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.date-picker {
+  margin-bottom: 20px;
+}
+
+.date-picker label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.date-picker input[type="date"] {
+  width: 100%;
+  max-width: 300px;
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.date-picker input[type="date"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.time-slot-button {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+}
+
+.time-slot-button:hover {
+  border-color: var(--primary-color);
+  background: var(--primary-light);
+}
+
+.time-slot-button.selected {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.slots-list {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.slots-list h3 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.date-group {
+  margin-bottom: 24px;
+}
+
+.date-group h4 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+}
+
+.slots-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.slot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-secondary);
+  transition: all 0.3s ease;
+}
+
+.slot-item.booked {
+  background: #ffe5e5;
+  border-color: #ffcccc;
+}
+
+.slot-item.free {
+  background: #e5ffe5;
+  border-color: #ccffcc;
+}
+
+.slot-time {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.slot-status {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-booked {
+  color: #c33;
+}
+
+.status-free {
+  color: #3a3;
+}
+
+.btn-delete {
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+
+/* Записи */
+.bookings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.bookings-group h3 {
+  font-size: 22px;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.booking-card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+  border-left: 4px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.booking-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.booking-card.pending {
+  border-left-color: #ff9933;
+}
+
+.booking-card.confirmed {
+  border-left-color: #33cc33;
+}
+
+.booking-card.past {
+  opacity: 0.7;
+  border-left-color: #999;
+}
+
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.client-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.client-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.client-info h4 {
+  font-size: 18px;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.client-email {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 4px 0 0 0;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-confirmed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-cancelled {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.booking-details {
+  margin-bottom: 16px;
+}
+
+.booking-details p {
+  margin: 8px 0;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.client-message,
+.rejection-reason {
+  background: var(--bg-secondary);
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-style: italic;
+}
+
+.booking-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #218838;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+/* Темная тема */
+.dark-theme .expert-calendar {
+  color: #e0e0e0;
+}
+
+.dark-theme .alert-error {
+  background-color: #4a1f1f;
+  color: #ff6b6b;
+  border-color: #6b2929;
+}
+
+.dark-theme .alert-success {
+  background-color: #1f4a1f;
+  color: #6bff6b;
+  border-color: #296b29;
+}
+
+.dark-theme .add-slots-section,
+.dark-theme .slots-list,
+.dark-theme .booking-card {
+  background: #2a2a2a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .time-slot-button {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-theme .slot-item.booked {
+  background: #4a2a2a;
+  border-color: #6b3a3a;
+}
+
+.dark-theme .slot-item.free {
+  background: #2a4a2a;
+  border-color: #3a6b3a;
+}
+
+.dark-theme .client-message,
+.dark-theme .rejection-reason {
+  background: #1a1a1a;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .expert-calendar {
+    padding: 16px;
+  }
+
+  .calendar-tabs {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tab-button {
+    width: 100%;
+    text-align: left;
+  }
+
+  .time-slots-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .slots-row {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .booking-actions {
+    flex-direction: column;
+  }
+
+  .booking-actions button {
+    width: 100%;
+  }
+}
+

@@ -35,6 +35,7 @@ import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
 import ProductModal from '../components/ProductModal';
+import ClientBookingCalendar from '../components/ClientBookingCalendar';
 import '../components/ServiceDescription.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
@@ -851,6 +852,22 @@ const ExpertProfilePage = () => {
                       </Card>
                     </List.Item>
                   )}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Календарь записей */}
+          {user && user.id !== expert.id && (
+            <>
+              <Divider />
+              <div>
+                <ClientBookingCalendar 
+                  expertId={expert.id} 
+                  expertName={expert.name}
+                  onBookingComplete={() => {
+                    message.success('Запись создана! Эксперт получит уведомление.');
+                  }}
                 />
               </div>
             </>

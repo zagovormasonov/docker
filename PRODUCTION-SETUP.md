@@ -14,8 +14,15 @@ JWT_SECRET=your-super-secret-jwt-key-here
 # Frontend URL
 FRONTEND_URL=https://yourdomain.com
 
-# EmailJS настройки (опционально)
-EMAILJS_SERVICE_ID=your_emailjs_service_id
+# EmailJS настройки для рассылок (восстановление пароля, регистрация)
+VITE_EMAILJS_SERVICE_ID=service_22cecl9
+VITE_EMAILJS_PUBLIC_KEY=your_emailjs_public_key
+VITE_EMAILJS_VERIFICATION_TEMPLATE_ID=your_verification_template_id
+VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID=your_reset_password_template_id
+VITE_EMAILJS_MODERATION_TEMPLATE_ID=your_moderation_template_id
+
+# EmailJS настройки для backend (опционально)
+EMAILJS_SERVICE_ID=service_22cecl9
 EMAILJS_PUBLIC_KEY=your_emailjs_public_key
 EMAILJS_MODERATION_TEMPLATE_ID=your_moderation_template_id
 

@@ -17,7 +17,8 @@ import {
   CustomerServiceOutlined,
   SendOutlined,
   SettingOutlined,
-  BellOutlined
+  BellOutlined,
+  ScheduleOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -82,6 +83,12 @@ const Header = () => {
       icon: <StarOutlined />,
       label: 'Избранное',
       onClick: () => navigate('/favorites')
+    },
+    {
+      key: 'my-bookings',
+      icon: <ScheduleOutlined />,
+      label: 'Мои записи',
+      onClick: () => navigate('/my-bookings')
     },
     ...(user?.userType === 'expert' ? [
       {
@@ -182,6 +189,15 @@ const Header = () => {
         label: 'Избранное',
         onClick: () => {
           navigate('/favorites');
+          setMobileMenuOpen(false);
+        }
+      },
+      {
+        key: 'my-bookings',
+        icon: <ScheduleOutlined />,
+        label: 'Мои записи',
+        onClick: () => {
+          navigate('/my-bookings');
           setMobileMenuOpen(false);
         }
       },

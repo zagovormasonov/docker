@@ -5,8 +5,9 @@ DATABASE_URL=postgresql://username:password@localhost:5432/synergy
 JWT_SECRET=your_jwt_secret_key
 
 # Email (EmailJS)
-VITE_EMAILJS_SERVICE_ID=your_emailjs_service_id
+VITE_EMAILJS_SERVICE_ID=service_22cecl9
 VITE_EMAILJS_VERIFICATION_TEMPLATE_ID=your_verification_template_id
+VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID=your_reset_password_template_id
 VITE_EMAILJS_PUBLIC_KEY=your_emailjs_public_key
 
 # Frontend URL

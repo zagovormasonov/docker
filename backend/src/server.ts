@@ -39,6 +39,7 @@ import testAuthRoutes from './routes/test-auth';
 import refreshTokenRoutes from './routes/refresh-token';
 import shareRoutes from './routes/share';
 import adminLogsRoutes from './routes/adminLogs';
+import bookingsRoutes, { setIO as setBookingsIO } from './routes/bookings';
 
 dotenv.config();
 
@@ -96,6 +97,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api/test', testAuthRoutes);
 app.use('/api/auth', refreshTokenRoutes);
 app.use('/api/admin/logs', adminLogsRoutes);
+app.use('/api/bookings', bookingsRoutes);
 // Публичные страницы шаринга для соцсетей (с SSR OG-мета)
 app.use('/share', shareRoutes);
 
@@ -192,6 +194,9 @@ const startServer = async () => {
   try {
     await initDatabase();
     
+    // Передаем Socket.IO инстанс в модули, которым он нужен
+    setBookingsIO(io);
+    
     httpServer.listen(PORT, () => {
       console.log(`🚀 Сервер запущен на порту ${PORT}`);
       console.log(`📊 Frontend URL: ${process.env.FRONTEND_URL}`);
@@ -203,3 +208,6 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Экспорт для использования в других модулях
+export { io, userSockets };

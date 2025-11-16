@@ -30,6 +30,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
 import ExpertBenefitsCard from '../components/ExpertBenefitsCard';
 import ProductModal from '../components/ProductModal';
+import ExpertCalendar from '../components/ExpertCalendar';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -707,6 +708,12 @@ const ProfilePage = () => {
               
               <div>
                 <ProfileGallery userId={user.id} isOwner={true} />
+              </div>
+              
+              <Divider />
+              
+              <div>
+                <ExpertCalendar />
               </div>
               
               <Divider />

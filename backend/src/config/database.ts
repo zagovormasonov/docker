@@ -283,6 +283,45 @@ export const initDatabase = async () => {
       );
     }
 
+    // Таблица доступных слотов времени для экспертов
+    await query(`
+      CREATE TABLE IF NOT EXISTS expert_availability (
+        id SERIAL PRIMARY KEY,
+        expert_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        date DATE NOT NULL,
+        time_slot VARCHAR(50) NOT NULL,
+        is_booked BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(expert_id, date, time_slot)
+      )
+    `);
+
+    // Таблица бронирований
+    await query(`
+      CREATE TABLE IF NOT EXISTS bookings (
+        id SERIAL PRIMARY KEY,
+        availability_id INTEGER REFERENCES expert_availability(id) ON DELETE CASCADE,
+        expert_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        client_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        date DATE NOT NULL,
+        time_slot VARCHAR(50) NOT NULL,
+        status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'confirmed', 'rejected', 'cancelled')) DEFAULT 'pending',
+        client_message TEXT,
+        rejection_reason TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Индексы для оптимизации бронирований
+    await query(`CREATE INDEX IF NOT EXISTS idx_expert_availability_expert ON expert_availability(expert_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_expert_availability_date ON expert_availability(date)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_bookings_expert ON bookings(expert_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_bookings_client ON bookings(client_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(date)`);
+
     // Вставляем города России
     for (const city of RUSSIAN_CITIES) {
       await query(
