@@ -121,6 +121,12 @@
   color: #1f2937;
 }
 
+.slot-duration {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
 .slot-status {
   font-size: 14px;
   color: #10b981;
@@ -344,6 +350,10 @@
 
 .dark-theme .slot-time {
   color: #e5e7eb;
+}
+
+.dark-theme .slot-duration {
+  color: #9ca3af;
 }
 
 .dark-theme .slot-status {

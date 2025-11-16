@@ -3,10 +3,11 @@ import axios from '../api/axios';
 import './ClientBookingCalendar.css';
 
 interface AvailabilitySlot {
-  id: number;
+  id?: number;
   date: string;
   time_slot: string;
-  is_booked: boolean;
+  is_booked?: boolean;
+  duration?: number; // Длительность в минутах
 }
 
 interface ClientBookingCalendarProps {
@@ -99,6 +100,19 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
     });
   };
 
+  const formatDuration = (minutes?: number) => {
+    if (!minutes) return '';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0 && mins > 0) {
+      return `${hours} ч ${mins} мин`;
+    } else if (hours > 0) {
+      return `${hours} ${hours === 1 ? 'час' : hours < 5 ? 'часа' : 'часов'}`;
+    } else {
+      return `${mins} мин`;
+    }
+  };
+
   const groupedSlots = availableSlots.reduce((acc, slot) => {
     const date = slot.date;
     if (!acc[date]) {
@@ -132,14 +146,17 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
               <div className="slots-grid">
                 {groupedSlots[date]
                   .sort((a, b) => a.time_slot.localeCompare(b.time_slot))
-                  .map(slot => (
+                  .map((slot, index) => (
                     <button
-                      key={slot.id}
+                      key={slot.id || `${date}-${index}`}
                       className="slot-button"
                       onClick={() => handleSlotSelect(slot)}
                       disabled={slot.is_booked}
                     >
                       <span className="slot-time">🕐 {slot.time_slot}</span>
+                      {slot.duration && (
+                        <span className="slot-duration">⏱️ {formatDuration(slot.duration)}</span>
+                      )}
                       <span className="slot-status">🟢 Доступно</span>
                     </button>
                   ))}

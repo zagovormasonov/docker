@@ -119,8 +119,8 @@ const ExpertCalendar: React.FC = () => {
       await axios.post('/schedule/expert/schedule', {
         dayOfWeek,
         startTime,
-        endTime,
-        slotDuration: 60 // Фиксированная длительность - 1 час
+        endTime
+        // slotDuration вычисляется автоматически на backend
       });
 
       setSuccess('Сеанс добавлен!');
@@ -257,7 +257,7 @@ const ExpertCalendar: React.FC = () => {
         <div className="availability-section">
           <div className="add-slots-section">
             <h3>➕ Добавить расписание</h3>
-            <p className="info-text">Добавьте сеансы для каждого дня недели. Длительность слота: <strong>1 час</strong></p>
+            <p className="info-text">Добавьте сеансы для каждого дня недели. Укажите время начала и окончания — длительность рассчитается автоматически.</p>
             
             <div className="days-schedule-form">
               {DAYS_OF_WEEK.map(day => (

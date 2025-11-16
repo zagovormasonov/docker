@@ -29,7 +29,7 @@ router.get('/expert/schedule', authenticateToken, requireExpert, async (req: Aut
 // Добавить расписание (эксперт)
 router.post('/expert/schedule', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
   try {
-    const { dayOfWeek, startTime, endTime, slotDuration } = req.body;
+    const { dayOfWeek, startTime, endTime } = req.body;
 
     if (dayOfWeek === undefined || !startTime || !endTime) {
       return res.status(400).json({ error: 'Необходимо указать день недели, время начала и окончания' });
@@ -52,13 +52,17 @@ router.post('/expert/schedule', authenticateToken, requireExpert, async (req: Au
       return res.status(400).json({ error: 'Время начала должно быть раньше времени окончания' });
     }
 
+    // Автоматически вычисляем длительность сеанса в минутах
+    const durationMs = end.getTime() - start.getTime();
+    const slotDuration = Math.floor(durationMs / (1000 * 60)); // Длительность в минутах
+
     const result = await query(
       `INSERT INTO expert_schedule (expert_id, day_of_week, start_time, end_time, slot_duration)
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (expert_id, day_of_week, start_time, end_time) 
        DO UPDATE SET is_active = true, slot_duration = $5, updated_at = CURRENT_TIMESTAMP
        RETURNING *`,
-      [req.userId, dayOfWeek, startTime, endTime, slotDuration || 60]
+      [req.userId, dayOfWeek, startTime, endTime, slotDuration]
     );
 
     res.status(201).json({
@@ -149,27 +153,19 @@ router.get('/expert/:expertId/available-slots', authenticateToken, async (req: A
       const daySchedules = scheduleResult.rows.filter(s => s.day_of_week === dayOfWeek);
 
       for (const schedule of daySchedules) {
-        const startTime = new Date(`2000-01-01T${schedule.start_time}`);
-        const endTime = new Date(`2000-01-01T${schedule.end_time}`);
-        const duration = 60; // Фиксированная длительность слота - 1 час
+        const timeSlot = `${schedule.start_time.slice(0, 5)} - ${schedule.end_time.slice(0, 5)}`;
+        const dateStr = current.toISOString().split('T')[0];
+        const slotKey = `${dateStr}_${timeSlot}`;
 
-        let currentSlot = new Date(startTime);
-        
-        while (currentSlot < endTime) {
-          const timeSlot = currentSlot.toTimeString().slice(0, 5);
-          const dateStr = current.toISOString().split('T')[0];
-          const slotKey = `${dateStr}_${timeSlot}`;
-
-          if (!bookedSlots.has(slotKey)) {
-            slots.push({
-              date: dateStr,
-              time_slot: timeSlot,
-              day_of_week: dayOfWeek,
-              is_available: true
-            });
-          }
-
-          currentSlot = new Date(currentSlot.getTime() + duration * 60 * 1000);
+        // Проверяем, забронирован ли этот слот
+        if (!bookedSlots.has(slotKey)) {
+          slots.push({
+            date: dateStr,
+            time_slot: timeSlot,
+            day_of_week: dayOfWeek,
+            is_available: true,
+            duration: schedule.slot_duration // Добавляем длительность
+          });
         }
       }
 
