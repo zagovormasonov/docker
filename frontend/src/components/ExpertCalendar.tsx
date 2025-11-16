@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
 
-interface AvailabilitySlot {
+interface Schedule {
   id: number;
-  date: string;
-  time_slot: string;
-  is_booked: boolean;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  slot_duration: number;
+  is_active: boolean;
 }
 
 interface Booking {
@@ -22,32 +24,48 @@ interface Booking {
   created_at: string;
 }
 
-const TIME_SLOTS = [
-  '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
-  '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
+const DAYS_OF_WEEK = [
+  { value: 1, label: 'Понедельник' },
+  { value: 2, label: 'Вторник' },
+  { value: 3, label: 'Среда' },
+  { value: 4, label: 'Четверг' },
+  { value: 5, label: 'Пятница' },
+  { value: 6, label: 'Суббота' },
+  { value: 0, label: 'Воскресенье' }
+];
+
+const SLOT_DURATIONS = [
+  { value: 30, label: '30 минут' },
+  { value: 60, label: '1 час' },
+  { value: 90, label: '1.5 часа' },
+  { value: 120, label: '2 часа' }
 ];
 
 const ExpertCalendar: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
-  const [availableSlots, setAvailableSlots] = useState<AvailabilitySlot[]>([]);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeTab, setActiveTab] = useState<'availability' | 'bookings'>('availability');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'bookings'>('schedule');
+
+  // Форма добавления расписания
+  const [selectedDay, setSelectedDay] = useState<number>(1);
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('18:00');
+  const [slotDuration, setSlotDuration] = useState(60);
 
   useEffect(() => {
-    loadAvailableSlots();
+    loadSchedule();
     loadBookings();
   }, []);
 
-  const loadAvailableSlots = async () => {
+  const loadSchedule = async () => {
     try {
-      const response = await axios.get('/bookings/expert/availability');
-      setAvailableSlots(response.data);
+      const response = await axios.get('/schedule/expert/schedule');
+      setSchedules(response.data);
     } catch (err) {
-      console.error('Ошибка загрузки слотов:', err);
+      console.error('Ошибка загрузки расписания:', err);
     }
   };
 
@@ -60,17 +78,18 @@ const ExpertCalendar: React.FC = () => {
     }
   };
 
-  const handleTimeSlotToggle = (timeSlot: string) => {
-    setSelectedTimeSlots(prev => 
-      prev.includes(timeSlot)
-        ? prev.filter(slot => slot !== timeSlot)
-        : [...prev, timeSlot]
-    );
-  };
+  const handleAddSchedule = async () => {
+    if (!startTime || !endTime) {
+      setError('Укажите время начала и окончания');
+      return;
+    }
 
-  const handleAddSlots = async () => {
-    if (selectedTimeSlots.length === 0) {
-      setError('Выберите хотя бы один временной слот');
+    // Валидация времени
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    
+    if (start >= end) {
+      setError('Время начала должно быть раньше времени окончания');
       return;
     }
 
@@ -79,34 +98,33 @@ const ExpertCalendar: React.FC = () => {
     setSuccess('');
 
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
-      
-      await axios.post('/bookings/expert/availability', {
-        date: dateStr,
-        timeSlots: selectedTimeSlots
+      await axios.post('/schedule/expert/schedule', {
+        dayOfWeek: selectedDay,
+        startTime,
+        endTime,
+        slotDuration
       });
 
-      setSuccess('Слоты успешно добавлены!');
-      setSelectedTimeSlots([]);
-      await loadAvailableSlots();
+      setSuccess('Расписание добавлено!');
+      await loadSchedule();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка добавления слотов');
+      setError(err.response?.data?.error || 'Ошибка добавления расписания');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteSlot = async (slotId: number) => {
-    if (!confirm('Вы уверены, что хотите удалить этот слот?')) {
+  const handleDeleteSchedule = async (scheduleId: number) => {
+    if (!confirm('Вы уверены, что хотите удалить это расписание?')) {
       return;
     }
 
     try {
-      await axios.delete(`/bookings/expert/availability/${slotId}`);
-      setSuccess('Слот удален');
-      await loadAvailableSlots();
+      await axios.delete(`/schedule/expert/schedule/${scheduleId}`);
+      setSuccess('Расписание удалено');
+      await loadSchedule();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка удаления слота');
+      setError(err.response?.data?.error || 'Ошибка удаления расписания');
     }
   };
 
@@ -134,6 +152,15 @@ const ExpertCalendar: React.FC = () => {
     }
   };
 
+  const getDayName = (dayOfWeek: number) => {
+    const day = DAYS_OF_WEEK.find(d => d.value === dayOfWeek);
+    return day ? day.label : 'Неизвестно';
+  };
+
+  const formatTime = (time: string) => {
+    return time.slice(0, 5);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ru-RU', {
       day: '2-digit',
@@ -154,14 +181,14 @@ const ExpertCalendar: React.FC = () => {
     return <span className={`status-badge ${badge.class}`}>{badge.text}</span>;
   };
 
-  const groupedSlots = availableSlots.reduce((acc, slot) => {
-    const date = slot.date;
-    if (!acc[date]) {
-      acc[date] = [];
+  const groupedSchedules = schedules.reduce((acc, schedule) => {
+    const day = schedule.day_of_week;
+    if (!acc[day]) {
+      acc[day] = [];
     }
-    acc[date].push(slot);
+    acc[day].push(schedule);
     return acc;
-  }, {} as Record<string, AvailabilitySlot[]>);
+  }, {} as Record<number, Schedule[]>);
 
   const pendingBookings = bookings.filter(b => b.status === 'pending');
   const upcomingBookings = bookings.filter(b => b.status === 'confirmed');
@@ -176,10 +203,10 @@ const ExpertCalendar: React.FC = () => {
 
       <div className="calendar-tabs">
         <button
-          className={`tab-button ${activeTab === 'availability' ? 'active' : ''}`}
-          onClick={() => setActiveTab('availability')}
+          className={`tab-button ${activeTab === 'schedule' ? 'active' : ''}`}
+          onClick={() => setActiveTab('schedule')}
         >
-          🗓️ Доступные даты
+          📅 Расписание
         </button>
         <button
           className={`tab-button ${activeTab === 'bookings' ? 'active' : ''}`}
@@ -189,76 +216,113 @@ const ExpertCalendar: React.FC = () => {
         </button>
       </div>
 
-      {activeTab === 'availability' && (
+      {activeTab === 'schedule' && (
         <div className="availability-section">
           <div className="add-slots-section">
-            <h3>Добавить доступное время</h3>
+            <h3>Настройте график работы</h3>
+            <p className="info-text">Выберите дни недели и время, когда вы доступны для записи</p>
             
-            <div className="date-picker">
-              <label>Выберите дату:</label>
-              <input
-                type="date"
-                value={selectedDate.toISOString().split('T')[0]}
-                min={new Date().toISOString().split('T')[0]}
-                onChange={(e) => setSelectedDate(new Date(e.target.value))}
-              />
-            </div>
-
-            <div className="time-slots-grid">
-              {TIME_SLOTS.map(timeSlot => (
-                <button
-                  key={timeSlot}
-                  className={`time-slot-button ${selectedTimeSlots.includes(timeSlot) ? 'selected' : ''}`}
-                  onClick={() => handleTimeSlotToggle(timeSlot)}
+            <div className="schedule-form">
+              <div className="form-group">
+                <label>День недели:</label>
+                <select 
+                  value={selectedDay} 
+                  onChange={(e) => setSelectedDay(parseInt(e.target.value))}
+                  className="form-select"
                 >
-                  {timeSlot}
-                </button>
-              ))}
-            </div>
+                  {DAYS_OF_WEEK.map(day => (
+                    <option key={day.value} value={day.value}>
+                      {day.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <button
-              className="btn btn-primary"
-              onClick={handleAddSlots}
-              disabled={loading || selectedTimeSlots.length === 0}
-            >
-              {loading ? 'Добавление...' : 'Добавить выбранные слоты'}
-            </button>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Время начала:</label>
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Время окончания:</label>
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Длительность слота:</label>
+                <select 
+                  value={slotDuration} 
+                  onChange={(e) => setSlotDuration(parseInt(e.target.value))}
+                  className="form-select"
+                >
+                  {SLOT_DURATIONS.map(duration => (
+                    <option key={duration.value} value={duration.value}>
+                      {duration.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                className="btn btn-primary"
+                onClick={handleAddSchedule}
+                disabled={loading}
+              >
+                {loading ? 'Добавление...' : '✓ Добавить расписание'}
+              </button>
+            </div>
           </div>
 
           <div className="slots-list">
-            <h3>Ваши доступные слоты</h3>
-            {Object.keys(groupedSlots).length === 0 ? (
-              <p className="empty-message">У вас пока нет доступных слотов</p>
+            <h3>Ваше расписание</h3>
+            {schedules.length === 0 ? (
+              <p className="empty-message">У вас пока нет расписания. Добавьте дни и время работы выше.</p>
             ) : (
-              Object.keys(groupedSlots)
-                .sort()
-                .map(date => (
-                  <div key={date} className="date-group">
-                    <h4>{formatDate(date)}</h4>
-                    <div className="slots-row">
-                      {groupedSlots[date].map(slot => (
-                        <div
-                          key={slot.id}
-                          className={`slot-item ${slot.is_booked ? 'booked' : 'free'}`}
-                        >
-                          <span className="slot-time">{slot.time_slot}</span>
-                          <span className={`slot-status ${slot.is_booked ? 'status-booked' : 'status-free'}`}>
-                            {slot.is_booked ? '🔴 Занято' : '🟢 Свободно'}
-                          </span>
-                          {!slot.is_booked && (
+              <div className="schedule-list">
+                {DAYS_OF_WEEK.map(day => {
+                  const daySchedules = groupedSchedules[day.value] || [];
+                  if (daySchedules.length === 0) return null;
+
+                  return (
+                    <div key={day.value} className="schedule-day-group">
+                      <h4>{day.label}</h4>
+                      <div className="schedule-items">
+                        {daySchedules.map(schedule => (
+                          <div key={schedule.id} className="schedule-item">
+                            <div className="schedule-info">
+                              <span className="schedule-time">
+                                🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
+                              </span>
+                              <span className="schedule-duration">
+                                📊 Слот: {schedule.slot_duration} мин
+                              </span>
+                            </div>
                             <button
                               className="btn-delete"
-                              onClick={() => handleDeleteSlot(slot.id)}
-                              title="Удалить слот"
+                              onClick={() => handleDeleteSchedule(schedule.id)}
+                              title="Удалить расписание"
                             >
                               ✕
                             </button>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>

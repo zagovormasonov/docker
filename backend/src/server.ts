@@ -40,6 +40,7 @@ import refreshTokenRoutes from './routes/refresh-token';
 import shareRoutes from './routes/share';
 import adminLogsRoutes from './routes/adminLogs';
 import bookingsRoutes, { setIO as setBookingsIO } from './routes/bookings';
+import scheduleRoutes from './routes/schedule';
 
 dotenv.config();
 
@@ -98,6 +99,7 @@ app.use('/api/test', testAuthRoutes);
 app.use('/api/auth', refreshTokenRoutes);
 app.use('/api/admin/logs', adminLogsRoutes);
 app.use('/api/bookings', bookingsRoutes);
+app.use('/api/schedule', scheduleRoutes);
 // Публичные страницы шаринга для соцсетей (с SSR OG-мета)
 app.use('/share', shareRoutes);
 

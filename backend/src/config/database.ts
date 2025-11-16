@@ -283,7 +283,23 @@ export const initDatabase = async () => {
       );
     }
 
-    // Таблица доступных слотов времени для экспертов
+    // Таблица расписания экспертов по дням недели
+    await query(`
+      CREATE TABLE IF NOT EXISTS expert_schedule (
+        id SERIAL PRIMARY KEY,
+        expert_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
+        start_time TIME NOT NULL,
+        end_time TIME NOT NULL,
+        slot_duration INTEGER DEFAULT 60,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(expert_id, day_of_week, start_time, end_time)
+      )
+    `);
+    
+    -- Оставляем старую таблицу для совместимости, но переименуем
     await query(`
       CREATE TABLE IF NOT EXISTS expert_availability (
         id SERIAL PRIMARY KEY,
@@ -315,6 +331,8 @@ export const initDatabase = async () => {
     `);
 
     // Индексы для оптимизации бронирований
+    await query(`CREATE INDEX IF NOT EXISTS idx_expert_schedule_expert ON expert_schedule(expert_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_expert_schedule_day ON expert_schedule(day_of_week)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_expert_availability_expert ON expert_availability(expert_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_expert_availability_date ON expert_availability(date)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_bookings_expert ON bookings(expert_id)`);

@@ -1,8 +1,23 @@
 -- =============================================
 -- Создание таблиц для системы бронирования
+-- Версия 2.0 - Расписание по дням недели
 -- =============================================
 
--- Таблица доступных слотов времени для экспертов
+-- Таблица расписания экспертов по дням недели
+CREATE TABLE IF NOT EXISTS expert_schedule (
+  id SERIAL PRIMARY KEY,
+  expert_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  slot_duration INTEGER DEFAULT 60,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(expert_id, day_of_week, start_time, end_time)
+);
+
+-- Таблица доступных слотов времени для экспертов (для совместимости)
 CREATE TABLE IF NOT EXISTS expert_availability (
   id SERIAL PRIMARY KEY,
   expert_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -30,6 +45,8 @@ CREATE TABLE IF NOT EXISTS bookings (
 );
 
 -- Индексы для оптимизации бронирований
+CREATE INDEX IF NOT EXISTS idx_expert_schedule_expert ON expert_schedule(expert_id);
+CREATE INDEX IF NOT EXISTS idx_expert_schedule_day ON expert_schedule(day_of_week);
 CREATE INDEX IF NOT EXISTS idx_expert_availability_expert ON expert_availability(expert_id);
 CREATE INDEX IF NOT EXISTS idx_expert_availability_date ON expert_availability(date);
 CREATE INDEX IF NOT EXISTS idx_bookings_expert ON bookings(expert_id);
@@ -38,8 +55,17 @@ CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(date);
 
 -- Комментарии к таблицам
-COMMENT ON TABLE expert_availability IS 'Доступные временные слоты для записи к экспертам';
+COMMENT ON TABLE expert_schedule IS 'Расписание работы экспертов по дням недели';
+COMMENT ON TABLE expert_availability IS 'Доступные временные слоты для записи к экспертам (генерируются из расписания)';
 COMMENT ON TABLE bookings IS 'Записи клиентов к экспертам';
+
+-- Комментарии к колонкам expert_schedule
+COMMENT ON COLUMN expert_schedule.expert_id IS 'ID эксперта';
+COMMENT ON COLUMN expert_schedule.day_of_week IS 'День недели (0=воскресенье, 1=понедельник, ..., 6=суббота)';
+COMMENT ON COLUMN expert_schedule.start_time IS 'Время начала работы';
+COMMENT ON COLUMN expert_schedule.end_time IS 'Время окончания работы';
+COMMENT ON COLUMN expert_schedule.slot_duration IS 'Длительность слота в минутах (30, 60, 90, 120)';
+COMMENT ON COLUMN expert_schedule.is_active IS 'Активно ли расписание';
 
 -- Комментарии к колонкам expert_availability
 COMMENT ON COLUMN expert_availability.expert_id IS 'ID эксперта';

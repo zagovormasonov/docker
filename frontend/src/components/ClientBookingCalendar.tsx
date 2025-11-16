@@ -37,8 +37,11 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
       setLoading(true);
       const today = new Date().toISOString().split('T')[0];
       
-      const response = await axios.get(`/bookings/expert/${expertId}/availability`, {
-        params: { startDate: today }
+      const response = await axios.get(`/schedule/expert/${expertId}/available-slots`, {
+        params: { 
+          startDate: today,
+          daysAhead: 30 
+        }
       });
       
       setAvailableSlots(response.data);
