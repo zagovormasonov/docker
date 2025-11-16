@@ -250,13 +250,14 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
   color: white;
 }
 
 .btn-primary:hover {
+  background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
 }
 
 .btn-secondary {
@@ -266,6 +267,8 @@
 
 .btn-secondary:hover {
   background: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
 .btn-danger {
@@ -275,6 +278,8 @@
 
 .btn-danger:hover {
   background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 /* Темная тема */
