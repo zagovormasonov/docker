@@ -146,7 +146,7 @@ const ExpertCalendar: React.FC = () => {
 
       setSuccess(status === 'confirmed' ? 'Запись подтверждена!' : 'Запись отклонена');
       await loadBookings();
-      await loadAvailableSlots();
+      await loadSchedule();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Ошибка обновления статуса');
     }
