@@ -37,7 +37,7 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
       setLoading(true);
       const today = new Date().toISOString().split('T')[0];
       
-      const response = await axios.get(`/api/bookings/expert/${expertId}/availability`, {
+      const response = await axios.get(`/bookings/expert/${expertId}/availability`, {
         params: { startDate: today }
       });
       
@@ -64,7 +64,7 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
     setError('');
 
     try {
-      await axios.post('/api/bookings/book', {
+      await axios.post('/bookings/book', {
         availabilityId: selectedSlot.id,
         expertId,
         clientMessage: clientMessage.trim() || undefined

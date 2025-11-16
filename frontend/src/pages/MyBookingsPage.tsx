@@ -31,7 +31,7 @@ const MyBookingsPage: React.FC = () => {
   const loadBookings = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/bookings/my-bookings');
+      const response = await axios.get('/bookings/my-bookings');
       setBookings(response.data);
     } catch (err: any) {
       setError('Ошибка загрузки записей');
@@ -47,7 +47,7 @@ const MyBookingsPage: React.FC = () => {
     }
 
     try {
-      await axios.put(`/api/bookings/my-bookings/${bookingId}/cancel`);
+      await axios.put(`/bookings/my-bookings/${bookingId}/cancel`);
       setSuccess('Запись отменена');
       await loadBookings();
       

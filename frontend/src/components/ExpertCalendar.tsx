@@ -44,7 +44,7 @@ const ExpertCalendar: React.FC = () => {
 
   const loadAvailableSlots = async () => {
     try {
-      const response = await axios.get('/api/bookings/expert/availability');
+      const response = await axios.get('/bookings/expert/availability');
       setAvailableSlots(response.data);
     } catch (err) {
       console.error('Ошибка загрузки слотов:', err);
@@ -53,7 +53,7 @@ const ExpertCalendar: React.FC = () => {
 
   const loadBookings = async () => {
     try {
-      const response = await axios.get('/api/bookings/expert/bookings');
+      const response = await axios.get('/bookings/expert/bookings');
       setBookings(response.data);
     } catch (err) {
       console.error('Ошибка загрузки броней:', err);
@@ -81,7 +81,7 @@ const ExpertCalendar: React.FC = () => {
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
       
-      await axios.post('/api/bookings/expert/availability', {
+      await axios.post('/bookings/expert/availability', {
         date: dateStr,
         timeSlots: selectedTimeSlots
       });
@@ -102,7 +102,7 @@ const ExpertCalendar: React.FC = () => {
     }
 
     try {
-      await axios.delete(`/api/bookings/expert/availability/${slotId}`);
+      await axios.delete(`/bookings/expert/availability/${slotId}`);
       setSuccess('Слот удален');
       await loadAvailableSlots();
     } catch (err: any) {
@@ -121,7 +121,7 @@ const ExpertCalendar: React.FC = () => {
     }
 
     try {
-      await axios.put(`/api/bookings/expert/bookings/${bookingId}/status`, {
+      await axios.put(`/bookings/expert/bookings/${bookingId}/status`, {
         status,
         rejectionReason
       });
