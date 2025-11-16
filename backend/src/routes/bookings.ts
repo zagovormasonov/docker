@@ -185,14 +185,16 @@ router.put('/expert/bookings/:id/status', authenticateToken, requireExpert, asyn
       [status, rejectionReason || null, id]
     );
 
-    // Если отклонено, освобождаем слот
+    // Если отклонено, освобождаем слот в старой таблице (если существует)
     if (status === 'rejected' && booking.availability_id) {
       await query(
         `UPDATE expert_availability 
          SET is_booked = false 
          WHERE id = $1`,
         [booking.availability_id]
-      );
+      ).catch(() => {
+        // Игнорируем ошибку если availability_id = null
+      });
     }
 
     // Отправляем уведомление клиенту
@@ -260,10 +262,10 @@ router.get('/expert/:expertId/availability', authenticateToken, async (req: Auth
 // Забронировать слот (клиент)
 router.post('/book', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { availabilityId, expertId, clientMessage } = req.body;
+    const { date, time_slot, expertId, clientMessage } = req.body;
 
-    if (!availabilityId || !expertId) {
-      return res.status(400).json({ error: 'Необходимо указать ID слота и эксперта' });
+    if (!date || !time_slot || !expertId) {
+      return res.status(400).json({ error: 'Необходимо указать дату, время и ID эксперта' });
     }
 
     // Проверяем что пользователь не эксперт, бронирующий сам у себя
@@ -271,21 +273,8 @@ router.post('/book', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'Нельзя забронировать запись у самого себя' });
     }
 
-    // Проверяем что слот существует и свободен
-    const slotResult = await query(
-      `SELECT * FROM expert_availability 
-       WHERE id = $1 AND expert_id = $2 AND is_booked = false`,
-      [availabilityId, expertId]
-    );
-
-    if (slotResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Слот не найден или уже забронирован' });
-    }
-
-    const slot = slotResult.rows[0];
-
     // Проверяем, что дата не в прошлом
-    const slotDate = new Date(slot.date);
+    const slotDate = new Date(date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -293,20 +282,24 @@ router.post('/book', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'Нельзя забронировать слот на прошедшую дату' });
     }
 
-    // Создаем бронь
-    const bookingResult = await query(
-      `INSERT INTO bookings (availability_id, expert_id, client_id, date, time_slot, client_message)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [availabilityId, expertId, req.userId, slot.date, slot.time_slot, clientMessage || null]
+    // Проверяем что слот еще не забронирован
+    const existingBooking = await query(
+      `SELECT id FROM bookings 
+       WHERE expert_id = $1 AND date = $2 AND time_slot = $3 
+       AND status IN ('pending', 'confirmed')`,
+      [expertId, date, time_slot]
     );
 
-    // Помечаем слот как забронированный
-    await query(
-      `UPDATE expert_availability 
-       SET is_booked = true, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1`,
-      [availabilityId]
+    if (existingBooking.rows.length > 0) {
+      return res.status(400).json({ error: 'Этот слот уже забронирован' });
+    }
+
+    // Создаем бронь
+    const bookingResult = await query(
+      `INSERT INTO bookings (expert_id, client_id, date, time_slot, client_message, availability_id)
+       VALUES ($1, $2, $3, $4, $5, NULL)
+       RETURNING *`,
+      [expertId, req.userId, date, time_slot, clientMessage || null]
     );
 
     const booking = bookingResult.rows[0];
@@ -314,11 +307,11 @@ router.post('/book', authenticateToken, async (req: AuthRequest, res) => {
     // Отправляем уведомление эксперту
     if (io) {
       await sendBookingRequestNotification(io, {
-        expertId,
+        expertId: parseInt(expertId),
         clientId: req.userId!,
         bookingId: booking.id,
-        date: slot.date,
-        timeSlot: slot.time_slot,
+        date,
+        timeSlot: time_slot,
         clientMessage
       });
     }
@@ -386,14 +379,16 @@ router.put('/my-bookings/:id/cancel', authenticateToken, async (req: AuthRequest
       [id]
     );
 
-    // Освобождаем слот, если бронь была в статусе pending или confirmed
-    if (booking.availability_id && ['pending', 'confirmed'].includes(booking.status)) {
+    // Освобождаем слот в старой таблице, если существует
+    if (booking.availability_id) {
       await query(
         `UPDATE expert_availability 
          SET is_booked = false 
          WHERE id = $1`,
         [booking.availability_id]
-      );
+      ).catch(() => {
+        // Игнорируем ошибку если availability_id = null
+      });
     }
 
     // Отправляем уведомление эксперту об отмене

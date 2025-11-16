@@ -68,7 +68,8 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
 
     try {
       await axios.post('/bookings/book', {
-        availabilityId: selectedSlot.id,
+        date: selectedSlot.date,
+        time_slot: selectedSlot.time_slot,
         expertId,
         clientMessage: clientMessage.trim() || undefined
       });
