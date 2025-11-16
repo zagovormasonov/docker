@@ -299,7 +299,7 @@ export const initDatabase = async () => {
       )
     `);
     
-    -- Оставляем старую таблицу для совместимости, но переименуем
+    // Оставляем старую таблицу для совместимости
     await query(`
       CREATE TABLE IF NOT EXISTS expert_availability (
         id SERIAL PRIMARY KEY,
