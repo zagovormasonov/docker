@@ -153,7 +153,7 @@
 }
 
 .modal-content {
-  background: var(--card-bg);
+  background: white;
   padding: 30px;
   border-radius: 16px;
   max-width: 500px;
@@ -202,26 +202,26 @@
 .modal-content h3 {
   font-size: 24px;
   margin-bottom: 20px;
-  color: var(--text-primary);
+  color: #1f2937;
   text-align: center;
 }
 
 .booking-summary {
-  background: var(--bg-secondary);
+  background: #f9fafb;
   padding: 16px;
   border-radius: 10px;
   margin-bottom: 20px;
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid #9333ea;
 }
 
 .booking-summary p {
   margin: 8px 0;
   font-size: 15px;
-  color: var(--text-primary);
+  color: #1f2937;
 }
 
 .booking-summary strong {
-  color: var(--primary-color);
+  color: #9333ea;
   margin-right: 8px;
 }
 
@@ -233,31 +233,31 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #1f2937;
 }
 
 .message-section textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
   transition: border-color 0.3s ease;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: white;
+  color: #1f2937;
 }
 
 .message-section textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #9333ea;
 }
 
 .char-counter {
   text-align: right;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: #6b7280;
   margin-top: 4px;
 }
 

@@ -151,7 +151,7 @@ router.get('/expert/:expertId/available-slots', authenticateToken, async (req: A
       for (const schedule of daySchedules) {
         const startTime = new Date(`2000-01-01T${schedule.start_time}`);
         const endTime = new Date(`2000-01-01T${schedule.end_time}`);
-        const duration = schedule.slot_duration || 60;
+        const duration = 60; // Фиксированная длительность слота - 1 час
 
         let currentSlot = new Date(startTime);
         

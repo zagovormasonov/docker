@@ -34,13 +34,6 @@ const DAYS_OF_WEEK = [
   { value: 0, label: 'Воскресенье' }
 ];
 
-const SLOT_DURATIONS = [
-  { value: 30, label: '30 минут' },
-  { value: 60, label: '1 час' },
-  { value: 90, label: '1.5 часа' },
-  { value: 120, label: '2 часа' }
-];
-
 const ExpertCalendar: React.FC = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -53,7 +46,6 @@ const ExpertCalendar: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState<number>(1);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
-  const [slotDuration, setSlotDuration] = useState(60);
 
   useEffect(() => {
     loadSchedule();
@@ -102,7 +94,7 @@ const ExpertCalendar: React.FC = () => {
         dayOfWeek: selectedDay,
         startTime,
         endTime,
-        slotDuration
+        slotDuration: 60 // Фиксированная длительность - 1 час
       });
 
       setSuccess('Расписание добавлено!');
@@ -260,19 +252,8 @@ const ExpertCalendar: React.FC = () => {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Длительность слота:</label>
-                <select 
-                  value={slotDuration} 
-                  onChange={(e) => setSlotDuration(parseInt(e.target.value))}
-                  className="form-select"
-                >
-                  {SLOT_DURATIONS.map(duration => (
-                    <option key={duration.value} value={duration.value}>
-                      {duration.label}
-                    </option>
-                  ))}
-                </select>
+              <div className="info-note" style={{ marginTop: '16px', marginBottom: '16px' }}>
+                ℹ️ Длительность каждого слота: <strong>1 час</strong>
               </div>
 
               <button
