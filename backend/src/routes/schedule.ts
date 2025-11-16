@@ -52,6 +52,27 @@ router.post('/expert/schedule', authenticateToken, requireExpert, async (req: Au
       return res.status(400).json({ error: 'Время начала должно быть раньше времени окончания' });
     }
 
+    // Проверяем пересечение с существующими сеансами
+    const overlapCheck = await query(
+      `SELECT id, start_time, end_time FROM expert_schedule 
+       WHERE expert_id = $1 
+       AND day_of_week = $2 
+       AND is_active = true
+       AND (
+         (start_time < $4 AND end_time > $3) OR  -- Существующий сеанс перекрывает новый
+         (start_time >= $3 AND start_time < $4) OR -- Начало существующего внутри нового
+         (end_time > $3 AND end_time <= $4)        -- Конец существующего внутри нового
+       )`,
+      [req.userId, dayOfWeek, startTime, endTime]
+    );
+
+    if (overlapCheck.rows.length > 0) {
+      const conflictSlot = overlapCheck.rows[0];
+      return res.status(400).json({ 
+        error: `Время пересекается с существующим сеансом: ${conflictSlot.start_time.slice(0, 5)} - ${conflictSlot.end_time.slice(0, 5)}` 
+      });
+    }
+
     // Автоматически вычисляем длительность сеанса в минутах
     const durationMs = end.getTime() - start.getTime();
     const slotDuration = Math.floor(durationMs / (1000 * 60)); // Длительность в минутах

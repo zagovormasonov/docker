@@ -591,43 +591,75 @@
 .days-schedule-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   margin-top: 20px;
   max-width: 600px;
 }
 
 .day-schedule-block {
   background: var(--card-bg);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  padding: 16px;
+  border: 3px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.day-schedule-block::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: linear-gradient(180deg, #9333ea 0%, #7e22ce 100%);
+  border-radius: 16px 0 0 16px;
 }
 
 .day-schedule-block:hover {
-  border-color: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.1);
+  border-color: #9333ea;
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.15);
+  transform: translateY(-2px);
 }
 
 .day-title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: var(--primary-color);
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--border-color);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-title::before {
+  content: '📅';
+  font-size: 22px;
 }
 
 .existing-session {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  margin-bottom: 8px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--card-bg) 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 10px;
   font-size: 14px;
+  font-weight: 500;
   color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.existing-session:hover {
+  border-color: #9333ea;
+  transform: translateX(4px);
 }
 
 .btn-delete-small {
@@ -653,12 +685,24 @@
 .session-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  gap: 10px;
+  padding: 16px;
   background: var(--bg-secondary);
-  border: 2px dashed var(--border-color);
-  border-radius: 8px;
-  margin-bottom: 8px;
+  border: 3px dashed #9333ea;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  animation: formAppear 0.3s ease;
+}
+
+@keyframes formAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .time-inputs {
@@ -729,24 +773,25 @@
 
 .btn-add-session {
   width: 100%;
-  padding: 10px;
-  background: transparent;
-  border: 2px dashed var(--primary-color);
-  border-radius: 8px;
-  color: var(--primary-color);
-  font-size: 14px;
-  font-weight: 600;
+  padding: 12px;
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border: 2px dashed #9333ea;
+  border-radius: 10px;
+  color: #9333ea;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 8px;
 }
 
 .btn-add-session:hover {
-  background: #a855f7;
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
   color: white;
-  border-color: #a855f7;
+  border-color: #9333ea;
+  border-style: solid;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+  box-shadow: 0 6px 16px rgba(147, 51, 234, 0.4);
 }
 
 /* Скрыть старый список расписания */
@@ -754,14 +799,60 @@
   display: none;
 }
 
+/* Темная тема для нового UI */
+.dark-theme .day-schedule-block {
+  background: #2a2a2a;
+  border-color: #444;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .day-schedule-block:hover {
+  border-color: #a855f7;
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.3);
+}
+
+.dark-theme .day-title {
+  border-bottom-color: #444;
+}
+
+.dark-theme .existing-session {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border-color: #444;
+}
+
+.dark-theme .existing-session:hover {
+  border-color: #a855f7;
+}
+
+.dark-theme .session-form {
+  background: #1a1a1a;
+  border-color: #a855f7;
+}
+
+.dark-theme .btn-add-session {
+  background: linear-gradient(135deg, #3b1a5f 0%, #2d1448 100%);
+  border-color: #a855f7;
+  color: #e9d5ff;
+}
+
+.dark-theme .btn-add-session:hover {
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  color: white;
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
   .days-schedule-form {
     max-width: 100%;
+    gap: 20px;
   }
   
   .day-schedule-block {
-    padding: 12px;
+    padding: 16px;
+  }
+  
+  .day-title {
+    font-size: 18px;
   }
   
   .time-inputs {
