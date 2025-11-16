@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
-import Layout from '../components/Layout';
 import './MyBookingsPage.css';
 
 interface Booking {
@@ -85,17 +84,14 @@ const MyBookingsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="my-bookings-page">
-          <div className="loading">Загрузка записей...</div>
-        </div>
-      </Layout>
+      <div className="my-bookings-page">
+        <div className="loading">Загрузка записей...</div>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="my-bookings-page">
+    <div className="my-bookings-page">
         <h1>📋 Мои записи</h1>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -255,7 +251,6 @@ const MyBookingsPage: React.FC = () => {
           </div>
         )}
       </div>
-    </Layout>
   );
 };
 
