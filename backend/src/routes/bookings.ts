@@ -194,15 +194,15 @@ router.put('/expert/bookings/:id/status', authenticateToken, requireExpert, asyn
     const { id } = req.params;
     const { status, rejectionReason } = req.body;
 
-    if (!status || !['confirmed', 'rejected'].includes(status)) {
-      return res.status(400).json({ error: 'Некорректный статус. Допустимые: confirmed, rejected' });
+    if (!status || !['confirmed', 'rejected', 'cancelled'].includes(status)) {
+      return res.status(400).json({ error: 'Некорректный статус. Допустимые: confirmed, rejected, cancelled' });
     }
 
     if (status === 'rejected' && !rejectionReason) {
       return res.status(400).json({ error: 'Необходимо указать причину отклонения' });
     }
 
-    // Проверяем что бронь принадлежит эксперту и имеет статус pending
+    // Проверяем что бронь принадлежит эксперту
     const checkResult = await query(
       `SELECT * FROM bookings WHERE id = $1 AND expert_id = $2`,
       [id, req.userId]
@@ -214,8 +214,9 @@ router.put('/expert/bookings/:id/status', authenticateToken, requireExpert, asyn
 
     const booking = checkResult.rows[0];
 
-    if (booking.status !== 'pending') {
-      return res.status(400).json({ error: 'Можно изменить только статус ожидающих броней' });
+    // Разрешаем отмену подтвержденных броней
+    if (booking.status !== 'pending' && !(booking.status === 'confirmed' && status === 'cancelled')) {
+      return res.status(400).json({ error: 'Можно изменить только статус ожидающих броней или отменить подтвержденную' });
     }
 
     // Обновляем статус брони
@@ -226,8 +227,8 @@ router.put('/expert/bookings/:id/status', authenticateToken, requireExpert, asyn
       [status, rejectionReason || null, id]
     );
 
-    // Если отклонено, освобождаем слот в старой таблице (если существует)
-    if (status === 'rejected' && booking.availability_id) {
+    // Если отклонено или отменено, освобождаем слот в старой таблице (если существует)
+    if ((status === 'rejected' || status === 'cancelled') && booking.availability_id) {
       await query(
         `UPDATE expert_availability 
          SET is_booked = false 

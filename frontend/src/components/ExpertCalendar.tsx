@@ -190,7 +190,8 @@ const ExpertCalendar: React.FC = () => {
 
     try {
       await axios.put(`/bookings/expert/bookings/${bookingId}/status`, {
-        status: 'cancelled'
+        status: 'cancelled',
+        rejectionReason: 'Отменено экспертом'
       });
 
       setSuccess('Запись отменена');
