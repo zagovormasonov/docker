@@ -70,7 +70,7 @@ router.get('/favorites', authenticateToken, async (req: AuthRequest, res) => {
               ef.created_at as favorited_at
        FROM users u
        JOIN expert_favorites ef ON u.id = ef.expert_id
-       WHERE ef.user_id = $1 AND u.user_type = 'expert'
+       WHERE ef.user_id = $1 AND u.user_type IN ('expert', 'admin')
        ORDER BY ef.created_at DESC`,
       [req.userId]
     );

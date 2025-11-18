@@ -212,7 +212,7 @@ const EventsPage = () => {
           >
             Фильтры
           </Button>
-          {user?.userType === 'expert' && (
+          {(user?.userType === 'expert' || user?.userType === 'admin') && (
             <Button
               type="primary"
               icon={<PlusOutlined />}

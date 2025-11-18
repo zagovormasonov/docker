@@ -102,7 +102,7 @@ const ProfilePage = () => {
     fetchTopics();
     fetchCities();
     fetchCustomSocials();
-    if (user?.userType === 'expert') {
+    if (user?.userType === 'expert' || user?.userType === 'admin') {
       fetchServices();
       fetchProducts();
     }
@@ -702,7 +702,7 @@ const ProfilePage = () => {
             </Form.Item>
           </Form>
 
-          {user?.userType === 'expert' && (
+          {(user?.userType === 'expert' || user?.userType === 'admin') && (
             <>
               <Divider />
               

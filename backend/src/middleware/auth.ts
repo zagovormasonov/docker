@@ -62,8 +62,8 @@ export const requireExpert = async (
     }
     
     const dbUserType = result.rows[0].user_type;
-    if (dbUserType !== 'expert') {
-      console.log('❌ Пользователь не является экспертом в базе данных:', dbUserType);
+    if (dbUserType !== 'expert' && dbUserType !== 'admin') {
+      console.log('❌ Пользователь не является экспертом или админом в базе данных:', dbUserType);
       return res.status(403).json({ error: 'Доступно только для экспертов' });
     }
     

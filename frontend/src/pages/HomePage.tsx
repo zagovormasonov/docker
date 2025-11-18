@@ -198,7 +198,7 @@ const HomePage = () => {
         />
         
         {/* Кнопка создания статьи для экспертов */}
-        {user?.userType === 'expert' && (
+        {(user?.userType === 'expert' || user?.userType === 'admin') && (
           <Button
             type="primary"
             icon={<EditOutlined />}

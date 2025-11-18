@@ -90,7 +90,7 @@ const Header = () => {
       label: 'Мои записи',
       onClick: () => navigate('/my-bookings')
     },
-    ...(user?.userType === 'expert' ? [
+    ...((user?.userType === 'expert' || user?.userType === 'admin') ? [
       {
         key: 'my-articles',
         icon: <FileTextOutlined />,
@@ -201,7 +201,7 @@ const Header = () => {
           setMobileMenuOpen(false);
         }
       },
-      ...(user?.userType === 'expert' ? [
+      ...(user?.userType === 'expert' || user?.userType === 'admin' ? [
         {
           key: 'my-articles',
           icon: <FileTextOutlined />,

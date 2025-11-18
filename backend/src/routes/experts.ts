@@ -9,8 +9,7 @@ const router = express.Router();
 router.get('/count', async (req, res) => {
   try {
     const result = await query(
-      'SELECT COUNT(*) as count FROM users WHERE user_type = $1',
-      ['expert']
+      "SELECT COUNT(*) as count FROM users WHERE user_type IN ('expert', 'admin')"
     );
     
     res.json({ count: parseInt(result.rows[0].count) });
@@ -34,7 +33,7 @@ router.get('/search', async (req, res) => {
                WHERE ut2.user_id = u.id
              ) as topics
       FROM users u
-      WHERE u.user_type = 'expert'
+      WHERE u.user_type IN ('expert', 'admin')
     `;
 
     const queryParams: any[] = [];
@@ -101,7 +100,7 @@ router.get('/:id', async (req, res) => {
       `SELECT id, name, email, avatar_url, bio, city, 
        vk_url, telegram_url, whatsapp, consultation_types,
        created_at 
-       FROM users WHERE id = $1 AND user_type = 'expert'`,
+       FROM users WHERE id = $1 AND user_type IN ('expert', 'admin')`,
       [id]
     );
 
