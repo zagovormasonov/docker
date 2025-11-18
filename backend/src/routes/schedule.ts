@@ -14,7 +14,7 @@ router.get('/expert/schedule', authenticateToken, requireExpert, async (req: Aut
   try {
     const result = await query(
       `SELECT * FROM expert_schedule 
-       WHERE expert_id = $1 AND is_active = true
+       WHERE expert_id = $1
        ORDER BY day_of_week ASC, start_time ASC`,
       [req.userId]
     );
@@ -112,15 +112,50 @@ router.delete('/expert/schedule/:id', authenticateToken, requireExpert, async (r
       return res.status(404).json({ error: 'Расписание не найдено' });
     }
 
-    // Помечаем как неактивное вместо удаления
+    // Удаляем запись окончательно
     await query(
-      'UPDATE expert_schedule SET is_active = false WHERE id = $1',
+      'DELETE FROM expert_schedule WHERE id = $1',
       [id]
     );
 
     res.json({ message: 'Расписание удалено' });
   } catch (error) {
     console.error('Ошибка удаления расписания:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Переключить активность расписания (эксперт)
+router.put('/expert/schedule/:id/toggle', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    // Проверяем что расписание принадлежит эксперту
+    const checkResult = await query(
+      `SELECT * FROM expert_schedule 
+       WHERE id = $1 AND expert_id = $2`,
+      [id, req.userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Расписание не найден' });
+    }
+
+    const result = await query(
+      `UPDATE expert_schedule 
+       SET is_active = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING *`,
+      [isActive, id]
+    );
+
+    res.json({ 
+      message: isActive ? 'Расписание включено' : 'Расписание выключено',
+      schedule: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Ошибка переключения расписания:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });

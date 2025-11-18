@@ -147,6 +147,18 @@ const ExpertCalendar: React.FC = () => {
     }
   };
 
+  const handleToggleSchedule = async (scheduleId: number, isActive: boolean) => {
+    try {
+      await axios.put(`/schedule/expert/schedule/${scheduleId}/toggle`, {
+        isActive
+      });
+      setSuccess(isActive ? 'Расписание включено' : 'Расписание выключено');
+      await loadSchedule();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Ошибка обновления статуса расписания');
+    }
+  };
+
   const handleBookingAction = async (bookingId: number, status: 'confirmed' | 'rejected') => {
     let rejectionReason = '';
     
@@ -266,15 +278,24 @@ const ExpertCalendar: React.FC = () => {
                   
                   {/* Существующие сеансы */}
                   {groupedSchedules[day.value]?.map(schedule => (
-                    <div key={schedule.id} className="existing-session">
+                    <div key={schedule.id} className={`existing-session ${!schedule.is_active ? 'inactive' : ''}`}>
                       <span>🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}</span>
-                      <button
-                        className="btn-delete-small"
-                        onClick={() => handleDeleteSchedule(schedule.id)}
-                        title="Удалить"
-                      >
-                        ✕
-                      </button>
+                      <div className="session-controls">
+                        <button
+                          className={`btn-toggle-small ${!schedule.is_active ? 'inactive' : ''}`}
+                          onClick={() => handleToggleSchedule(schedule.id, !schedule.is_active)}
+                          title={schedule.is_active ? "Выключить" : "Включить"}
+                        >
+                          {schedule.is_active ? "ON" : "OFF"}
+                        </button>
+                        <button
+                          className="btn-delete-small"
+                          onClick={() => handleDeleteSchedule(schedule.id)}
+                          title="Удалить"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
                   ))}
                   

@@ -123,6 +123,47 @@ router.delete('/expert/availability/:id', authenticateToken, requireExpert, asyn
   }
 });
 
+// Переключить активность слота (эксперт)
+router.put('/expert/availability/:id/toggle', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    // Проверяем что слот принадлежит эксперту
+    const checkResult = await query(
+      `SELECT * FROM expert_availability 
+       WHERE id = $1 AND expert_id = $2`,
+      [id, req.userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Слот не найден' });
+    }
+
+    const slot = checkResult.rows[0];
+
+    if (slot.is_booked) {
+      return res.status(400).json({ error: 'Нельзя изменить активность забронированного слота' });
+    }
+
+    const result = await query(
+      `UPDATE expert_availability 
+       SET is_active = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING *`,
+      [isActive, id]
+    );
+
+    res.json({ 
+      message: isActive ? 'Слот активирован' : 'Слот отключен',
+      slot: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Ошибка переключения активности слота:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Получить все брони для эксперта
 router.get('/expert/bookings', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
   try {
@@ -234,7 +275,7 @@ router.get('/expert/:expertId/availability', authenticateToken, async (req: Auth
 
     let queryText = `
       SELECT * FROM expert_availability 
-      WHERE expert_id = $1 AND is_booked = false
+      WHERE expert_id = $1 AND is_booked = false AND is_active = true
     `;
     const params: any[] = [expertId];
 
