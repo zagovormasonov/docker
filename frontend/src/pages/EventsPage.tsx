@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card, List, Tag, Button, Space, Typography, Empty, Spin, Modal, Checkbox, Select, DatePicker, Divider
@@ -68,21 +68,18 @@ const EventsPage = () => {
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
 
-  useEffect(() => {
-    fetchCities();
-    fetchEvents();
-  }, []);
-
-  const fetchCities = async () => {
+  // Мемоизированная функция загрузки городов
+  const fetchCities = useCallback(async () => {
     try {
       const response = await api.get('/cities');
       setCities(response.data);
     } catch (error) {
       console.error('Ошибка загрузки городов:', error);
     }
-  };
+  }, []);
 
-  const fetchEvents = async () => {
+  // Мемоизированная функция загрузки событий
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       const params: any = {};
@@ -115,28 +112,39 @@ const EventsPage = () => {
       setEvents(eventsData);
       
       // Загружаем статус избранного для каждого события
-      const favoritePromises = eventsData.map((event: Event) => 
-        api.get(`/event-interactions/${event.id}/status`)
-      );
-      
-      try {
-        const favoriteResponses = await Promise.all(favoritePromises);
-        const favoriteStatusMap: Record<number, boolean> = {};
-        favoriteResponses.forEach((response, index) => {
-          favoriteStatusMap[eventsData[index].id] = response.data.favorited;
-        });
-        setFavoriteStatus(favoriteStatusMap);
-      } catch (error) {
-        console.error('Ошибка загрузки статуса избранного:', error);
+      if (eventsData.length > 0) {
+        const favoritePromises = eventsData.map((event: Event) => 
+          api.get(`/event-interactions/${event.id}/status`).catch(() => ({ data: { favorited: false } }))
+        );
+        
+        try {
+          const favoriteResponses = await Promise.all(favoritePromises);
+          const favoriteStatusMap: Record<number, boolean> = {};
+          favoriteResponses.forEach((response, index) => {
+            favoriteStatusMap[eventsData[index].id] = response.data.favorited;
+          });
+          setFavoriteStatus(favoriteStatusMap);
+        } catch (error) {
+          console.error('Ошибка загрузки статуса избранного:', error);
+        }
       }
     } catch (error) {
       console.error('Ошибка загрузки событий:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedOnline, selectedCity, selectedEventTypes, dateRange]);
 
-  const toggleFavorite = async (eventId: number, e: React.MouseEvent) => {
+  useEffect(() => {
+    fetchCities();
+  }, [fetchCities]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  // Мемоизированная функция переключения избранного
+  const toggleFavorite = useCallback(async (eventId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       const response = await api.post(`/event-interactions/${eventId}/favorite`);
@@ -147,29 +155,33 @@ const EventsPage = () => {
     } catch (error) {
       console.error('Ошибка изменения избранного:', error);
     }
-  };
+  }, []);
 
-  const handleApplyFilters = () => {
+  // Мемоизированная функция применения фильтров
+  const handleApplyFilters = useCallback(() => {
     setFilterModalVisible(false);
     fetchEvents();
-  };
+  }, [fetchEvents]);
 
-  const handleResetFilters = () => {
+  // Мемоизированная функция сброса фильтров
+  const handleResetFilters = useCallback(() => {
     setSelectedOnline([true, false]);
     setSelectedCity(null);
     setSelectedEventTypes([]);
     setDateRange([null, null]);
-  };
+  }, []);
 
-  const handleOnlineChange = (checkedValues: boolean[]) => {
+  // Мемоизированная функция изменения формата (онлайн/офлайн)
+  const handleOnlineChange = useCallback((checkedValues: boolean[]) => {
     setSelectedOnline(checkedValues);
     // Если выбран только онлайн, сбросить фильтр города
     if (checkedValues.length === 1 && checkedValues[0] === true) {
       setSelectedCity(null);
     }
-  };
+  }, []);
 
-  const getEventTypeColor = (type: string) => {
+  // Мемоизированная функция получения цвета для типа события
+  const getEventTypeColor = useCallback((type: string) => {
     const colors: { [key: string]: string } = {
       'Ретрит': 'purple',
       'Мастер-класс': 'blue',
@@ -185,15 +197,17 @@ const EventsPage = () => {
       'Благотворительное мероприятие': 'pink'
     };
     return colors[type] || 'default';
-  };
+  }, []);
 
-  const isEventToday = (eventDate: string) => {
+  // Мемоизированная функция проверки, является ли событие сегодня
+  const isEventToday = useCallback((eventDate: string) => {
     return dayjs(eventDate).isSame(dayjs(), 'day');
-  };
+  }, []);
 
-  const isEventTomorrow = (eventDate: string) => {
+  // Мемоизированная функция проверки, является ли событие завтра
+  const isEventTomorrow = useCallback((eventDate: string) => {
     return dayjs(eventDate).isSame(dayjs().add(1, 'day'), 'day');
-  };
+  }, []);
 
   return (
     <div style={{ padding: '24px', maxWidth: 1400, margin: '0 auto' }}>

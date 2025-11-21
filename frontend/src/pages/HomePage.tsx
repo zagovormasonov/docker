@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input } from 'antd';
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
@@ -27,6 +27,23 @@ interface Article {
   created_at: string;
 }
 
+// Оптимизированная функция для удаления HTML тегов
+const stripHtml = (html: string): string => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
+// Массив надписей для анимации (вынесен из компонента)
+const animatedTexts = [
+  "Развивайся. Соединяйся. Сияй.",
+  "Ваша духовная эволюция",
+  "Ваш личный источник Света",
+  "Эволюция души",
+  "Ваша духовная трансформация",
+  "Синергия в единстве",
+  "Путь к себе"
+];
 
 const HomePage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -34,67 +51,28 @@ const HomePage = () => {
   const [sortType, setSortType] = useState<'new' | 'popular'>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>('');
   const searchTimeoutRef = useRef<number | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Массив надписей для анимации
-  const animatedTexts = [
-    "Развивайся. Соединяйся. Сияй.",
-    "Ваша духовная эволюция",
-    "Ваш личный источник Света",
-    "Эволюция души",
-    "Ваша духовная трансформация",
-    "Синергия в единстве",
-    "Путь к себе"
-  ];
-
-  useEffect(() => {
-    fetchArticles();
-    fetchExpertsCount();
-  }, [sortType]);
-
-  // Фильтрация статей при изменении поискового запроса
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredArticles(articles);
-    } else {
-      const filtered = articles.filter(article => {
-        const searchLower = searchQuery.toLowerCase();
-        return article.title.toLowerCase().includes(searchLower) ||
-               (article.content && article.content.toLowerCase().includes(searchLower));
-      });
-      setFilteredArticles(filtered);
-    }
-  }, [searchQuery, articles]);
-
-  // Очистка таймаута при размонтировании
-  useEffect(() => {
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const fetchArticles = async () => {
+  // Мемоизированная функция загрузки статей
+  const fetchArticles = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/articles?sort=${sortType}`);
       const articlesData = response.data || [];
       setArticles(articlesData);
-      setFilteredArticles(articlesData);
     } catch (error) {
       console.error('Ошибка загрузки статей:', error);
       setArticles([]);
-      setFilteredArticles([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [sortType]);
 
-  const fetchExpertsCount = async () => {
+  // Мемоизированная функция загрузки количества экспертов
+  const fetchExpertsCount = useCallback(async () => {
     try {
       const response = await api.get('/experts/count');
       setExpertsCount(response.data.count || 0);
@@ -102,17 +80,47 @@ const HomePage = () => {
       console.error('Ошибка загрузки количества экспертов:', error);
       setExpertsCount(0);
     }
-  };
+  }, []);
 
-  const handleSearchChange = (value: string) => {
+  useEffect(() => {
+    fetchArticles();
+    fetchExpertsCount();
+  }, [fetchArticles, fetchExpertsCount]);
+
+  // Debounce для поискового запроса (500ms)
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = window.setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Мемоизированная фильтрация статей
+  const filteredArticles = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) {
+      return articles;
+    }
+    
+    const searchLower = debouncedSearchQuery.toLowerCase();
+    return articles.filter(article => {
+      return article.title.toLowerCase().includes(searchLower) ||
+             (article.content && article.content.toLowerCase().includes(searchLower));
+    });
+  }, [debouncedSearchQuery, articles]);
+
+  // Мемоизированный обработчик изменения поиска
+  const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
-  };
-
-  const stripHtml = (html: string) => {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
-  };
+  }, []);
 
   return (
     <div className="container" style={{ paddingTop: 24 }}>

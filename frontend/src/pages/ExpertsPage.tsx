@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Input, Select, Typography, Avatar, Tag, Space, Spin, Empty, Button } from 'antd';
 import { UserOutlined, EnvironmentOutlined, SearchOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
@@ -40,42 +40,53 @@ const ExpertsPage = () => {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const [favoriteStatus, setFavoriteStatus] = useState<Record<number, boolean>>({});
   const [newExpertsFavoriteStatus, setNewExpertsFavoriteStatus] = useState<Record<number, boolean>>({});
   const [newExpertsOffset, setNewExpertsOffset] = useState(6);
   const [hasMoreExperts, setHasMoreExperts] = useState(true);
+  const searchTimeoutRef = useRef<number | null>(null);
   const navigate = useNavigate();
 
+  // Debounce для поискового запроса (500ms)
   useEffect(() => {
-    fetchTopics();
-    fetchCities();
-    fetchExperts();
-    fetchNewExperts();
-  }, []);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
 
-  useEffect(() => {
-    fetchExperts();
-  }, [selectedTopics, selectedCity, searchText]);
+    searchTimeoutRef.current = window.setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 500);
 
-  const fetchTopics = async () => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchText]);
+
+  // Мемоизированная функция загрузки тематик
+  const fetchTopics = useCallback(async () => {
     try {
       const response = await api.get('/topics');
       setTopics(response.data);
     } catch (error) {
       console.error('Ошибка загрузки тематик:', error);
     }
-  };
+  }, []);
 
-  const fetchCities = async () => {
+  // Мемоизированная функция загрузки городов
+  const fetchCities = useCallback(async () => {
     try {
       const response = await api.get('/cities');
       setCities(response.data);
     } catch (error) {
       console.error('Ошибка загрузки городов:', error);
     }
-  };
+  }, []);
 
-  const fetchNewExperts = async () => {
+  // Мемоизированная функция загрузки новых экспертов
+  const fetchNewExperts = useCallback(async () => {
     setNewExpertsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -90,28 +101,31 @@ const ExpertsPage = () => {
       setHasMoreExperts(newExpertsData.length === 6);
       
       // Загружаем статус избранного для каждого эксперта
-      const favoritePromises = newExpertsData.map((expert: Expert) => 
-        api.get(`/expert-interactions/${expert.id}/status`)
-      );
-      
-      try {
-        const favoriteResponses = await Promise.all(favoritePromises);
-        const favoriteStatusMap: Record<number, boolean> = {};
-        favoriteResponses.forEach((response, index) => {
-          favoriteStatusMap[newExpertsData[index].id] = response.data.favorited;
-        });
-        setNewExpertsFavoriteStatus(favoriteStatusMap);
-      } catch (error) {
-        console.error('Ошибка загрузки статуса избранного для новых экспертов:', error);
+      if (newExpertsData.length > 0) {
+        const favoritePromises = newExpertsData.map((expert: Expert) => 
+          api.get(`/expert-interactions/${expert.id}/status`).catch(() => ({ data: { favorited: false } }))
+        );
+        
+        try {
+          const favoriteResponses = await Promise.all(favoritePromises);
+          const favoriteStatusMap: Record<number, boolean> = {};
+          favoriteResponses.forEach((response, index) => {
+            favoriteStatusMap[newExpertsData[index].id] = response.data.favorited;
+          });
+          setNewExpertsFavoriteStatus(favoriteStatusMap);
+        } catch (error) {
+          console.error('Ошибка загрузки статуса избранного для новых экспертов:', error);
+        }
       }
     } catch (error) {
       console.error('Ошибка загрузки новых экспертов:', error);
     } finally {
       setNewExpertsLoading(false);
     }
-  };
+  }, []);
 
-  const loadMoreExperts = async () => {
+  // Мемоизированная функция загрузки дополнительных экспертов
+  const loadMoreExperts = useCallback(async () => {
     setLoadingMore(true);
     try {
       const params = new URLSearchParams();
@@ -136,35 +150,37 @@ const ExpertsPage = () => {
       setHasMoreExperts(moreExpertsData.length === 6);
       
       // Загружаем статус избранного для новых экспертов
-      const favoritePromises = moreExpertsData.map((expert: Expert) => 
-        api.get(`/expert-interactions/${expert.id}/status`)
-      );
-      
-      try {
-        const favoriteResponses = await Promise.all(favoritePromises);
-        const favoriteStatusMap: Record<number, boolean> = {};
-        favoriteResponses.forEach((response, index) => {
-          favoriteStatusMap[moreExpertsData[index].id] = response.data.favorited;
-        });
-        setNewExpertsFavoriteStatus(prev => ({
-          ...prev,
-          ...favoriteStatusMap
-        }));
-      } catch (error) {
-        console.error('Ошибка загрузки статуса избранного:', error);
+      if (moreExpertsData.length > 0) {
+        const favoritePromises = moreExpertsData.map((expert: Expert) => 
+          api.get(`/expert-interactions/${expert.id}/status`).catch(() => ({ data: { favorited: false } }))
+        );
+        
+        try {
+          const favoriteResponses = await Promise.all(favoritePromises);
+          const favoriteStatusMap: Record<number, boolean> = {};
+          favoriteResponses.forEach((response, index) => {
+            favoriteStatusMap[moreExpertsData[index].id] = response.data.favorited;
+          });
+          setNewExpertsFavoriteStatus(prev => ({
+            ...prev,
+            ...favoriteStatusMap
+          }));
+        } catch (error) {
+          console.error('Ошибка загрузки статуса избранного:', error);
+        }
       }
     } catch (error) {
       console.error('Ошибка загрузки дополнительных экспертов:', error);
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [newExpertsOffset]);
 
-  const fetchExperts = async () => {
+  // Мемоизированная функция загрузки экспертов с фильтрацией
+  const fetchExperts = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      const hasFilters = selectedTopics.length > 0 || selectedCity || searchText;
       
       if (selectedTopics.length > 0) {
         params.append('topics', selectedTopics.join(','));
@@ -172,8 +188,8 @@ const ExpertsPage = () => {
       if (selectedCity) {
         params.append('city', selectedCity);
       }
-      if (searchText) {
-        params.append('search', searchText);
+      if (debouncedSearchText) {
+        params.append('search', debouncedSearchText);
       }
 
       const response = await api.get(`/experts/search?${params.toString()}`);
@@ -181,28 +197,31 @@ const ExpertsPage = () => {
       setExperts(expertsData);
       
       // Загружаем статус избранного для каждого эксперта
-      const favoritePromises = expertsData.map((expert: Expert) => 
-        api.get(`/expert-interactions/${expert.id}/status`)
-      );
-      
-      try {
-        const favoriteResponses = await Promise.all(favoritePromises);
-        const favoriteStatusMap: Record<number, boolean> = {};
-        favoriteResponses.forEach((response, index) => {
-          favoriteStatusMap[expertsData[index].id] = response.data.favorited;
-        });
-        setFavoriteStatus(favoriteStatusMap);
-      } catch (error) {
-        console.error('Ошибка загрузки статуса избранного:', error);
+      if (expertsData.length > 0) {
+        const favoritePromises = expertsData.map((expert: Expert) => 
+          api.get(`/expert-interactions/${expert.id}/status`).catch(() => ({ data: { favorited: false } }))
+        );
+        
+        try {
+          const favoriteResponses = await Promise.all(favoritePromises);
+          const favoriteStatusMap: Record<number, boolean> = {};
+          favoriteResponses.forEach((response, index) => {
+            favoriteStatusMap[expertsData[index].id] = response.data.favorited;
+          });
+          setFavoriteStatus(favoriteStatusMap);
+        } catch (error) {
+          console.error('Ошибка загрузки статуса избранного:', error);
+        }
       }
     } catch (error) {
       console.error('Ошибка загрузки экспертов:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedTopics, selectedCity, debouncedSearchText]);
 
-  const toggleFavorite = async (expertId: number, e: React.MouseEvent) => {
+  // Мемоизированная функция переключения избранного
+  const toggleFavorite = useCallback(async (expertId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       const response = await api.post(`/expert-interactions/${expertId}/favorite`);
@@ -220,9 +239,22 @@ const ExpertsPage = () => {
     } catch (error) {
       console.error('Ошибка изменения избранного:', error);
     }
-  };
+  }, []);
 
-  const renderExpertCard = (expert: Expert, isFavorited: boolean) => (
+  // useEffect для начальной загрузки данных
+  useEffect(() => {
+    fetchTopics();
+    fetchCities();
+    fetchNewExperts();
+  }, [fetchTopics, fetchCities, fetchNewExperts]);
+
+  // useEffect для загрузки экспертов при изменении фильтров
+  useEffect(() => {
+    fetchExperts();
+  }, [fetchExperts]);
+
+  // Мемоизированная функция рендера карточки эксперта
+  const renderExpertCard = useCallback((expert: Expert, isFavorited: boolean) => (
     <Card
       hoverable
       onClick={() => {
@@ -324,7 +356,7 @@ const ExpertsPage = () => {
         />
       </div>
     </Card>
-  );
+  ), [user, navigate, toggleFavorite]);
 
   return (
     <div className="container">
