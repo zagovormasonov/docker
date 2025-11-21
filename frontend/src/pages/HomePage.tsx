@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Space, Tag, Avatar, Spin, Button, Input } from 'antd';
+import { Card, Row, Col, Tabs, Typography, Space, Tag, Spin, Button, Input } from 'antd';
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
 import { Gem, ClockPlus } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import AnimatedText from '../components/AnimatedText';
+import LazyImage from '../components/LazyImage';
+import LazyAvatar from '../components/LazyAvatar';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -241,13 +243,12 @@ const HomePage = () => {
               <Card
                 hoverable
                 cover={
-                  <div style={{ height: 200, overflow: 'hidden' }}>
-                    <img
-                      src={article.cover_image || '/art.jpg'}
-                      alt={article.title}
-                      style={{ width: '100%', height: 200, objectFit: 'cover' }}
-                    />
-                  </div>
+                  <LazyImage
+                    src={article.cover_image || '/art.jpg'}
+                    alt={article.title}
+                    height={200}
+                    style={{ cursor: 'pointer' }}
+                  />
                 }
                 onClick={() => navigate(`/articles/${article.id}`)}
                 style={{ height: '100%' }}
@@ -272,10 +273,11 @@ const HomePage = () => {
                             navigate(`/experts/${article.author_id}`);
                           }}
                         >
-                          <Avatar 
+                          <LazyAvatar 
                             size="small" 
-                            src={article.author_avatar || '/emp.jpg'}
-                            icon={!article.author_avatar && <UserOutlined />}
+                            src={article.author_avatar}
+                            defaultSrc="/emp.jpg"
+                            icon={<UserOutlined />}
                           />
                           <Text type="secondary" style={{ transition: 'color 0.3s' }} className="author-link">
                             {article.author_name}

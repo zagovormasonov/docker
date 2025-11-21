@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Input, Select, Typography, Avatar, Tag, Space, Spin, Empty, Button } from 'antd';
+import { Card, Row, Col, Input, Select, Typography, Tag, Space, Spin, Empty, Button } from 'antd';
 import { UserOutlined, EnvironmentOutlined, SearchOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import LazyAvatar from '../components/LazyAvatar';
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
@@ -45,6 +46,7 @@ const ExpertsPage = () => {
   const [newExpertsFavoriteStatus, setNewExpertsFavoriteStatus] = useState<Record<number, boolean>>({});
   const [newExpertsOffset, setNewExpertsOffset] = useState(6);
   const [hasMoreExperts, setHasMoreExperts] = useState(true);
+  const [displayLimit, setDisplayLimit] = useState(12); // Ограничение отображения
   const searchTimeoutRef = useRef<number | null>(null);
   const navigate = useNavigate();
 
@@ -100,17 +102,20 @@ const ExpertsPage = () => {
       // Проверяем, есть ли еще эксперты
       setHasMoreExperts(newExpertsData.length === 6);
       
-      // Загружаем статус избранного для каждого эксперта
-      if (newExpertsData.length > 0) {
-        const favoritePromises = newExpertsData.map((expert: Expert) => 
-          api.get(`/expert-interactions/${expert.id}/status`).catch(() => ({ data: { favorited: false } }))
+      // Ленивая загрузка статуса избранного - загружаем только первые 6
+      if (newExpertsData.length > 0 && user) {
+        // Загружаем статус только для первых 6 видимых экспертов
+        const visibleExperts = newExpertsData.slice(0, 6);
+        const favoritePromises = visibleExperts.map((expert: Expert) => 
+          api.get(`/expert-interactions/${expert.id}/status`)
+            .catch(() => ({ data: { favorited: false } }))
         );
         
         try {
           const favoriteResponses = await Promise.all(favoritePromises);
           const favoriteStatusMap: Record<number, boolean> = {};
           favoriteResponses.forEach((response, index) => {
-            favoriteStatusMap[newExpertsData[index].id] = response.data.favorited;
+            favoriteStatusMap[visibleExperts[index].id] = response.data.favorited;
           });
           setNewExpertsFavoriteStatus(favoriteStatusMap);
         } catch (error) {
@@ -122,7 +127,7 @@ const ExpertsPage = () => {
     } finally {
       setNewExpertsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   // Мемоизированная функция загрузки дополнительных экспертов
   const loadMoreExperts = useCallback(async () => {
@@ -149,10 +154,11 @@ const ExpertsPage = () => {
       // Проверяем, есть ли еще эксперты
       setHasMoreExperts(moreExpertsData.length === 6);
       
-      // Загружаем статус избранного для новых экспертов
-      if (moreExpertsData.length > 0) {
+      // Ленивая загрузка статуса избранного
+      if (moreExpertsData.length > 0 && user) {
         const favoritePromises = moreExpertsData.map((expert: Expert) => 
-          api.get(`/expert-interactions/${expert.id}/status`).catch(() => ({ data: { favorited: false } }))
+          api.get(`/expert-interactions/${expert.id}/status`)
+            .catch(() => ({ data: { favorited: false } }))
         );
         
         try {
@@ -174,7 +180,7 @@ const ExpertsPage = () => {
     } finally {
       setLoadingMore(false);
     }
-  }, [newExpertsOffset]);
+  }, [newExpertsOffset, user]);
 
   // Мемоизированная функция загрузки экспертов с фильтрацией
   const fetchExperts = useCallback(async () => {
@@ -196,17 +202,19 @@ const ExpertsPage = () => {
       const expertsData = response.data;
       setExperts(expertsData);
       
-      // Загружаем статус избранного для каждого эксперта
-      if (expertsData.length > 0) {
-        const favoritePromises = expertsData.map((expert: Expert) => 
-          api.get(`/expert-interactions/${expert.id}/status`).catch(() => ({ data: { favorited: false } }))
+      // Ленивая загрузка статуса избранного - загружаем только для первых 12 видимых
+      if (expertsData.length > 0 && user) {
+        const visibleExperts = expertsData.slice(0, 12);
+        const favoritePromises = visibleExperts.map((expert: Expert) => 
+          api.get(`/expert-interactions/${expert.id}/status`)
+            .catch(() => ({ data: { favorited: false } }))
         );
         
         try {
           const favoriteResponses = await Promise.all(favoritePromises);
           const favoriteStatusMap: Record<number, boolean> = {};
           favoriteResponses.forEach((response, index) => {
-            favoriteStatusMap[expertsData[index].id] = response.data.favorited;
+            favoriteStatusMap[visibleExperts[index].id] = response.data.favorited;
           });
           setFavoriteStatus(favoriteStatusMap);
         } catch (error) {
@@ -218,7 +226,7 @@ const ExpertsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedTopics, selectedCity, debouncedSearchText]);
+  }, [selectedTopics, selectedCity, debouncedSearchText, user]);
 
   // Мемоизированная функция переключения избранного
   const toggleFavorite = useCallback(async (expertId: number, e: React.MouseEvent) => {
@@ -241,6 +249,11 @@ const ExpertsPage = () => {
     }
   }, []);
 
+  // Функция для показа большего количества экспертов
+  const loadMoreFilteredExperts = useCallback(() => {
+    setDisplayLimit(prev => prev + 12);
+  }, []);
+
   // useEffect для начальной загрузки данных
   useEffect(() => {
     fetchTopics();
@@ -251,6 +264,7 @@ const ExpertsPage = () => {
   // useEffect для загрузки экспертов при изменении фильтров
   useEffect(() => {
     fetchExperts();
+    setDisplayLimit(12); // Сбрасываем лимит при новом поиске
   }, [fetchExperts]);
 
   // Мемоизированная функция рендера карточки эксперта
@@ -305,10 +319,11 @@ const ExpertsPage = () => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Meta
           avatar={
-            <Avatar
+            <LazyAvatar
               size={64}
-              src={expert.avatar_url || '/emp.jpg'}
-              icon={!expert.avatar_url && <UserOutlined />}
+              src={expert.avatar_url}
+              defaultSrc="/emp.jpg"
+              icon={<UserOutlined />}
               style={{ backgroundColor: '#6366f1' }}
             />
           }
@@ -458,13 +473,35 @@ const ExpertsPage = () => {
               {experts.length === 0 ? (
                 <Empty description="Эксперты не найдены" style={{ padding: 60 }} />
               ) : (
-                <Row gutter={[24, 24]}>
-                  {experts.map((expert) => (
-                    <Col xs={24} sm={12} lg={8} key={expert.id}>
-                      {renderExpertCard(expert, favoriteStatus[expert.id])}
-                    </Col>
-                  ))}
-                </Row>
+                <>
+                  <Row gutter={[24, 24]}>
+                    {experts.slice(0, displayLimit).map((expert) => (
+                      <Col xs={24} sm={12} lg={8} key={expert.id}>
+                        {renderExpertCard(expert, favoriteStatus[expert.id])}
+                      </Col>
+                    ))}
+                  </Row>
+                  
+                  {/* Кнопка "Показать еще" для фильтрованных экспертов */}
+                  {experts.length > displayLimit && (
+                    <div style={{ textAlign: 'center', marginTop: 32 }}>
+                      <Button
+                        type="default"
+                        size="large"
+                        onClick={loadMoreFilteredExperts}
+                        style={{
+                          minWidth: 200,
+                          height: 48,
+                          fontSize: 16,
+                          fontWeight: 600,
+                          borderRadius: 24
+                        }}
+                      >
+                        Показать еще ({experts.length - displayLimit} осталось)
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
