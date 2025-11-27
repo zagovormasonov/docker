@@ -36,8 +36,8 @@ const CreateEventPage = () => {
   const [moderationReason, setModerationReason] = useState('');
 
   useEffect(() => {
-    if (user?.userType !== 'expert') {
-      message.error('Только эксперты могут создавать события');
+    if (user?.userType !== 'expert' && user?.userType !== 'admin') {
+      message.error('Только эксперты и администраторы могут создавать события');
       navigate('/events');
       return;
     }
