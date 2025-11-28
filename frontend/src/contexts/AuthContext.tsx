@@ -7,6 +7,7 @@ interface User {
   email: string;
   name: string;
   userType: string;
+  slug?: string;
   avatarUrl?: string;
   bio?: string;
   city?: string;

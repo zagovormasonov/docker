@@ -76,6 +76,7 @@ interface User {
   name: string;
   email: string;
   userType: string;
+  slug?: string;
   created_at: string;
   updated_at: string;
 }

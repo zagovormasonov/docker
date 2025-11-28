@@ -30,6 +30,7 @@ interface Expert {
   avatar_url?: string;
   bio?: string;
   city?: string;
+  slug?: string;
   topics: string[];
   favorited_at: string;
 }
