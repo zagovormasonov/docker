@@ -28,6 +28,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       email: dbUser.email,
       name: dbUser.name,
       userType: dbUser.user_type,
+      slug: dbUser.slug,
       avatarUrl: dbUser.avatar_url,
       bio: dbUser.bio,
       city: dbUser.city,
