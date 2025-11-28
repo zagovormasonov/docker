@@ -294,8 +294,8 @@ const Header = () => {
               src="/logo.png" 
               alt="SoulSynergy Logo" 
               style={{ 
-                height: '32px', 
-                width: '32px',
+                height: '58px', 
+                width: '58px',
                 objectFit: 'contain'
               }} 
             />
@@ -456,8 +456,8 @@ const Header = () => {
                 src="/logo.png" 
                 alt="SoulSynergy Logo" 
                 style={{ 
-                  height: '28px', 
-                  width: '28px',
+                  height: '58px', 
+                  width: '58px',
                   objectFit: 'contain'
                 }} 
               />

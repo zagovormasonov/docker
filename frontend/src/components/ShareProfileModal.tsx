@@ -23,6 +23,10 @@ interface ShareProfileModalProps {
 const ShareProfileModal: React.FC<ShareProfileModalProps> = ({ visible, onClose, expert }) => {
   const profileUrl = `${window.location.origin}/experts/${expert.slug || expert.id}`;
 
+  const contactsText = [];
+  if (expert.telegram_url) contactsText.push(`📱 Telegram: ${expert.telegram_url}`);
+  if (expert.whatsapp) contactsText.push(`📱 WhatsApp: ${expert.whatsapp}`);
+
   const shareText = `🌟 ${expert.name}
 
 ${expert.bio || 'Духовный наставник на платформе SoulSynergy'}
@@ -30,6 +34,8 @@ ${expert.bio || 'Духовный наставник на платформе Sou
 ${expert.city ? `📍 ${expert.city}` : ''}
 
 ${expert.topics && expert.topics.length > 0 ? `🎯 Направления:\n${expert.topics.map(t => `• ${t.name}`).join('\n')}` : ''}
+
+${contactsText.length > 0 ? `📞 Контакты:\n${contactsText.join('\n')}` : ''}
 
 🔗 Профиль: ${profileUrl}
 
@@ -212,6 +218,7 @@ SoulSynergy - пространство совместного духовного
               </Button>
               <Button
                 size="large"
+                icon={<CopyOutlined />}
                 onClick={handleCopyAll}
                 style={{ 
                   flex: 1,
