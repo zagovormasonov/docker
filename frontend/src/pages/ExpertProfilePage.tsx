@@ -36,6 +36,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
 import ProductModal from '../components/ProductModal';
 import ClientBookingCalendar from '../components/ClientBookingCalendar';
+import ShareProfileModal from '../components/ShareProfileModal';
 import '../components/ServiceDescription.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
@@ -76,6 +77,7 @@ interface ExpertProfile {
   id: number;
   name: string;
   email: string;
+  slug?: string;
   avatar_url?: string;
   bio?: string;
   city?: string;
@@ -102,6 +104,7 @@ const ExpertProfilePage = () => {
   const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productModalVisible, setProductModalVisible] = useState(false);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
 
   useEffect(() => {
     fetchExpert();
@@ -270,213 +273,8 @@ const ExpertProfilePage = () => {
     }
   };
 
-  const handleShare = async () => {
-    if (!expert) return;
-
-    try {
-      // Создаем уникальный ID для страницы
-      const shareId = `expert-${expert.id}-${Date.now()}`;
-      
-      // Создаем отдельную страницу с информацией об эксперте
-      const sharePageContent = `
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль эксперта ${expert.name} - SoulSynergy</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: block;
-            border: 4px solid #6366f1;
-        }
-        .name {
-            font-size: 32px;
-            font-weight: 600;
-            color: #1d1d1f;
-            margin-bottom: 10px;
-        }
-        .bio {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        .section {
-            margin-bottom: 25px;
-        }
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1d1d1f;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .topics {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .topic {
-            background: #f0f0f0;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            color: #666;
-        }
-        .contact {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .service {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #666;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 600;
-            color: #6366f1;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <img src="${expert.avatar_url || '/logo.png'}" alt="${expert.name}" class="avatar" onerror="this.style.display='none'">
-            <div class="name">${expert.name}</div>
-            <div class="bio">${expert.bio || 'Духовный наставник'}</div>
-            ${expert.city ? `<div style="color: #666; font-size: 16px;">📍 ${expert.city}</div>` : ''}
-        </div>
-
-        ${expert.topics && expert.topics.length > 0 ? `
-        <div class="section">
-            <div class="section-title">🎯 Направления</div>
-            <div class="topics">
-                ${expert.topics.map(topic => `<span class="topic">${topic.name}</span>`).join('')}
-            </div>
-        </div>
-        ` : ''}
-
-        ${(expert.telegram_url || expert.whatsapp) ? `
-        <div class="section">
-            <div class="section-title">📞 Контакты</div>
-            ${expert.telegram_url ? `<div class="contact">📱 Telegram: <a href="${expert.telegram_url}" target="_blank">${expert.telegram_url}</a></div>` : ''}
-            ${expert.whatsapp ? `<div class="contact">📱 WhatsApp: ${expert.whatsapp}</div>` : ''}
-        </div>
-        ` : ''}
-
-        ${expert.services && expert.services.length > 0 ? `
-        <div class="section">
-            <div class="section-title">💼 Услуги</div>
-            ${expert.services.map(service => `
-                <div class="service">
-                    <strong>${service.title}</strong>
-                    ${service.price ? `<br>💰 ${service.price} ₽` : ''}
-                    ${service.duration ? `<br>⏱️ ${service.duration} мин` : ''}
-                    <br>${service.description}
-                </div>
-            `).join('')}
-        </div>
-        ` : ''}
-
-        <div class="footer">
-            <div class="logo">SoulSynergy</div>
-            <div>Пространство совместного духовного развития</div>
-            <div style="margin-top: 10px;">
-                <a href="https://soulsynergy.ru" style="color: #6366f1; text-decoration: none;">soulsynergy.ru</a>
-            </div>
-        </div>
-    </div>
-</body>
-</html>`;
-
-      // Создаем blob с HTML содержимым
-      const blob = new Blob([sharePageContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      
-      // Открываем новую страницу
-      const newWindow = window.open(url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-      
-      if (newWindow) {
-        message.success('Страница профиля открыта в новом окне');
-        
-        // Также предлагаем поделиться ссылкой на текущую страницу
-        const currentUrl = window.location.href;
-        const shareText = `🌟 ${expert.name}\n\n${expert.bio || 'Духовный наставник'}\n\n📍 ${expert.city || 'Город не указан'}\n\n🎯 Направления:\n${expert.topics?.map(topic => `• ${topic.name}`).join('\n') || 'Не указаны'}\n\n📞 Контакты:\n${expert.telegram_url ? `Telegram: ${expert.telegram_url}` : ''}\n${expert.whatsapp ? `WhatsApp: ${expert.whatsapp}` : ''}\n\n🌐 soulsynergy.ru\nSoulSynergy - пространство совместного духовного развития`;
-        
-        if (navigator.share) {
-          navigator.share({
-            title: `Профиль эксперта ${expert.name}`,
-            text: shareText,
-            url: currentUrl
-          }).catch((error) => {
-            console.log('Ошибка поделиться:', error);
-            // Fallback к копированию
-            navigator.clipboard.writeText(`${shareText}\n\nСсылка: ${currentUrl}`).then(() => {
-              message.success('Информация скопирована в буфер обмена');
-            }).catch(() => {
-              message.error('Не удалось скопировать информацию');
-            });
-          });
-        } else {
-          // Fallback для браузеров без поддержки Web Share API
-          navigator.clipboard.writeText(`${shareText}\n\nСсылка: ${currentUrl}`).then(() => {
-            message.success('Информация скопирована в буфер обмена');
-          }).catch(() => {
-            message.error('Не удалось скопировать информацию');
-          });
-        }
-      } else {
-        // Fallback если не удалось открыть новое окно
-        const currentUrl = window.location.href;
-        const shareText = `🌟 ${expert.name}\n\n${expert.bio || 'Духовный наставник'}\n\n📍 ${expert.city || 'Город не указан'}\n\n🎯 Направления:\n${expert.topics?.map(topic => `• ${topic.name}`).join('\n') || 'Не указаны'}\n\n📞 Контакты:\n${expert.telegram_url ? `Telegram: ${expert.telegram_url}` : ''}\n${expert.whatsapp ? `WhatsApp: ${expert.whatsapp}` : ''}\n\n🌐 soulsynergy.ru\nSoulSynergy - пространство совместного духовного развития`;
-        
-        navigator.clipboard.writeText(`${shareText}\n\nСсылка: ${currentUrl}`).then(() => {
-          message.success('Информация скопирована в буфер обмена');
-        }).catch(() => {
-          message.error('Не удалось скопировать информацию');
-        });
-      }
-    } catch (error) {
-      console.error('Ошибка создания ссылки для поделиться:', error);
-      message.error('Ошибка создания ссылки для поделиться');
-    }
+  const handleShare = () => {
+    setShareModalVisible(true);
   };
 
   if (loading) {
@@ -955,6 +753,14 @@ const ExpertProfilePage = () => {
       onClose={handleProductModalClose}
       onBuy={handleBuyProduct}
     />
+    
+    {expert && (
+      <ShareProfileModal
+        visible={shareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        expert={expert}
+      />
+    )}
     </>
   );
 };
