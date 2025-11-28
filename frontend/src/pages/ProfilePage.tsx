@@ -504,9 +504,16 @@ const ProfilePage = () => {
               <Button
                 icon={<ShareAltOutlined />}
                 onClick={async () => {
+                  // Отладочный вывод
+                  console.log('User data:', user);
+                  console.log('User ID:', user?.id);
+                  console.log('User slug:', user?.slug);
+                  
                   // Формируем уникальную ссылку на профиль
                   const identifier = user?.slug || user?.id;
                   const profileUrl = `${window.location.origin}/experts/${identifier}`;
+                  
+                  console.log('Profile URL:', profileUrl);
                   
                   try {
                     await navigator.clipboard.writeText(profileUrl);
