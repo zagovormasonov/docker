@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { query } from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { generateUniqueSlug } from '../utils/transliterate';
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const router = express.Router();
 router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const result = await query(
-      `SELECT id, email, name, user_type, avatar_url, bio, city, 
+      `SELECT id, email, name, user_type, slug, avatar_url, bio, city, 
        vk_url, telegram_url, whatsapp, consultation_types, created_at 
        FROM users WHERE id = $1`,
       [req.userId]
@@ -66,7 +67,8 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
     
     const { name, bio, city, avatarUrl, vkUrl, telegramUrl, whatsapp, consultationTypes, topics } = req.body;
 
-    // Проверка уникальности имени (если имя изменилось)
+    // Генерируем slug если изменилось имя
+    let newSlug: string | undefined;
     if (name) {
       console.log('Проверка уникальности имени:', name);
       const existingUserByName = await query(
@@ -77,6 +79,18 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
       if (existingUserByName.rows.length > 0) {
         return res.status(400).json({ error: 'Пользователь с таким именем уже существует' });
       }
+
+      // Генерируем уникальный slug
+      const checkSlugExists = async (slug: string, userId: number | null): Promise<boolean> => {
+        const result = await query(
+          'SELECT id FROM users WHERE slug = $1 AND id != $2',
+          [slug, userId || 0]
+        );
+        return result.rows.length > 0;
+      };
+      
+      newSlug = await generateUniqueSlug(name, req.userId!, checkSlugExists);
+      console.log('Сгенерирован новый slug:', newSlug);
     }
 
     // Обновляем основные поля пользователя
@@ -91,8 +105,9 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
            telegram_url = COALESCE($6, telegram_url),
            whatsapp = COALESCE($7, whatsapp),
            consultation_types = COALESCE($8, consultation_types),
+           slug = COALESCE($9, slug),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $9`,
+       WHERE id = $10`,
       [
         name, 
         bio, 
@@ -102,6 +117,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
         telegramUrl, 
         whatsapp,
         consultationTypes ? JSON.stringify(consultationTypes) : null,
+        newSlug,
         req.userId
       ]
     );
