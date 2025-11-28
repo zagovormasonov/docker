@@ -32,6 +32,7 @@ import ProfileGallery from '../components/ProfileGallery';
 import ExpertBenefitsCard from '../components/ExpertBenefitsCard';
 import ProductModal from '../components/ProductModal';
 import ExpertCalendar from '../components/ExpertCalendar';
+import ShareProfileModal from '../components/ShareProfileModal';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -97,6 +98,7 @@ const ProfilePage = () => {
   const [newSocialUrl, setNewSocialUrl] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productModalVisible, setProductModalVisible] = useState(false);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
   const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
 
   useEffect(() => {
@@ -503,25 +505,7 @@ const ProfilePage = () => {
             <div style={{ marginTop: 16 }}>
               <Button
                 icon={<ShareAltOutlined />}
-                onClick={async () => {
-                  // Отладочный вывод
-                  console.log('User data:', user);
-                  console.log('User ID:', user?.id);
-                  console.log('User slug:', user?.slug);
-                  
-                  // Формируем уникальную ссылку на профиль
-                  const identifier = user?.slug || user?.id;
-                  const profileUrl = `${window.location.origin}/experts/${identifier}`;
-                  
-                  console.log('Profile URL:', profileUrl);
-                  
-                  try {
-                    await navigator.clipboard.writeText(profileUrl);
-                    message.success('Ссылка на профиль скопирована в буфер обмена!');
-                  } catch (error) {
-                    message.error('Не удалось скопировать ссылку');
-                  }
-                }}
+                onClick={() => setShareModalVisible(true)}
                 style={{
                   borderColor: '#6366f1',
                   color: '#6366f1'
@@ -1111,6 +1095,24 @@ const ProfilePage = () => {
       onClose={handleProductModalClose}
       onBuy={handleBuyProduct}
     />
+    
+    {user && (
+      <ShareProfileModal
+        visible={shareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        expert={{
+          id: user.id,
+          name: user.name,
+          slug: user.slug,
+          avatar_url: user.avatarUrl,
+          bio: user.bio,
+          city: user.city,
+          topics: user.topics || [],
+          telegram_url: user.telegramUrl,
+          whatsapp: user.whatsapp
+        }}
+      />
+    )}
     </>
   );
 };
