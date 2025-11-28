@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { query } from '../config/database';
 import { authenticateToken, requireExpert, AuthRequest } from '../middleware/auth';
+import { generateUniqueSlug } from '../utils/transliterate';
 
 const router = express.Router();
 
@@ -25,7 +26,7 @@ router.get('/search', async (req, res) => {
     const { topics, city, serviceType, search, limit, order, offset } = req.query;
 
     let queryText = `
-      SELECT u.id, u.name, u.email, u.avatar_url, u.bio, u.city,
+      SELECT u.id, u.name, u.email, u.avatar_url, u.bio, u.city, u.slug,
              ARRAY(
                SELECT t2.name 
                FROM user_topics ut2 
@@ -91,43 +92,60 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// Получение профиля эксперта
-router.get('/:id', async (req, res) => {
+// Получение профиля эксперта (по ID или slug)
+router.get('/:idOrSlug', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { idOrSlug } = req.params;
 
-    const userResult = await query(
-      `SELECT id, name, email, avatar_url, bio, city, 
-       vk_url, telegram_url, whatsapp, consultation_types,
-       created_at 
-       FROM users WHERE id = $1 AND user_type IN ('expert', 'admin')`,
-      [id]
-    );
+    // Определяем, это ID (число) или slug (строка)
+    const isNumericId = /^\d+$/.test(idOrSlug);
+    
+    let userResult;
+    if (isNumericId) {
+      // Поиск по ID
+      userResult = await query(
+        `SELECT id, name, email, avatar_url, bio, city, slug,
+         vk_url, telegram_url, whatsapp, consultation_types,
+         created_at 
+         FROM users WHERE id = $1 AND user_type IN ('expert', 'admin')`,
+        [idOrSlug]
+      );
+    } else {
+      // Поиск по slug
+      userResult = await query(
+        `SELECT id, name, email, avatar_url, bio, city, slug,
+         vk_url, telegram_url, whatsapp, consultation_types,
+         created_at 
+         FROM users WHERE slug = $1 AND user_type IN ('expert', 'admin')`,
+        [idOrSlug]
+      );
+    }
 
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'Эксперт не найден' });
     }
 
     const expert = userResult.rows[0];
+    const expertId = expert.id;
 
     // Получение тематик
     const topicsResult = await query(
       `SELECT t.id, t.name FROM topics t
        JOIN user_topics ut ON t.id = ut.topic_id
        WHERE ut.user_id = $1`,
-      [id]
+      [expertId]
     );
 
     // Получение услуг
     const servicesResult = await query(
       `SELECT * FROM services WHERE expert_id = $1 ORDER BY created_at DESC`,
-      [id]
+      [expertId]
     );
 
     // Получение продуктов
     const productsResult = await query(
       `SELECT * FROM products WHERE expert_id = $1 ORDER BY created_at DESC`,
-      [id]
+      [expertId]
     );
 
     res.json({
@@ -150,6 +168,21 @@ router.put(
   async (req: AuthRequest, res) => {
     try {
       const { name, bio, city, avatarUrl, vkUrl, telegramUrl, whatsapp, consultationTypes, topics } = req.body;
+      
+      // Генерируем slug если изменилось имя
+      let newSlug: string | undefined;
+      if (name) {
+        // Функция проверки уникальности slug
+        const checkSlugExists = async (slug: string, userId: number | null): Promise<boolean> => {
+          const result = await query(
+            'SELECT id FROM users WHERE slug = $1 AND id != $2',
+            [slug, userId || 0]
+          );
+          return result.rows.length > 0;
+        };
+        
+        newSlug = await generateUniqueSlug(name, req.userId!, checkSlugExists);
+      }
 
       // Проверка уникальности имени (если имя изменилось)
       if (name) {
@@ -173,8 +206,9 @@ router.put(
              telegram_url = COALESCE($6, telegram_url),
              whatsapp = COALESCE($7, whatsapp),
              consultation_types = COALESCE($8, consultation_types),
+             slug = COALESCE($9, slug),
              updated_at = CURRENT_TIMESTAMP
-         WHERE id = $9`,
+         WHERE id = $10`,
         [
           name, 
           bio, 
@@ -184,6 +218,7 @@ router.put(
           telegramUrl, 
           whatsapp,
           consultationTypes ? JSON.stringify(consultationTypes) : null,
+          newSlug,
           req.userId
         ]
       );

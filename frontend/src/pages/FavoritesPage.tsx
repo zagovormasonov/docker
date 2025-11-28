@@ -98,7 +98,10 @@ const FavoritesPage = () => {
         <Col xs={24} sm={12} lg={8} key={expert.id}>
           <Card
             hoverable
-            onClick={() => navigate(`/experts/${expert.id}`)}
+            onClick={() => {
+              const identifier = expert.slug || expert.id;
+              navigate(`/experts/${identifier}`);
+            }}
             style={{ height: '100%' }}
           >
             <Meta

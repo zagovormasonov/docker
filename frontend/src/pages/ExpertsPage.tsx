@@ -26,6 +26,7 @@ interface Expert {
   avatar_url?: string;
   bio?: string;
   city?: string;
+  slug?: string;
   topics: string[];
 }
 
@@ -275,7 +276,9 @@ const ExpertsPage = () => {
         if (user && user.id === expert.id) {
           navigate('/profile');
         } else {
-          navigate(`/experts/${expert.id}`);
+          // Используем slug, если доступен, иначе ID
+          const identifier = expert.slug || expert.id;
+          navigate(`/experts/${identifier}`);
         }
       }}
       style={{ 

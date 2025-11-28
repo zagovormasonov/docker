@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import { query } from '../config/database';
+import { generateUniqueSlug } from '../utils/transliterate';
 
 const router = express.Router();
 
@@ -51,12 +52,23 @@ router.post(
       // Генерация токена верификации
       const verificationToken = crypto.randomBytes(32).toString('hex');
 
+      // Генерация уникального slug
+      const checkSlugExists = async (slug: string, userId: number | null): Promise<boolean> => {
+        const result = await query(
+          'SELECT id FROM users WHERE slug = $1',
+          [slug]
+        );
+        return result.rows.length > 0;
+      };
+      
+      const userSlug = await generateUniqueSlug(name, null, checkSlugExists);
+
       // Создание пользователя (неподтвержденный)
       const result = await query(
-        `INSERT INTO users (email, password, name, user_type, email_verified, verification_token) 
-         VALUES ($1, $2, $3, $4, false, $5) 
-         RETURNING id, email, name, user_type, verification_token, created_at`,
-        [email, hashedPassword, name, userType, verificationToken]
+        `INSERT INTO users (email, password, name, user_type, email_verified, verification_token, slug) 
+         VALUES ($1, $2, $3, $4, false, $5, $6) 
+         RETURNING id, email, name, user_type, verification_token, slug, created_at`,
+        [email, hashedPassword, name, userType, verificationToken, userSlug]
       );
 
       const user = result.rows[0];

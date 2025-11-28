@@ -23,7 +23,8 @@ import {
   EditOutlined, 
   DeleteOutlined,
   UploadOutlined,
-  LinkOutlined
+  LinkOutlined,
+  ShareAltOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -498,6 +499,31 @@ const ProfilePage = () => {
             <Title level={3}>{user?.name}</Title>
             <Text type="secondary">{user?.email}</Text>
             
+            {/* Кнопка "Поделиться профилем" */}
+            <div style={{ marginTop: 16 }}>
+              <Button
+                icon={<ShareAltOutlined />}
+                onClick={async () => {
+                  // Формируем уникальную ссылку на профиль
+                  const identifier = user?.slug || user?.id;
+                  const profileUrl = `${window.location.origin}/experts/${identifier}`;
+                  
+                  try {
+                    await navigator.clipboard.writeText(profileUrl);
+                    message.success('Ссылка на профиль скопирована в буфер обмена!');
+                  } catch (error) {
+                    message.error('Не удалось скопировать ссылку');
+                  }
+                }}
+                style={{
+                  borderColor: '#6366f1',
+                  color: '#6366f1'
+                }}
+              >
+                Поделиться профилем
+              </Button>
+            </div>
+            
             {user?.bio && (
               <div style={{ marginTop: 16 }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>О себе:</Text>
@@ -565,7 +591,7 @@ const ProfilePage = () => {
               name="bio"
               label="О себе"
             >
-              <TextArea rows={4} placeholder="Расскажите о себе..." />
+              <TextArea rows={4} placeholder="Поделитесь информацией, которая поможет пользователям почувствовать вашу энергию и понять, чем вы можете быть им полезны." />
             </Form.Item>
 
             <Form.Item
