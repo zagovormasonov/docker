@@ -320,18 +320,35 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     console.log('📥 Получен webhook от Юкассы');
     console.log('Время:', new Date().toISOString());
     
-    const body = req.body.toString();
+    // Проверяем тип req.body - может быть Buffer или уже объект
+    let webhookData: YooKassaWebhookEvent;
+    let bodyString: string;
+    
+    if (Buffer.isBuffer(req.body)) {
+      // Если Buffer - конвертируем в строку и парсим
+      bodyString = req.body.toString();
+      console.log('Данные webhook (Buffer, первые 200 символов):', bodyString.substring(0, 200));
+      webhookData = JSON.parse(bodyString);
+    } else if (typeof req.body === 'string') {
+      // Если строка - парсим
+      bodyString = req.body;
+      console.log('Данные webhook (String, первые 200 символов):', bodyString.substring(0, 200));
+      webhookData = JSON.parse(bodyString);
+    } else {
+      // Если уже объект - используем как есть
+      webhookData = req.body;
+      bodyString = JSON.stringify(req.body);
+      console.log('Данные webhook (уже объект):', bodyString.substring(0, 200));
+    }
+    
     const signature = req.headers['x-yookassa-signature'] as string;
     
-    console.log('Данные webhook (первые 200 символов):', body.substring(0, 200));
-    
     // Проверяем подпись webhook (мягкая проверка для автоматизации)
-    if (!verifyYooKassaWebhookSignature(body, signature, YOOKASSA_SECRET_KEY)) {
+    if (!verifyYooKassaWebhookSignature(bodyString, signature, YOOKASSA_SECRET_KEY)) {
       console.error('⚠️ Неверная подпись webhook от Юкассы, но продолжаем обработку');
       // Не блокируем, чтобы не нарушать автоматизацию
     }
     
-    const webhookData: YooKassaWebhookEvent = JSON.parse(body);
     const { event, object } = webhookData;
     
     console.log(`📋 Событие: ${event}`);
