@@ -216,9 +216,11 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
 // Функция для обработки успешного платежа (вынесена для переиспользования)
 async function processSuccessfulPayment(payment: any) {
   try {
+    console.log(`🔄 Обработка платежа ${payment.id} для пользователя ${payment.user_id}, план: ${payment.plan_id}`);
+    
     // Проверяем, что платеж еще не обработан
     if (payment.status === 'succeeded') {
-      console.log(`Платеж ${payment.id} уже обработан ранее`);
+      console.log(`⚠️ Платеж ${payment.id} уже обработан ранее`);
       return { alreadyProcessed: true };
     }
 
@@ -227,31 +229,61 @@ async function processSuccessfulPayment(payment: any) {
       'UPDATE payments SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
       ['succeeded', payment.id]
     );
+    console.log(`✅ Статус платежа ${payment.id} обновлен на 'succeeded'`);
 
-    // Делаем пользователя экспертом
-    await query(
-      'UPDATE users SET user_type = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-      ['expert', payment.user_id]
-    );
-
-    console.log(`✅ Пользователь ${payment.user_id} стал экспертом после успешной оплаты ${payment.id}`);
-    
-    // Отправляем уведомление пользователю
-    try {
-      await query(
-        `INSERT INTO notifications (user_id, type, title, message, created_at) 
-         VALUES ($1, 'payment_success', 'Оплата прошла успешно!', 'Поздравляем! Вы стали экспертом.', CURRENT_TIMESTAMP)`,
+    // Проверяем план подписки - делаем экспертом только для monthly и yearly
+    const expertPlans = ['monthly', 'yearly'];
+    if (expertPlans.includes(payment.plan_id)) {
+      console.log(`✅ План ${payment.plan_id} дает статус эксперта. Обновляем пользователя...`);
+      
+      // Проверяем текущий статус пользователя
+      const userResult = await query(
+        'SELECT id, email, user_type FROM users WHERE id = $1',
         [payment.user_id]
       );
-      console.log(`✅ Уведомление отправлено пользователю ${payment.user_id}`);
-    } catch (notificationError) {
-      console.error('Ошибка отправки уведомления:', notificationError);
-      // Не прерываем выполнение из-за ошибки уведомления
+
+      if (userResult.rows.length === 0) {
+        console.error(`❌ Пользователь ${payment.user_id} не найден в базе данных!`);
+        return { error: 'Пользователь не найден' };
+      }
+
+      const currentUser = userResult.rows[0];
+      console.log(`📋 Текущий статус пользователя ${currentUser.email}: ${currentUser.user_type}`);
+
+      // Делаем пользователя экспертом
+      await query(
+        'UPDATE users SET user_type = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+        ['expert', payment.user_id]
+      );
+
+      console.log(`✅ Пользователь ${currentUser.email} (ID: ${payment.user_id}) успешно стал экспертом после оплаты плана ${payment.plan_id}`);
+      
+      // Отправляем уведомление пользователю
+      try {
+        await query(
+          `INSERT INTO notifications (user_id, type, title, message, created_at) 
+           VALUES ($1, 'payment_success', 'Оплата прошла успешно!', $2, CURRENT_TIMESTAMP)`,
+          [payment.user_id, `Поздравляем! Вы стали экспертом. Подписка: ${payment.plan_id === 'monthly' ? 'месячная' : 'годовая'}.`]
+        );
+        console.log(`✅ Уведомление отправлено пользователю ${payment.user_id}`);
+      } catch (notificationError) {
+        console.error('⚠️ Ошибка отправки уведомления:', notificationError);
+        // Не прерываем выполнение из-за ошибки уведомления
+      }
+    } else {
+      console.log(`ℹ️ План ${payment.plan_id} не дает автоматический статус эксперта (только monthly и yearly)`);
     }
 
     return { success: true };
-  } catch (error) {
-    console.error('Ошибка обработки успешного платежа:', error);
+  } catch (error: any) {
+    console.error('❌ Ошибка обработки успешного платежа:', error);
+    console.error('Детали ошибки:', {
+      message: error.message,
+      stack: error.stack,
+      payment_id: payment.id,
+      user_id: payment.user_id,
+      plan_id: payment.plan_id
+    });
     throw error;
   }
 }
@@ -284,10 +316,14 @@ async function checkPaymentStatusFromYooKassa(yookassaPaymentId: string): Promis
 // Webhook для обработки уведомлений от Юкассы
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
+    console.log('=====================================');
     console.log('📥 Получен webhook от Юкассы');
+    console.log('Время:', new Date().toISOString());
     
     const body = req.body.toString();
     const signature = req.headers['x-yookassa-signature'] as string;
+    
+    console.log('Данные webhook (первые 200 символов):', body.substring(0, 200));
     
     // Проверяем подпись webhook (мягкая проверка для автоматизации)
     if (!verifyYooKassaWebhookSignature(body, signature, YOOKASSA_SECRET_KEY)) {
@@ -298,10 +334,17 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     const webhookData: YooKassaWebhookEvent = JSON.parse(body);
     const { event, object } = webhookData;
     
-    console.log(`📋 Событие: ${event}, ID платежа Юкассы: ${object.id}`);
+    console.log(`📋 Событие: ${event}`);
+    console.log(`📋 ID платежа Юкассы: ${object.id}`);
+    console.log(`📋 Статус: ${object.status}`);
+    if (object.metadata) {
+      console.log(`📋 Metadata:`, JSON.stringify(object.metadata, null, 2));
+    }
 
     if (event === 'payment.succeeded') {
       const { id: yookassaPaymentId, metadata } = object;
+      
+      console.log(`🔍 Ищем платеж в базе данных с yookassa_payment_id: ${yookassaPaymentId}`);
       
       // Находим платеж в нашей базе данных
       const paymentResult = await query(
@@ -310,15 +353,28 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       );
 
       if (paymentResult.rows.length === 0) {
-        console.error(`❌ Платеж с ID ${yookassaPaymentId} не найден в базе данных`);
-        return res.status(404).json({ error: 'Платеж не найден' });
+        console.error(`❌ Платеж с yookassa_payment_id ${yookassaPaymentId} не найден в базе данных`);
+        console.error('Проверьте, что платеж был создан через /api/payments/create');
+        return res.status(200).json({ error: 'Платеж не найден', warning: 'Возвращаем 200 для Юкассы' });
       }
 
       const payment = paymentResult.rows[0];
-      await processSuccessfulPayment(payment);
+      console.log(`✅ Платеж найден в БД: ID ${payment.id}, user_id: ${payment.user_id}, plan_id: ${payment.plan_id}, текущий статус: ${payment.status}`);
+      
+      const result = await processSuccessfulPayment(payment);
+      
+      if (result.success) {
+        console.log(`✅ Платеж ${payment.id} успешно обработан`);
+      } else if (result.alreadyProcessed) {
+        console.log(`ℹ️ Платеж ${payment.id} уже был обработан ранее`);
+      } else if (result.error) {
+        console.error(`❌ Ошибка обработки платежа ${payment.id}: ${result.error}`);
+      }
       
     } else if (event === 'payment.canceled') {
       const { id: yookassaPaymentId } = object;
+      
+      console.log(`❌ Получено событие отмены платежа: ${yookassaPaymentId}`);
       
       // Обновляем статус платежа на отмененный
       await query(
@@ -326,15 +382,23 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         ['canceled', yookassaPaymentId]
       );
       
-      console.log(`❌ Платеж ${yookassaPaymentId} отменен`);
+      console.log(`✅ Статус платежа ${yookassaPaymentId} обновлен на 'canceled'`);
     } else {
       console.log(`ℹ️ Получено неизвестное событие: ${event}`);
+      console.log('Полные данные события:', JSON.stringify(webhookData, null, 2));
     }
 
+    console.log('✅ Webhook обработан успешно');
+    console.log('=====================================');
     res.status(200).json({ message: 'Webhook обработан успешно' });
   } catch (error: any) {
-    console.error('❌ Ошибка обработки webhook:', error);
-    console.error('Детали ошибки:', error.message, error.stack);
+    console.error('❌ КРИТИЧЕСКАЯ ОШИБКА обработки webhook:', error);
+    console.error('Детали ошибки:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    console.error('=====================================');
     // Все равно возвращаем 200, чтобы Юкасса не пыталась повторно отправлять
     res.status(200).json({ error: 'Ошибка обработки webhook (записано в лог)' });
   }
@@ -359,13 +423,17 @@ router.get('/status/:paymentId', authenticateToken, async (req: AuthRequest, res
 
     // Если платеж еще не подтвержден, проверяем статус в Юкассе (fallback механизм)
     if (payment.status === 'pending' && payment.yookassa_payment_id) {
-      console.log(`🔄 Проверка статуса платежа ${payment.id} в Юкассе...`);
+      console.log(`🔄 [FALLBACK] Проверка статуса платежа ${payment.id} (plan: ${payment.plan_id}) в Юкассе...`);
       const yooKassaPayment = await checkPaymentStatusFromYooKassa(payment.yookassa_payment_id);
       
       if (yooKassaPayment && yooKassaPayment.status === 'succeeded') {
-        console.log(`✅ Платеж ${payment.id} успешен в Юкассе, обрабатываем автоматически`);
+        console.log(`✅ [FALLBACK] Платеж ${payment.id} успешен в Юкассе, обрабатываем автоматически`);
         // Автоматически обрабатываем успешный платеж
-        await processSuccessfulPayment(payment);
+        const result = await processSuccessfulPayment(payment);
+        
+        if (result.success) {
+          console.log(`✅ [FALLBACK] Платеж ${payment.id} успешно обработан через fallback механизм`);
+        }
         
         // Обновляем payment для ответа
         const updatedResult = await query(
@@ -376,11 +444,14 @@ router.get('/status/:paymentId', authenticateToken, async (req: AuthRequest, res
           payment = updatedResult.rows[0];
         }
       } else if (yooKassaPayment && yooKassaPayment.status === 'canceled') {
+        console.log(`❌ [FALLBACK] Платеж ${payment.id} отменен в Юкассе`);
         await query(
           'UPDATE payments SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
           ['canceled', payment.id]
         );
         payment.status = 'canceled';
+      } else {
+        console.log(`ℹ️ [FALLBACK] Статус платежа ${payment.id} в Юкассе: ${yooKassaPayment?.status || 'неизвестно'}`);
       }
     }
 
