@@ -22,6 +22,9 @@ interface ShareProfileModalProps {
 }
 
 const ShareProfileModal: React.FC<ShareProfileModalProps> = ({ visible, onClose, expert }) => {
+  console.log('ShareProfileModal opened with expert:', expert);
+  console.log('Custom socials:', expert.customSocials);
+  
   const profileUrl = `${window.location.origin}/experts/${expert.slug || expert.id}`;
 
   const contactsText = [];

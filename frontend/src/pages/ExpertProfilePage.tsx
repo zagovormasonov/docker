@@ -151,6 +151,7 @@ const ExpertProfilePage = () => {
     if (!id) return;
     try {
       const response = await api.get(`/users/custom-socials/${id}`);
+      console.log('Custom socials loaded:', response.data);
       setCustomSocials(response.data);
     } catch (error) {
       console.error('Ошибка загрузки кастомных соцсетей:', error);
@@ -274,6 +275,7 @@ const ExpertProfilePage = () => {
   };
 
   const handleShare = () => {
+    console.log('Opening share modal with customSocials:', customSocials);
     setShareModalVisible(true);
   };
 
