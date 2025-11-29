@@ -5,21 +5,41 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 const router = express.Router();
 
 // Добавить эксперта в избранное
-router.post('/:id/favorite', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/:idOrSlug/favorite', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const { idOrSlug } = req.params;
+
+    // Определяем, это ID (число) или slug (строка)
+    const isNumericId = /^\d+$/.test(idOrSlug);
+    
+    let expertId;
+    if (isNumericId) {
+      expertId = idOrSlug;
+    } else {
+      // Это slug, получаем ID
+      const userResult = await query(
+        'SELECT id FROM users WHERE slug = $1',
+        [idOrSlug]
+      );
+      
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Эксперт не найден' });
+      }
+      
+      expertId = userResult.rows[0].id;
+    }
 
     // Проверяем есть ли уже в избранном
     const existing = await query(
       'SELECT id FROM expert_favorites WHERE expert_id = $1 AND user_id = $2',
-      [id, req.userId]
+      [expertId, req.userId]
     );
 
     if (existing.rows.length > 0) {
       // Убираем из избранного
       await query(
         'DELETE FROM expert_favorites WHERE expert_id = $1 AND user_id = $2',
-        [id, req.userId]
+        [expertId, req.userId]
       );
       return res.json({ favorited: false });
     }
@@ -27,7 +47,7 @@ router.post('/:id/favorite', authenticateToken, async (req: AuthRequest, res) =>
     // Добавляем в избранное
     await query(
       'INSERT INTO expert_favorites (expert_id, user_id) VALUES ($1, $2)',
-      [id, req.userId]
+      [expertId, req.userId]
     );
 
     res.json({ favorited: true });
@@ -38,13 +58,33 @@ router.post('/:id/favorite', authenticateToken, async (req: AuthRequest, res) =>
 });
 
 // Получить статус избранного для эксперта
-router.get('/:id/status', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/:idOrSlug/status', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const { idOrSlug } = req.params;
+
+    // Определяем, это ID (число) или slug (строка)
+    const isNumericId = /^\d+$/.test(idOrSlug);
+    
+    let expertId;
+    if (isNumericId) {
+      expertId = idOrSlug;
+    } else {
+      // Это slug, получаем ID
+      const userResult = await query(
+        'SELECT id FROM users WHERE slug = $1',
+        [idOrSlug]
+      );
+      
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Эксперт не найден' });
+      }
+      
+      expertId = userResult.rows[0].id;
+    }
 
     const favoriteResult = await query(
       'SELECT id FROM expert_favorites WHERE expert_id = $1 AND user_id = $2',
-      [id, req.userId]
+      [expertId, req.userId]
     );
 
     res.json({
@@ -60,7 +100,7 @@ router.get('/:id/status', authenticateToken, async (req: AuthRequest, res) => {
 router.get('/favorites', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const result = await query(
-      `SELECT u.id, u.name, u.email, u.avatar_url, u.bio, u.city,
+      `SELECT u.id, u.name, u.email, u.slug, u.avatar_url, u.bio, u.city,
               ARRAY(
                 SELECT t.name 
                 FROM user_topics ut 

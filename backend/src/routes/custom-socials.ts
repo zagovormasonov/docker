@@ -22,9 +22,30 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Получить кастомные соцсети конкретного пользователя (для просмотра профиля)
-router.get('/:userId', async (req, res) => {
+router.get('/:userIdOrSlug', async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userIdOrSlug } = req.params;
+    
+    // Определяем, это ID (число) или slug (строка)
+    const isNumericId = /^\d+$/.test(userIdOrSlug);
+    
+    let userId;
+    if (isNumericId) {
+      // Это ID
+      userId = userIdOrSlug;
+    } else {
+      // Это slug, нужно получить ID пользователя
+      const userResult = await pool.query(
+        'SELECT id FROM users WHERE slug = $1',
+        [userIdOrSlug]
+      );
+      
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Пользователь не найден' });
+      }
+      
+      userId = userResult.rows[0].id;
+    }
     
     const result = await pool.query(
       'SELECT id, name, url, created_at FROM custom_socials WHERE user_id = $1 ORDER BY created_at DESC',
