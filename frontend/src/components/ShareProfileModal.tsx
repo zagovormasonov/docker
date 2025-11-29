@@ -17,6 +17,7 @@ interface ShareProfileModalProps {
     topics?: Array<{ id: number; name: string }>;
     telegram_url?: string;
     whatsapp?: string;
+    customSocials?: Array<{ id: number; name: string; url: string }>;
   };
 }
 
@@ -26,6 +27,11 @@ const ShareProfileModal: React.FC<ShareProfileModalProps> = ({ visible, onClose,
   const contactsText = [];
   if (expert.telegram_url) contactsText.push(`📱 Telegram: ${expert.telegram_url}`);
   if (expert.whatsapp) contactsText.push(`📱 WhatsApp: ${expert.whatsapp}`);
+  if (expert.customSocials && expert.customSocials.length > 0) {
+    expert.customSocials.forEach(social => {
+      contactsText.push(`🔗 ${social.name}: ${social.url}`);
+    });
+  }
 
   const shareText = `🌟 ${expert.name}
 
@@ -165,6 +171,32 @@ SoulSynergy - пространство совместного духовного
                     +{expert.topics.length - 5}
                   </Tag>
                 )}
+              </Space>
+            </div>
+          )}
+
+          {/* Контакты */}
+          {(expert.telegram_url || expert.whatsapp || (expert.customSocials && expert.customSocials.length > 0)) && (
+            <div style={{ marginBottom: 20 }}>
+              <Text strong style={{ display: 'block', marginBottom: 8, color: '#1d1d1f' }}>
+                📞 Контакты:
+              </Text>
+              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                {expert.telegram_url && (
+                  <Text style={{ fontSize: 13, color: '#666' }}>
+                    📱 Telegram: {expert.telegram_url}
+                  </Text>
+                )}
+                {expert.whatsapp && (
+                  <Text style={{ fontSize: 13, color: '#666' }}>
+                    📱 WhatsApp: {expert.whatsapp}
+                  </Text>
+                )}
+                {expert.customSocials && expert.customSocials.map((social) => (
+                  <Text key={social.id} style={{ fontSize: 13, color: '#666' }}>
+                    🔗 {social.name}: {social.url}
+                  </Text>
+                ))}
               </Space>
             </div>
           )}

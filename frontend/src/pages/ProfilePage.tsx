@@ -1109,7 +1109,8 @@ const ProfilePage = () => {
           city: user.city,
           topics: user.topics || [],
           telegram_url: user.telegramUrl,
-          whatsapp: user.whatsapp
+          whatsapp: user.whatsapp,
+          customSocials: customSocials
         }}
       />
     )}

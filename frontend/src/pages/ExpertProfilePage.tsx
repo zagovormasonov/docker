@@ -758,7 +758,10 @@ const ExpertProfilePage = () => {
       <ShareProfileModal
         visible={shareModalVisible}
         onClose={() => setShareModalVisible(false)}
-        expert={expert}
+        expert={{
+          ...expert,
+          customSocials: customSocials
+        }}
       />
     )}
     </>
