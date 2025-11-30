@@ -34,7 +34,9 @@ import {
   FileTextOutlined,
   UploadOutlined,
   DeleteOutlined as DeleteImageOutlined,
-  PlusOutlined
+  PlusOutlined,
+  PushpinOutlined,
+  PushpinFilled
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import axios from '../api/axios';
@@ -49,11 +51,17 @@ interface Article {
   content: string;
   cover_image?: string;
   is_published: boolean;
+  is_pinned?: boolean;
+  pin_order?: number;
+  pinned_at?: string;
+  pinned_by_name?: string;
   author_name: string;
   author_email: string;
   created_at: string;
   updated_at: string;
   status: string;
+  views?: number;
+  likes_count?: number;
 }
 
 interface Event {
@@ -88,6 +96,7 @@ const AdminPanel: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [pinnedArticles, setPinnedArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   console.log('Initial state - loading:', loading, 'user:', user?.userType);
 
@@ -140,6 +149,19 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const fetchPinnedArticles = async () => {
+    try {
+      console.log('fetchPinnedArticles called');
+      const response = await axios.get('/admin/pinned-articles');
+      console.log('Pinned Articles API Response:', response.data);
+      setPinnedArticles(Array.isArray(response.data) ? response.data : []);
+      console.log('Pinned articles set successfully');
+    } catch (error) {
+      console.error('Error fetching pinned articles:', error);
+      setPinnedArticles([]);
+    }
+  };
+
   // Основной useEffect для загрузки данных - ЗАГРУЖАЕМ ВСЕ ДАННЫЕ
   useEffect(() => {
     console.log('useEffect triggered - LOADING ALL DATA');
@@ -153,7 +175,8 @@ const AdminPanel: React.FC = () => {
         await Promise.all([
           fetchUsers(),
           fetchArticles(),
-          fetchEvents()
+          fetchEvents(),
+          fetchPinnedArticles()
         ]);
         
         console.log('Data load completed');
@@ -368,6 +391,7 @@ const AdminPanel: React.FC = () => {
         await axios.delete(`/admin/articles/${id}`);
         console.log('Статья удалена');
         fetchArticles();
+        fetchPinnedArticles(); // Обновляем закрепленные статьи
       } else {
         await axios.delete(`/admin/events/${id}`);
         console.log('Событие удалено');
@@ -375,6 +399,38 @@ const AdminPanel: React.FC = () => {
       }
     } catch (error) {
       console.error('Ошибка удаления');
+    }
+  };
+
+  const handlePinArticle = async (articleId: number) => {
+    try {
+      await axios.post(`/admin/pinned-articles/${articleId}/pin`);
+      message.success('Статья закреплена!');
+      fetchPinnedArticles();
+      fetchArticles();
+    } catch (error: any) {
+      message.error(error.response?.data?.error || 'Ошибка закрепления статьи');
+    }
+  };
+
+  const handleUnpinArticle = async (articleId: number) => {
+    try {
+      await axios.post(`/admin/pinned-articles/${articleId}/unpin`);
+      message.success('Статья откреплена!');
+      fetchPinnedArticles();
+      fetchArticles();
+    } catch (error: any) {
+      message.error(error.response?.data?.error || 'Ошибка открепления статьи');
+    }
+  };
+
+  const handleReorderPinnedArticle = async (articleId: number, newOrder: number) => {
+    try {
+      await axios.put(`/admin/pinned-articles/${articleId}/reorder`, { newOrder });
+      message.success('Порядок изменен!');
+      fetchPinnedArticles();
+    } catch (error: any) {
+      message.error(error.response?.data?.error || 'Ошибка изменения порядка');
     }
   };
 
@@ -495,36 +551,60 @@ const AdminPanel: React.FC = () => {
       title: 'Действия',
       key: 'actions',
       render: (_, record: Article) => (
-        <Space>
-          <Button 
-            icon={<EyeOutlined />} 
-            onClick={() => handleViewDetails(record, 'article')}
-            size="small"
-          >
-            Просмотр
-          </Button>
-          <Button 
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(record, 'article')}
-            size="small"
-          >
-            Редактировать
-          </Button>
-          <Popconfirm
-            title="Удалить статью?"
-            description="Это действие нельзя отменить"
-            onConfirm={() => handleDelete(record.id, 'article')}
-            okText="Да"
-            cancelText="Нет"
-          >
+        <Space direction="vertical" size="small">
+          <Space>
             <Button 
-              icon={<DeleteOutlined />} 
-              danger 
+              icon={<EyeOutlined />} 
+              onClick={() => handleViewDetails(record, 'article')}
               size="small"
             >
-              Удалить
+              Просмотр
             </Button>
-          </Popconfirm>
+            <Button 
+              icon={<EditOutlined />} 
+              onClick={() => handleEdit(record, 'article')}
+              size="small"
+            >
+              Редактировать
+            </Button>
+          </Space>
+          <Space>
+            {record.is_pinned ? (
+              <Button 
+                icon={<PushpinFilled />} 
+                onClick={() => handleUnpinArticle(record.id)}
+                size="small"
+                type="default"
+              >
+                Открепить
+              </Button>
+            ) : (
+              <Button 
+                icon={<PushpinOutlined />} 
+                onClick={() => handlePinArticle(record.id)}
+                size="small"
+                type="dashed"
+                disabled={!record.is_published}
+              >
+                Закрепить
+              </Button>
+            )}
+            <Popconfirm
+              title="Удалить статью?"
+              description="Это действие нельзя отменить"
+              onConfirm={() => handleDelete(record.id, 'article')}
+              okText="Да"
+              cancelText="Нет"
+            >
+              <Button 
+                icon={<DeleteOutlined />} 
+                danger 
+                size="small"
+              >
+                Удалить
+              </Button>
+            </Popconfirm>
+          </Space>
         </Space>
       ),
     },
@@ -879,6 +959,130 @@ const AdminPanel: React.FC = () => {
         activeKey={activeTab} 
         onChange={setActiveTab}
         items={[
+          {
+            key: 'pinned',
+            label: (
+              <span>
+                <PushpinFilled /> Закрепленные ({(pinnedArticles || []).length}/3)
+              </span>
+            ),
+            children: (
+              <div>
+                <Alert
+                  message="Управление закрепленными статьями"
+                  description="Здесь вы можете управлять закрепленными статьями на главной странице. Максимум 3 статьи могут быть закреплены одновременно."
+                  type="info"
+                  showIcon
+                  icon={<PushpinOutlined />}
+                  style={{ marginBottom: 16 }}
+                />
+                
+                {pinnedArticles && pinnedArticles.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {pinnedArticles.map((article) => (
+                      <Card 
+                        key={article.id}
+                        style={{ 
+                          border: '2px solid #1890ff',
+                          boxShadow: '0 4px 12px rgba(24, 144, 255, 0.15)'
+                        }}
+                      >
+                        <Row gutter={16} align="middle">
+                          <Col span={1}>
+                            <div style={{ 
+                              fontSize: 24, 
+                              fontWeight: 'bold', 
+                              color: '#1890ff',
+                              textAlign: 'center'
+                            }}>
+                              {article.pin_order}
+                            </div>
+                          </Col>
+                          
+                          <Col span={15}>
+                            <Space direction="vertical" size="small">
+                              <Title level={4} style={{ margin: 0 }}>
+                                <PushpinFilled style={{ color: '#1890ff', marginRight: 8 }} />
+                                {article.title}
+                              </Title>
+                              <Space size="middle">
+                                <Tag color="blue">
+                                  <UserOutlined /> {article.author_name}
+                                </Tag>
+                                <Tag color="green">
+                                  👁 {article.views || 0} просмотров
+                                </Tag>
+                                <Tag color="orange">
+                                  ❤️ {article.likes_count || 0} лайков
+                                </Tag>
+                              </Space>
+                              <Typography.Text type="secondary">
+                                Закреплена: {article.pinned_at ? dayjs(article.pinned_at).format('DD.MM.YYYY HH:mm') : '-'}
+                                {article.pinned_by_name && ` | Админ: ${article.pinned_by_name}`}
+                              </Typography.Text>
+                            </Space>
+                          </Col>
+                          
+                          <Col span={8}>
+                            <Space direction="vertical" style={{ width: '100%' }} size="small">
+                              <Space>
+                                <Button
+                                  icon={<EyeOutlined />}
+                                  onClick={() => handleViewDetails(article, 'article')}
+                                  size="small"
+                                >
+                                  Просмотр
+                                </Button>
+                                <Button
+                                  icon={<EditOutlined />}
+                                  onClick={() => handleEdit(article, 'article')}
+                                  size="small"
+                                >
+                                  Редактировать
+                                </Button>
+                              </Space>
+                              <Space>
+                                <Button
+                                  icon={<PushpinFilled />}
+                                  onClick={() => handleUnpinArticle(article.id)}
+                                  danger
+                                  size="small"
+                                >
+                                  Открепить
+                                </Button>
+                                {article.pin_order && article.pin_order > 1 && (
+                                  <Button
+                                    onClick={() => handleReorderPinnedArticle(article.id, article.pin_order! - 1)}
+                                    size="small"
+                                  >
+                                    ↑ Выше
+                                  </Button>
+                                )}
+                                {article.pin_order && article.pin_order < pinnedArticles.length && (
+                                  <Button
+                                    onClick={() => handleReorderPinnedArticle(article.id, article.pin_order! + 1)}
+                                    size="small"
+                                  >
+                                    ↓ Ниже
+                                  </Button>
+                                )}
+                              </Space>
+                            </Space>
+                          </Col>
+                        </Row>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <Typography.Text type="secondary">
+                      Нет закрепленных статей. Перейдите на вкладку "Статьи" и закрепите нужные статьи.
+                    </Typography.Text>
+                  </Card>
+                )}
+              </div>
+            ),
+          },
           {
             key: 'articles',
             label: `Статьи (${(articles || []).length})`,
