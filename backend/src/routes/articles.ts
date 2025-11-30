@@ -148,6 +148,7 @@ router.get('/search', async (req, res) => {
 });
 
 // Получение всех опубликованных статей (не архивированных)
+// Закрепленные статьи показываются вверху
 router.get('/', async (req, res) => {
   try {
     const { sort = 'new' } = req.query;
@@ -157,33 +158,58 @@ router.get('/', async (req, res) => {
       orderBy = 'a.views DESC, a.created_at DESC';
     }
 
-    // Пробуем запрос с полями модерации, если не получается - без них
+    // Пробуем запрос с полями модерации и закрепления, если не получается - без них
     let result;
     try {
       result = await query(
         `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
-         COALESCE(a.likes_count, 0) as likes_count
+         COALESCE(a.likes_count, 0) as likes_count,
+         COALESCE(a.is_pinned, false) as is_pinned,
+         a.pin_order
          FROM articles a
          JOIN users u ON a.author_id = u.id
          WHERE a.is_published = true 
          AND (a.archived = false OR a.archived IS NULL)
          AND (a.moderation_status = 'approved' OR a.moderation_status IS NULL)
-         ORDER BY ${orderBy}
+         ORDER BY 
+           CASE WHEN a.is_pinned = true THEN 0 ELSE 1 END,
+           CASE WHEN a.is_pinned = true THEN a.pin_order ELSE 999 END,
+           ${orderBy}
          LIMIT 100`
       );
     } catch (error) {
-      // Если поля модерации не существуют, делаем запрос без них
-      console.log('Поля модерации не найдены, загружаем все опубликованные статьи');
-      result = await query(
-        `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
-         COALESCE(a.likes_count, 0) as likes_count
-         FROM articles a
-         JOIN users u ON a.author_id = u.id
-         WHERE a.is_published = true
-         AND (a.archived = false OR a.archived IS NULL)
-         ORDER BY ${orderBy}
-         LIMIT 100`
-      );
+      // Если поля модерации или закрепления не существуют, делаем запрос без них
+      console.log('Поля модерации или закрепления не найдены, загружаем все опубликованные статьи');
+      try {
+        // Пробуем с полем is_pinned
+        result = await query(
+          `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
+           COALESCE(a.likes_count, 0) as likes_count,
+           COALESCE(a.is_pinned, false) as is_pinned,
+           a.pin_order
+           FROM articles a
+           JOIN users u ON a.author_id = u.id
+           WHERE a.is_published = true
+           AND (a.archived = false OR a.archived IS NULL)
+           ORDER BY 
+             CASE WHEN a.is_pinned = true THEN 0 ELSE 1 END,
+             CASE WHEN a.is_pinned = true THEN a.pin_order ELSE 999 END,
+             ${orderBy}
+           LIMIT 100`
+        );
+      } catch (pinnedError) {
+        // Если поля закрепления тоже не существуют
+        result = await query(
+          `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
+           COALESCE(a.likes_count, 0) as likes_count
+           FROM articles a
+           JOIN users u ON a.author_id = u.id
+           WHERE a.is_published = true
+           AND (a.archived = false OR a.archived IS NULL)
+           ORDER BY ${orderBy}
+           LIMIT 100`
+        );
+      }
     }
 
     res.json(result.rows);

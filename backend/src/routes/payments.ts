@@ -250,20 +250,43 @@ async function processSuccessfulPayment(payment: any) {
       const currentUser = userResult.rows[0];
       console.log(`📋 Текущий статус пользователя ${currentUser.email}: ${currentUser.user_type}`);
 
-      // Делаем пользователя экспертом
+      // Вычисляем дату окончания подписки
+      let subscriptionInterval = '1 year';
+      let subscriptionMessage = 'годовая';
+      
+      if (payment.plan_id === 'monthly') {
+        subscriptionInterval = '1 month';
+        subscriptionMessage = 'месячная';
+      }
+
+      // Делаем пользователя экспертом и устанавливаем срок подписки
       await query(
-        'UPDATE users SET user_type = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-        ['expert', payment.user_id]
+        `UPDATE users 
+         SET user_type = $1, 
+             subscription_plan = $2,
+             subscription_expires_at = CURRENT_TIMESTAMP + INTERVAL '${subscriptionInterval}',
+             last_payment_date = CURRENT_TIMESTAMP,
+             updated_at = CURRENT_TIMESTAMP 
+         WHERE id = $3`,
+        ['expert', payment.plan_id, payment.user_id]
       );
 
       console.log(`✅ Пользователь ${currentUser.email} (ID: ${payment.user_id}) успешно стал экспертом после оплаты плана ${payment.plan_id}`);
+      console.log(`⏰ Подписка действительна до: ${new Date(Date.now() + (payment.plan_id === 'monthly' ? 30 * 24 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000)).toISOString()}`);
       
       // Отправляем уведомление пользователю
       try {
+        const expirationDate = new Date(Date.now() + (payment.plan_id === 'monthly' ? 30 * 24 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000));
+        const expirationText = expirationDate.toLocaleDateString('ru-RU', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
         await query(
           `INSERT INTO notifications (user_id, type, title, message, created_at) 
            VALUES ($1, 'payment_success', 'Оплата прошла успешно!', $2, CURRENT_TIMESTAMP)`,
-          [payment.user_id, `Поздравляем! Вы стали экспертом. Подписка: ${payment.plan_id === 'monthly' ? 'месячная' : 'годовая'}.`]
+          [payment.user_id, `Поздравляем! Вы стали экспертом. Подписка: ${payment.plan_id === 'monthly' ? 'месячная' : 'годовая'}. Действует до ${expirationText}.`]
         );
         console.log(`✅ Уведомление отправлено пользователю ${payment.user_id}`);
       } catch (notificationError) {

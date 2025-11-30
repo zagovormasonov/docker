@@ -41,6 +41,8 @@ import shareRoutes from './routes/share';
 import adminLogsRoutes from './routes/adminLogs';
 import bookingsRoutes, { setIO as setBookingsIO } from './routes/bookings';
 import scheduleRoutes from './routes/schedule';
+import subscriptionCheckerRoutes from './routes/subscription-checker';
+import adminPinnedArticlesRoutes from './routes/admin-pinned-articles';
 
 dotenv.config();
 
@@ -98,6 +100,8 @@ app.use('/api/products', productsRoutes);
 app.use('/api/test', testAuthRoutes);
 app.use('/api/auth', refreshTokenRoutes);
 app.use('/api/admin/logs', adminLogsRoutes);
+app.use('/api/subscriptions', subscriptionCheckerRoutes);
+app.use('/api/admin/pinned-articles', adminPinnedArticlesRoutes);
 app.use('/api/bookings', bookingsRoutes);
 app.use('/api/schedule', scheduleRoutes);
 // Публичные страницы шаринга для соцсетей (с SSR OG-мета)
