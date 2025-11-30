@@ -6,20 +6,6 @@ export interface AuthRequest extends Request {
   userType?: string;
 }
 
-// Кеш последней проверки подписок (чтобы не проверять слишком часто)
-let lastSubscriptionCheck = 0;
-const SUBSCRIPTION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 минут
-
-// Функция проверки истекших подписок (импортируется динамически, чтобы избежать циклических зависимостей)
-async function checkExpiredSubscriptions() {
-  try {
-    const subscriptionChecker = await import('../routes/subscription-checker');
-    await subscriptionChecker.checkAndRevokeExpiredSubscriptions();
-  } catch (error) {
-    console.error('⚠️ Фоновая проверка подписок не удалась:', error);
-  }
-}
-
 export const authenticateToken = (
   req: AuthRequest,
   res: Response,
@@ -51,14 +37,8 @@ export const authenticateToken = (
       return res.status(403).json({ error: 'Недействительный токен: отсутствует userId' });
     }
     
-    // Периодически проверяем истекшие подписки (не чаще раз в 5 минут)
-    const now = Date.now();
-    if (now - lastSubscriptionCheck > SUBSCRIPTION_CHECK_INTERVAL) {
-      lastSubscriptionCheck = now;
-      
-      // Запускаем проверку в фоне, не блокируя запрос
-      checkExpiredSubscriptions();
-    }
+    // Проверка подписок убрана отсюда для оптимизации
+    // Теперь проверка происходит через cron job (1 раз в день)
     
     next();
   });

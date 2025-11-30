@@ -46,6 +46,9 @@ import adminPinnedArticlesRoutes from './routes/admin-pinned-articles';
 
 dotenv.config();
 
+// Импорт cron job для проверки подписок
+import { startSubscriptionCron } from './utils/subscription-cron';
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -202,6 +205,9 @@ const startServer = async () => {
     
     // Передаем Socket.IO инстанс в модули, которым он нужен
     setBookingsIO(io);
+    
+    // Запускаем cron job для ежедневной проверки подписок
+    startSubscriptionCron();
     
     httpServer.listen(PORT, () => {
       console.log(`🚀 Сервер запущен на порту ${PORT}`);
