@@ -77,3 +77,4 @@ FROM users
 GROUP BY user_type
 ORDER BY user_type;
 
+

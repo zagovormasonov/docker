@@ -76,7 +76,14 @@ const ForgotPasswordPage = () => {
           <Result
             status="success"
             title="Письмо отправлено!"
-            subTitle="Проверьте вашу почту и перейдите по ссылке для восстановления пароля."
+            subTitle={
+              <div>
+                <p>Проверьте вашу почту и перейдите по ссылке для восстановления пароля.</p>
+                <p style={{ color: '#ff4d4f', fontWeight: 500, marginTop: 12 }}>
+                  ⚠️ Если письмо не пришло, проверьте папку "Спам" или "Нежелательная почта"
+                </p>
+              </div>
+            }
             extra={
               <Link to="/login">
                 <Button type="primary">Вернуться на страницу входа</Button>

@@ -174,3 +174,4 @@ END $$;
 -- По email:
 -- SELECT email, user_type FROM users WHERE email = 'user@example.com';
 
+
