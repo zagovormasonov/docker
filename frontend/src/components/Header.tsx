@@ -92,12 +92,6 @@ const Header = () => {
     },
     ...((user?.userType === 'expert' || user?.userType === 'admin') ? [
       {
-        key: 'expert-dashboard',
-        icon: <CalendarOutlined />,
-        label: 'Кабинет эксперта',
-        onClick: () => navigate('/expert-dashboard')
-      },
-      {
         key: 'my-articles',
         icon: <FileTextOutlined />,
         label: 'Мои статьи',
@@ -162,6 +156,24 @@ const Header = () => {
       }
     },
     ...(user ? [
+      ...(user.userType === 'expert' || user.userType === 'admin' ? [
+        {
+          key: 'expert-dashboard-mobile',
+          icon: <CalendarOutlined />,
+          label: 'Кабинет эксперта',
+          onClick: () => {
+            navigate('/expert-dashboard');
+            setMobileMenuOpen(false);
+          },
+          style: {
+            background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
+            color: '#fff',
+            fontWeight: 500,
+            borderRadius: 8,
+            margin: '8px 16px'
+          }
+        }
+      ] : []),
       {
         key: 'chats',
         icon: <MessageOutlined />,
@@ -208,15 +220,6 @@ const Header = () => {
         }
       },
       ...(user?.userType === 'expert' || user?.userType === 'admin' ? [
-        {
-          key: 'expert-dashboard',
-          icon: <CalendarOutlined />,
-          label: 'Кабинет эксперта',
-          onClick: () => {
-            navigate('/expert-dashboard');
-            setMobileMenuOpen(false);
-          }
-        },
         {
           key: 'my-articles',
           icon: <FileTextOutlined />,
@@ -378,6 +381,21 @@ const Header = () => {
           <Space size="middle">
             {user ? (
               <>
+                {(user.userType === 'expert' || user.userType === 'admin') && (
+                  <Button
+                    type="primary"
+                    icon={<CalendarOutlined />}
+                    onClick={() => navigate('/expert-dashboard')}
+                    style={{ 
+                      background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
+                      border: 'none',
+                      color: '#fff',
+                      fontWeight: 500
+                    }}
+                  >
+                    Кабинет эксперта
+                  </Button>
+                )}
                 <Badge count={unreadCount} offset={[-5, 5]}>
                   <Button
                     type="text"
