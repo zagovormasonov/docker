@@ -188,6 +188,137 @@ router.get('/expert/bookings', authenticateToken, requireExpert, async (req: Aut
   }
 });
 
+// Получить входящие заявки (только pending) для эксперта
+router.get('/incoming', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      `SELECT b.*, 
+              u.name as client_name, 
+              u.email as client_email,
+              u.avatar_url as client_avatar,
+              u.id as client_id
+       FROM bookings b
+       JOIN users u ON b.client_id = u.id
+       WHERE b.expert_id = $1 AND b.status = 'pending'
+       ORDER BY b.created_at DESC`,
+      [req.userId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Ошибка получения входящих заявок:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Подтвердить заявку (эксперт) - упрощенный эндпоинт
+router.put('/:id/confirm', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+
+    // Проверяем что бронь принадлежит эксперту
+    const checkResult = await query(
+      `SELECT * FROM bookings WHERE id = $1 AND expert_id = $2`,
+      [id, req.userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Бронь не найдена' });
+    }
+
+    const booking = checkResult.rows[0];
+
+    if (booking.status !== 'pending') {
+      return res.status(400).json({ error: 'Можно подтвердить только ожидающие заявки' });
+    }
+
+    // Обновляем статус
+    await query(
+      `UPDATE bookings 
+       SET status = 'confirmed', updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [id]
+    );
+
+    // Отправляем уведомление клиенту
+    if (io) {
+      await sendBookingStatusNotification(io, {
+        expertId: req.userId!,
+        clientId: booking.client_id,
+        bookingId: booking.id,
+        date: booking.date,
+        timeSlot: booking.time_slot,
+        status: 'confirmed'
+      });
+    }
+
+    res.json({ message: 'Бронь подтверждена' });
+  } catch (error) {
+    console.error('Ошибка подтверждения брони:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Отклонить заявку (эксперт) - упрощенный эндпоинт
+router.put('/:id/reject', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { rejectionReason } = req.body;
+
+    // Проверяем что бронь принадлежит эксперту
+    const checkResult = await query(
+      `SELECT * FROM bookings WHERE id = $1 AND expert_id = $2`,
+      [id, req.userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Бронь не найдена' });
+    }
+
+    const booking = checkResult.rows[0];
+
+    if (booking.status !== 'pending') {
+      return res.status(400).json({ error: 'Можно отклонить только ожидающие заявки' });
+    }
+
+    // Обновляем статус
+    await query(
+      `UPDATE bookings 
+       SET status = 'rejected', rejection_reason = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2`,
+      [rejectionReason || null, id]
+    );
+
+    // Освобождаем слот если был
+    if (booking.availability_id) {
+      await query(
+        `UPDATE expert_availability 
+         SET is_booked = false 
+         WHERE id = $1`,
+        [booking.availability_id]
+      ).catch(() => {});
+    }
+
+    // Отправляем уведомление клиенту
+    if (io) {
+      await sendBookingStatusNotification(io, {
+        expertId: req.userId!,
+        clientId: booking.client_id,
+        bookingId: booking.id,
+        date: booking.date,
+        timeSlot: booking.time_slot,
+        status: 'rejected',
+        rejectionReason
+      });
+    }
+
+    res.json({ message: 'Бронь отклонена' });
+  } catch (error) {
+    console.error('Ошибка отклонения брони:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Подтвердить или отклонить бронь (эксперт)
 router.put('/expert/bookings/:id/status', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
   try {

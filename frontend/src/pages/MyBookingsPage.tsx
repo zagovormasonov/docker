@@ -92,7 +92,16 @@ const MyBookingsPage: React.FC = () => {
 
   return (
     <div className="my-bookings-page">
-        <h1>📋 Мои записи</h1>
+        <h1 style={{ fontSize: '28px' }}>📋 Мои записи</h1>
+        <p style={{ 
+          fontSize: '14px', 
+          color: '#666', 
+          marginTop: '8px', 
+          marginBottom: '24px',
+          lineHeight: '1.5'
+        }}>
+          Здесь отображаются сеансы, на которые вы записаны, после их подтверждения экспертом
+        </p>
 
         {error && <div className="alert alert-error">{error}</div>}
         {success && <div className="alert alert-success">{success}</div>}

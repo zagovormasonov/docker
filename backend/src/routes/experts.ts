@@ -334,4 +334,52 @@ router.delete(
   }
 );
 
+// Получить список клиентов эксперта
+router.get('/my-clients', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      `SELECT DISTINCT 
+        u.id,
+        u.name,
+        u.email,
+        u.avatar_url,
+        MAX(b.date) as last_booking_date,
+        COUNT(b.id) as total_bookings
+       FROM users u
+       JOIN bookings b ON u.id = b.client_id
+       WHERE b.expert_id = $1
+       GROUP BY u.id, u.name, u.email, u.avatar_url
+       ORDER BY MAX(b.date) DESC`,
+      [req.userId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Ошибка получения клиентов:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Получить рабочие часы эксперта (для администрирования)
+router.get('/working-hours', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    // Возвращаем заглушку, так как таблица рабочих часов может не существовать
+    // В будущем можно создать таблицу expert_working_hours
+    const defaultHours = [
+      { day: 'Понедельник', start_time: '09:00', end_time: '18:00', is_active: true },
+      { day: 'Вторник', start_time: '09:00', end_time: '18:00', is_active: true },
+      { day: 'Среда', start_time: '09:00', end_time: '18:00', is_active: true },
+      { day: 'Четверг', start_time: '09:00', end_time: '18:00', is_active: true },
+      { day: 'Пятница', start_time: '09:00', end_time: '18:00', is_active: true },
+      { day: 'Суббота', start_time: '10:00', end_time: '16:00', is_active: false },
+      { day: 'Воскресенье', start_time: '10:00', end_time: '16:00', is_active: false }
+    ];
+
+    res.json(defaultHours);
+  } catch (error) {
+    console.error('Ошибка получения рабочих часов:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 export default router;

@@ -105,13 +105,21 @@ const ExpertProfilePage = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productModalVisible, setProductModalVisible] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
+    // Проверяем авторизацию пользователя
+    if (!user) {
+      setShowAuthModal(true);
+      setLoading(false);
+      return;
+    }
+
     fetchExpert();
     fetchArticles();
     fetchFavoriteStatus();
     fetchCustomSocials();
-  }, [id]);
+  }, [id, user]);
 
   const fetchFavoriteStatus = async () => {
     if (!id) return;
@@ -278,6 +286,45 @@ const ExpertProfilePage = () => {
     console.log('Opening share modal with customSocials:', customSocials);
     setShareModalVisible(true);
   };
+
+  // Модальное окно для незарегистрированных пользователей
+  if (showAuthModal) {
+    return (
+      <div className="container" style={{ padding: '50px 24px' }}>
+        <Card style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div style={{ fontSize: 48 }}>🔒</div>
+            <Title level={3}>Требуется авторизация</Title>
+            <Text style={{ fontSize: 16, color: '#666' }}>
+              Зарегистрируйтесь, чтобы иметь возможность пользоваться базовым функционалом, 
+              просматривать профили экспертов и записываться на консультации
+            </Text>
+            <Space size="middle">
+              <Button 
+                type="primary" 
+                size="large"
+                onClick={() => navigate('/register')}
+              >
+                Зарегистрироваться
+              </Button>
+              <Button 
+                size="large"
+                onClick={() => navigate('/login')}
+              >
+                Войти
+              </Button>
+            </Space>
+            <Button 
+              type="text"
+              onClick={() => navigate('/experts')}
+            >
+              Вернуться к списку экспертов
+            </Button>
+          </Space>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

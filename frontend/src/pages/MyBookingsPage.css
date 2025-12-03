@@ -6,10 +6,18 @@
 }
 
 .my-bookings-page h1 {
-  font-size: 36px;
-  margin-bottom: 30px;
+  font-size: 28px;
+  margin-bottom: 8px;
   color: var(--text-primary);
   text-align: center;
+}
+
+.my-bookings-page .info-text {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
 }
 
 .alert {

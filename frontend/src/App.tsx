@@ -32,6 +32,7 @@ import BecomeExpertPage from './pages/BecomeExpertPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import ExpertLandingPage from './pages/ExpertLandingPage';
 import MyBookingsPage from './pages/MyBookingsPage';
+import ExpertDashboardPage from './pages/ExpertDashboardPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -82,6 +83,7 @@ function App() {
                 <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
                 <Route path="my-bookings" element={<ProtectedRoute><MyBookingsPage /></ProtectedRoute>} />
+                <Route path="expert-dashboard" element={<ProtectedRoute><ExpertDashboardPage /></ProtectedRoute>} />
                 <Route path="chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
                 <Route path="chats/:chatId" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
                 <Route path="create-article" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />

@@ -92,6 +92,12 @@ const Header = () => {
     },
     ...((user?.userType === 'expert' || user?.userType === 'admin') ? [
       {
+        key: 'expert-dashboard',
+        icon: <CalendarOutlined />,
+        label: 'Кабинет эксперта',
+        onClick: () => navigate('/expert-dashboard')
+      },
+      {
         key: 'my-articles',
         icon: <FileTextOutlined />,
         label: 'Мои статьи',
@@ -202,6 +208,15 @@ const Header = () => {
         }
       },
       ...(user?.userType === 'expert' || user?.userType === 'admin' ? [
+        {
+          key: 'expert-dashboard',
+          icon: <CalendarOutlined />,
+          label: 'Кабинет эксперта',
+          onClick: () => {
+            navigate('/expert-dashboard');
+            setMobileMenuOpen(false);
+          }
+        },
         {
           key: 'my-articles',
           icon: <FileTextOutlined />,
