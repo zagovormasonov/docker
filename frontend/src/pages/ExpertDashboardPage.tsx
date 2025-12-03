@@ -23,24 +23,17 @@ interface Client {
   total_bookings: number;
 }
 
-interface IncomingBooking {
+interface AllBooking {
   id: number;
   date: string;
   time_slot: string;
-  status: string;
+  status: 'pending' | 'confirmed' | 'rejected' | 'cancelled';
   client_name: string;
   client_email: string;
   client_avatar?: string;
-  client_id: number;
   client_message?: string;
+  rejection_reason?: string;
   created_at: string;
-}
-
-interface WorkingHours {
-  day: string;
-  start_time: string;
-  end_time: string;
-  is_active: boolean;
 }
 
 const ExpertDashboardPage: React.FC = () => {
@@ -50,9 +43,26 @@ const ExpertDashboardPage: React.FC = () => {
   const [showLocalTime, setShowLocalTime] = useState(false);
   const [userCity, setUserCity] = useState<string>('');
   const [clients, setClients] = useState<Client[]>([]);
-  const [incomingBookings, setIncomingBookings] = useState<IncomingBooking[]>([]);
-  const [workingHours, setWorkingHours] = useState<WorkingHours[]>([]);
+  const [allBookings, setAllBookings] = useState<AllBooking[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // Загружаем количество pending заявок и клиентов при инициализации для бейджей
+  useEffect(() => {
+    if (user && (user.userType === 'expert' || user.userType === 'admin')) {
+      loadPendingCount();
+      loadClientsCount();
+    }
+  }, [user]);
+
+  const loadClientsCount = async () => {
+    try {
+      const response = await api.get('/experts/my-clients');
+      setClients(response.data);
+    } catch (error) {
+      console.error('Ошибка загрузки клиентов:', error);
+    }
+  };
 
   useEffect(() => {
     // Проверяем, является ли пользователь экспертом
@@ -65,9 +75,7 @@ const ExpertDashboardPage: React.FC = () => {
     if (activeTab === 'clients') {
       loadClients();
     } else if (activeTab === 'bookings') {
-      loadIncomingBookings();
-    } else if (activeTab === 'administration') {
-      loadWorkingHours();
+      loadAllBookings();
     }
 
     // Загружаем информацию о городе пользователя
@@ -75,6 +83,15 @@ const ExpertDashboardPage: React.FC = () => {
       setUserCity(user.city);
     }
   }, [user, navigate, activeTab]);
+
+  const loadPendingCount = async () => {
+    try {
+      const response = await api.get('/bookings/incoming');
+      setPendingCount(response.data.length);
+    } catch (error) {
+      console.error('Ошибка загрузки количества заявок:', error);
+    }
+  };
 
   const loadClients = async () => {
     setLoading(true);
@@ -88,25 +105,16 @@ const ExpertDashboardPage: React.FC = () => {
     }
   };
 
-  const loadIncomingBookings = async () => {
+  const loadAllBookings = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/bookings/incoming');
-      setIncomingBookings(response.data);
+      const response = await api.get('/bookings/expert/bookings');
+      setAllBookings(response.data);
+      // Обновляем счетчик pending заявок
+      const pending = response.data.filter((b: AllBooking) => b.status === 'pending');
+      setPendingCount(pending.length);
     } catch (error) {
-      console.error('Ошибка загрузки заявок:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadWorkingHours = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get('/experts/working-hours');
-      setWorkingHours(response.data);
-    } catch (error) {
-      console.error('Ошибка загрузки рабочих часов:', error);
+      console.error('Ошибка загрузки всех записей:', error);
     } finally {
       setLoading(false);
     }
@@ -115,10 +123,49 @@ const ExpertDashboardPage: React.FC = () => {
   const handleBookingAction = async (bookingId: number, action: 'confirm' | 'reject', rejectionReason?: string) => {
     try {
       await api.put(`/bookings/${bookingId}/${action}`, { rejectionReason });
-      loadIncomingBookings();
+      await loadAllBookings();
     } catch (error) {
       console.error(`Ошибка ${action === 'confirm' ? 'подтверждения' : 'отклонения'} заявки:`, error);
     }
+  };
+
+  const handleCancelBooking = async (bookingId: number) => {
+    if (!confirm('Вы уверены, что хотите отменить эту запись?')) {
+      return;
+    }
+
+    try {
+      await api.put(`/bookings/expert/bookings/${bookingId}/status`, {
+        status: 'cancelled',
+        rejectionReason: 'Отменено экспертом'
+      });
+      await loadAllBookings();
+    } catch (error) {
+      console.error('Ошибка отмены записи:', error);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusStyles: Record<string, { text: string; color: string }> = {
+      pending: { text: '⏳ Ожидает', color: '#faad14' },
+      confirmed: { text: '✅ Подтверждено', color: '#52c41a' },
+      rejected: { text: '❌ Отклонено', color: '#ff4d4f' },
+      cancelled: { text: '🚫 Отменено', color: '#8c8c8c' }
+    };
+    
+    const statusInfo = statusStyles[status] || statusStyles.pending;
+    return (
+      <span style={{
+        padding: '4px 12px',
+        borderRadius: '12px',
+        fontSize: '12px',
+        fontWeight: 500,
+        backgroundColor: statusInfo.color + '20',
+        color: statusInfo.color
+      }}>
+        {statusInfo.text}
+      </span>
+    );
   };
 
   const formatDateTime = (dateString: string, timeSlot?: string) => {
@@ -146,6 +193,10 @@ const ExpertDashboardPage: React.FC = () => {
       return `${formatted}${timeSlot ? `, ${timeSlot}` : ''} МСК`;
     }
   };
+
+  const pendingBookings = allBookings.filter(b => b.status === 'pending');
+  const confirmedBookings = allBookings.filter(b => b.status === 'confirmed');
+  const historyBookings = allBookings.filter(b => ['rejected', 'cancelled'].includes(b.status));
 
   const tabItems = [
     {
@@ -181,15 +232,51 @@ const ExpertDashboardPage: React.FC = () => {
       )
     },
     {
-      key: 'administration',
+      key: 'bookings',
       label: (
         <span>
-          <SettingOutlined /> Администрирование
+          <InboxOutlined /> Управление записями
+          {pendingCount > 0 && (
+            <span style={{
+              marginLeft: 8,
+              backgroundColor: '#ff4d4f',
+              color: '#fff',
+              padding: '2px 8px',
+              borderRadius: '10px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              {pendingCount}
+            </span>
+          )}
         </span>
       ),
       children: (
         <div>
-          <Title level={3}>Рабочие часы</Title>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div>
+              <Title level={3} style={{ margin: 0 }}>Управление записями</Title>
+              <Text type="secondary">
+                Все записи клиентов: подтверждение заявок, управление расписанием
+              </Text>
+            </div>
+            {pendingCount > 0 && (
+              <div style={{
+                backgroundColor: '#fff1f0',
+                border: '1px solid #ffccc7',
+                borderRadius: 8,
+                padding: '8px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}>
+                <span style={{ fontSize: 20 }}>🔔</span>
+                <Text strong style={{ color: '#ff4d4f' }}>
+                  {pendingCount} {pendingCount === 1 ? 'новая заявка' : 'новых заявок'}
+                </Text>
+              </div>
+            )}
+          </div>
           <Alert
             message="Все время указано по МСК (Московское время)"
             type="info"
@@ -208,32 +295,173 @@ const ExpertDashboardPage: React.FC = () => {
               )
             }
           />
-          <div style={{ marginTop: 24 }}>
-            {loading ? (
-              <Text>Загрузка...</Text>
-            ) : workingHours.length > 0 ? (
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                {workingHours.map((wh, index) => (
-                  <Card key={index} size="small">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <Text strong>{wh.day}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {wh.start_time} - {wh.end_time} {!showLocalTime && 'МСК'}
-                        </Text>
-                      </div>
-                      <Text type={wh.is_active ? 'success' : 'secondary'}>
-                        {wh.is_active ? 'Активно' : 'Неактивно'}
-                      </Text>
-                    </div>
-                  </Card>
-                ))}
-              </Space>
-            ) : (
-              <Text type="secondary">Рабочие часы не настроены</Text>
-            )}
-          </div>
+          
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 40 }}>
+              <Text>Загрузка записей...</Text>
+            </div>
+          ) : (
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+              {/* Ожидающие подтверждения - с выделением */}
+              {pendingBookings.length > 0 && (
+                <div style={{
+                  backgroundColor: '#fffbe6',
+                  border: '2px solid #ffe58f',
+                  borderRadius: 8,
+                  padding: 16
+                }}>
+                  <Title level={4} style={{ marginTop: 0 }}>
+                    ⏳ Ожидают подтверждения 
+                    <span style={{
+                      marginLeft: 8,
+                      backgroundColor: '#ff4d4f',
+                      color: '#fff',
+                      padding: '2px 10px',
+                      borderRadius: '12px',
+                      fontSize: '14px'
+                    }}>
+                      {pendingBookings.length}
+                    </span>
+                  </Title>
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    {pendingBookings.map((booking) => (
+                      <Card key={booking.id}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                          <img 
+                            src={booking.client_avatar || '/emp.jpg'} 
+                            alt={booking.client_name}
+                            style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                              <Title level={5} style={{ margin: 0 }}>{booking.client_name}</Title>
+                              {getStatusBadge(booking.status)}
+                            </div>
+                            <Text type="secondary">{booking.client_email}</Text>
+                            <br />
+                            <Text strong style={{ marginTop: 8, display: 'block' }}>
+                              📅 {formatDateTime(booking.date, booking.time_slot)}
+                            </Text>
+                            {booking.client_message && (
+                              <div style={{ marginTop: 8, padding: 8, backgroundColor: '#f5f5f5', borderRadius: 4 }}>
+                                <Text style={{ fontSize: 12 }}>
+                                  <strong>💬 Сообщение:</strong> {booking.client_message}
+                                </Text>
+                              </div>
+                            )}
+                            <div style={{ marginTop: 12 }}>
+                              <Space>
+                                <Button 
+                                  type="primary" 
+                                  onClick={() => handleBookingAction(booking.id, 'confirm')}
+                                >
+                                  ✓ Подтвердить
+                                </Button>
+                                <Button 
+                                  danger
+                                  onClick={() => {
+                                    const reason = prompt('Укажите причину отклонения (необязательно):');
+                                    if (reason !== null) {
+                                      handleBookingAction(booking.id, 'reject', reason || undefined);
+                                    }
+                                  }}
+                                >
+                                  ✕ Отклонить
+                                </Button>
+                              </Space>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </Space>
+                </div>
+              )}
+
+              {/* Подтвержденные */}
+              {confirmedBookings.length > 0 && (
+                <div>
+                  <Title level={4}>✅ Подтвержденные записи ({confirmedBookings.length})</Title>
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    {confirmedBookings.map((booking) => (
+                      <Card key={booking.id}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                          <img 
+                            src={booking.client_avatar || '/emp.jpg'} 
+                            alt={booking.client_name}
+                            style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                              <Title level={5} style={{ margin: 0 }}>{booking.client_name}</Title>
+                              {getStatusBadge(booking.status)}
+                            </div>
+                            <Text type="secondary">{booking.client_email}</Text>
+                            <br />
+                            <Text strong style={{ marginTop: 8, display: 'block' }}>
+                              📅 {formatDateTime(booking.date, booking.time_slot)}
+                            </Text>
+                            <div style={{ marginTop: 12 }}>
+                              <Button 
+                                danger
+                                onClick={() => handleCancelBooking(booking.id)}
+                              >
+                                ✕ Отменить запись
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </Space>
+                </div>
+              )}
+
+              {/* История */}
+              {historyBookings.length > 0 && (
+                <div>
+                  <Title level={4}>📝 История ({historyBookings.length})</Title>
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    {historyBookings.map((booking) => (
+                      <Card key={booking.id} style={{ opacity: 0.7 }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                          <img 
+                            src={booking.client_avatar || '/emp.jpg'} 
+                            alt={booking.client_name}
+                            style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                              <Title level={5} style={{ margin: 0 }}>{booking.client_name}</Title>
+                              {getStatusBadge(booking.status)}
+                            </div>
+                            <Text type="secondary">{booking.client_email}</Text>
+                            <br />
+                            <Text strong style={{ marginTop: 8, display: 'block' }}>
+                              📅 {formatDateTime(booking.date, booking.time_slot)}
+                            </Text>
+                            {booking.rejection_reason && (
+                              <div style={{ marginTop: 8, padding: 8, backgroundColor: '#fff1f0', borderRadius: 4, borderLeft: '3px solid #ff4d4f' }}>
+                                <Text style={{ fontSize: 12, color: '#ff4d4f' }}>
+                                  <strong>❌ Причина отклонения:</strong> {booking.rejection_reason}
+                                </Text>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </Space>
+                </div>
+              )}
+
+              {allBookings.length === 0 && (
+                <Card>
+                  <Text type="secondary">У вас пока нет записей</Text>
+                </Card>
+              )}
+            </Space>
+          )}
         </div>
       )
     },
@@ -242,6 +470,19 @@ const ExpertDashboardPage: React.FC = () => {
       label: (
         <span>
           <TeamOutlined /> Мои клиенты
+          {clients.length > 0 && (
+            <span style={{
+              marginLeft: 8,
+              backgroundColor: '#e6f7ff',
+              color: '#1890ff',
+              padding: '2px 8px',
+              borderRadius: '10px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              {clients.length}
+            </span>
+          )}
         </span>
       ),
       children: (
@@ -321,101 +562,6 @@ const ExpertDashboardPage: React.FC = () => {
           ) : (
             <Card>
               <Text type="secondary">У вас пока нет клиентов</Text>
-            </Card>
-          )}
-        </div>
-      )
-    },
-    {
-      key: 'bookings',
-      label: (
-        <span>
-          <InboxOutlined /> Мои заявки
-        </span>
-      ),
-      children: (
-        <div>
-          <Title level={3}>Входящие заявки</Title>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-            Заявки от пользователей на консультации
-          </Text>
-          <Alert
-            message="Все время указано по МСК (Московское время)"
-            type="info"
-            showIcon
-            icon={<ClockCircleOutlined />}
-            style={{ marginBottom: 16 }}
-            action={
-              userCity && (
-                <Button
-                  size="small"
-                  type="text"
-                  onClick={() => setShowLocalTime(!showLocalTime)}
-                >
-                  {showLocalTime ? 'Показать МСК' : 'Показать местное время'}
-                </Button>
-              )
-            }
-          />
-          {loading ? (
-            <Text>Загрузка...</Text>
-          ) : incomingBookings.length > 0 ? (
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              {incomingBookings.map((booking) => (
-                <Card key={booking.id}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-                    <img 
-                      src={booking.client_avatar || '/emp.jpg'} 
-                      alt={booking.client_name}
-                      style={{ 
-                        width: 60, 
-                        height: 60, 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <Title level={5} style={{ margin: 0 }}>{booking.client_name}</Title>
-                      <Text type="secondary">{booking.client_email}</Text>
-                      <br />
-                      <Text strong>
-                        {formatDateTime(booking.date, booking.time_slot)}
-                      </Text>
-                      {booking.client_message && (
-                        <>
-                          <br />
-                          <Text style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
-                            Сообщение: {booking.client_message}
-                          </Text>
-                        </>
-                      )}
-                      <div style={{ marginTop: 12 }}>
-                        <Space>
-                          <Button 
-                            type="primary" 
-                            onClick={() => handleBookingAction(booking.id, 'confirm')}
-                          >
-                            Подтвердить
-                          </Button>
-                          <Button 
-                            danger
-                            onClick={() => {
-                              const reason = prompt('Укажите причину отклонения (необязательно):');
-                              handleBookingAction(booking.id, 'reject', reason || undefined);
-                            }}
-                          >
-                            Отклонить
-                          </Button>
-                        </Space>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </Space>
-          ) : (
-            <Card>
-              <Text type="secondary">У вас пока нет новых заявок</Text>
             </Card>
           )}
         </div>

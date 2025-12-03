@@ -11,19 +11,6 @@ interface Schedule {
   is_active: boolean;
 }
 
-interface Booking {
-  id: number;
-  date: string;
-  time_slot: string;
-  status: 'pending' | 'confirmed' | 'rejected' | 'cancelled';
-  client_name: string;
-  client_email: string;
-  client_avatar?: string;
-  client_message?: string;
-  rejection_reason?: string;
-  created_at: string;
-}
-
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Понедельник' },
   { value: 2, label: 'Вторник' },
@@ -36,11 +23,9 @@ const DAYS_OF_WEEK = [
 
 const ExpertCalendar: React.FC = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeTab, setActiveTab] = useState<'schedule' | 'bookings'>('schedule');
 
   // Форма добавления расписания - для каждого дня недели
   const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
@@ -70,7 +55,6 @@ const ExpertCalendar: React.FC = () => {
 
   useEffect(() => {
     loadSchedule();
-    loadBookings();
   }, []);
 
   const loadSchedule = async () => {
@@ -79,15 +63,6 @@ const ExpertCalendar: React.FC = () => {
       setSchedules(response.data);
     } catch (err) {
       console.error('Ошибка загрузки расписания:', err);
-    }
-  };
-
-  const loadBookings = async () => {
-    try {
-      const response = await axios.get('/bookings/expert/bookings');
-      setBookings(response.data);
-    } catch (err) {
-      console.error('Ошибка загрузки броней:', err);
     }
   };
 
@@ -159,76 +134,8 @@ const ExpertCalendar: React.FC = () => {
     }
   };
 
-  const handleBookingAction = async (bookingId: number, status: 'confirmed' | 'rejected') => {
-    let rejectionReason = '';
-    
-    if (status === 'rejected') {
-      rejectionReason = prompt('Укажите причину отклонения:') || '';
-      if (!rejectionReason) {
-        return;
-      }
-    }
-
-    try {
-      await axios.put(`/bookings/expert/bookings/${bookingId}/status`, {
-        status,
-        rejectionReason
-      });
-
-      setSuccess(status === 'confirmed' ? 'Запись подтверждена!' : 'Запись отклонена');
-      await loadBookings();
-      await loadSchedule();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка обновления статуса');
-    }
-  };
-
-  const handleCancelBooking = async (bookingId: number) => {
-    if (!confirm('Вы уверены, что хотите отменить эту запись?')) {
-      return;
-    }
-
-    try {
-      await axios.put(`/bookings/expert/bookings/${bookingId}/status`, {
-        status: 'cancelled',
-        rejectionReason: 'Отменено экспертом'
-      });
-
-      setSuccess('Запись отменена');
-      await loadBookings();
-      await loadSchedule();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка отмены записи');
-    }
-  };
-
-  const getDayName = (dayOfWeek: number) => {
-    const day = DAYS_OF_WEEK.find(d => d.value === dayOfWeek);
-    return day ? day.label : 'Неизвестно';
-  };
-
   const formatTime = (time: string) => {
     return time.slice(0, 5);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
-  const getStatusBadge = (status: string) => {
-    const badges = {
-      pending: { text: 'Ожидает', class: 'status-pending' },
-      confirmed: { text: 'Подтверждено', class: 'status-confirmed' },
-      rejected: { text: 'Отклонено', class: 'status-rejected' },
-      cancelled: { text: 'Отменено', class: 'status-cancelled' }
-    };
-    
-    const badge = badges[status as keyof typeof badges] || badges.pending;
-    return <span className={`status-badge ${badge.class}`}>{badge.text}</span>;
   };
 
   const groupedSchedules = schedules.reduce((acc, schedule) => {
@@ -240,33 +147,14 @@ const ExpertCalendar: React.FC = () => {
     return acc;
   }, {} as Record<number, Schedule[]>);
 
-  const pendingBookings = bookings.filter(b => b.status === 'pending');
-  const upcomingBookings = bookings.filter(b => b.status === 'confirmed');
-  const pastBookings = bookings.filter(b => ['rejected', 'cancelled'].includes(b.status));
-
   return (
     <div className="expert-calendar">
-      <h2>📅 Управление записями</h2>
+      <h2>📅 Расписание</h2>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
-      <div className="calendar-tabs">
-        <button
-          className={`tab-button ${activeTab === 'schedule' ? 'active' : ''}`}
-          onClick={() => setActiveTab('schedule')}
-        >
-          📅 Расписание
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'bookings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('bookings')}
-        >
-          📋 Записи {pendingBookings.length > 0 && <span className="badge">{pendingBookings.length}</span>}
-        </button>
-      </div>
-
-      {activeTab === 'schedule' && (
+      <div className="availability-section">
         <div className="availability-section">
           <div className="add-slots-section">
             <h3>➕ Добавить расписание</h3>
@@ -394,132 +282,7 @@ const ExpertCalendar: React.FC = () => {
             )}
           </div>
         </div>
-      )}
-
-      {activeTab === 'bookings' && (
-        <div className="bookings-section">
-          {pendingBookings.length > 0 && (
-            <div className="bookings-group">
-              <h3>⏳ Ожидают подтверждения ({pendingBookings.length})</h3>
-              {pendingBookings.map(booking => (
-                <div key={booking.id} className="booking-card pending">
-                  <div className="booking-header">
-                    <div className="client-info">
-                      {booking.client_avatar && (
-                        <img src={booking.client_avatar} alt={booking.client_name} className="client-avatar" />
-                      )}
-                      <div>
-                        <h4>{booking.client_name}</h4>
-                        <p className="client-email">{booking.client_email}</p>
-                      </div>
-                    </div>
-                    {getStatusBadge(booking.status)}
-                  </div>
-                  
-                  <div className="booking-details">
-                    <p><strong>📅 Дата:</strong> {formatDate(booking.date)}</p>
-                    <p><strong>🕐 Время:</strong> {booking.time_slot}</p>
-                    {booking.client_message && (
-                      <p className="client-message">
-                        <strong>💬 Сообщение:</strong><br />
-                        {booking.client_message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="booking-actions">
-                    <button
-                      className="btn btn-success"
-                      onClick={() => handleBookingAction(booking.id, 'confirmed')}
-                    >
-                      ✓ Подтвердить
-                    </button>
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => handleBookingAction(booking.id, 'rejected')}
-                    >
-                      ✕ Отклонить
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {upcomingBookings.length > 0 && (
-            <div className="bookings-group">
-              <h3>✅ Подтвержденные записи ({upcomingBookings.length})</h3>
-              {upcomingBookings.map(booking => (
-                <div key={booking.id} className="booking-card confirmed">
-                  <div className="booking-header">
-                    <div className="client-info">
-                      {booking.client_avatar && (
-                        <img src={booking.client_avatar} alt={booking.client_name} className="client-avatar" />
-                      )}
-                      <div>
-                        <h4>{booking.client_name}</h4>
-                        <p className="client-email">{booking.client_email}</p>
-                      </div>
-                    </div>
-                    {getStatusBadge(booking.status)}
-                  </div>
-                  
-                  <div className="booking-details">
-                    <p><strong>📅 Дата:</strong> {formatDate(booking.date)}</p>
-                    <p><strong>🕐 Время:</strong> {booking.time_slot}</p>
-                  </div>
-
-                  <div className="booking-actions">
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => handleCancelBooking(booking.id)}
-                    >
-                      ✕ Отменить запись
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {pastBookings.length > 0 && (
-            <div className="bookings-group">
-              <h3>📝 История ({pastBookings.length})</h3>
-              {pastBookings.map(booking => (
-                <div key={booking.id} className="booking-card past">
-                  <div className="booking-header">
-                    <div className="client-info">
-                      {booking.client_avatar && (
-                        <img src={booking.client_avatar} alt={booking.client_name} className="client-avatar" />
-                      )}
-                      <div>
-                        <h4>{booking.client_name}</h4>
-                        <p className="client-email">{booking.client_email}</p>
-                      </div>
-                    </div>
-                    {getStatusBadge(booking.status)}
-                  </div>
-                  
-                  <div className="booking-details">
-                    <p><strong>📅 Дата:</strong> {formatDate(booking.date)}</p>
-                    <p><strong>🕐 Время:</strong> {booking.time_slot}</p>
-                    {booking.rejection_reason && (
-                      <p className="rejection-reason">
-                        <strong>❌ Причина отклонения:</strong><br />
-                        {booking.rejection_reason}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {bookings.length === 0 && (
-            <p className="empty-message">У вас пока нет записей</p>
-          )}
-        </div>
-      )}
+      </div>
     </div>
   );
 };
