@@ -128,6 +128,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
     const paymentId = paymentResult.rows[0].id;
 
     // Создаем платеж в Юкассе
+    // Одностадийный платеж: деньги списываются автоматически сразу после оплаты
     const paymentData: any = {
       amount: {
         value: amount.toFixed(2),
@@ -138,6 +139,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
         return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment-success?payment_id=${paymentId}`
       },
       description: description,
+      capture: true, // Одностадийный платеж: деньги списываются сразу после оплаты
       metadata: {
         payment_id: paymentId,
         user_id: userId,
@@ -231,10 +233,11 @@ async function processSuccessfulPayment(payment: any) {
     );
     console.log(`✅ Статус платежа ${payment.id} обновлен на 'succeeded'`);
 
+    // Автоматически выдаем права эксперта при оплате месячной или годовой подписки
     // Проверяем план подписки - делаем экспертом только для monthly и yearly
     const expertPlans = ['monthly', 'yearly'];
     if (expertPlans.includes(payment.plan_id)) {
-      console.log(`✅ План ${payment.plan_id} дает статус эксперта. Обновляем пользователя...`);
+      console.log(`✅ План ${payment.plan_id} дает статус эксперта. Автоматически обновляем пользователя...`);
       
       // Проверяем текущий статус пользователя
       const userResult = await query(
