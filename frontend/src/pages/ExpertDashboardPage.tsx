@@ -255,7 +255,7 @@ const ExpertDashboardPage: React.FC = () => {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div>
-              <Title level={3} style={{ margin: 0, fontWeight: 500 }}>Управление записями</Title>
+              <Title level={3} style={{ margin: 0 }}>Управление записями</Title>
               <Text type="secondary">
                 Все записи клиентов: подтверждение заявок, управление расписанием
               </Text>
@@ -310,7 +310,7 @@ const ExpertDashboardPage: React.FC = () => {
                   borderRadius: 8,
                   padding: 16
                 }}>
-                  <Title level={4} style={{ marginTop: 0, fontWeight: 500 }}>
+                  <Title level={4} style={{ marginTop: 0 }}>
                     ⏳ Ожидают подтверждения 
                     <span style={{
                       marginLeft: 8,
@@ -381,7 +381,7 @@ const ExpertDashboardPage: React.FC = () => {
               {/* Подтвержденные */}
               {confirmedBookings.length > 0 && (
                 <div>
-                  <Title level={4} style={{ fontWeight: 500 }}>✅ Подтвержденные записи ({confirmedBookings.length})</Title>
+                  <Title level={4}>✅ Подтвержденные записи ({confirmedBookings.length})</Title>
                   <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                     {confirmedBookings.map((booking) => (
                       <Card key={booking.id}>
@@ -420,7 +420,7 @@ const ExpertDashboardPage: React.FC = () => {
               {/* История */}
               {historyBookings.length > 0 && (
                 <div>
-                  <Title level={4} style={{ fontWeight: 500 }}>📝 История ({historyBookings.length})</Title>
+                  <Title level={4}>📝 История ({historyBookings.length})</Title>
                   <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                     {historyBookings.map((booking) => (
                       <Card key={booking.id} style={{ opacity: 0.7 }}>
@@ -487,7 +487,7 @@ const ExpertDashboardPage: React.FC = () => {
       ),
       children: (
         <div>
-          <Title level={3} style={{ fontWeight: 500 }}>Список клиентов</Title>
+          <Title level={3}>Список клиентов</Title>
           <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
             Здесь отображаются клиенты, которые записывались к вам на консультации
           </Text>
@@ -576,7 +576,7 @@ const ExpertDashboardPage: React.FC = () => {
   return (
     <div className="container" style={{ padding: '24px' }}>
       <Card>
-        <Title level={2} style={{ marginBottom: 24, fontWeight: 500 }}>
+        <Title level={2} style={{ marginBottom: 24 }}>
           Кабинет эксперта
         </Title>
         <Tabs
