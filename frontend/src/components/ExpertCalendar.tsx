@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Switch, Tooltip } from 'antd';
-import { CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
 
@@ -189,89 +189,185 @@ const ExpertCalendar: React.FC = () => {
             <p className="info-text">Добавьте сеансы для каждого дня недели. Укажите время начала и окончания — длительность рассчитается автоматически.</p>
             
             <div className="days-schedule-form">
-              {DAYS_OF_WEEK.map(day => (
-                <div key={day.value} className="day-schedule-block">
-                  <h4 className="day-title">{day.label}</h4>
-                  
-                  {/* Существующие сеансы */}
-                  {groupedSchedules[day.value]?.map(schedule => (
-                    <div key={schedule.id} className={`existing-session ${!schedule.is_active ? 'inactive' : ''}`}>
-                      <span>🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}</span>
-                      <div className="session-controls">
-                        <Tooltip title={schedule.is_active ? 'Выключить слот' : 'Включить слот'}>
-                          <Switch
-                            size="small"
-                            checked={schedule.is_active}
-                            onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
-                            checkedChildren={<CheckOutlined />}
-                            unCheckedChildren={<CloseOutlined />}
-                            className="session-switch"
-                          />
-                        </Tooltip>
-                        <Tooltip title="Удалить слот">
-                          <Switch
-                            size="small"
-                            checked={!!deleteSwitchState[schedule.id]}
-                            onChange={() => confirmDeleteSchedule(schedule.id)}
-                            checkedChildren={<DeleteOutlined />}
-                            unCheckedChildren={<DeleteOutlined />}
-                            className="session-switch danger"
-                          />
-                        </Tooltip>
+              {DAYS_OF_WEEK.map(day => {
+                const daySchedules = groupedSchedules[day.value] || [];
+                const activeCount = daySchedules.filter(s => s.is_active).length;
+                const dayActive = activeCount > 0;
+
+                const handleToggleDay = async (makeActive: boolean) => {
+                  if (daySchedules.length === 0) return;
+                  try {
+                    setLoading(true);
+                    await Promise.all(
+                      daySchedules.map(schedule =>
+                        axios.put(`/schedule/expert/schedule/${schedule.id}/toggle`, { isActive: makeActive })
+                      )
+                    );
+                    setSuccess(makeActive ? 'День активирован' : 'День выключен');
+                    await loadSchedule();
+                  } catch (err: any) {
+                    setError(err.response?.data?.error || 'Ошибка обновления дня');
+                  } finally {
+                    setLoading(false);
+                  }
+                };
+
+                const confirmDeleteDay = () => {
+                  if (daySchedules.length === 0) return;
+                  Modal.confirm({
+                    title: 'Удалить все слоты дня?',
+                    content: 'Все сеансы этого дня будут удалены без возможности восстановления.',
+                    okText: 'Удалить',
+                    cancelText: 'Отмена',
+                    okButtonProps: { danger: true },
+                    centered: true,
+                    onOk: async () => {
+                      try {
+                        setLoading(true);
+                        for (const schedule of daySchedules) {
+                          await handleDeleteSchedule(schedule.id);
+                        }
+                      } finally {
+                        setLoading(false);
+                      }
+                    }
+                  });
+                };
+
+                return (
+                  <div key={day.value} className="day-card">
+                    <div className="day-card-header">
+                      <div className="day-card-title">
+                        <div className="day-icon">
+                          <CalendarOutlined />
+                        </div>
+                        <div>
+                          <div className="day-title">{day.label}</div>
+                          <div className="day-meta">
+                            Рабочий день • {daySchedules.length || 0} онлайн-сессии
+                          </div>
+                        </div>
+                      </div>
+                      <div className="day-card-actions">
+                        <span className={`day-status ${dayActive ? 'active' : 'inactive'}`}>
+                          {dayActive ? 'День активен' : 'День выключен'}
+                        </span>
+                        <Switch
+                          checked={dayActive}
+                          size="small"
+                          onChange={(checked) => handleToggleDay(checked)}
+                          checkedChildren={<CheckOutlined />}
+                          unCheckedChildren={<CloseOutlined />}
+                          className="day-switch"
+                        />
+                        <button
+                          className="day-delete"
+                          onClick={confirmDeleteDay}
+                          title="Удалить все слоты дня"
+                        >
+                          <CloseOutlined />
+                        </button>
                       </div>
                     </div>
-                  ))}
-                  
-                  {/* Формы добавления новых сеансов */}
-                  {activeForms[day.value]?.map((form, index) => (
-                    <div key={index} className="session-form">
-                      <div className="time-inputs">
-                        <input
-                          type="time"
-                          value={form.startTime}
-                          onChange={(e) => updateSessionForm(day.value, index, 'startTime', e.target.value)}
-                          className="form-input-small"
-                          placeholder="Начало"
-                        />
-                        <span className="time-separator">-</span>
-                        <input
-                          type="time"
-                          value={form.endTime}
-                          onChange={(e) => updateSessionForm(day.value, index, 'endTime', e.target.value)}
-                          className="form-input-small"
-                          placeholder="Конец"
-                        />
-                      </div>
-                      <div className="session-actions">
-                        <button
-                          className="btn-save-small"
-                          onClick={() => handleAddSchedule(day.value, index)}
-                          disabled={loading}
-                          title="Сохранить"
-                        >
-                          ✓
-                        </button>
-                        <button
-                          className="btn-cancel-small"
-                          onClick={() => removeSessionForm(day.value, index)}
-                          disabled={loading}
-                          title="Отменить"
-                        >
-                          ✕
-                        </button>
-                      </div>
+
+                    <div className="day-sessions">
+                      {/* Существующие сеансы */}
+                      {daySchedules.length === 0 ? (
+                        <div className="empty-day">Нет сеансов в этот день</div>
+                      ) : (
+                        daySchedules.map(schedule => (
+                          <div key={schedule.id} className={`session-card ${!schedule.is_active ? 'inactive' : ''}`}>
+                            <div className="session-info">
+                              <span className="session-dot" />
+                              <span className="session-time">{formatTime(schedule.start_time)} — {formatTime(schedule.end_time)}</span>
+                              <span className="session-duration">{schedule.slot_duration} мин</span>
+                            </div>
+                            <div className="session-controls">
+                              <Tooltip title={schedule.is_active ? 'Выключить слот' : 'Включить слот'}>
+                                <Switch
+                                  size="small"
+                                  checked={schedule.is_active}
+                                  onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
+                                  checkedChildren={<CheckOutlined />}
+                                  unCheckedChildren={<CloseOutlined />}
+                                  className="session-switch"
+                                />
+                              </Tooltip>
+                              <Tooltip title="Удалить слот">
+                                <Switch
+                                  size="small"
+                                  checked={!!deleteSwitchState[schedule.id]}
+                                  onChange={() => confirmDeleteSchedule(schedule.id)}
+                                  checkedChildren={<DeleteOutlined />}
+                                  unCheckedChildren={<DeleteOutlined />}
+                                  className="session-switch danger"
+                                />
+                              </Tooltip>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
-                  ))}
-                  
-                  {/* Кнопка добавления сеанса */}
-                  <button
-                    className="btn-add-session"
-                    onClick={() => addSessionForm(day.value)}
-                  >
-                    + Добавить сеанс
-                  </button>
-                </div>
-              ))}
+
+                    {/* Формы добавления новых сеансов */}
+                    {activeForms[day.value]?.map((form, index) => (
+                      <div key={index} className="session-form">
+                        <div className="session-form-title">Добавить новый сеанс</div>
+                        <div className="time-inputs wide">
+                          <div className="time-input-wrapper">
+                            <span className="time-icon">⏱</span>
+                            <input
+                              type="time"
+                              value={form.startTime}
+                              onChange={(e) => updateSessionForm(day.value, index, 'startTime', e.target.value)}
+                              className="form-input-small"
+                              placeholder="Начало"
+                            />
+                          </div>
+                          <span className="time-separator">—</span>
+                          <div className="time-input-wrapper">
+                            <span className="time-icon">⏱</span>
+                            <input
+                              type="time"
+                              value={form.endTime}
+                              onChange={(e) => updateSessionForm(day.value, index, 'endTime', e.target.value)}
+                              className="form-input-small"
+                              placeholder="Конец"
+                            />
+                          </div>
+                          <span className="slot-length">Оч мин</span>
+                        </div>
+                        <div className="session-actions modern">
+                          <button
+                            className="btn-cancel-modern"
+                            onClick={() => removeSessionForm(day.value, index)}
+                            disabled={loading}
+                            title="Отменить"
+                          >
+                            Отменить
+                          </button>
+                          <button
+                            className="btn-save-modern"
+                            onClick={() => handleAddSchedule(day.value, index)}
+                            disabled={loading}
+                            title="Сохранить"
+                          >
+                            ✓ Сохранить сеанс
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Кнопка добавления сеанса */}
+                    <button
+                      className="btn-add-session modern"
+                      onClick={() => addSessionForm(day.value)}
+                    >
+                      + Добавить ещё один сеанс
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

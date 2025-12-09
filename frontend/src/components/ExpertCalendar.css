@@ -77,6 +77,150 @@
   gap: 30px;
 }
 
+.day-card {
+  background: linear-gradient(180deg, #f8faff 0%, #f2f5ff 100%);
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid #e4e8f5;
+  box-shadow: 0 6px 20px rgba(109, 130, 179, 0.12);
+  margin-bottom: 20px;
+}
+
+.day-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.day-card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.day-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #eef2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+  font-size: 18px;
+}
+
+.day-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.day-meta {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.day-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.day-status {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.day-status.active {
+  background: #ecfdf3;
+  color: #16a34a;
+}
+
+.day-switch.ant-switch {
+  min-width: 44px;
+  height: 24px;
+}
+
+.day-switch.ant-switch-checked {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.day-delete {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.day-delete:hover {
+  background: #fecaca;
+}
+
+.day-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.session-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #f6f4ff;
+  border: 1px solid #e6e1ff;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.session-card.inactive {
+  opacity: 0.65;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.session-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.session-dot {
+  width: 10px;
+  height: 10px;
+  background: #7c3aed;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px #ede9fe;
+}
+
+.session-time {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.session-duration {
+  font-size: 12px;
+  color: #6b7280;
+  background: #eef2ff;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
 .add-slots-section {
   background: var(--card-bg);
   padding: 24px;
@@ -642,36 +786,6 @@
   font-size: 22px;
 }
 
-.existing-session {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 14px;
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--card-bg) 100%);
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  transition: all 0.3s ease;
-}
-
-.existing-session:hover {
-  border-color: #9333ea;
-  transform: translateX(4px);
-}
-
-.existing-session.inactive {
-  opacity: 0.7;
-  background: var(--bg-secondary);
-  border-color: var(--border-color);
-}
-
-.existing-session.inactive:hover {
-  border-color: #9ca3af;
-}
-
 .session-controls {
   display: flex;
   align-items: center;
@@ -751,13 +865,19 @@
 .session-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   padding: 16px;
-  background: var(--bg-secondary);
-  border: 3px dashed #9333ea;
+  background: #f8fafc;
+  border: 2px dashed #a78bfa;
   border-radius: 12px;
   margin-bottom: 12px;
   animation: formAppear 0.3s ease;
+}
+
+.session-form-title {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 15px;
 }
 
 @keyframes formAppear {
@@ -777,6 +897,26 @@
   gap: 8px;
 }
 
+.time-inputs.wide {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.time-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+}
+
+.time-icon {
+  font-size: 14px;
+  color: #6b7280;
+}
+
 .form-input-small {
   flex: 1;
   padding: 8px 10px;
@@ -786,6 +926,14 @@
   color: var(--text-primary);
   background: var(--bg-primary);
   transition: border-color 0.3s ease;
+}
+
+.slot-length {
+  font-size: 12px;
+  color: #6b7280;
+  background: #ede9fe;
+  padding: 6px 10px;
+  border-radius: 999px;
 }
 
 .form-input-small:focus {
@@ -801,6 +949,11 @@
 .session-actions {
   display: flex;
   gap: 8px;
+}
+
+.session-actions.modern {
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .btn-save-small,
@@ -837,6 +990,42 @@
   box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
+.btn-save-modern {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+}
+
+.btn-save-modern:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-save-modern:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancel-modern {
+  padding: 10px 14px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-modern:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
 .btn-add-session {
   width: 100%;
   padding: 12px;
@@ -851,6 +1040,10 @@
   margin-top: 8px;
 }
 
+.btn-add-session.modern {
+  margin-top: 4px;
+}
+
 .btn-add-session:hover {
   background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
   color: white;
@@ -858,6 +1051,15 @@
   border-style: solid;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(147, 51, 234, 0.4);
+}
+
+.empty-day {
+  padding: 14px 16px;
+  background: #f3f4f6;
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  color: #6b7280;
+  font-size: 14px;
 }
 
 /* Скрыть старый список расписания */
