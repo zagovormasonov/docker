@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
 import './ExpertCalendar.css';
+import '../components/ClientBookingCalendar.css';
 
 interface Schedule {
   id: number;
@@ -21,9 +23,20 @@ const DAYS_OF_WEEK = [
   { value: 0, label: 'Воскресенье' }
 ];
 
+interface AvailabilitySlot {
+  id?: number;
+  date: string;
+  time_slot: string;
+  is_booked?: boolean;
+  duration?: number;
+}
+
 const ExpertCalendar: React.FC = () => {
+  const { user } = useAuth();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<AvailabilitySlot[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -55,14 +68,40 @@ const ExpertCalendar: React.FC = () => {
 
   useEffect(() => {
     loadSchedule();
-  }, []);
+    if (user?.id) {
+      loadAvailableSlots();
+    }
+  }, [user]);
 
   const loadSchedule = async () => {
     try {
       const response = await axios.get('/schedule/expert/schedule');
       setSchedules(response.data);
+      // Перезагружаем доступные слоты после обновления расписания
+      if (user?.id) {
+        loadAvailableSlots();
+      }
     } catch (err) {
       console.error('Ошибка загрузки расписания:', err);
+    }
+  };
+
+  const loadAvailableSlots = async () => {
+    if (!user?.id) return;
+    try {
+      setLoadingSlots(true);
+      const today = new Date().toISOString().split('T')[0];
+      const response = await axios.get(`/schedule/expert/${user.id}/available-slots`, {
+        params: { 
+          startDate: today,
+          daysAhead: 30 
+        }
+      });
+      setAvailableSlots(response.data);
+    } catch (err) {
+      console.error('Ошибка загрузки доступных слотов:', err);
+    } finally {
+      setLoadingSlots(false);
     }
   };
 
@@ -138,6 +177,28 @@ const ExpertCalendar: React.FC = () => {
     return time.slice(0, 5);
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ru-RU', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const formatDuration = (minutes?: number) => {
+    if (!minutes) return '';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0 && mins > 0) {
+      return `${hours} ч ${mins} мин`;
+    } else if (hours > 0) {
+      return `${hours} ${hours === 1 ? 'час' : hours < 5 ? 'часа' : 'часов'}`;
+    } else {
+      return `${mins} мин`;
+    }
+  };
+
   const groupedSchedules = schedules.reduce((acc, schedule) => {
     const day = schedule.day_of_week;
     if (!acc[day]) {
@@ -147,9 +208,20 @@ const ExpertCalendar: React.FC = () => {
     return acc;
   }, {} as Record<number, Schedule[]>);
 
+  const groupedSlots = availableSlots.reduce((acc, slot) => {
+    const date = slot.date;
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(slot);
+    return acc;
+  }, {} as Record<string, AvailabilitySlot[]>);
+
+  const sortedDates = Object.keys(groupedSlots).sort();
+
   return (
     <div className="expert-calendar">
-      <h2>📅 Расписание</h2>
+      <h2 style={{ fontWeight: 500 }}>📅 Расписание</h2>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
@@ -157,7 +229,7 @@ const ExpertCalendar: React.FC = () => {
       <div className="availability-section">
         <div className="availability-section">
           <div className="add-slots-section">
-            <h3>➕ Добавить расписание</h3>
+            <h3 style={{ fontWeight: 500 }}>➕ Добавить расписание</h3>
             <p className="info-text">Добавьте сеансы для каждого дня недели. Укажите время начала и окончания — длительность рассчитается автоматически.</p>
             
             <div className="days-schedule-form">
@@ -241,43 +313,44 @@ const ExpertCalendar: React.FC = () => {
             </div>
           </div>
 
-          <div className="slots-list">
-            <h3>Ваше расписание</h3>
-            {schedules.length === 0 ? (
-              <p className="empty-message">У вас пока нет расписания. Добавьте дни и время работы выше.</p>
+          {/* Отображение календаря как видят пользователи */}
+          <div style={{ marginTop: 40 }}>
+            <h3 style={{ fontSize: 20, marginBottom: 20, color: 'var(--text-primary)', fontWeight: 500 }}>
+              📅 Как видят ваше расписание пользователи
+            </h3>
+            {loadingSlots ? (
+              <div className="loading">Загрузка доступных слотов...</div>
+            ) : sortedDates.length === 0 ? (
+              <div className="empty-state">
+                <p>😔 У вас пока нет доступных слотов для записи.</p>
+                <p>Добавьте расписание выше, чтобы пользователи могли записаться к вам.</p>
+              </div>
             ) : (
-              <div className="schedule-list">
-                {DAYS_OF_WEEK.map(day => {
-                  const daySchedules = groupedSchedules[day.value] || [];
-                  if (daySchedules.length === 0) return null;
-
-                  return (
-                    <div key={day.value} className="schedule-day-group">
-                      <h4>{day.label}</h4>
-                      <div className="schedule-items">
-                        {daySchedules.map(schedule => (
-                          <div key={schedule.id} className="schedule-item">
-                            <div className="schedule-info">
-                              <span className="schedule-time">
-                                🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
-                              </span>
-                              <span className="schedule-duration">
-                                📊 Слот: {schedule.slot_duration} мин
-                              </span>
-                            </div>
-                            <button
-                              className="btn-delete"
-                              onClick={() => handleDeleteSchedule(schedule.id)}
-                              title="Удалить расписание"
-                            >
-                              ✕
-                            </button>
+              <div className="calendar-view">
+                {sortedDates.map(date => (
+                  <div key={date} className="date-section">
+                    <h3 className="date-header">{formatDate(date)}</h3>
+                    <div className="slots-grid">
+                      {groupedSlots[date]
+                        .sort((a, b) => a.time_slot.localeCompare(b.time_slot))
+                        .map((slot, index) => (
+                          <div
+                            key={slot.id || `${date}-${index}`}
+                            className="slot-button"
+                            style={{ cursor: 'default' }}
+                          >
+                            <span className="slot-time">🕐 {slot.time_slot}</span>
+                            {slot.duration && (
+                              <span className="slot-duration">⏱️ {formatDuration(slot.duration)}</span>
+                            )}
+                            <span className="slot-status">
+                              {slot.is_booked ? '🔴 Забронировано' : '🟢 Доступно'}
+                            </span>
                           </div>
                         ))}
-                      </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
