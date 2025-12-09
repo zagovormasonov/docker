@@ -678,48 +678,6 @@
   gap: 8px;
 }
 
-.session-switch {
-  min-width: 90px;
-}
-
-.session-controls .ant-switch {
-  box-shadow: none;
-  height: 32px;
-  line-height: 32px;
-  padding: 0 12px;
-}
-
-.session-controls .ant-switch-checked {
-  background: #10b981;
-}
-
-.session-controls .ant-switch:not(.ant-switch-checked) {
-  background: #9ca3af;
-}
-
-.session-controls .ant-switch .ant-switch-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  padding-inline: 8px;
-  height: 100%;
-}
-
-.session-controls .ant-switch .ant-switch-handle {
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.session-controls .ant-switch .ant-switch-handle::before {
-  width: 18px;
-  height: 18px;
-}
-
-.delete-switch {
-  min-width: 108px;
-}
-
 .btn-delete-small {
   background: #ef4444;
   color: white;

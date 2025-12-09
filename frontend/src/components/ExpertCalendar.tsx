@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Switch } from 'antd';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
 
@@ -27,7 +26,6 @@ const ExpertCalendar: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [deleteSwitchState, setDeleteSwitchState] = useState<Record<number, boolean>>({});
 
   // Форма добавления расписания - для каждого дня недели
   const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
@@ -111,6 +109,10 @@ const ExpertCalendar: React.FC = () => {
   };
 
   const handleDeleteSchedule = async (scheduleId: number) => {
+    if (!confirm('Вы уверены, что хотите удалить это расписание?')) {
+      return;
+    }
+
     try {
       await axios.delete(`/schedule/expert/schedule/${scheduleId}`);
       setSuccess('Расписание удалено');
@@ -131,28 +133,6 @@ const ExpertCalendar: React.FC = () => {
       setError(err.response?.data?.error || 'Ошибка обновления статуса расписания');
     }
   };
-
-  const handleDeleteToggle = async (scheduleId: number, checked: boolean) => {
-    if (checked) {
-      setDeleteSwitchState(prev => ({ ...prev, [scheduleId]: true }));
-      return;
-    }
-
-    const confirmed = confirm('Удалить этот промежуток времени?');
-    if (confirmed) {
-      await handleDeleteSchedule(scheduleId);
-    } else {
-      setDeleteSwitchState(prev => ({ ...prev, [scheduleId]: true }));
-    }
-  };
-
-  useEffect(() => {
-    const initialState: Record<number, boolean> = {};
-    schedules.forEach(schedule => {
-      initialState[schedule.id] = true;
-    });
-    setDeleteSwitchState(initialState);
-  }, [schedules]);
 
   const formatTime = (time: string) => {
     return time.slice(0, 5);
@@ -190,22 +170,20 @@ const ExpertCalendar: React.FC = () => {
                     <div key={schedule.id} className={`existing-session ${!schedule.is_active ? 'inactive' : ''}`}>
                       <span>🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}</span>
                       <div className="session-controls">
-                        <Switch
-                          size="small"
-                          checked={schedule.is_active}
-                          checkedChildren="Вкл"
-                          unCheckedChildren="Выкл"
-                          onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
-                          className="session-switch"
-                        />
-                        <Switch
-                          size="small"
-                          checked={deleteSwitchState[schedule.id] ?? true}
-                          checkedChildren="Оставить"
-                          unCheckedChildren="Удалить"
-                          onChange={(checked) => handleDeleteToggle(schedule.id, checked)}
-                          className="session-switch delete-switch"
-                        />
+                        <button
+                          className={`btn-toggle-small ${!schedule.is_active ? 'inactive' : ''}`}
+                          onClick={() => handleToggleSchedule(schedule.id, !schedule.is_active)}
+                          title={schedule.is_active ? "Выключить" : "Включить"}
+                        >
+                          {schedule.is_active ? "ON" : "OFF"}
+                        </button>
+                        <button
+                          className="btn-delete-small"
+                          onClick={() => handleDeleteSchedule(schedule.id)}
+                          title="Удалить"
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
                   ))}
