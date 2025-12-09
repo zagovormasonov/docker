@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Modal, Switch, Tooltip } from 'antd';
+import { CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
 
@@ -26,6 +28,7 @@ const ExpertCalendar: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [deleteSwitchState, setDeleteSwitchState] = useState<Record<number, boolean>>({});
 
   // Форма добавления расписания - для каждого дня недели
   const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
@@ -109,17 +112,42 @@ const ExpertCalendar: React.FC = () => {
   };
 
   const handleDeleteSchedule = async (scheduleId: number) => {
-    if (!confirm('Вы уверены, что хотите удалить это расписание?')) {
-      return;
-    }
-
     try {
       await axios.delete(`/schedule/expert/schedule/${scheduleId}`);
       setSuccess('Расписание удалено');
       await loadSchedule();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Ошибка удаления расписания');
+    } finally {
+      setDeleteSwitchState(prev => {
+        const { [scheduleId]: _, ...rest } = prev;
+        return rest;
+      });
     }
+  };
+
+  const confirmDeleteSchedule = (scheduleId: number) => {
+    setDeleteSwitchState(prev => ({ ...prev, [scheduleId]: true }));
+
+    Modal.confirm({
+      title: 'Удалить расписание?',
+      content: 'Действие необратимо, слот будет удален.',
+      okText: 'Удалить',
+      cancelText: 'Отмена',
+      okButtonProps: { danger: true },
+      centered: true,
+      onOk: () => handleDeleteSchedule(scheduleId),
+      onCancel: () =>
+        setDeleteSwitchState(prev => {
+          const { [scheduleId]: _, ...rest } = prev;
+          return rest;
+        }),
+      afterClose: () =>
+        setDeleteSwitchState(prev => {
+          const { [scheduleId]: _, ...rest } = prev;
+          return rest;
+        })
+    });
   };
 
   const handleToggleSchedule = async (scheduleId: number, isActive: boolean) => {
@@ -170,20 +198,26 @@ const ExpertCalendar: React.FC = () => {
                     <div key={schedule.id} className={`existing-session ${!schedule.is_active ? 'inactive' : ''}`}>
                       <span>🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}</span>
                       <div className="session-controls">
-                        <button
-                          className={`btn-toggle-small ${!schedule.is_active ? 'inactive' : ''}`}
-                          onClick={() => handleToggleSchedule(schedule.id, !schedule.is_active)}
-                          title={schedule.is_active ? "Выключить" : "Включить"}
-                        >
-                          {schedule.is_active ? "ON" : "OFF"}
-                        </button>
-                        <button
-                          className="btn-delete-small"
-                          onClick={() => handleDeleteSchedule(schedule.id)}
-                          title="Удалить"
-                        >
-                          ✕
-                        </button>
+                        <Tooltip title={schedule.is_active ? 'Выключить слот' : 'Включить слот'}>
+                          <Switch
+                            size="small"
+                            checked={schedule.is_active}
+                            onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
+                            checkedChildren={<CheckOutlined />}
+                            unCheckedChildren={<CloseOutlined />}
+                            className="session-switch"
+                          />
+                        </Tooltip>
+                        <Tooltip title="Удалить слот">
+                          <Switch
+                            size="small"
+                            checked={!!deleteSwitchState[schedule.id]}
+                            onChange={() => confirmDeleteSchedule(schedule.id)}
+                            checkedChildren={<DeleteOutlined />}
+                            unCheckedChildren={<DeleteOutlined />}
+                            className="session-switch danger"
+                          />
+                        </Tooltip>
                       </div>
                     </div>
                   ))}
