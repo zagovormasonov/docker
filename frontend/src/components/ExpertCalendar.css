@@ -684,8 +684,9 @@
 
 .session-controls .ant-switch {
   box-shadow: none;
-  height: 28px;
-  line-height: 26px;
+  height: 30px;
+  line-height: 30px;
+  padding: 0 10px;
 }
 
 .session-controls .ant-switch-checked {
@@ -694,6 +695,14 @@
 
 .session-controls .ant-switch:not(.ant-switch-checked) {
   background: #9ca3af;
+}
+
+.session-controls .ant-switch .ant-switch-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  padding-inline: 8px;
 }
 
 .delete-switch {
