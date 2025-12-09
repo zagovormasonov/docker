@@ -146,13 +146,18 @@
 }
 
 .day-switch.ant-switch {
-  min-width: 44px;
-  height: 22px;
+  min-width: 60px;
+  height: 24px;
   background: #d1d5db;
 }
 
 .day-switch.ant-switch-checked {
   background: #10b981;
+}
+
+.day-switch .ant-switch-inner {
+  font-size: 12px;
+  padding: 0 6px;
 }
 
 .day-delete {
@@ -796,13 +801,18 @@
 }
 
 .session-switch.ant-switch {
-  min-width: 44px;
-  height: 22px;
+  min-width: 60px;
+  height: 24px;
   background: #d1d5db;
 }
 
 .session-switch.ant-switch-checked {
   background: #10b981;
+}
+
+.session-switch .ant-switch-inner {
+  font-size: 12px;
+  padding: 0 6px;
 }
 
 .session-switch.danger.ant-switch {
@@ -813,14 +823,8 @@
   background: #ef4444;
 }
 
-.day-switch.ant-switch {
-  min-width: 44px;
-  height: 22px;
-  background: #d1d5db;
-}
-
-.day-switch.ant-switch-checked {
-  background: #10b981;
+.session-switch.danger .ant-switch-inner {
+  font-size: 11px;
 }
 
 .btn-delete-small {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Switch, Tooltip } from 'antd';
+import { Modal, Switch } from 'antd';
 import { CalendarOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
@@ -254,8 +254,9 @@ const ExpertCalendar: React.FC = () => {
                         </span>
                         <Switch
                           checked={dayActive}
-                          size="small"
                           onChange={(checked) => handleToggleDay(checked)}
+                          checkedChildren="Вкл"
+                          unCheckedChildren="Выкл"
                           className="day-switch"
                         />
                         <button
@@ -281,22 +282,20 @@ const ExpertCalendar: React.FC = () => {
                               <span className="session-duration">{schedule.slot_duration} мин</span>
                             </div>
                             <div className="session-controls">
-                              <Tooltip title={schedule.is_active ? 'Выключить слот' : 'Включить слот'}>
-                                <Switch
-                                  size="small"
-                                  checked={schedule.is_active}
-                                  onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
-                                  className="session-switch"
-                                />
-                              </Tooltip>
-                              <Tooltip title="Удалить слот">
-                                <Switch
-                                  size="small"
-                                  checked={!!deleteSwitchState[schedule.id]}
-                                  onChange={() => confirmDeleteSchedule(schedule.id)}
-                                  className="session-switch danger"
-                                />
-                              </Tooltip>
+                              <Switch
+                                checked={schedule.is_active}
+                                onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
+                                checkedChildren="Вкл"
+                                unCheckedChildren="Выкл"
+                                className="session-switch"
+                              />
+                              <Switch
+                                checked={!!deleteSwitchState[schedule.id]}
+                                onChange={() => confirmDeleteSchedule(schedule.id)}
+                                checkedChildren="Удалить"
+                                unCheckedChildren="Удалить"
+                                className="session-switch danger"
+                              />
                             </div>
                           </div>
                         ))
