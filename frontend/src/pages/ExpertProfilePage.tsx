@@ -29,7 +29,8 @@ import {
   StarOutlined,
   StarFilled,
   PlusOutlined,
-  ShareAltOutlined
+  ShareAltOutlined,
+  RadiusBottomrightOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -566,7 +567,7 @@ const ExpertProfilePage = () => {
                               {service.price && (
                                 <div style={{ marginBottom: 8 }}>
                                   <Space>
-                                    <RussianRuble />
+                                    <RadiusBottomrightOutlined />
                                     <Text>{service.price} ₽</Text>
                                   </Space>
                                 </div>
@@ -659,7 +660,7 @@ const ExpertProfilePage = () => {
                               {product.price && (
                                 <div style={{ marginBottom: 8 }}>
                                   <Space>
-                                    <RussianRubleIcon />
+                                    <RadiusBottomrightOutlined />
                                     <Text>{product.price} ₽</Text>
                                   </Space>
                                 </div>
