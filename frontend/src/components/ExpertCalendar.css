@@ -679,11 +679,13 @@
 }
 
 .session-switch {
-  min-width: 84px;
+  min-width: 90px;
 }
 
 .session-controls .ant-switch {
   box-shadow: none;
+  height: 28px;
+  line-height: 26px;
 }
 
 .session-controls .ant-switch-checked {
@@ -695,7 +697,7 @@
 }
 
 .delete-switch {
-  min-width: 96px;
+  min-width: 108px;
 }
 
 .btn-delete-small {
