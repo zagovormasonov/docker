@@ -114,9 +114,10 @@
 }
 
 .day-title {
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 500;
   color: #1f2937;
+  text-transform: none;
 }
 
 .day-meta {
@@ -146,11 +147,12 @@
 
 .day-switch.ant-switch {
   min-width: 44px;
-  height: 24px;
+  height: 22px;
+  background: #d1d5db;
 }
 
 .day-switch.ant-switch-checked {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: #10b981;
 }
 
 .day-delete {
@@ -794,62 +796,31 @@
 }
 
 .session-switch.ant-switch {
-  min-width: 46px;
-  height: 26px;
-  background: var(--border-color);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  display: inline-flex;
-  align-items: center;
+  min-width: 44px;
+  height: 22px;
+  background: #d1d5db;
 }
 
 .session-switch.ant-switch-checked {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.session-switch .ant-switch-inner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-size: 12px;
-  line-height: 1;
+  background: #10b981;
 }
 
 .session-switch.danger.ant-switch {
-  background: #fca5a5;
+  background: #d1d5db;
 }
 
 .session-switch.danger.ant-switch-checked {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-}
-
-.session-switch.danger .ant-switch-inner {
-  color: #fff;
-}
-
-.session-switch .ant-switch-handle {
-  top: 3px;
+  background: #ef4444;
 }
 
 .day-switch.ant-switch {
-  display: inline-flex;
-  align-items: center;
-  min-width: 46px;
-  height: 26px;
+  min-width: 44px;
+  height: 22px;
+  background: #d1d5db;
 }
 
-.day-switch .ant-switch-inner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  line-height: 1;
-}
-
-.day-switch .ant-switch-handle {
-  top: 3px;
+.day-switch.ant-switch-checked {
+  background: #10b981;
 }
 
 .btn-delete-small {

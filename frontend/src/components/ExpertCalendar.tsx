@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Switch, Tooltip } from 'antd';
-import { CalendarOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
 
@@ -256,8 +256,6 @@ const ExpertCalendar: React.FC = () => {
                           checked={dayActive}
                           size="small"
                           onChange={(checked) => handleToggleDay(checked)}
-                          checkedChildren={<CheckOutlined />}
-                          unCheckedChildren={<CloseOutlined />}
                           className="day-switch"
                         />
                         <button
@@ -288,8 +286,6 @@ const ExpertCalendar: React.FC = () => {
                                   size="small"
                                   checked={schedule.is_active}
                                   onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
-                                  checkedChildren={<CheckOutlined />}
-                                  unCheckedChildren={<CloseOutlined />}
                                   className="session-switch"
                                 />
                               </Tooltip>
@@ -298,8 +294,6 @@ const ExpertCalendar: React.FC = () => {
                                   size="small"
                                   checked={!!deleteSwitchState[schedule.id]}
                                   onChange={() => confirmDeleteSchedule(schedule.id)}
-                                  checkedChildren={<DeleteOutlined />}
-                                  unCheckedChildren={<DeleteOutlined />}
                                   className="session-switch danger"
                                 />
                               </Tooltip>
