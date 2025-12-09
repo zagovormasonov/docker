@@ -40,6 +40,7 @@ import ShareProfileModal from '../components/ShareProfileModal';
 import '../components/ServiceDescription.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
+import { RussianRuble, RussianRubleIcon } from 'lucide-react';
 
 dayjs.locale('ru');
 
@@ -565,7 +566,7 @@ const ExpertProfilePage = () => {
                               {service.price && (
                                 <div style={{ marginBottom: 8 }}>
                                   <Space>
-                                    <DollarOutlined />
+                                    <RussianRuble />
                                     <Text>{service.price} ₽</Text>
                                   </Space>
                                 </div>
@@ -658,7 +659,7 @@ const ExpertProfilePage = () => {
                               {product.price && (
                                 <div style={{ marginBottom: 8 }}>
                                   <Space>
-                                    <DollarOutlined />
+                                    <RussianRubleIcon />
                                     <Text>{product.price} ₽</Text>
                                   </Space>
                                 </div>
