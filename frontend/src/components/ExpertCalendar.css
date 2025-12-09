@@ -5,9 +5,10 @@
 }
 
 .expert-calendar h2 {
-  font-size: 28px;
+  font-size: 24px;
   margin-bottom: 20px;
   color: var(--text-primary);
+  font-weight: 700;
 }
 
 .alert {
@@ -113,13 +114,13 @@
 }
 
 .day-title {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   color: #1f2937;
 }
 
 .day-meta {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
 }
 
@@ -130,7 +131,7 @@
 }
 
 .day-status {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   padding: 6px 10px;
   border-radius: 999px;
@@ -209,7 +210,7 @@
 }
 
 .session-time {
-  font-weight: 700;
+  font-weight: 600;
   color: #1f2937;
 }
 
@@ -229,9 +230,10 @@
 }
 
 .add-slots-section h3 {
-  font-size: 20px;
+  font-size: 18px;
   margin-bottom: 20px;
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 .info-text {
@@ -793,8 +795,8 @@
 }
 
 .session-switch.ant-switch {
-  min-width: 44px;
-  height: 24px;
+  min-width: 46px;
+  height: 26px;
   background: var(--border-color);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   display: inline-flex;
@@ -828,12 +830,14 @@
 }
 
 .session-switch .ant-switch-handle {
-  top: 2px;
+  top: 3px;
 }
 
 .day-switch.ant-switch {
   display: inline-flex;
   align-items: center;
+  min-width: 46px;
+  height: 26px;
 }
 
 .day-switch .ant-switch-inner {
@@ -843,6 +847,10 @@
   width: 100%;
   height: 100%;
   line-height: 1;
+}
+
+.day-switch .ant-switch-handle {
+  top: 3px;
 }
 
 .btn-delete-small {
@@ -894,7 +902,7 @@
   gap: 14px;
   padding: 16px;
   background: #f8fafc;
-  border: 2px dashed #a78bfa;
+  border: 2px solid #a78bfa;
   border-radius: 12px;
   margin-bottom: 12px;
   animation: formAppear 0.3s ease;
@@ -1056,11 +1064,11 @@
   width: 100%;
   padding: 12px;
   background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-  border: 2px dashed #9333ea;
+  border: 2px solid #9333ea;
   border-radius: 10px;
   color: #9333ea;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 8px;
