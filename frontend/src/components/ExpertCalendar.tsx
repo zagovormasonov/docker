@@ -334,7 +334,7 @@ const ExpertCalendar: React.FC = () => {
 
   return (
     <div className="expert-calendar">
-      <h2 style={{ fontWeight: 400 }}>Расписание</h2>
+      <h2 style={{ fontWeight: 400 }}>Кабинет эксперта</h2>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
