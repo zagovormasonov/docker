@@ -199,13 +199,6 @@ const ExpertCalendar: React.FC = () => {
                           unCheckedChildren="Выкл"
                           className="day-switch"
                         />
-                        <button
-                          className="day-delete"
-                          onClick={confirmDeleteDay}
-                          title="Удалить все слоты дня"
-                        >
-                          <CloseOutlined />
-                        </button>
                       </div>
                     </div>
 
