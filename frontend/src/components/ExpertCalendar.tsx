@@ -28,7 +28,7 @@ const ExpertCalendar: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeView, setActiveView] = useState<'edit' | 'preview'>('preview');
+  const [activeView, setActiveView] = useState<'calendar' | 'editor' | 'bookings' | 'clients'>('calendar');
 
   // Форма добавления расписания - для каждого дня недели
   const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
@@ -196,18 +196,13 @@ const ExpertCalendar: React.FC = () => {
 
       <Tabs
         activeKey={activeView}
-        onChange={(key) => setActiveView(key as 'edit' | 'preview')}
+        onChange={(key) => setActiveView(key as 'calendar' | 'editor' | 'bookings' | 'clients')}
         items={[
           {
-            key: 'preview',
+            key: 'calendar',
             label: 'Календарь',
             children: (
               <div className="client-view-preview">
-                <div className="preview-info">
-                  <p style={{ color: '#6b7280', marginBottom: 24, fontSize: 15 }}>
-                    Так выглядит ваше расписание для клиентов при бронировании консультации
-                  </p>
-                </div>
                 {schedules.filter(s => s.is_active).length === 0 ? (
                   <div className="preview-empty">
                     <p>Нет активных слотов для отображения</p>
@@ -242,7 +237,7 @@ const ExpertCalendar: React.FC = () => {
             )
           },
           {
-            key: 'edit',
+            key: 'editor',
             label: 'Редактор',
             children: (
               <div className="availability-section">
@@ -499,6 +494,26 @@ const ExpertCalendar: React.FC = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            )
+          },
+          {
+            key: 'bookings',
+            label: 'Управление записями',
+            children: (
+              <div className="bookings-section">
+                <h3>Управление записями</h3>
+                <p className="info-text">Раздел в разработке</p>
+              </div>
+            )
+          },
+          {
+            key: 'clients',
+            label: 'Мои клиенты',
+            children: (
+              <div className="clients-section">
+                <h3>Мои клиенты</h3>
+                <p className="info-text">Раздел в разработке</p>
               </div>
             )
           }
