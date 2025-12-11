@@ -95,7 +95,7 @@ interface ExpertProfile {
 
 const ExpertProfilePage = () => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [expert, setExpert] = useState<ExpertProfile | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
@@ -109,6 +109,9 @@ const ExpertProfilePage = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
+    // Ждём пока AuthContext загрузит пользователя
+    if (authLoading) return;
+    
     // Проверяем авторизацию пользователя
     if (!user) {
       setShowAuthModal(true);
@@ -120,7 +123,7 @@ const ExpertProfilePage = () => {
     fetchArticles();
     fetchFavoriteStatus();
     fetchCustomSocials();
-  }, [id, user]);
+  }, [id, user, authLoading]);
 
   const fetchFavoriteStatus = async () => {
     if (!id) return;

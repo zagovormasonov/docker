@@ -37,7 +37,7 @@ interface AllBooking {
 }
 
 const ExpertDashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('calendar');
   const [showLocalTime, setShowLocalTime] = useState(false);
@@ -76,6 +76,9 @@ const ExpertDashboardPage: React.FC = () => {
   };
 
   useEffect(() => {
+    // Ждём пока AuthContext загрузит пользователя
+    if (authLoading) return;
+    
     // Проверяем, является ли пользователь экспертом
     if (!user || (user.userType !== 'expert' && user.userType !== 'admin')) {
       navigate('/profile');
@@ -93,7 +96,7 @@ const ExpertDashboardPage: React.FC = () => {
     if (user.city) {
       setUserCity(user.city);
     }
-  }, [user, navigate, activeTab]);
+  }, [user, navigate, activeTab, authLoading]);
 
   const loadPendingCount = async () => {
     try {
@@ -631,6 +634,22 @@ const ExpertDashboardPage: React.FC = () => {
       )
     }
   ];
+
+  // Показываем загрузку пока AuthContext проверяет токен
+  if (authLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh' 
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="loading-spinner" style={{ marginBottom: 16 }}>Загрузка...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user || (user.userType !== 'expert' && user.userType !== 'admin')) {
     return null;
