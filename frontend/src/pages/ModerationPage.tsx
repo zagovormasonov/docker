@@ -371,6 +371,7 @@ const ModerationPage = () => {
         onCancel={() => {
           setRejectModalVisible(false);
           setRejectReason('');
+          setRejectingItem(null);
         }}
         afterClose={() => {
           // Возвращаем фокус на страницу после закрытия модального окна
@@ -378,8 +379,6 @@ const ModerationPage = () => {
         }}
         destroyOnClose={true}
         maskClosable={true}
-          setRejectingItem(null);
-        }}
         onOk={handleReject}
         okText="Отклонить"
         cancelText="Отмена"
