@@ -253,10 +253,20 @@ const ExpertDashboardPage: React.FC = () => {
       ),
       children: (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+            justifyContent: 'space-between', 
+            alignItems: window.innerWidth < 768 ? 'flex-start' : 'center',
+            gap: '12px',
+            marginBottom: 16 
+          }}>
             <div>
-              <Title level={3} style={{ margin: 0 }}>Управление записями</Title>
-              <Text type="secondary">
+              <Title level={3} style={{ 
+                margin: 0,
+                fontSize: window.innerWidth < 768 ? '18px' : '24px'
+              }}>Управление записями</Title>
+              <Text type="secondary" style={{ fontSize: window.innerWidth < 768 ? '13px' : '14px' }}>
                 Все записи клиентов: подтверждение заявок, управление расписанием
               </Text>
             </div>
@@ -268,7 +278,9 @@ const ExpertDashboardPage: React.FC = () => {
                 padding: '8px 16px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 8
+                gap: 8,
+                width: window.innerWidth < 768 ? '100%' : 'auto',
+                justifyContent: window.innerWidth < 768 ? 'center' : 'flex-start'
               }}>
                 <span style={{ fontSize: 20 }}>🔔</span>
                 <Text strong style={{ color: '#ff4d4f' }}>
@@ -350,10 +362,14 @@ const ExpertDashboardPage: React.FC = () => {
                               </div>
                             )}
                             <div style={{ marginTop: 12 }}>
-                              <Space>
+                              <Space 
+                                direction={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
+                                style={{ width: window.innerWidth < 768 ? '100%' : 'auto' }}
+                              >
                                 <Button 
                                   type="primary" 
                                   onClick={() => handleBookingAction(booking.id, 'confirm')}
+                                  block={window.innerWidth < 768}
                                 >
                                   ✓ Подтвердить
                                 </Button>
@@ -365,6 +381,7 @@ const ExpertDashboardPage: React.FC = () => {
                                       handleBookingAction(booking.id, 'reject', reason || undefined);
                                     }
                                   }}
+                                  block={window.innerWidth < 768}
                                 >
                                   ✕ Отклонить
                                 </Button>
@@ -385,15 +402,28 @@ const ExpertDashboardPage: React.FC = () => {
                   <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                     {confirmedBookings.map((booking) => (
                       <Card key={booking.id}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                          alignItems: window.innerWidth < 768 ? 'center' : 'flex-start',
+                          gap: 16,
+                          textAlign: window.innerWidth < 768 ? 'center' : 'left'
+                        }}>
                           <img 
                             src={booking.client_avatar || '/emp.jpg'} 
                             alt={booking.client_name}
                             style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
                           />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                              <Title level={5} style={{ margin: 0 }}>{booking.client_name}</Title>
+                          <div style={{ flex: 1, width: window.innerWidth < 768 ? '100%' : 'auto' }}>
+                            <div style={{ 
+                              display: 'flex', 
+                              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                              justifyContent: 'space-between', 
+                              alignItems: window.innerWidth < 768 ? 'center' : 'center',
+                              gap: '8px',
+                              marginBottom: 8 
+                            }}>
+                              <Title level={5} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '16px' : '18px' }}>{booking.client_name}</Title>
                               {getStatusBadge(booking.status)}
                             </div>
                             <Text type="secondary">{booking.client_email}</Text>
@@ -405,6 +435,7 @@ const ExpertDashboardPage: React.FC = () => {
                               <Button 
                                 danger
                                 onClick={() => handleCancelBooking(booking.id)}
+                                block={window.innerWidth < 768}
                               >
                                 ✕ Отменить запись
                               </Button>
@@ -424,15 +455,28 @@ const ExpertDashboardPage: React.FC = () => {
                   <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                     {historyBookings.map((booking) => (
                       <Card key={booking.id} style={{ opacity: 0.7 }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                          alignItems: window.innerWidth < 768 ? 'center' : 'flex-start',
+                          gap: 16,
+                          textAlign: window.innerWidth < 768 ? 'center' : 'left'
+                        }}>
                           <img 
                             src={booking.client_avatar || '/emp.jpg'} 
                             alt={booking.client_name}
                             style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
                           />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                              <Title level={5} style={{ margin: 0 }}>{booking.client_name}</Title>
+                          <div style={{ flex: 1, width: window.innerWidth < 768 ? '100%' : 'auto' }}>
+                            <div style={{ 
+                              display: 'flex', 
+                              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                              justifyContent: 'space-between', 
+                              alignItems: window.innerWidth < 768 ? 'center' : 'center',
+                              gap: '8px',
+                              marginBottom: 8 
+                            }}>
+                              <Title level={5} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '16px' : '18px' }}>{booking.client_name}</Title>
                               {getStatusBadge(booking.status)}
                             </div>
                             <Text type="secondary">{booking.client_email}</Text>
@@ -519,7 +563,13 @@ const ExpertDashboardPage: React.FC = () => {
                   hoverable
                   onClick={() => navigate(`/experts/${client.id}`)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                    alignItems: 'center', 
+                    gap: 16,
+                    textAlign: window.innerWidth < 768 ? 'center' : 'left'
+                  }}>
                     <img 
                       src={client.avatar_url || '/emp.jpg'} 
                       alt={client.name}
@@ -530,8 +580,8 @@ const ExpertDashboardPage: React.FC = () => {
                         objectFit: 'cover' 
                       }}
                     />
-                    <div style={{ flex: 1 }}>
-                      <Title level={5} style={{ margin: 0 }}>{client.name}</Title>
+                    <div style={{ flex: 1, width: window.innerWidth < 768 ? '100%' : 'auto' }}>
+                      <Title level={5} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '16px' : '18px' }}>{client.name}</Title>
                       <Text type="secondary">{client.email}</Text>
                       <br />
                       <Text type="secondary" style={{ fontSize: 12 }}>
@@ -552,6 +602,8 @@ const ExpertDashboardPage: React.FC = () => {
                         e.stopPropagation();
                         navigate(`/chats`);
                       }}
+                      block={window.innerWidth < 768}
+                      style={{ width: window.innerWidth < 768 ? '100%' : 'auto' }}
                     >
                       Написать
                     </Button>
@@ -573,17 +625,27 @@ const ExpertDashboardPage: React.FC = () => {
     return null;
   }
 
+  const isMobile = window.innerWidth < 768;
+
   return (
-    <div className="container" style={{ padding: '24px' }}>
-      <Card>
-        <Title level={2} style={{ marginBottom: 24 }}>
+    <div className="container" style={{ 
+      padding: isMobile ? '12px' : '24px',
+      maxWidth: '100%',
+      overflowX: 'hidden'
+    }}>
+      <Card style={{ overflowX: 'hidden' }}>
+        <Title level={2} style={{ 
+          marginBottom: 24,
+          fontSize: isMobile ? '20px' : '30px'
+        }}>
           Кабинет эксперта
         </Title>
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           items={tabItems}
-          size="large"
+          size={isMobile ? 'middle' : 'large'}
+          style={{ overflowX: 'auto' }}
         />
       </Card>
     </div>

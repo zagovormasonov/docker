@@ -4,6 +4,12 @@
   padding: 20px;
 }
 
+@media (max-width: 768px) {
+  .expert-calendar {
+    padding: 12px;
+  }
+}
+
 .expert-calendar h2 {
   font-size: 24px;
   margin-bottom: 20px;
@@ -35,6 +41,13 @@
   gap: 10px;
   margin-bottom: 30px;
   border-bottom: 2px solid var(--border-color);
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .calendar-tabs {
+    gap: 5px;
+  }
 }
 
 .tab-button {
@@ -48,6 +61,14 @@
   color: var(--text-secondary);
   transition: all 0.3s ease;
   position: relative;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .tab-button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
 }
 
 .tab-button:hover {
@@ -87,12 +108,27 @@
   margin-bottom: 20px;
 }
 
+@media (max-width: 768px) {
+  .day-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+}
+
 .day-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .day-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
 
 .day-card-title {
@@ -129,6 +165,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .day-card-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .day-status {
@@ -196,6 +239,15 @@
   transition: all 0.2s ease;
 }
 
+@media (max-width: 768px) {
+  .session-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
 .session-card.inactive {
   opacity: 0.65;
   background: #f3f4f6;
@@ -206,6 +258,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .session-info {
+    width: 100%;
+  }
 }
 
 .session-dot {
@@ -798,6 +857,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .session-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .session-switch.ant-switch {
