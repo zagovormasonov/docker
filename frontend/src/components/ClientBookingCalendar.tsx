@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from '../api/axios';
 import './ClientBookingCalendar.css';
 
@@ -167,7 +168,7 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
       )}
 
       {/* Модальное окно подтверждения */}
-      {showModal && selectedSlot && (
+      {showModal && selectedSlot && typeof document !== 'undefined' && createPortal(
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
@@ -220,7 +221,8 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
               ℹ️ После создания записи эксперт получит уведомление и сможет подтвердить или отклонить вашу заявку.
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
