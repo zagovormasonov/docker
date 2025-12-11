@@ -854,7 +854,6 @@
 }
 
 .day-title::before {
-  content: '';
   font-size: 22px;
 }
 
