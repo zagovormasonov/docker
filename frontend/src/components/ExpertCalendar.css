@@ -157,7 +157,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6366f1;
+  color: #565fff;
   font-size: 18px;
 }
 
@@ -245,8 +245,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: #f6f4ff;
-  border: 1px solid #e6e1ff;
+  background: #efefff;
+  border: none;
   border-radius: 12px;
   transition: all 0.2s ease;
 }
@@ -282,7 +282,7 @@
 .session-dot {
   width: 10px;
   height: 10px;
-  background: #7c3aed;
+  background: #9197ff;
   border-radius: 50%;
   box-shadow: 0 0 0 6px #ede9fe;
 }
@@ -294,8 +294,8 @@
 
 .session-duration {
   font-size: 12px;
-  color: #6b7280;
-  background: #eef2ff;
+  color: white;
+  background: #9197ff;
   padding: 6px 10px;
   border-radius: 999px;
 }
@@ -966,7 +966,6 @@
   gap: 14px;
   padding: 16px;
   background: #f8fafc;
-  border: 2px solid #a78bfa;
   border-radius: 12px;
   margin-bottom: 12px;
   animation: formAppear 0.3s ease;
@@ -1005,13 +1004,14 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #d4d6ff;
   border-radius: 10px;
-  background: white;
+  background: transparent;
 }
 
 .time-icon {
   display: none;
+  color: #565fff;
 }
 
 .form-input-small {

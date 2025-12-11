@@ -184,7 +184,7 @@ const ExpertCalendar: React.FC = () => {
 
   return (
     <div className="expert-calendar">
-      <h2>📅 Расписание</h2>
+      <h2>Расписание</h2>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
@@ -200,7 +200,7 @@ const ExpertCalendar: React.FC = () => {
               <div className="availability-section">
         <div className="availability-section">
           <div className="add-slots-section">
-            <h3>➕ Добавить расписание</h3>
+            <h3>Добавить расписание</h3>
             <p className="info-text">Добавьте сеансы для каждого дня недели. Укажите время начала и окончания — длительность рассчитается автоматически.</p>
             
             <div className="days-schedule-form">
