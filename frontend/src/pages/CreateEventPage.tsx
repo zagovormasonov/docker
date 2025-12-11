@@ -5,9 +5,10 @@ import {
   Upload, Space, Image
 } from 'antd';
 import {
-  CalendarOutlined, EnvironmentOutlined, DollarOutlined, LinkOutlined,
+  CalendarOutlined, EnvironmentOutlined, LinkOutlined,
   UploadOutlined, DeleteOutlined, PictureOutlined
 } from '@ant-design/icons';
+import { RussianRuble } from 'lucide-react';
 import dayjs from 'dayjs';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -353,7 +354,7 @@ const CreateEventPage = () => {
             <Input
               size="large"
               placeholder="Например: 5000 ₽ или Бесплатно"
-              prefix={<DollarOutlined />}
+              prefix={<RussianRuble size={14} />}
             />
           </Form.Item>
 

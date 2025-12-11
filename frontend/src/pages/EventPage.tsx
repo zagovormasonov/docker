@@ -4,9 +4,10 @@ import {
   Card, Typography, Space, Tag, Button, Spin, Divider, Avatar, message
 } from 'antd';
 import {
-  CalendarOutlined, EnvironmentOutlined, DollarOutlined, LinkOutlined,
+  CalendarOutlined, EnvironmentOutlined, LinkOutlined,
   EditOutlined, GlobalOutlined, HomeOutlined, UserOutlined, StarOutlined, StarFilled, ShareAltOutlined
 } from '@ant-design/icons';
+import { RussianRuble } from 'lucide-react';
 import dayjs from 'dayjs';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -273,7 +274,7 @@ const EventPage = () => {
           {event.price && (
             <div>
               <Space size={8}>
-                <DollarOutlined style={{ color: '#6366f1', fontSize: 20 }} />
+                <RussianRuble style={{ color: '#6366f1' }} size={20} />
                 <Text strong style={{ fontSize: 16, color: '#6366f1' }}>
                   {event.price}
                 </Text>

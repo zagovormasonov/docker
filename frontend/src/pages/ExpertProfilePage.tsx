@@ -18,7 +18,6 @@ import {
   UserOutlined,
   EnvironmentOutlined,
   MessageOutlined,
-  DollarOutlined,
   ClockCircleOutlined,
   LinkOutlined,
   PhoneOutlined,

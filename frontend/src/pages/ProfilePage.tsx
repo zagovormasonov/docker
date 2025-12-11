@@ -759,7 +759,7 @@ const ProfilePage = () => {
                         label="Описание"
                         rules={[{ required: true, message: 'Введите описание услуги' }]}
                       >
-                        <TextArea rows={3} placeholder="Опишите вашу услугу..." />
+                        <TextArea rows={5} placeholder="Опишите вашу услугу..." />
                       </Form.Item>
 
                       <Space style={{ width: '100%' }} size="middle">

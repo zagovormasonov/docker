@@ -97,17 +97,18 @@ SoulSynergy - пространство совместного духовного
       width={600}
       centered
       bodyStyle={{ padding: 0 }}
+      style={{ maxWidth: '95vw' }}
     >
       <div style={{
         background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-        padding: '40px 30px 30px 30px',
+        padding: 'clamp(20px, 5vw, 40px) clamp(15px, 4vw, 30px) clamp(15px, 4vw, 30px) clamp(15px, 4vw, 30px)',
         borderRadius: '8px 8px 0 0'
       }}>
         <div style={{ 
           textAlign: 'center',
           background: 'white',
           borderRadius: 16,
-          padding: 30,
+          padding: 'clamp(20px, 5vw, 30px)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
         }}>
           {/* Аватар */}
@@ -239,17 +240,29 @@ SoulSynergy - пространство совместного духовного
               Поделиться
             </Button>
 
-            <Space style={{ width: '100%' }} size="middle">
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 12,
+              width: '100%'
+            }}>
               <Button
                 size="large"
                 icon={<CopyOutlined />}
                 onClick={handleCopyLink}
                 style={{ 
                   flex: 1,
-                  height: 48
+                  height: 48,
+                  minWidth: 0
                 }}
               >
-                Копировать ссылку
+                <span style={{ 
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
+                  Копировать ссылку
+                </span>
               </Button>
               <Button
                 size="large"
@@ -257,12 +270,19 @@ SoulSynergy - пространство совместного духовного
                 onClick={handleCopyAll}
                 style={{ 
                   flex: 1,
-                  height: 48
+                  height: 48,
+                  minWidth: 0
                 }}
               >
-                Копировать всё
+                <span style={{ 
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
+                  Копировать всё
+                </span>
               </Button>
-            </Space>
+            </div>
           </Space>
 
           {/* Футер */}

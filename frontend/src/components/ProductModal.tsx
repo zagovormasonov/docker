@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Card, Typography, Space, Tag, Button, Image } from 'antd';
-import { DollarOutlined } from '@ant-design/icons';
+import { RussianRuble } from 'lucide-react';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -80,7 +80,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, visible, onClose, 
             {product.price && (
               <div style={{ marginBottom: 12 }}>
                 <Space>
-                  <DollarOutlined />
+                  <RussianRuble size={18} />
                   <Text strong style={{ fontSize: '18px' }}>{product.price} ₽</Text>
                 </Space>
               </div>

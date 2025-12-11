@@ -841,14 +841,28 @@ const AdminPanel: React.FC = () => {
   } : getStats();
 
   return (
-    <div style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <Title level={2} style={{ margin: 0 }}>Панель администратора</Title>
-        <Space>
+    <div style={{ 
+      padding: 'clamp(12px, 3vw, 24px)',
+      maxWidth: '100%',
+      overflowX: 'hidden'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+        justifyContent: 'space-between', 
+        alignItems: window.innerWidth < 768 ? 'flex-start' : 'center',
+        gap: '16px',
+        marginBottom: '24px' 
+      }}>
+        <Title level={2} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '20px' : '30px' }}>
+          Панель администратора
+        </Title>
+        <Space wrap>
           <Button
             type="primary"
             onClick={() => window.location.href = '/admin-logs'}
             style={{ background: '#722ed1', borderColor: '#722ed1' }}
+            size={window.innerWidth < 768 ? 'middle' : 'default'}
           >
             📊 Логи действий
           </Button>
@@ -866,8 +880,8 @@ const AdminPanel: React.FC = () => {
       </div>
       
       {/* Статистика */}
-      <Row gutter={16} style={{ marginBottom: '24px' }}>
-        <Col span={6}>
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={12} sm={12} md={6} lg={6}>
           <Card>
             <Statistic
               title="Опубликованные статьи"
@@ -877,7 +891,7 @@ const AdminPanel: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6} lg={6}>
           <Card>
             <Statistic
               title="На модерации"
@@ -887,7 +901,7 @@ const AdminPanel: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6} lg={6}>
           <Card>
             <Statistic
               title="Опубликованные события"
@@ -897,7 +911,7 @@ const AdminPanel: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6} lg={6}>
           <Card>
             <Statistic
               title="События на модерации"
@@ -909,8 +923,8 @@ const AdminPanel: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={12}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={12} lg={12}>
           <Card>
             <Statistic
               title="Эксперты"
@@ -920,7 +934,7 @@ const AdminPanel: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} sm={12} md={12} lg={12}>
           <Card>
             <Statistic
               title="Клиенты"
@@ -932,8 +946,8 @@ const AdminPanel: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={12}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={12} lg={12}>
           <Card>
             <Statistic
               title="Администраторы"
@@ -943,7 +957,7 @@ const AdminPanel: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} sm={12} md={12} lg={12}>
           <Card>
             <Statistic
               title="Всего пользователей"
@@ -958,6 +972,7 @@ const AdminPanel: React.FC = () => {
       <Tabs 
         activeKey={activeTab} 
         onChange={setActiveTab}
+        style={{ overflowX: 'auto' }}
         items={[
           {
             key: 'pinned',
@@ -1093,6 +1108,7 @@ const AdminPanel: React.FC = () => {
                 loading={loading}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
+                scroll={{ x: 'max-content' }}
               />
             ),
           },
@@ -1106,6 +1122,7 @@ const AdminPanel: React.FC = () => {
                 loading={loading}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
+                scroll={{ x: 'max-content' }}
               />
             ),
           },
@@ -1119,6 +1136,7 @@ const AdminPanel: React.FC = () => {
                 loading={loading}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
+                scroll={{ x: 'max-content' }}
               />
             ),
           },
