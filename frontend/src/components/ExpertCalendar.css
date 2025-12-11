@@ -1032,6 +1032,18 @@
   gap: 10px;
 }
 
+@media (max-width: 768px) {
+  .session-actions.modern {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .session-actions.modern .btn-cancel-modern,
+  .session-actions.modern .btn-save-modern {
+    width: 100%;
+  }
+}
+
 .btn-save-small,
 .btn-cancel-small {
   flex: 1;

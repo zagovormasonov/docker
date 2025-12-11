@@ -46,6 +46,17 @@ const ExpertDashboardPage: React.FC = () => {
   const [allBookings, setAllBookings] = useState<AllBooking[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Отслеживаем размер экрана
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Загружаем количество pending заявок и клиентов при инициализации для бейджей
   useEffect(() => {
@@ -255,18 +266,18 @@ const ExpertDashboardPage: React.FC = () => {
         <div>
           <div style={{ 
             display: 'flex', 
-            flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+            flexDirection: isMobile ? 'column' : 'row',
             justifyContent: 'space-between', 
-            alignItems: window.innerWidth < 768 ? 'flex-start' : 'center',
+            alignItems: isMobile ? 'flex-start' : 'center',
             gap: '12px',
             marginBottom: 16 
           }}>
             <div>
               <Title level={3} style={{ 
                 margin: 0,
-                fontSize: window.innerWidth < 768 ? '18px' : '24px'
+                fontSize: isMobile ? '18px' : '24px'
               }}>Управление записями</Title>
-              <Text type="secondary" style={{ fontSize: window.innerWidth < 768 ? '13px' : '14px' }}>
+              <Text type="secondary" style={{ fontSize: isMobile ? '13px' : '14px' }}>
                 Все записи клиентов: подтверждение заявок, управление расписанием
               </Text>
             </div>
@@ -279,8 +290,8 @@ const ExpertDashboardPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                width: window.innerWidth < 768 ? '100%' : 'auto',
-                justifyContent: window.innerWidth < 768 ? 'center' : 'flex-start'
+                width: isMobile ? '100%' : 'auto',
+                justifyContent: isMobile ? 'center' : 'flex-start'
               }}>
                 <span style={{ fontSize: 20 }}>🔔</span>
                 <Text strong style={{ color: '#ff4d4f' }}>
@@ -363,13 +374,13 @@ const ExpertDashboardPage: React.FC = () => {
                             )}
                             <div style={{ marginTop: 12 }}>
                               <Space 
-                                direction={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
-                                style={{ width: window.innerWidth < 768 ? '100%' : 'auto' }}
+                                direction={isMobile ? 'vertical' : 'horizontal'}
+                                style={{ width: isMobile ? '100%' : 'auto' }}
                               >
                                 <Button 
                                   type="primary" 
                                   onClick={() => handleBookingAction(booking.id, 'confirm')}
-                                  block={window.innerWidth < 768}
+                                  block={isMobile}
                                 >
                                   ✓ Подтвердить
                                 </Button>
@@ -381,7 +392,7 @@ const ExpertDashboardPage: React.FC = () => {
                                       handleBookingAction(booking.id, 'reject', reason || undefined);
                                     }
                                   }}
-                                  block={window.innerWidth < 768}
+                                  block={isMobile}
                                 >
                                   ✕ Отклонить
                                 </Button>
@@ -404,26 +415,26 @@ const ExpertDashboardPage: React.FC = () => {
                       <Card key={booking.id}>
                         <div style={{ 
                           display: 'flex', 
-                          flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-                          alignItems: window.innerWidth < 768 ? 'center' : 'flex-start',
+                          flexDirection: isMobile ? 'column' : 'row',
+                          alignItems: isMobile ? 'center' : 'flex-start',
                           gap: 16,
-                          textAlign: window.innerWidth < 768 ? 'center' : 'left'
+                          textAlign: isMobile ? 'center' : 'left'
                         }}>
                           <img 
                             src={booking.client_avatar || '/emp.jpg'} 
                             alt={booking.client_name}
                             style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
                           />
-                          <div style={{ flex: 1, width: window.innerWidth < 768 ? '100%' : 'auto' }}>
+                          <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
                             <div style={{ 
                               display: 'flex', 
-                              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                              flexDirection: isMobile ? 'column' : 'row',
                               justifyContent: 'space-between', 
-                              alignItems: window.innerWidth < 768 ? 'center' : 'center',
+                              alignItems: isMobile ? 'center' : 'center',
                               gap: '8px',
                               marginBottom: 8 
                             }}>
-                              <Title level={5} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '16px' : '18px' }}>{booking.client_name}</Title>
+                              <Title level={5} style={{ margin: 0, fontSize: isMobile ? '16px' : '18px' }}>{booking.client_name}</Title>
                               {getStatusBadge(booking.status)}
                             </div>
                             <Text type="secondary">{booking.client_email}</Text>
@@ -435,7 +446,7 @@ const ExpertDashboardPage: React.FC = () => {
                               <Button 
                                 danger
                                 onClick={() => handleCancelBooking(booking.id)}
-                                block={window.innerWidth < 768}
+                                block={isMobile}
                               >
                                 ✕ Отменить запись
                               </Button>
@@ -457,26 +468,26 @@ const ExpertDashboardPage: React.FC = () => {
                       <Card key={booking.id} style={{ opacity: 0.7 }}>
                         <div style={{ 
                           display: 'flex', 
-                          flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-                          alignItems: window.innerWidth < 768 ? 'center' : 'flex-start',
+                          flexDirection: isMobile ? 'column' : 'row',
+                          alignItems: isMobile ? 'center' : 'flex-start',
                           gap: 16,
-                          textAlign: window.innerWidth < 768 ? 'center' : 'left'
+                          textAlign: isMobile ? 'center' : 'left'
                         }}>
                           <img 
                             src={booking.client_avatar || '/emp.jpg'} 
                             alt={booking.client_name}
                             style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
                           />
-                          <div style={{ flex: 1, width: window.innerWidth < 768 ? '100%' : 'auto' }}>
+                          <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
                             <div style={{ 
                               display: 'flex', 
-                              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                              flexDirection: isMobile ? 'column' : 'row',
                               justifyContent: 'space-between', 
-                              alignItems: window.innerWidth < 768 ? 'center' : 'center',
+                              alignItems: isMobile ? 'center' : 'center',
                               gap: '8px',
                               marginBottom: 8 
                             }}>
-                              <Title level={5} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '16px' : '18px' }}>{booking.client_name}</Title>
+                              <Title level={5} style={{ margin: 0, fontSize: isMobile ? '16px' : '18px' }}>{booking.client_name}</Title>
                               {getStatusBadge(booking.status)}
                             </div>
                             <Text type="secondary">{booking.client_email}</Text>
@@ -565,10 +576,10 @@ const ExpertDashboardPage: React.FC = () => {
                 >
                   <div style={{ 
                     display: 'flex', 
-                    flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                    flexDirection: isMobile ? 'column' : 'row',
                     alignItems: 'center', 
                     gap: 16,
-                    textAlign: window.innerWidth < 768 ? 'center' : 'left'
+                    textAlign: isMobile ? 'center' : 'left'
                   }}>
                     <img 
                       src={client.avatar_url || '/emp.jpg'} 
@@ -580,8 +591,8 @@ const ExpertDashboardPage: React.FC = () => {
                         objectFit: 'cover' 
                       }}
                     />
-                    <div style={{ flex: 1, width: window.innerWidth < 768 ? '100%' : 'auto' }}>
-                      <Title level={5} style={{ margin: 0, fontSize: window.innerWidth < 768 ? '16px' : '18px' }}>{client.name}</Title>
+                    <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
+                      <Title level={5} style={{ margin: 0, fontSize: isMobile ? '16px' : '18px' }}>{client.name}</Title>
                       <Text type="secondary">{client.email}</Text>
                       <br />
                       <Text type="secondary" style={{ fontSize: 12 }}>
@@ -602,8 +613,8 @@ const ExpertDashboardPage: React.FC = () => {
                         e.stopPropagation();
                         navigate(`/chats`);
                       }}
-                      block={window.innerWidth < 768}
-                      style={{ width: window.innerWidth < 768 ? '100%' : 'auto' }}
+                      block={isMobile}
+                      style={{ width: isMobile ? '100%' : 'auto' }}
                     >
                       Написать
                     </Button>
@@ -624,8 +635,6 @@ const ExpertDashboardPage: React.FC = () => {
   if (!user || (user.userType !== 'expert' && user.userType !== 'admin')) {
     return null;
   }
-
-  const isMobile = window.innerWidth < 768;
 
   return (
     <div className="container" style={{ 

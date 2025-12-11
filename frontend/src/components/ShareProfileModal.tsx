@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Avatar, Typography, Space, Tag, Button, Divider, message } from 'antd';
 import { UserOutlined, EnvironmentOutlined, CopyOutlined, ShareAltOutlined } from '@ant-design/icons';
+import './ShareProfileModal.css';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -240,22 +241,16 @@ SoulSynergy - пространство совместного духовного
               Поделиться
             </Button>
 
-            <div style={{ 
-              display: 'flex',
-              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-              gap: 12,
-              width: '100%'
-            }}>
+            <div className="share-buttons-container">
               <Button
                 size="large"
                 icon={<CopyOutlined />}
                 onClick={handleCopyLink}
-                block={window.innerWidth < 768}
+                className="share-button"
                 style={{ 
                   flex: 1,
                   height: 48,
-                  minWidth: 0,
-                  ...(window.innerWidth < 768 ? { padding: '19px 15px' } : {})
+                  minWidth: 0
                 }}
               >
                 Копировать ссылку
@@ -264,12 +259,11 @@ SoulSynergy - пространство совместного духовного
                 size="large"
                 icon={<CopyOutlined />}
                 onClick={handleCopyAll}
-                block={window.innerWidth < 768}
+                className="share-button"
                 style={{ 
                   flex: 1,
                   height: 48,
-                  minWidth: 0,
-                  ...(window.innerWidth < 768 ? { padding: '19px 15px' } : {})
+                  minWidth: 0
                 }}
               >
                 Копировать всё
