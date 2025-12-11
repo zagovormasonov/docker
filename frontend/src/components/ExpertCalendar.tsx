@@ -28,7 +28,6 @@ const ExpertCalendar: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [deleteSwitchState, setDeleteSwitchState] = useState<Record<number, boolean>>({});
 
   // Форма добавления расписания - для каждого дня недели
   const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
@@ -111,44 +110,6 @@ const ExpertCalendar: React.FC = () => {
     }
   };
 
-  const handleDeleteSchedule = async (scheduleId: number) => {
-    try {
-      await axios.delete(`/schedule/expert/schedule/${scheduleId}`);
-      setSuccess('Расписание удалено');
-      await loadSchedule();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка удаления расписания');
-    } finally {
-      setDeleteSwitchState(prev => {
-        const { [scheduleId]: _, ...rest } = prev;
-        return rest;
-      });
-    }
-  };
-
-  const confirmDeleteSchedule = (scheduleId: number) => {
-    setDeleteSwitchState(prev => ({ ...prev, [scheduleId]: true }));
-
-    Modal.confirm({
-      title: 'Удалить расписание?',
-      content: 'Действие необратимо, слот будет удален.',
-      okText: 'Удалить',
-      cancelText: 'Отмена',
-      okButtonProps: { danger: true },
-      centered: true,
-      onOk: () => handleDeleteSchedule(scheduleId),
-      onCancel: () =>
-        setDeleteSwitchState(prev => {
-          const { [scheduleId]: _, ...rest } = prev;
-          return rest;
-        }),
-      afterClose: () =>
-        setDeleteSwitchState(prev => {
-          const { [scheduleId]: _, ...rest } = prev;
-          return rest;
-        })
-    });
-  };
 
   const handleToggleSchedule = async (scheduleId: number, isActive: boolean) => {
     try {
@@ -212,27 +173,6 @@ const ExpertCalendar: React.FC = () => {
                   }
                 };
 
-                const confirmDeleteDay = () => {
-                  if (daySchedules.length === 0) return;
-                  Modal.confirm({
-                    title: 'Удалить все слоты дня?',
-                    content: 'Все сеансы этого дня будут удалены без возможности восстановления.',
-                    okText: 'Удалить',
-                    cancelText: 'Отмена',
-                    okButtonProps: { danger: true },
-                    centered: true,
-                    onOk: async () => {
-                      try {
-                        setLoading(true);
-                        for (const schedule of daySchedules) {
-                          await handleDeleteSchedule(schedule.id);
-                        }
-                      } finally {
-                        setLoading(false);
-                      }
-                    }
-                  });
-                };
 
                 return (
                   <div key={day.value} className="day-card">
@@ -288,13 +228,6 @@ const ExpertCalendar: React.FC = () => {
                                 checkedChildren="Вкл"
                                 unCheckedChildren="Выкл"
                                 className="session-switch"
-                              />
-                              <Switch
-                                checked={!!deleteSwitchState[schedule.id]}
-                                onChange={() => confirmDeleteSchedule(schedule.id)}
-                                checkedChildren="Удалить"
-                                unCheckedChildren="Удалить"
-                                className="session-switch danger"
                               />
                             </div>
                           </div>
@@ -388,13 +321,6 @@ const ExpertCalendar: React.FC = () => {
                                 📊 Слот: {schedule.slot_duration} мин
                               </span>
                             </div>
-                            <button
-                              className="btn-delete"
-                              onClick={() => handleDeleteSchedule(schedule.id)}
-                              title="Удалить расписание"
-                            >
-                              ✕
-                            </button>
                           </div>
                         ))}
                       </div>
