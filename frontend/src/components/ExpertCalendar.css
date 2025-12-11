@@ -989,8 +989,7 @@
 }
 
 .time-icon {
-  font-size: 14px;
-  color: #6b7280;
+  display: none;
 }
 
 .form-input-small {

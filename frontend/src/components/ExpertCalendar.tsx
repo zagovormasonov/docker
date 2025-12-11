@@ -234,7 +234,6 @@ const ExpertCalendar: React.FC = () => {
                         <div className="session-form-title">Добавить новый сеанс</div>
                         <div className="time-inputs wide">
                           <div className="time-input-wrapper">
-                            <span className="time-icon">⏱</span>
                             <input
                               type="time"
                               value={form.startTime}
@@ -245,7 +244,6 @@ const ExpertCalendar: React.FC = () => {
                           </div>
                           <span className="time-separator">—</span>
                           <div className="time-input-wrapper">
-                            <span className="time-icon">⏱</span>
                             <input
                               type="time"
                               value={form.endTime}
