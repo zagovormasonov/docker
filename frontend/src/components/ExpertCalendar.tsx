@@ -460,47 +460,42 @@ const ExpertCalendar: React.FC = () => {
             key: 'preview',
             label: 'Как это видят пользователи',
             children: (
-              <div className="preview-section">
+              <div className="client-view-preview">
                 <div className="preview-info">
-                  <p style={{ color: '#6b7280', marginBottom: 24 }}>
+                  <p style={{ color: '#6b7280', marginBottom: 24, fontSize: 15 }}>
                     Так выглядит ваше расписание для клиентов при бронировании консультации
                   </p>
                 </div>
-                <div className="preview-schedule">
-                  {DAYS_OF_WEEK.map(day => {
-                    const daySchedules = groupedSchedules[day.value]?.filter(s => s.is_active) || [];
-                    if (daySchedules.length === 0) return null;
+                {schedules.filter(s => s.is_active).length === 0 ? (
+                  <div className="preview-empty">
+                    <p>Нет активных слотов для отображения</p>
+                    <p style={{ fontSize: 14, color: '#9ca3af' }}>
+                      Добавьте расписание и включите слоты, чтобы они отображались для клиентов
+                    </p>
+                  </div>
+                ) : (
+                  <div className="client-calendar-view">
+                    {DAYS_OF_WEEK.map(day => {
+                      const daySchedules = groupedSchedules[day.value]?.filter(s => s.is_active) || [];
+                      if (daySchedules.length === 0) return null;
 
-                    return (
-                      <div key={day.value} className="preview-day-card">
-                        <div className="preview-day-header">
-                          <CalendarOutlined style={{ color: '#9197ff' }} />
-                          <span className="preview-day-name">{day.label}</span>
+                      return (
+                        <div key={day.value} className="client-date-section">
+                          <h3 className="client-date-header">{day.label}</h3>
+                          <div className="client-slots-grid">
+                            {daySchedules.map(schedule => (
+                              <div key={schedule.id} className="client-slot-button">
+                                <span className="client-slot-time">🕐 {formatTime(schedule.start_time)}</span>
+                                <span className="client-slot-duration">⏱️ {schedule.slot_duration} мин</span>
+                                <span className="client-slot-status">🟢 Доступно</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <div className="preview-slots">
-                          {daySchedules.map(schedule => (
-                            <div key={schedule.id} className="preview-slot">
-                              <span className="preview-time">
-                                {formatTime(schedule.start_time)} — {formatTime(schedule.end_time)}
-                              </span>
-                              <span className="preview-duration">
-                                {schedule.slot_duration} мин
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }).filter(Boolean)}
-                  {schedules.filter(s => s.is_active).length === 0 && (
-                    <div className="preview-empty">
-                      <p>Нет активных слотов для отображения</p>
-                      <p style={{ fontSize: 14, color: '#9ca3af' }}>
-                        Добавьте расписание и включите слоты, чтобы они отображались для клиентов
-                      </p>
-                    </div>
-                  )}
-                </div>
+                      );
+                    }).filter(Boolean)}
+                  </div>
+                )}
               </div>
             )
           }

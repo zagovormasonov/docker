@@ -187,7 +187,7 @@
 }
 
 .day-status {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 400;
   padding: 6px 10px;
   border-radius: 999px;
@@ -854,7 +854,7 @@
 }
 
 .day-title::before {
-  content: '📅';
+  content: '';
   font-size: 22px;
 }
 
@@ -1221,8 +1221,8 @@
   color: white;
 }
 
-/* Preview секция */
-.preview-section {
+/* Preview секция - клиентский вид */
+.client-view-preview {
   padding: 20px 0;
 }
 
@@ -1230,75 +1230,86 @@
   margin-bottom: 24px;
 }
 
-.preview-schedule {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.preview-day-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.preview-day-header {
+.client-calendar-view {
   display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.client-date-section {
+  background: var(--card-bg, white);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.client-date-section:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.client-date-header {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #9197ff;
+  font-weight: 400;
+  text-transform: capitalize;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.client-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.client-slot-button {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f3f4f6;
+  padding: 16px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #1f2937;
+  font-weight: 400;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.preview-day-name {
+.client-slot-button:hover {
+  border-color: #9197ff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.client-slot-time {
   font-size: 18px;
   font-weight: 400;
   color: #1f2937;
 }
 
-.preview-slots {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.preview-slot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.preview-slot:hover {
-  background: #f3f4f6;
-  transform: translateX(4px);
-}
-
-.preview-time {
-  font-size: 15px;
-  font-weight: 400;
-  color: #374151;
-}
-
-.preview-duration {
+.client-slot-duration {
   font-size: 13px;
   color: #6b7280;
-  background: #e5e7eb;
-  padding: 4px 10px;
-  border-radius: 12px;
+  font-weight: 400;
+}
+
+.client-slot-status {
+  font-size: 14px;
+  color: #10b981;
+  font-weight: 400;
 }
 
 .preview-empty {
-  grid-column: 1 / -1;
   text-align: center;
   padding: 60px 20px;
   color: #6b7280;
+  background: #f9fafb;
+  border-radius: 12px;
 }
 
 .preview-empty p {
@@ -1319,7 +1330,22 @@
     flex-direction: row;
   }
 
-  .preview-schedule {
+  .client-slots-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .client-slot-button {
+    padding: 12px;
+  }
+
+  .client-slot-time {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .client-slots-grid {
     grid-template-columns: 1fr;
   }
 }
