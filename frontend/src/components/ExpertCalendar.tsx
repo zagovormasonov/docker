@@ -480,46 +480,7 @@ const ExpertCalendar: React.FC = () => {
                             {daySchedules.length === 0 ? (
                               <div className="empty-day">Нет сеансов в этот день</div>
                             ) : (
-                              daySchedules.map(schedule => editingSchedule?.id === schedule.id ? (
-                                <div key={schedule.id} className="session-form">
-                                  <div className="session-form-title">Редактировать сеанс</div>
-                                  <div className="time-inputs wide">
-                                    <div className="time-input-wrapper">
-                                      <input
-                                        type="time"
-                                        value={editingSchedule.startTime}
-                                        onChange={(e) => setEditingSchedule({...editingSchedule, startTime: e.target.value})}
-                                        className="form-input-small"
-                                      />
-                                    </div>
-                                    <span className="time-separator">—</span>
-                                    <div className="time-input-wrapper">
-                                      <input
-                                        type="time"
-                                        value={editingSchedule.endTime}
-                                        onChange={(e) => setEditingSchedule({...editingSchedule, endTime: e.target.value})}
-                                        className="form-input-small"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="session-actions modern">
-                                    <button
-                                      className="btn-cancel-modern"
-                                      onClick={() => setEditingSchedule(null)}
-                                      disabled={loading}
-                                    >
-                                      Отменить
-                                    </button>
-                                    <button
-                                      className="btn-save-modern"
-                                      onClick={() => handleEditSchedule(schedule.id)}
-                                      disabled={loading}
-                                    >
-                                      ✓ Сохранить изменения
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
+                              daySchedules.map(schedule => (
                                 <div key={schedule.id} className={`session-card ${!schedule.is_active ? 'inactive' : ''}`}>
                                   <div className="session-info">
                                     <span className="session-dot" />
@@ -529,11 +490,79 @@ const ExpertCalendar: React.FC = () => {
                                   <div className="session-controls">
                                     <button
                                       className="btn-edit-schedule"
-                                      onClick={() => setEditingSchedule({
-                                        id: schedule.id,
-                                        startTime: schedule.start_time,
-                                        endTime: schedule.end_time
-                                      })}
+                                      onClick={() => {
+                                        Modal.confirm({
+                                          title: 'Редактировать сеанс',
+                                          centered: true,
+                                          content: (
+                                            <div style={{ marginTop: 20 }}>
+                                              <div style={{ marginBottom: 16 }}>
+                                                <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Время начала:</label>
+                                                <input
+                                                  type="time"
+                                                  defaultValue={schedule.start_time}
+                                                  id={`edit-start-${schedule.id}`}
+                                                  style={{
+                                                    width: '100%',
+                                                    padding: '8px 12px',
+                                                    border: '1px solid #d9d9d9',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px'
+                                                  }}
+                                                />
+                                              </div>
+                                              <div>
+                                                <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Время окончания:</label>
+                                                <input
+                                                  type="time"
+                                                  defaultValue={schedule.end_time}
+                                                  id={`edit-end-${schedule.id}`}
+                                                  style={{
+                                                    width: '100%',
+                                                    padding: '8px 12px',
+                                                    border: '1px solid #d9d9d9',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px'
+                                                  }}
+                                                />
+                                              </div>
+                                            </div>
+                                          ),
+                                          okText: 'Сохранить',
+                                          cancelText: 'Отмена',
+                                          onOk: async () => {
+                                            const startInput = document.getElementById(`edit-start-${schedule.id}`) as HTMLInputElement;
+                                            const endInput = document.getElementById(`edit-end-${schedule.id}`) as HTMLInputElement;
+                                            
+                                            if (!startInput?.value || !endInput?.value) {
+                                              setError('Укажите время начала и окончания');
+                                              return;
+                                            }
+
+                                            const start = new Date(`2000-01-01T${startInput.value}`);
+                                            const end = new Date(`2000-01-01T${endInput.value}`);
+                                            
+                                            if (start >= end) {
+                                              setError('Время начала должно быть раньше времени окончания');
+                                              return;
+                                            }
+
+                                            try {
+                                              setLoading(true);
+                                              await axios.put(`/schedule/expert/schedule/${schedule.id}`, {
+                                                startTime: startInput.value,
+                                                endTime: endInput.value
+                                              });
+                                              setSuccess('Расписание обновлено');
+                                              await loadSchedule();
+                                            } catch (err: any) {
+                                              setError(err.response?.data?.error || 'Ошибка обновления расписания');
+                                            } finally {
+                                              setLoading(false);
+                                            }
+                                          }
+                                        });
+                                      }}
                                       title="Редактировать"
                                     >
                                       <EditOutlined />
