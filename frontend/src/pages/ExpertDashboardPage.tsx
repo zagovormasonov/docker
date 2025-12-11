@@ -644,19 +644,7 @@ const ExpertDashboardPage: React.FC = () => {
       overflowX: 'hidden'
     }}>
       <Card style={{ overflowX: 'hidden' }}>
-        <Title level={2} style={{ 
-          marginBottom: 24,
-          fontSize: isMobile ? '20px' : '30px'
-        }}>
-          Кабинет эксперта
-        </Title>
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={tabItems}
-          size={isMobile ? 'middle' : 'large'}
-          style={{ overflowX: 'auto' }}
-        />
+        <ExpertCalendar />
       </Card>
     </div>
   );
