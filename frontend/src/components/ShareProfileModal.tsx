@@ -242,7 +242,7 @@ SoulSynergy - пространство совместного духовного
 
             <div style={{ 
               display: 'flex',
-              flexDirection: 'row',
+              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
               gap: 12,
               width: '100%'
             }}>
@@ -250,37 +250,27 @@ SoulSynergy - пространство совместного духовного
                 size="large"
                 icon={<CopyOutlined />}
                 onClick={handleCopyLink}
+                block={window.innerWidth < 768}
                 style={{ 
                   flex: 1,
                   height: 48,
                   minWidth: 0
                 }}
               >
-                <span style={{ 
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>
-                  Копировать ссылку
-                </span>
+                Копировать ссылку
               </Button>
               <Button
                 size="large"
                 icon={<CopyOutlined />}
                 onClick={handleCopyAll}
+                block={window.innerWidth < 768}
                 style={{ 
                   flex: 1,
                   height: 48,
                   minWidth: 0
                 }}
               >
-                <span style={{ 
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>
-                  Копировать всё
-                </span>
+                Копировать всё
               </Button>
             </div>
           </Space>

@@ -801,7 +801,7 @@
 }
 
 .session-switch.ant-switch {
-  min-width: 60px;
+  min-width: 70px;
   height: 24px;
   background: #d1d5db;
 }
@@ -817,6 +817,7 @@
 
 .session-switch.danger.ant-switch {
   background: #d1d5db;
+  min-width: 80px;
 }
 
 .session-switch.danger.ant-switch-checked {
