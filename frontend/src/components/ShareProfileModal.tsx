@@ -94,9 +94,15 @@ SoulSynergy - пространство совместного духовного
     <Modal
       open={visible}
       onCancel={onClose}
+      afterClose={() => {
+        // Возвращаем фокус на страницу после закрытия модального окна
+        document.body.style.overflow = 'auto';
+      }}
+      destroyOnClose={true}
       footer={null}
       width={600}
       centered
+      maskClosable={true}
       bodyStyle={{ padding: 0 }}
       style={{ maxWidth: '95vw' }}
     >

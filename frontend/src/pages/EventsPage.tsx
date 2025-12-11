@@ -386,6 +386,12 @@ const EventsPage = () => {
         title="Фильтры событий"
         open={filterModalVisible}
         onCancel={() => setFilterModalVisible(false)}
+        afterClose={() => {
+          // Возвращаем фокус на страницу после закрытия модального окна
+          document.body.style.overflow = 'auto';
+        }}
+        destroyOnClose={true}
+        maskClosable={true}
         footer={[
           <Button key="reset" onClick={handleResetFilters}>
             Сбросить

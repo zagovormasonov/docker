@@ -38,6 +38,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, visible, onClose, 
       title={product.title}
       open={visible}
       onCancel={onClose}
+      afterClose={() => {
+        // Возвращаем фокус на страницу после закрытия модального окна
+        document.body.style.overflow = 'auto';
+      }}
+      destroyOnClose={true}
+      maskClosable={true}
       footer={[
         <Button key="close" onClick={onClose}>
           Закрыть

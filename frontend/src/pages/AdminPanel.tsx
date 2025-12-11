@@ -1149,6 +1149,13 @@ const AdminPanel: React.FC = () => {
         onOk={handleSave}
         onCancel={() => {
           setEditModalVisible(false);
+        }}
+        afterClose={() => {
+          // Возвращаем фокус на страницу после закрытия модального окна
+          document.body.style.overflow = 'auto';
+        }}
+        destroyOnClose={true}
+        maskClosable={true}
           setEditingItem(null);
         }}
         width={1200}

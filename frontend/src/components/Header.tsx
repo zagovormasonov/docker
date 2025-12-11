@@ -548,6 +548,12 @@ const Header = () => {
           setSupportModalOpen(false);
           supportForm.resetFields();
         }}
+        afterClose={() => {
+          // Возвращаем фокус на страницу после закрытия модального окна
+          document.body.style.overflow = 'auto';
+        }}
+        destroyOnClose={true}
+        maskClosable={true}
         footer={null}
         width={500}
       >

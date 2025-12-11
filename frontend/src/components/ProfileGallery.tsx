@@ -345,6 +345,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
         title={`${previewTitle} (${currentImageIndex + 1} из ${images.length})`}
         footer={null}
         onCancel={() => setPreviewVisible(false)}
+        afterClose={() => {
+          // Возвращаем фокус на страницу после закрытия модального окна
+          document.body.style.overflow = 'auto';
+        }}
+        destroyOnClose={true}
+        maskClosable={true}
         width="80%"
         style={{ top: 20 }}
       >

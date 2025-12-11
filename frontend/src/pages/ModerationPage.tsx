@@ -347,6 +347,12 @@ const ModerationPage = () => {
         title="Просмотр контента"
         open={!!selectedItem}
         onCancel={() => setSelectedItem(null)}
+        afterClose={() => {
+          // Возвращаем фокус на страницу после закрытия модального окна
+          document.body.style.overflow = 'auto';
+        }}
+        destroyOnClose={true}
+        maskClosable={true}
         footer={[
           <Button key="close" onClick={() => setSelectedItem(null)}>
             Закрыть
@@ -365,6 +371,13 @@ const ModerationPage = () => {
         onCancel={() => {
           setRejectModalVisible(false);
           setRejectReason('');
+        }}
+        afterClose={() => {
+          // Возвращаем фокус на страницу после закрытия модального окна
+          document.body.style.overflow = 'auto';
+        }}
+        destroyOnClose={true}
+        maskClosable={true}
           setRejectingItem(null);
         }}
         onOk={handleReject}
