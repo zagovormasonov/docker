@@ -157,7 +157,7 @@
 
 .day-switch .ant-switch-inner {
   font-size: 12px;
-  padding: 0 8px 0 10px;
+  padding: 0 8px 0 21px;
 }
 
 .day-delete {
@@ -812,7 +812,7 @@
 
 .session-switch .ant-switch-inner {
   font-size: 12px;
-  padding: 0 8px 0 10px;
+  padding: 0 8px 0 21px;
 }
 
 .session-switch.danger.ant-switch {
@@ -826,7 +826,7 @@
 
 .session-switch.danger .ant-switch-inner {
   font-size: 11px;
-  padding: 0 8px 0 10px;
+  padding: 0 8px 0 25px;
 }
 
 .btn-delete-small {
