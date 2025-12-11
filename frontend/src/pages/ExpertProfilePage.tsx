@@ -616,8 +616,15 @@ const ExpertProfilePage = () => {
             title={servicePreview.service?.title}
             open={servicePreview.visible}
             onCancel={() => setServicePreview({ visible: false, service: null })}
+            afterClose={() => {
+              // Возвращаем фокус на страницу после закрытия модального окна
+              document.body.style.overflow = 'auto';
+            }}
+            destroyOnClose={true}
             footer={null}
             width={800}
+            centered
+            maskClosable={true}
           >
             <div
               className="service-description"
