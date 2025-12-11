@@ -862,7 +862,6 @@ const AdminPanel: React.FC = () => {
             type="primary"
             onClick={() => window.location.href = '/admin-logs'}
             style={{ background: '#722ed1', borderColor: '#722ed1' }}
-            size={window.innerWidth < 768 ? 'middle' : 'default'}
           >
             📊 Логи действий
           </Button>
