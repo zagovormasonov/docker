@@ -254,7 +254,8 @@ SoulSynergy - пространство совместного духовного
                 style={{ 
                   flex: 1,
                   height: 48,
-                  minWidth: 0
+                  minWidth: 0,
+                  ...(window.innerWidth < 768 ? { padding: '19px 15px' } : {})
                 }}
               >
                 Копировать ссылку
@@ -267,7 +268,8 @@ SoulSynergy - пространство совместного духовного
                 style={{ 
                   flex: 1,
                   height: 48,
-                  minWidth: 0
+                  minWidth: 0,
+                  ...(window.innerWidth < 768 ? { padding: '19px 15px' } : {})
                 }}
               >
                 Копировать всё
