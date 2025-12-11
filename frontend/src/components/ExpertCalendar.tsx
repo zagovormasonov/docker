@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Switch, Tabs } from 'antd';
-import { CalendarOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CloseOutlined, EditOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
 
@@ -28,7 +28,7 @@ const ExpertCalendar: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeView, setActiveView] = useState<'edit' | 'preview'>('edit');
+  const [activeView, setActiveView] = useState<'edit' | 'preview'>('preview');
 
   // Форма добавления расписания - для каждого дня недели
   const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
@@ -189,276 +189,18 @@ const ExpertCalendar: React.FC = () => {
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
+      <div className="timezone-info">
+        <ClockCircleOutlined className="timezone-icon" />
+        <span>Все время указано по МСК (Московское время)</span>
+      </div>
+
       <Tabs
         activeKey={activeView}
         onChange={(key) => setActiveView(key as 'edit' | 'preview')}
         items={[
           {
-            key: 'edit',
-            label: 'Редактирование расписания',
-            children: (
-              <div className="availability-section">
-        <div className="availability-section">
-          <div className="add-slots-section">
-            <h3>Добавить расписание</h3>
-            <p className="info-text">Добавьте сеансы для каждого дня недели. Укажите время начала и окончания — длительность рассчитается автоматически.</p>
-            
-            <div className="days-schedule-form">
-              {DAYS_OF_WEEK.map(day => {
-                const daySchedules = groupedSchedules[day.value] || [];
-                const activeCount = daySchedules.filter(s => s.is_active).length;
-                const dayActive = activeCount > 0;
-
-                const handleToggleDay = async (makeActive: boolean) => {
-                  if (daySchedules.length === 0) return;
-                  try {
-                    setLoading(true);
-                    await Promise.all(
-                      daySchedules.map(schedule =>
-                        axios.put(`/schedule/expert/schedule/${schedule.id}/toggle`, { isActive: makeActive })
-                      )
-                    );
-                    setSuccess(makeActive ? 'День активирован' : 'День выключен');
-                    await loadSchedule();
-                  } catch (err: any) {
-                    setError(err.response?.data?.error || 'Ошибка обновления дня');
-                  } finally {
-                    setLoading(false);
-                  }
-                };
-
-
-                return (
-                  <div key={day.value} className="day-card">
-                    <div className="day-card-header">
-                      <div className="day-card-title">
-                        <div className="day-icon">
-                          <CalendarOutlined />
-                        </div>
-                        <div>
-                          <div className="day-title">{day.label}</div>
-                          <div className="day-meta">
-                            Рабочий день • {daySchedules.length || 0} онлайн-сессии
-                          </div>
-                        </div>
-                      </div>
-                      <div className="day-card-actions">
-                        <span className={`day-status ${dayActive ? 'active' : 'inactive'}`}>
-                          {dayActive ? 'День активен' : 'День выключен'}
-                        </span>
-                        <Switch
-                          checked={dayActive}
-                          onChange={(checked) => handleToggleDay(checked)}
-                          checkedChildren="Вкл"
-                          unCheckedChildren="Выкл"
-                          className="day-switch"
-                        />
-                        <button
-                          className="day-delete"
-                          onClick={() => {
-                            if (daySchedules.length === 0) return;
-                            Modal.confirm({
-                              title: 'Удалить все слоты дня?',
-                              content: 'Все сеансы этого дня будут удалены без возможности восстановления.',
-                              okText: 'Удалить',
-                              cancelText: 'Отмена',
-                              okButtonProps: { danger: true },
-                              centered: true,
-                              onOk: async () => {
-                                try {
-                                  setLoading(true);
-                                  for (const schedule of daySchedules) {
-                                    await handleDeleteSchedule(schedule.id);
-                                  }
-                                } finally {
-                                  setLoading(false);
-                                }
-                              }
-                            });
-                          }}
-                          title="Удалить все слоты дня"
-                        >
-                          <CloseOutlined />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="day-sessions">
-                      {/* Существующие сеансы */}
-                      {daySchedules.length === 0 ? (
-                        <div className="empty-day">Нет сеансов в этот день</div>
-                      ) : (
-                        daySchedules.map(schedule => editingSchedule?.id === schedule.id ? (
-                          <div key={schedule.id} className="session-form">
-                            <div className="session-form-title">Редактировать сеанс</div>
-                            <div className="time-inputs wide">
-                              <div className="time-input-wrapper">
-                                <input
-                                  type="time"
-                                  value={editingSchedule.startTime}
-                                  onChange={(e) => setEditingSchedule({...editingSchedule, startTime: e.target.value})}
-                                  className="form-input-small"
-                                />
-                              </div>
-                              <span className="time-separator">—</span>
-                              <div className="time-input-wrapper">
-                                <input
-                                  type="time"
-                                  value={editingSchedule.endTime}
-                                  onChange={(e) => setEditingSchedule({...editingSchedule, endTime: e.target.value})}
-                                  className="form-input-small"
-                                />
-                              </div>
-                            </div>
-                            <div className="session-actions modern">
-                              <button
-                                className="btn-cancel-modern"
-                                onClick={() => setEditingSchedule(null)}
-                                disabled={loading}
-                              >
-                                Отменить
-                              </button>
-                              <button
-                                className="btn-save-modern"
-                                onClick={() => handleEditSchedule(schedule.id)}
-                                disabled={loading}
-                              >
-                                ✓ Сохранить изменения
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div key={schedule.id} className={`session-card ${!schedule.is_active ? 'inactive' : ''}`}>
-                            <div className="session-info">
-                              <span className="session-dot" />
-                              <span className="session-time">{formatTime(schedule.start_time)} — {formatTime(schedule.end_time)}</span>
-                              <span className="session-duration">{schedule.slot_duration} мин</span>
-                            </div>
-                            <div className="session-controls">
-                              <button
-                                className="btn-edit-schedule"
-                                onClick={() => setEditingSchedule({
-                                  id: schedule.id,
-                                  startTime: schedule.start_time,
-                                  endTime: schedule.end_time
-                                })}
-                                title="Редактировать"
-                              >
-                                <EditOutlined />
-                              </button>
-                              <Switch
-                                checked={schedule.is_active}
-                                onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
-                                checkedChildren="Вкл"
-                                unCheckedChildren="Выкл"
-                                className="session-switch"
-                              />
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Формы добавления новых сеансов */}
-                    {activeForms[day.value]?.map((form, index) => (
-                      <div key={index} className="session-form">
-                        <div className="session-form-title">Добавить новый сеанс</div>
-                        <div className="time-inputs wide">
-                          <div className="time-input-wrapper">
-                            <input
-                              type="time"
-                              value={form.startTime}
-                              onChange={(e) => updateSessionForm(day.value, index, 'startTime', e.target.value)}
-                              className="form-input-small"
-                              placeholder="Начало"
-                            />
-                          </div>
-                          <span className="time-separator">—</span>
-                          <div className="time-input-wrapper">
-                            <input
-                              type="time"
-                              value={form.endTime}
-                              onChange={(e) => updateSessionForm(day.value, index, 'endTime', e.target.value)}
-                              className="form-input-small"
-                              placeholder="Конец"
-                            />
-                          </div>
-                          <span className="slot-length">Оч мин</span>
-                        </div>
-                        <div className="session-actions modern">
-                          <button
-                            className="btn-cancel-modern"
-                            onClick={() => removeSessionForm(day.value, index)}
-                            disabled={loading}
-                            title="Отменить"
-                          >
-                            Отменить
-                          </button>
-                          <button
-                            className="btn-save-modern"
-                            onClick={() => handleAddSchedule(day.value, index)}
-                            disabled={loading}
-                            title="Сохранить"
-                          >
-                            ✓ Сохранить сеанс
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Кнопка добавления сеанса */}
-                    <button
-                      className="btn-add-session modern"
-                      onClick={() => addSessionForm(day.value)}
-                    >
-                      + Добавить ещё один сеанс
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="slots-list">
-            <h3>Ваше расписание</h3>
-            {schedules.length === 0 ? (
-              <p className="empty-message">У вас пока нет расписания. Добавьте дни и время работы выше.</p>
-            ) : (
-              <div className="schedule-list">
-                {DAYS_OF_WEEK.map(day => {
-                  const daySchedules = groupedSchedules[day.value] || [];
-                  if (daySchedules.length === 0) return null;
-
-                  return (
-                    <div key={day.value} className="schedule-day-group">
-                      <h4>{day.label}</h4>
-                      <div className="schedule-items">
-                        {daySchedules.map(schedule => (
-                          <div key={schedule.id} className="schedule-item">
-                            <div className="schedule-info">
-                              <span className="schedule-time">
-                                🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
-                              </span>
-                              <span className="schedule-duration">
-                                📊 Слот: {schedule.slot_duration} мин
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-              </div>
-            )
-          },
-          {
             key: 'preview',
-            label: 'Как это видят пользователи',
+            label: 'Календарь',
             children: (
               <div className="client-view-preview">
                 <div className="preview-info">
@@ -498,6 +240,267 @@ const ExpertCalendar: React.FC = () => {
                 )}
               </div>
             )
+          },
+          {
+            key: 'edit',
+            label: 'Редактор',
+            children: (
+              <div className="availability-section">
+                <div className="add-slots-section">
+                  <h3>Добавить расписание</h3>
+                  <p className="info-text">Добавьте сеансы для каждого дня недели. Укажите время начала и окончания — длительность рассчитается автоматически.</p>
+                  
+                  <div className="days-schedule-form">
+                    {DAYS_OF_WEEK.map(day => {
+                      const daySchedules = groupedSchedules[day.value] || [];
+                      const activeCount = daySchedules.filter(s => s.is_active).length;
+                      const dayActive = activeCount > 0;
+
+                      const handleToggleDay = async (makeActive: boolean) => {
+                        if (daySchedules.length === 0) return;
+                        try {
+                          setLoading(true);
+                          await Promise.all(
+                            daySchedules.map(schedule =>
+                              axios.put(`/schedule/expert/schedule/${schedule.id}/toggle`, { isActive: makeActive })
+                            )
+                          );
+                          setSuccess(makeActive ? 'День активирован' : 'День выключен');
+                          await loadSchedule();
+                        } catch (err: any) {
+                          setError(err.response?.data?.error || 'Ошибка обновления дня');
+                        } finally {
+                          setLoading(false);
+                        }
+                      };
+
+
+                      return (
+                        <div key={day.value} className="day-card">
+                          <div className="day-card-header">
+                            <div className="day-card-title">
+                              <div className="day-icon">
+                                <CalendarOutlined />
+                              </div>
+                              <div>
+                                <div className="day-title">{day.label}</div>
+                                <div className="day-meta">
+                                  Рабочий день • {daySchedules.length || 0} онлайн-сессии
+                                </div>
+                              </div>
+                            </div>
+                            <div className="day-card-actions">
+                              <span className={`day-status ${dayActive ? 'active' : 'inactive'}`}>
+                                {dayActive ? 'День активен' : 'День выключен'}
+                              </span>
+                              <Switch
+                                checked={dayActive}
+                                onChange={(checked) => handleToggleDay(checked)}
+                                checkedChildren="Вкл"
+                                unCheckedChildren="Выкл"
+                                className="day-switch"
+                              />
+                              <button
+                                className="day-delete"
+                                onClick={() => {
+                                  if (daySchedules.length === 0) return;
+                                  Modal.confirm({
+                                    title: 'Удалить все слоты дня?',
+                                    content: 'Все сеансы этого дня будут удалены без возможности восстановления.',
+                                    okText: 'Удалить',
+                                    cancelText: 'Отмена',
+                                    okButtonProps: { danger: true },
+                                    centered: true,
+                                    onOk: async () => {
+                                      try {
+                                        setLoading(true);
+                                        for (const schedule of daySchedules) {
+                                          await handleDeleteSchedule(schedule.id);
+                                        }
+                                      } finally {
+                                        setLoading(false);
+                                      }
+                                    }
+                                  });
+                                }}
+                                title="Удалить все слоты дня"
+                              >
+                                <CloseOutlined />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="day-sessions">
+                            {/* Существующие сеансы */}
+                            {daySchedules.length === 0 ? (
+                              <div className="empty-day">Нет сеансов в этот день</div>
+                            ) : (
+                              daySchedules.map(schedule => editingSchedule?.id === schedule.id ? (
+                                <div key={schedule.id} className="session-form">
+                                  <div className="session-form-title">Редактировать сеанс</div>
+                                  <div className="time-inputs wide">
+                                    <div className="time-input-wrapper">
+                                      <input
+                                        type="time"
+                                        value={editingSchedule.startTime}
+                                        onChange={(e) => setEditingSchedule({...editingSchedule, startTime: e.target.value})}
+                                        className="form-input-small"
+                                      />
+                                    </div>
+                                    <span className="time-separator">—</span>
+                                    <div className="time-input-wrapper">
+                                      <input
+                                        type="time"
+                                        value={editingSchedule.endTime}
+                                        onChange={(e) => setEditingSchedule({...editingSchedule, endTime: e.target.value})}
+                                        className="form-input-small"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="session-actions modern">
+                                    <button
+                                      className="btn-cancel-modern"
+                                      onClick={() => setEditingSchedule(null)}
+                                      disabled={loading}
+                                    >
+                                      Отменить
+                                    </button>
+                                    <button
+                                      className="btn-save-modern"
+                                      onClick={() => handleEditSchedule(schedule.id)}
+                                      disabled={loading}
+                                    >
+                                      ✓ Сохранить изменения
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div key={schedule.id} className={`session-card ${!schedule.is_active ? 'inactive' : ''}`}>
+                                  <div className="session-info">
+                                    <span className="session-dot" />
+                                    <span className="session-time">{formatTime(schedule.start_time)} — {formatTime(schedule.end_time)}</span>
+                                    <span className="session-duration">{schedule.slot_duration} мин</span>
+                                  </div>
+                                  <div className="session-controls">
+                                    <button
+                                      className="btn-edit-schedule"
+                                      onClick={() => setEditingSchedule({
+                                        id: schedule.id,
+                                        startTime: schedule.start_time,
+                                        endTime: schedule.end_time
+                                      })}
+                                      title="Редактировать"
+                                    >
+                                      <EditOutlined />
+                                    </button>
+                                    <Switch
+                                      checked={schedule.is_active}
+                                      onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
+                                      checkedChildren="Вкл"
+                                      unCheckedChildren="Выкл"
+                                      className="session-switch"
+                                    />
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+
+                          {/* Формы добавления новых сеансов */}
+                          {activeForms[day.value]?.map((form, index) => (
+                            <div key={index} className="session-form">
+                              <div className="session-form-title">Добавить новый сеанс</div>
+                              <div className="time-inputs wide">
+                                <div className="time-input-wrapper">
+                                  <input
+                                    type="time"
+                                    value={form.startTime}
+                                    onChange={(e) => updateSessionForm(day.value, index, 'startTime', e.target.value)}
+                                    className="form-input-small"
+                                    placeholder="Начало"
+                                  />
+                                </div>
+                                <span className="time-separator">—</span>
+                                <div className="time-input-wrapper">
+                                  <input
+                                    type="time"
+                                    value={form.endTime}
+                                    onChange={(e) => updateSessionForm(day.value, index, 'endTime', e.target.value)}
+                                    className="form-input-small"
+                                    placeholder="Конец"
+                                  />
+                                </div>
+                                <span className="slot-length">Оч мин</span>
+                              </div>
+                              <div className="session-actions modern">
+                                <button
+                                  className="btn-cancel-modern"
+                                  onClick={() => removeSessionForm(day.value, index)}
+                                  disabled={loading}
+                                  title="Отменить"
+                                >
+                                  Отменить
+                                </button>
+                                <button
+                                  className="btn-save-modern"
+                                  onClick={() => handleAddSchedule(day.value, index)}
+                                  disabled={loading}
+                                  title="Сохранить"
+                                >
+                                  ✓ Сохранить сеанс
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Кнопка добавления сеанса */}
+                          <button
+                            className="btn-add-session modern"
+                            onClick={() => addSessionForm(day.value)}
+                          >
+                            + Добавить ещё один сеанс
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="slots-list">
+                  <h3>Ваше расписание</h3>
+                  {schedules.length === 0 ? (
+                    <p className="empty-message">У вас пока нет расписания. Добавьте дни и время работы выше.</p>
+                  ) : (
+                    <div className="schedule-list">
+                      {DAYS_OF_WEEK.map(day => {
+                        const daySchedules = groupedSchedules[day.value] || [];
+                        if (daySchedules.length === 0) return null;
+
+                        return (
+                          <div key={day.value} className="schedule-day-group">
+                            <h4>{day.label}</h4>
+                            <div className="schedule-items">
+                              {daySchedules.map(schedule => (
+                                <div key={schedule.id} className="schedule-item">
+                                  <div className="schedule-info">
+                                    <span className="schedule-time">
+                                      🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
+                                    </span>
+                                    <span className="schedule-duration">
+                                      📊 Слот: {schedule.slot_duration} мин
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
           }
         ]}
       />
@@ -506,4 +509,3 @@ const ExpertCalendar: React.FC = () => {
 };
 
 export default ExpertCalendar;
-
