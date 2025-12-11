@@ -637,9 +637,10 @@ const ExpertDashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="container" style={{ 
+    <div style={{ 
       padding: isMobile ? '12px' : '24px',
-      maxWidth: '100%',
+      maxWidth: isMobile ? '100%' : '1200px',
+      margin: '0 auto',
       overflowX: 'hidden'
     }}>
       <Card style={{ overflowX: 'hidden' }}>

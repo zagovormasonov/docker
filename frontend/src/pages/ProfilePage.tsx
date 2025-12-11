@@ -99,6 +99,16 @@ const ProfilePage = () => {
   const [productModalVisible, setProductModalVisible] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     fetchTopics();
@@ -762,12 +772,16 @@ const ProfilePage = () => {
                         <TextArea rows={5} placeholder="Опишите вашу услугу..." />
                       </Form.Item>
 
-                      <Space style={{ width: '100%' }} size="middle">
-                        <Form.Item name="price" label="Цена (₽)">
+                      <Space 
+                        style={{ width: '100%' }} 
+                        size="middle"
+                        direction={isMobile ? 'vertical' : 'horizontal'}
+                      >
+                        <Form.Item name="price" label="Цена (₽)" style={{ width: isMobile ? '100%' : 'auto' }}>
                           <Input type="number" placeholder="3000" />
                         </Form.Item>
 
-                        <Form.Item name="duration" label="Длительность (мин)">
+                        <Form.Item name="duration" label="Длительность (мин)" style={{ width: isMobile ? '100%' : 'auto' }}>
                           <Input type="number" placeholder="60" />
                         </Form.Item>
 
@@ -775,8 +789,9 @@ const ProfilePage = () => {
                           name="serviceType"
                           label="Тип"
                           rules={[{ required: true, message: 'Выберите тип' }]}
+                          style={{ width: isMobile ? '100%' : 'auto' }}
                         >
-                          <Select style={{ width: 150 }} placeholder="Тип">
+                          <Select style={{ width: isMobile ? '100%' : 150 }} placeholder="Тип">
                             <Select.Option value="online">Онлайн</Select.Option>
                             <Select.Option value="offline">Офлайн</Select.Option>
                             <Select.Option value="both">Оба</Select.Option>
