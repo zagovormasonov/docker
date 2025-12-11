@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Switch } from 'antd';
-import { CalendarOutlined, CloseOutlined } from '@ant-design/icons';
+import { Modal, Switch, Tabs } from 'antd';
+import { CalendarOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
 
@@ -28,9 +28,11 @@ const ExpertCalendar: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activeView, setActiveView] = useState<'edit' | 'preview'>('edit');
 
   // Форма добавления расписания - для каждого дня недели
   const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
+  const [editingSchedule, setEditingSchedule] = useState<{id: number, startTime: string, endTime: string} | null>(null);
   
   const addSessionForm = (dayOfWeek: number) => {
     setActiveForms(prev => ({
@@ -110,6 +112,50 @@ const ExpertCalendar: React.FC = () => {
     }
   };
 
+  const handleDeleteSchedule = async (scheduleId: number) => {
+    try {
+      await axios.delete(`/schedule/expert/schedule/${scheduleId}`);
+      setSuccess('Расписание удалено');
+      await loadSchedule();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Ошибка удаления расписания');
+    }
+  };
+
+  const handleEditSchedule = async (scheduleId: number) => {
+    if (!editingSchedule) return;
+    
+    const { startTime, endTime } = editingSchedule;
+    
+    if (!startTime || !endTime) {
+      setError('Укажите время начала и окончания');
+      return;
+    }
+
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    
+    if (start >= end) {
+      setError('Время начала должно быть раньше времени окончания');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await axios.put(`/schedule/expert/schedule/${scheduleId}`, {
+        startTime,
+        endTime
+      });
+      setSuccess('Расписание обновлено');
+      setEditingSchedule(null);
+      await loadSchedule();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Ошибка обновления расписания');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleToggleSchedule = async (scheduleId: number, isActive: boolean) => {
     try {
@@ -143,7 +189,15 @@ const ExpertCalendar: React.FC = () => {
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
-      <div className="availability-section">
+      <Tabs
+        activeKey={activeView}
+        onChange={(key) => setActiveView(key as 'edit' | 'preview')}
+        items={[
+          {
+            key: 'edit',
+            label: 'Редактирование расписания',
+            children: (
+              <div className="availability-section">
         <div className="availability-section">
           <div className="add-slots-section">
             <h3>➕ Добавить расписание</h3>
@@ -199,6 +253,33 @@ const ExpertCalendar: React.FC = () => {
                           unCheckedChildren="Выкл"
                           className="day-switch"
                         />
+                        <button
+                          className="day-delete"
+                          onClick={() => {
+                            if (daySchedules.length === 0) return;
+                            Modal.confirm({
+                              title: 'Удалить все слоты дня?',
+                              content: 'Все сеансы этого дня будут удалены без возможности восстановления.',
+                              okText: 'Удалить',
+                              cancelText: 'Отмена',
+                              okButtonProps: { danger: true },
+                              centered: true,
+                              onOk: async () => {
+                                try {
+                                  setLoading(true);
+                                  for (const schedule of daySchedules) {
+                                    await handleDeleteSchedule(schedule.id);
+                                  }
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }
+                            });
+                          }}
+                          title="Удалить все слоты дня"
+                        >
+                          <CloseOutlined />
+                        </button>
                       </div>
                     </div>
 
@@ -207,7 +288,46 @@ const ExpertCalendar: React.FC = () => {
                       {daySchedules.length === 0 ? (
                         <div className="empty-day">Нет сеансов в этот день</div>
                       ) : (
-                        daySchedules.map(schedule => (
+                        daySchedules.map(schedule => editingSchedule?.id === schedule.id ? (
+                          <div key={schedule.id} className="session-form">
+                            <div className="session-form-title">Редактировать сеанс</div>
+                            <div className="time-inputs wide">
+                              <div className="time-input-wrapper">
+                                <input
+                                  type="time"
+                                  value={editingSchedule.startTime}
+                                  onChange={(e) => setEditingSchedule({...editingSchedule, startTime: e.target.value})}
+                                  className="form-input-small"
+                                />
+                              </div>
+                              <span className="time-separator">—</span>
+                              <div className="time-input-wrapper">
+                                <input
+                                  type="time"
+                                  value={editingSchedule.endTime}
+                                  onChange={(e) => setEditingSchedule({...editingSchedule, endTime: e.target.value})}
+                                  className="form-input-small"
+                                />
+                              </div>
+                            </div>
+                            <div className="session-actions modern">
+                              <button
+                                className="btn-cancel-modern"
+                                onClick={() => setEditingSchedule(null)}
+                                disabled={loading}
+                              >
+                                Отменить
+                              </button>
+                              <button
+                                className="btn-save-modern"
+                                onClick={() => handleEditSchedule(schedule.id)}
+                                disabled={loading}
+                              >
+                                ✓ Сохранить изменения
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
                           <div key={schedule.id} className={`session-card ${!schedule.is_active ? 'inactive' : ''}`}>
                             <div className="session-info">
                               <span className="session-dot" />
@@ -215,6 +335,17 @@ const ExpertCalendar: React.FC = () => {
                               <span className="session-duration">{schedule.slot_duration} мин</span>
                             </div>
                             <div className="session-controls">
+                              <button
+                                className="btn-edit-schedule"
+                                onClick={() => setEditingSchedule({
+                                  id: schedule.id,
+                                  startTime: schedule.start_time,
+                                  endTime: schedule.end_time
+                                })}
+                                title="Редактировать"
+                              >
+                                <EditOutlined />
+                              </button>
                               <Switch
                                 checked={schedule.is_active}
                                 onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
@@ -322,7 +453,59 @@ const ExpertCalendar: React.FC = () => {
             )}
           </div>
         </div>
-                  </div>
+              </div>
+            )
+          },
+          {
+            key: 'preview',
+            label: 'Как это видят пользователи',
+            children: (
+              <div className="preview-section">
+                <div className="preview-info">
+                  <p style={{ color: '#6b7280', marginBottom: 24 }}>
+                    Так выглядит ваше расписание для клиентов при бронировании консультации
+                  </p>
+                </div>
+                <div className="preview-schedule">
+                  {DAYS_OF_WEEK.map(day => {
+                    const daySchedules = groupedSchedules[day.value]?.filter(s => s.is_active) || [];
+                    if (daySchedules.length === 0) return null;
+
+                    return (
+                      <div key={day.value} className="preview-day-card">
+                        <div className="preview-day-header">
+                          <CalendarOutlined style={{ color: '#9197ff' }} />
+                          <span className="preview-day-name">{day.label}</span>
+                        </div>
+                        <div className="preview-slots">
+                          {daySchedules.map(schedule => (
+                            <div key={schedule.id} className="preview-slot">
+                              <span className="preview-time">
+                                {formatTime(schedule.start_time)} — {formatTime(schedule.end_time)}
+                              </span>
+                              <span className="preview-duration">
+                                {schedule.slot_duration} мин
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }).filter(Boolean)}
+                  {schedules.filter(s => s.is_active).length === 0 && (
+                    <div className="preview-empty">
+                      <p>Нет активных слотов для отображения</p>
+                      <p style={{ fontSize: 14, color: '#9ca3af' }}>
+                        Добавьте расписание и включите слоты, чтобы они отображались для клиентов
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          }
+        ]}
+      />
     </div>
   );
 };
