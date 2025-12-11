@@ -837,7 +837,7 @@
 
 .day-title {
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--primary-color);
   margin-bottom: 16px;
   padding-bottom: 12px;
@@ -1080,17 +1080,18 @@
 
 .btn-save-modern {
   padding: 10px 16px;
-  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  background: #9197ff;
   color: white;
   border: none;
   border-radius: 10px;
   font-weight: 400;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+  box-shadow: none;
 }
 
 .btn-save-modern:hover:not(:disabled) {
+  background: #7a81e6;
   transform: translateY(-1px);
 }
 
@@ -1102,10 +1103,10 @@
 .btn-cancel-modern {
   padding: 10px 14px;
   background: white;
-  border: 1px solid #e5e7eb;
+  border: none;
   color: #374151;
   border-radius: 10px;
-  font-weight: 600;
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1117,12 +1118,12 @@
 .btn-add-session {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-  border: 2px solid #9333ea;
+  background: #9197ff;
+  border: none;
   border-radius: 10px;
-  color: #9333ea;
+  color: white;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 8px;
@@ -1133,12 +1134,8 @@
 }
 
 .btn-add-session:hover {
-  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
-  color: white;
-  border-color: #9333ea;
-  border-style: solid;
+  background: #7a81e6;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(147, 51, 234, 0.4);
 }
 
 .empty-day {
