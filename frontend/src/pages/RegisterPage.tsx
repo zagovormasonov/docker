@@ -15,7 +15,12 @@ const RegisterPage = () => {
 
   const sendVerificationEmail = async (email: string, name: string, verificationToken: string) => {
     try {
-      const verificationUrl = `${window.location.origin}/verify-email?token=${verificationToken}`;
+      const baseUrlRaw =
+        (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined) ||
+        window.location.origin;
+
+      const baseUrl = baseUrlRaw.replace(/\/+$/, '');
+      const verificationUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(verificationToken)}`;
       
       await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
@@ -24,6 +29,7 @@ const RegisterPage = () => {
           to_email: email,
           to_name: name,
           verification_url: verificationUrl,
+          verification_token: verificationToken,
           app_name: 'SoulSynergy'
         },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY

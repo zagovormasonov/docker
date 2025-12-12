@@ -1351,10 +1351,7 @@
 .client-slot-status {
   font-size: 14px;
   color: #10b981;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-weight: 400;
 }
 
 .preview-empty {

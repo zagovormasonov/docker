@@ -374,7 +374,7 @@ const ExpertCalendar: React.FC = () => {
                               <div key={schedule.id} className="client-slot-button">
                                 <span className="client-slot-time">🕐 {formatTime(schedule.start_time)}</span>
                                 <span className="client-slot-duration">⏱️ {schedule.slot_duration} мин</span>
-                                <span className="client-slot-status">✅ Доступно</span>
+                                <span className="client-slot-status">🟢 Доступно</span>
                               </div>
                             ))}
                           </div>
