@@ -202,6 +202,74 @@ const ChatsPage = () => {
     // НЕ обновляем список чатов при возврате к списку
   };
 
+  const selectedChatObj = selectedChat ? chats.find(c => c.id === selectedChat) : null;
+
+  const renderChatRow = (chat: Chat) => (
+    <List.Item
+      onClick={() => handleChatSelect(chat.id)}
+      style={{
+        cursor: 'pointer',
+        background: selectedChat === chat.id ? '#f0f0f0' :
+          (chat.unread_count && chat.unread_count > 0 ? '#fff2f0' : 'transparent'),
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 8,
+        border: chat.unread_count && chat.unread_count > 0 ? '1px solid #ffccc7' : '1px solid transparent'
+      }}
+    >
+      <List.Item.Meta
+        avatar={
+          <Badge
+            dot={chat.other_user_online}
+            color="green"
+            count={chat.unread_count && chat.unread_count > 0 ? chat.unread_count : 0}
+            offset={[-5, 5]}
+          >
+            <Avatar
+              src={chat.other_user_avatar}
+              icon={!chat.other_user_avatar && <UserOutlined />}
+              size={48}
+            />
+          </Badge>
+        }
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span>{chat.other_user_name}</span>
+            {chat.last_message_sender_id === user?.id && (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                (Вы)
+              </Text>
+            )}
+          </div>
+        }
+        description={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text ellipsis type="secondary" style={{ flex: 1 }}>
+              {chat.last_message || 'Нет сообщений'}
+            </Text>
+            {chat.unread_count && chat.unread_count > 0 && (
+              <Badge
+                count={chat.unread_count}
+                size="small"
+                style={{
+                  marginLeft: 8,
+                  backgroundColor: '#ff4d4f',
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}
+              />
+            )}
+          </div>
+        }
+      />
+      {chat.last_message_time && (
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          {dayjs(chat.last_message_time).format('HH:mm')}
+        </Text>
+      )}
+    </List.Item>
+  );
+
   // Мобильная версия - список чатов
   if (isMobile && showChatList) {
     return (
@@ -209,76 +277,12 @@ const ChatsPage = () => {
         <Card
           title="Чаты"
           className="chats-panel"
-          bodyStyle={{ flex: 1, overflow: 'auto', padding: 0 }}
+          bodyStyle={{ flex: 1, padding: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}
         >
-          <div style={{ padding: 16 }}>
+          <div className="chat-list-scroll" style={{ padding: 16 }}>
             <List
               dataSource={chats}
-              renderItem={(chat) => (
-                <List.Item
-                  onClick={() => handleChatSelect(chat.id)}
-                  style={{
-                    cursor: 'pointer',
-                    background: selectedChat === chat.id ? '#f0f0f0' : 
-                               (chat.unread_count && chat.unread_count > 0 ? '#fff2f0' : 'transparent'),
-                    borderRadius: 8,
-                    padding: 12,
-                    marginBottom: 8,
-                    border: chat.unread_count && chat.unread_count > 0 ? '1px solid #ffccc7' : '1px solid transparent'
-                  }}
-                >
-                  <List.Item.Meta
-                    avatar={
-                      <Badge 
-                        dot={chat.other_user_online} 
-                        color="green"
-                        count={chat.unread_count && chat.unread_count > 0 ? chat.unread_count : 0}
-                        offset={[-5, 5]}
-                      >
-                        <Avatar
-                          src={chat.other_user_avatar}
-                          icon={!chat.other_user_avatar && <UserOutlined />}
-                          size={48}
-                        />
-                      </Badge>
-                    }
-                    title={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span>{chat.other_user_name}</span>
-                        {chat.last_message_sender_id === user?.id && (
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            (Вы)
-                          </Text>
-                        )}
-                      </div>
-                    }
-                    description={
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text ellipsis type="secondary" style={{ flex: 1 }}>
-                          {chat.last_message || 'Нет сообщений'}
-                        </Text>
-                        {chat.unread_count && chat.unread_count > 0 && (
-                          <Badge 
-                            count={chat.unread_count} 
-                            size="small" 
-                            style={{ 
-                              marginLeft: 8,
-                              backgroundColor: '#ff4d4f',
-                              color: 'white',
-                              fontWeight: 'bold'
-                            }}
-                          />
-                        )}
-                      </div>
-                    }
-                  />
-                  {chat.last_message_time && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {dayjs(chat.last_message_time).format('HH:mm')}
-                    </Text>
-                  )}
-                </List.Item>
-              )}
+              renderItem={(chat) => renderChatRow(chat)}
             />
           </div>
         </Card>
@@ -421,75 +425,19 @@ const ChatsPage = () => {
           <Card
             title="Чаты"
             className="chats-panel"
-            bodyStyle={{ flex: 1, overflow: 'auto', padding: 0 }}
+            bodyStyle={{ flex: 1, padding: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}
           >
-            <div style={{ padding: 16 }}>
+            {selectedChatObj && (
+              <div className="chat-selected-sticky">
+                <div className="chat-selected-title">Выбранный чат</div>
+                <List dataSource={[selectedChatObj]} renderItem={(chat) => renderChatRow(chat)} />
+              </div>
+            )}
+            <div className="chat-list-scroll" style={{ padding: 16 }}>
               <List
-                dataSource={chats}
-                renderItem={(chat) => (
-                <List.Item
-                  onClick={() => handleChatSelect(chat.id)}
-                  style={{
-                    cursor: 'pointer',
-                    background: selectedChat === chat.id ? '#f0f0f0' : 'transparent',
-                    borderRadius: 8,
-                    padding: 12,
-                    marginBottom: 8
-                  }}
-                >
-                  <List.Item.Meta
-                    avatar={
-                      <Badge 
-                        dot={chat.other_user_online} 
-                        color="green"
-                        count={chat.unread_count && chat.unread_count > 0 ? chat.unread_count : 0}
-                        offset={[-5, 5]}
-                      >
-                        <Avatar
-                          src={chat.other_user_avatar}
-                          icon={!chat.other_user_avatar && <UserOutlined />}
-                          size={48}
-                        />
-                      </Badge>
-                    }
-                    title={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span>{chat.other_user_name}</span>
-                        {chat.last_message_sender_id === user?.id && (
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            (Вы)
-                          </Text>
-                        )}
-                      </div>
-                    }
-                    description={
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text ellipsis type="secondary" style={{ flex: 1 }}>
-                          {chat.last_message || 'Нет сообщений'}
-                        </Text>
-                        {chat.unread_count && chat.unread_count > 0 && (
-                          <Badge 
-                            count={chat.unread_count} 
-                            size="small" 
-                            style={{ 
-                              marginLeft: 8,
-                              backgroundColor: '#ff4d4f',
-                              color: 'white',
-                              fontWeight: 'bold'
-                            }}
-                          />
-                        )}
-                      </div>
-                    }
-                  />
-                  {chat.last_message_time && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {dayjs(chat.last_message_time).format('HH:mm')}
-                    </Text>
-                  )}
-                </List.Item>
-              )}
-            />
+                dataSource={selectedChatObj ? chats.filter(c => c.id !== selectedChatObj.id) : chats}
+                renderItem={(chat) => renderChatRow(chat)}
+              />
             </div>
           </Card>
         </Col>

@@ -9,6 +9,16 @@
   height: 100%;
 }
 
+.chats-page .ant-col {
+  height: 100%;
+  min-height: 0;
+}
+
+.chats-page .ant-card {
+  height: 100%;
+  min-height: 0;
+}
+
 .chats-panel {
   height: 100%;
   display: flex;
@@ -27,11 +37,33 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 16px;
   margin: 12px;
   border: 1px solid #f0f0f0;
   border-radius: 12px;
   background: #fff;
+}
+
+.chat-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.chat-selected-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.chat-selected-sticky .chat-selected-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
 }
 
 .chat-input {
