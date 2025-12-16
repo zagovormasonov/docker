@@ -2,6 +2,7 @@
   /* Header Ant Layout по умолчанию ~64px, footer в чате скрыт (см. Layout.tsx) */
   height: calc(100dvh - 64px);
   padding: 12px;
+  overflow: hidden;
 }
 
 .chats-page .ant-row {
@@ -37,6 +38,9 @@
   padding: 12px;
   border-top: 1px solid #f0f0f0;
   background: #fff;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
 }
 
 .chat-header {
@@ -62,9 +66,17 @@
   }
 
   .chat-input {
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
+    z-index: 998;
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* чтобы фиксированный инпут не перекрывал последние сообщения */
+  .messages-container {
+    padding-bottom: 88px;
   }
 }
 

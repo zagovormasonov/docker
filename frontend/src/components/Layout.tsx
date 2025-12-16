@@ -18,11 +18,17 @@ const Layout = () => {
   }, []);
 
   const isChatsRoute = location.pathname.startsWith('/chats');
+  const HEADER_HEIGHT = 64;
 
   return (
     <AntLayout style={{ minHeight: '100vh', background: '#fafafa' }}>
       <Header />
-      <Content style={{ padding: isChatsRoute ? 0 : '24px 0' }}>
+      <Content
+        style={{
+          padding: isChatsRoute ? 0 : '24px 0',
+          paddingTop: isChatsRoute ? HEADER_HEIGHT : HEADER_HEIGHT + 24
+        }}
+      >
         <Outlet />
       </Content>
       {!isChatsRoute && (
