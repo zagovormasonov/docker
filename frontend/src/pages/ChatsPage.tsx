@@ -19,6 +19,7 @@ import socketService from '../api/socket';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import dayjs from 'dayjs';
+import './ChatsPage.css';
 
 const { Text } = Typography;
 
@@ -204,10 +205,10 @@ const ChatsPage = () => {
   // Мобильная версия - список чатов
   if (isMobile && showChatList) {
     return (
-      <div className="container">
+      <div className="chats-page">
         <Card
           title="Чаты"
-          style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}
+          className="chats-panel"
           bodyStyle={{ flex: 1, overflow: 'auto', padding: 0 }}
         >
           <div style={{ padding: 16 }}>
@@ -288,22 +289,12 @@ const ChatsPage = () => {
   // Мобильная версия - активный чат
   if (isMobile && !showChatList && selectedChat) {
     return (
-      <div className="container">
+      <div className="chats-page">
         <Card
-          style={{ height: 'calc(100vh - 160px)', display: 'flex', flexDirection: 'column' }}
+          className="chats-panel"
           bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0 }}
         >
-          <div style={{ 
-            padding: '12px 16px', 
-            borderBottom: '1px solid #f0f0f0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            position: 'sticky',
-            top: 0,
-            backgroundColor: 'white',
-            zIndex: 10
-          }}>
+          <div className="chat-header">
             <Button 
               icon={<ArrowLeftOutlined />} 
               onClick={handleBackToChatList}
@@ -315,13 +306,9 @@ const ChatsPage = () => {
           <div
             className="messages-container"
             style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: 24,
               display: 'flex',
               flexDirection: 'column',
               gap: 16,
-              paddingBottom: 120
             }}
           >
             {messages.map((message) => (
@@ -402,7 +389,7 @@ const ChatsPage = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div style={{ padding: 16, borderTop: '1px solid #f0f0f0', position: 'fixed', left: 0, right: 0, bottom: 0, background: 'white', zIndex: 997, paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
+          <div className="chat-input">
             <Space.Compact style={{ width: '100%' }}>
               <Input
                 value={messageText}
@@ -417,7 +404,7 @@ const ChatsPage = () => {
                 onClick={sendMessage}
                 size="large"
               >
-                Отправить
+                {isMobile ? null : 'Отправить'}
               </Button>
             </Space.Compact>
           </div>
@@ -428,12 +415,12 @@ const ChatsPage = () => {
 
   // Десктопная версия
   return (
-    <div className="container">
-      <Row gutter={16} style={{ height: 'calc(100vh - 200px)' }}>
+    <div className="chats-page">
+      <Row gutter={16}>
         <Col xs={24} md={8}>
           <Card
             title="Чаты"
-            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            className="chats-panel"
             bodyStyle={{ flex: 1, overflow: 'auto', padding: 0 }}
           >
             <div style={{ padding: 16 }}>
@@ -509,7 +496,7 @@ const ChatsPage = () => {
 
         <Col xs={24} md={16}>
           <Card
-            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            className="chats-panel"
             bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0 }}
           >
             {selectedChat ? (
@@ -517,15 +504,9 @@ const ChatsPage = () => {
                 <div
                   className="messages-container"
                   style={{
-                    height: 'calc(100vh - 300px)', // Фиксированная высота по высоте экрана
-                    overflowY: 'auto',
-                    padding: 24,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 16,
-                    border: '1px solid #d9d9d9',
-                    borderRadius: 8,
-                    margin: 16
                   }}
                 >
                   {messages.map((message) => (
@@ -606,7 +587,7 @@ const ChatsPage = () => {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div style={{ padding: 16, borderTop: '1px solid #f0f0f0' }}>
+                <div className="chat-input">
                   <Space.Compact style={{ width: '100%' }}>
                     <Input
                       value={messageText}
