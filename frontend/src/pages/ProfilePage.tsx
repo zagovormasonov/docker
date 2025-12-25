@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -15,8 +15,7 @@ import {
   List,
   Popconfirm,
   Tag,
-  Progress,
-  Modal
+  Progress
 } from 'antd';
 import { 
   UserOutlined, 
@@ -26,6 +25,7 @@ import {
   UploadOutlined,
   LinkOutlined,
   ShareAltOutlined,
+  CloseOutlined,
   SearchOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
@@ -105,6 +105,7 @@ const ProfilePage = () => {
   const [cityModalVisible, setCityModalVisible] = useState(false);
   const [citySearch, setCitySearch] = useState('');
   const selectedCity = Form.useWatch('city', form);
+  const originalBodyOverflow = useRef<string | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -178,6 +179,33 @@ const ProfilePage = () => {
     }
     return cities.filter((city) => city.name.toLowerCase().includes(searchValue));
   }, [cities, citySearch]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      if (originalBodyOverflow.current !== null) {
+        document.body.style.overflow = originalBodyOverflow.current;
+        originalBodyOverflow.current = null;
+      }
+      return;
+    }
+
+    if (cityModalVisible) {
+      if (originalBodyOverflow.current === null) {
+        originalBodyOverflow.current = document.body.style.overflow;
+      }
+      document.body.style.overflow = 'hidden';
+    } else if (originalBodyOverflow.current !== null) {
+      document.body.style.overflow = originalBodyOverflow.current;
+      originalBodyOverflow.current = null;
+    }
+
+    return () => {
+      if (originalBodyOverflow.current !== null) {
+        document.body.style.overflow = originalBodyOverflow.current;
+        originalBodyOverflow.current = null;
+      }
+    };
+  }, [cityModalVisible, isMobile]);
 
   const handleCitySelect = (value: string) => {
     form.setFieldsValue({ city: value });
@@ -634,39 +662,59 @@ const ProfilePage = () => {
                   readOnly
                   onClick={() => setCityModalVisible(true)}
                 />
-                <Modal
-                  open={cityModalVisible}
-                  onCancel={handleCityModalClose}
-                  footer={null}
-                  title="Выберите город"
-                  centered
-                  className="mobile-select-modal"
-                >
-                  <Input
-                    size="large"
-                    prefix={<SearchOutlined />}
-                    placeholder="Поиск города"
-                    value={citySearch}
-                    onChange={(e) => setCitySearch(e.target.value)}
-                    allowClear
-                    style={{ marginBottom: 12 }}
-                  />
-                  <div className="mobile-select-options">
-                    {filteredCities.map((city) => (
-                      <button
-                        type="button"
-                        key={city.id}
-                        className={`mobile-select-option ${selectedCity === city.name ? 'selected' : ''}`}
-                        onClick={() => handleCitySelect(city.name)}
-                      >
-                        {city.name}
-                      </button>
-                    ))}
-                    {filteredCities.length === 0 && (
-                      <div className="mobile-select-empty">Город не найден</div>
-                    )}
+                {cityModalVisible && (
+                  <div
+                    className="mobile-select-overlay"
+                    onClick={handleCityModalClose}
+                  >
+                    <div
+                      className="mobile-select-panel"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="mobile-select-header">
+                        <button
+                          type="button"
+                          className="mobile-select-close"
+                          onClick={handleCityModalClose}
+                        >
+                          <CloseOutlined />
+                        </button>
+                        <span className="mobile-select-title">Выберите город</span>
+                        <button
+                          type="button"
+                          className="mobile-select-ready"
+                          onClick={handleCityModalClose}
+                        >
+                          Готово
+                        </button>
+                      </div>
+                      <Input
+                        size="large"
+                        prefix={<SearchOutlined />}
+                        placeholder="Поиск города"
+                        value={citySearch}
+                        onChange={(e) => setCitySearch(e.target.value)}
+                        allowClear
+                        className="mobile-select-search"
+                      />
+                      <div className="mobile-select-options">
+                        {filteredCities.map((city) => (
+                          <button
+                            type="button"
+                            key={city.id}
+                            className={`mobile-select-option ${selectedCity === city.name ? 'selected' : ''}`}
+                            onClick={() => handleCitySelect(city.name)}
+                          >
+                            {city.name}
+                          </button>
+                        ))}
+                        {filteredCities.length === 0 && (
+                          <div className="mobile-select-empty">Город не найден</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </Modal>
+                )}
               </Form.Item>
             ) : (
               <Form.Item
