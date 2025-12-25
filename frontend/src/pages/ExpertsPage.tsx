@@ -60,6 +60,7 @@ const ExpertsPage = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [mobileSelectType, setMobileSelectType] = useState<MobileSelectType | null>(null);
   const [mobileSelectSearch, setMobileSelectSearch] = useState('');
+  const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
   const originalBodyOverflow = useRef<string | null>(null);
   const navigate = useNavigate();
   useEffect(() => {
@@ -429,13 +430,21 @@ const ExpertsPage = () => {
   }, [isMobile, isMobileSelectOpen]);
 
   const openMobileSelect = (type: MobileSelectType) => {
+    setMobileSelectClosing(false);
     setMobileSelectType(type);
     setMobileSelectSearch('');
   };
 
   const closeMobileSelect = () => {
-    setMobileSelectType(null);
-    setMobileSelectSearch('');
+    if (!mobileSelectType || mobileSelectClosing) {
+      return;
+    }
+    setMobileSelectClosing(true);
+    setTimeout(() => {
+      setMobileSelectType(null);
+      setMobileSelectClosing(false);
+      setMobileSelectSearch('');
+    }, 250);
   };
 
   const handleMobileOptionClick = (value: string) => {
@@ -497,8 +506,8 @@ const ExpertsPage = () => {
     );
 
     return createPortal(
-      <div className="mobile-select-overlay" onClick={closeMobileSelect}>
-        <div className="mobile-select-panel" onClick={(e) => e.stopPropagation()}>
+      <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`} onClick={closeMobileSelect}>
+        <div className={`mobile-select-panel ${mobileSelectClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
           <div className="mobile-select-header">
             <button type="button" className="mobile-select-close" onClick={closeMobileSelect}>
               <CloseOutlined />

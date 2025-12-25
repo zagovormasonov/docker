@@ -117,6 +117,7 @@ const ProfilePage = () => {
   const selectedConsultationTypes = Form.useWatch('consultationTypes', form) || [];
   const selectedTopics = Form.useWatch('topics', form) || [];
   const originalBodyOverflow = useRef<string | null>(null);
+  const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -213,13 +214,21 @@ const ProfilePage = () => {
   }, [isMobileSelectOpen, isMobile]);
 
   const openMobileSelect = (type: MobileSelectType) => {
+    setMobileSelectClosing(false);
     setMobileSelectType(type);
     setMobileSelectSearch('');
   };
 
   const closeMobileSelect = () => {
-    setMobileSelectType(null);
-    setMobileSelectSearch('');
+    if (!mobileSelectType || mobileSelectClosing) {
+      return;
+    }
+    setMobileSelectClosing(true);
+    setTimeout(() => {
+      setMobileSelectType(null);
+      setMobileSelectClosing(false);
+      setMobileSelectSearch('');
+    }, 250);
   };
 
   const handleMobileOptionClick = (value: string | number) => {
@@ -319,8 +328,8 @@ const ProfilePage = () => {
     );
 
     return createPortal(
-      <div className="mobile-select-overlay" onClick={closeMobileSelect}>
-        <div className="mobile-select-panel" onClick={(e) => e.stopPropagation()}>
+      <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`} onClick={closeMobileSelect}>
+        <div className={`mobile-select-panel ${mobileSelectClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
           <div className="mobile-select-header">
             <button type="button" className="mobile-select-close" onClick={closeMobileSelect}>
               <CloseOutlined />
