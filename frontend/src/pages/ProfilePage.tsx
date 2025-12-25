@@ -26,6 +26,7 @@ import {
   UploadOutlined,
   LinkOutlined,
   ShareAltOutlined,
+  CheckOutlined,
   CloseOutlined,
   SearchOutlined
 } from '@ant-design/icons';
@@ -67,6 +68,13 @@ interface Product {
   image_url?: string;
 }
 
+type MobileSelectType = 'city' | 'consultationTypes' | 'topics';
+
+interface MobileSelectOption {
+  label: string;
+  value: string | number;
+}
+
 const CONSULTATION_TYPES = [
   'Онлайн',
   'Офлайн',
@@ -103,10 +111,11 @@ const ProfilePage = () => {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [cityModalVisible, setCityModalVisible] = useState(false);
-  const [citySearch, setCitySearch] = useState('');
+  const [mobileSelectType, setMobileSelectType] = useState<MobileSelectType | null>(null);
+  const [mobileSelectSearch, setMobileSelectSearch] = useState('');
   const selectedCity = Form.useWatch('city', form);
-  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const selectedConsultationTypes = Form.useWatch('consultationTypes', form) || [];
+  const selectedTopics = Form.useWatch('topics', form) || [];
   const originalBodyOverflow = useRef<string | null>(null);
 
   useEffect(() => {
@@ -116,12 +125,6 @@ const ProfilePage = () => {
     
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      setPortalContainer(document.body);
-    }
   }, []);
 
   useEffect(() => {
@@ -180,13 +183,7 @@ const ProfilePage = () => {
     }
   }, [user, form]);
 
-  const filteredCities = useMemo(() => {
-    const searchValue = citySearch.trim().toLowerCase();
-    if (!searchValue) {
-      return cities;
-    }
-    return cities.filter((city) => city.name.toLowerCase().includes(searchValue));
-  }, [cities, citySearch]);
+  const isMobileSelectOpen = isMobile && mobileSelectType !== null;
 
   useEffect(() => {
     if (!isMobile) {
@@ -197,7 +194,7 @@ const ProfilePage = () => {
       return;
     }
 
-    if (cityModalVisible) {
+    if (isMobileSelectOpen) {
       if (originalBodyOverflow.current === null) {
         originalBodyOverflow.current = document.body.style.overflow;
       }
@@ -213,17 +210,164 @@ const ProfilePage = () => {
         originalBodyOverflow.current = null;
       }
     };
-  }, [cityModalVisible, isMobile]);
+  }, [isMobileSelectOpen, isMobile]);
 
-  const handleCitySelect = (value: string) => {
-    form.setFieldsValue({ city: value });
-    setCityModalVisible(false);
-    setCitySearch('');
+  const openMobileSelect = (type: MobileSelectType) => {
+    setMobileSelectType(type);
+    setMobileSelectSearch('');
   };
 
-  const handleCityModalClose = () => {
-    setCityModalVisible(false);
-    setCitySearch('');
+  const closeMobileSelect = () => {
+    setMobileSelectType(null);
+    setMobileSelectSearch('');
+  };
+
+  const handleMobileOptionClick = (value: string | number) => {
+    if (!mobileSelectType) return;
+
+    if (mobileSelectType === 'city') {
+      form.setFieldsValue({ city: value });
+      closeMobileSelect();
+      return;
+    }
+
+    if (mobileSelectType === 'consultationTypes') {
+      const current: (string | number)[] = form.getFieldValue('consultationTypes') || [];
+      const exists = current.some((item) => String(item) === String(value));
+      const next = exists
+        ? current.filter((item) => String(item) !== String(value))
+        : [...current, value];
+      form.setFieldsValue({ consultationTypes: next });
+      return;
+    }
+
+    if (mobileSelectType === 'topics') {
+      const current: (string | number)[] = form.getFieldValue('topics') || [];
+      const exists = current.some((item) => String(item) === String(value));
+      const next = exists
+        ? current.filter((item) => String(item) !== String(value))
+        : [...current, value];
+      form.setFieldsValue({ topics: next });
+    }
+  };
+
+  const selectedTopicLabels = useMemo(() => {
+    if (!selectedTopics || selectedTopics.length === 0) {
+      return [];
+    }
+    const topicMap = new Map(topics.map((topic) => [String(topic.id), topic.name]));
+    return selectedTopics
+      .map((topicId: string | number) => topicMap.get(String(topicId)))
+      .filter((name): name is string => Boolean(name));
+  }, [selectedTopics, topics]);
+
+  const selectedConsultationTypesLabel = selectedConsultationTypes.length
+    ? selectedConsultationTypes.join(', ')
+    : '';
+  const selectedTopicsLabel = selectedTopicLabels.length
+    ? selectedTopicLabels.join(', ')
+    : '';
+
+  const mobileSelectConfig = useMemo<{
+    title: string;
+    multiple: boolean;
+    searchPlaceholder: string;
+    options: MobileSelectOption[];
+    selectedValues: (string | number)[];
+  } | null>(() => {
+    if (!mobileSelectType) {
+      return null;
+    }
+
+    if (mobileSelectType === 'city') {
+      return {
+        title: 'Выберите город',
+        multiple: false,
+        searchPlaceholder: 'Поиск города',
+        options: cities.map<MobileSelectOption>((city) => ({ label: city.name, value: city.name })),
+        selectedValues: selectedCity ? [selectedCity] : []
+      };
+    }
+
+    if (mobileSelectType === 'consultationTypes') {
+      return {
+        title: 'Выберите типы консультаций',
+        multiple: true,
+        searchPlaceholder: 'Поиск по названию',
+        options: CONSULTATION_TYPES.map<MobileSelectOption>((type) => ({ label: type, value: type })),
+        selectedValues: selectedConsultationTypes
+      };
+    }
+
+    return {
+      title: 'Выберите тематики',
+      multiple: true,
+      searchPlaceholder: 'Поиск тематики',
+      options: topics.map<MobileSelectOption>((topic) => ({ label: topic.name, value: topic.id })),
+      selectedValues: selectedTopics
+    };
+  }, [mobileSelectType, cities, selectedCity, selectedConsultationTypes, selectedTopics, topics]);
+
+  const renderMobileSelectOverlay = () => {
+    if (!isMobile || !mobileSelectConfig || typeof document === 'undefined') {
+      return null;
+    }
+
+    const searchValue = mobileSelectSearch.trim().toLowerCase();
+    const filteredOptions = mobileSelectConfig.options.filter((option: { label: string }) =>
+      option.label.toLowerCase().includes(searchValue)
+    );
+
+    return createPortal(
+      <div className="mobile-select-overlay" onClick={closeMobileSelect}>
+        <div className="mobile-select-panel" onClick={(e) => e.stopPropagation()}>
+          <div className="mobile-select-header">
+            <button type="button" className="mobile-select-close" onClick={closeMobileSelect}>
+              <CloseOutlined />
+            </button>
+            <span className="mobile-select-title">{mobileSelectConfig.title}</span>
+            <button type="button" className="mobile-select-ready" onClick={closeMobileSelect}>
+              Готово
+            </button>
+          </div>
+          <Input
+            size="large"
+            prefix={<SearchOutlined />}
+            placeholder={mobileSelectConfig.searchPlaceholder}
+            value={mobileSelectSearch}
+            onChange={(e) => setMobileSelectSearch(e.target.value)}
+            allowClear
+            className="mobile-select-search"
+          />
+          <div className="mobile-select-options">
+            {filteredOptions.map((option) => {
+              const selected = mobileSelectConfig.selectedValues.some(
+                (value: string | number) => String(value) === String(option.value)
+              );
+              return (
+                <button
+                  type="button"
+                  key={option.value}
+                  className={`mobile-select-option ${selected ? 'selected' : ''} ${mobileSelectConfig.multiple ? 'multi' : ''}`}
+                  onClick={() => handleMobileOptionClick(option.value)}
+                >
+                  {mobileSelectConfig.multiple && (
+                    <span className={`mobile-select-checkbox ${selected ? 'checked' : ''}`}>
+                      {selected && <CheckOutlined />}
+                    </span>
+                  )}
+                  <span className="mobile-select-label">{option.label}</span>
+                </button>
+              );
+            })}
+            {filteredOptions.length === 0 && (
+              <div className="mobile-select-empty">Ничего не найдено</div>
+            )}
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
   };
 
   const fetchTopics = async () => {
@@ -668,62 +812,8 @@ const ProfilePage = () => {
                   placeholder="Выберите город"
                   value={selectedCity || ''}
                   readOnly
-                  onClick={() => setCityModalVisible(true)}
+                  onClick={() => openMobileSelect('city')}
                 />
-                {isMobile && portalContainer && cityModalVisible && createPortal(
-                  <div
-                    className="mobile-select-overlay"
-                    onClick={handleCityModalClose}
-                  >
-                    <div
-                      className="mobile-select-panel"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="mobile-select-header">
-                        <button
-                          type="button"
-                          className="mobile-select-close"
-                          onClick={handleCityModalClose}
-                        >
-                          <CloseOutlined />
-                        </button>
-                        <span className="mobile-select-title">Выберите город</span>
-                        <button
-                          type="button"
-                          className="mobile-select-ready"
-                          onClick={handleCityModalClose}
-                        >
-                          Готово
-                        </button>
-                      </div>
-                      <Input
-                        size="large"
-                        prefix={<SearchOutlined />}
-                        placeholder="Поиск города"
-                        value={citySearch}
-                        onChange={(e) => setCitySearch(e.target.value)}
-                        allowClear
-                        className="mobile-select-search"
-                      />
-                      <div className="mobile-select-options">
-                        {filteredCities.map((city) => (
-                          <button
-                            type="button"
-                            key={city.id}
-                            className={`mobile-select-option ${selectedCity === city.name ? 'selected' : ''}`}
-                            onClick={() => handleCitySelect(city.name)}
-                          >
-                            {city.name}
-                          </button>
-                        ))}
-                        {filteredCities.length === 0 && (
-                          <div className="mobile-select-empty">Город не найден</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>,
-                  portalContainer
-                )}
               </Form.Item>
             ) : (
               <Form.Item
@@ -823,34 +913,64 @@ const ProfilePage = () => {
               <>
                 <Divider />
                 
-                <Form.Item
-                  name="consultationTypes"
-                  label="Типы консультаций"
-                >
-                  <Select
-                    mode="multiple"
-                    size="large"
-                    placeholder="Выберите типы консультаций"
-                    options={CONSULTATION_TYPES.map(t => ({ label: t, value: t }))}
-                  />
-                </Form.Item>
+                {isMobile ? (
+                  <Form.Item label="Типы консультаций">
+                    <Form.Item name="consultationTypes" noStyle>
+                      <Input style={{ display: 'none' }} />
+                    </Form.Item>
+                    <Input
+                      size="large"
+                      placeholder="Выберите типы консультаций"
+                      value={selectedConsultationTypesLabel}
+                      readOnly
+                      onClick={() => openMobileSelect('consultationTypes')}
+                    />
+                  </Form.Item>
+                ) : (
+                  <Form.Item
+                    name="consultationTypes"
+                    label="Типы консультаций"
+                  >
+                    <Select
+                      mode="multiple"
+                      size="large"
+                      placeholder="Выберите типы консультаций"
+                      options={CONSULTATION_TYPES.map(t => ({ label: t, value: t }))}
+                    />
+                  </Form.Item>
+                )}
 
-                <Form.Item
-                  name="topics"
-                  label="Тематики"
-                >
-                  <Select
-                    mode="multiple"
-                    size="large"
-                    placeholder="Выберите тематики"
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                    }
-                    options={topics.map(t => ({ label: t.name, value: t.id }))}
-                    maxTagCount="responsive"
-                  />
-                </Form.Item>
+                {isMobile ? (
+                  <Form.Item label="Тематики">
+                    <Form.Item name="topics" noStyle>
+                      <Input style={{ display: 'none' }} />
+                    </Form.Item>
+                    <Input
+                      size="large"
+                      placeholder="Выберите тематики"
+                      value={selectedTopicsLabel}
+                      readOnly
+                      onClick={() => openMobileSelect('topics')}
+                    />
+                  </Form.Item>
+                ) : (
+                  <Form.Item
+                    name="topics"
+                    label="Тематики"
+                  >
+                    <Select
+                      mode="multiple"
+                      size="large"
+                      placeholder="Выберите тематики"
+                      showSearch
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={topics.map(t => ({ label: t.name, value: t.id }))}
+                      maxTagCount="responsive"
+                    />
+                  </Form.Item>
+                )}
               </>
             )}
 
@@ -1229,6 +1349,8 @@ const ProfilePage = () => {
         </Space>
       </Card>
     </div>
+    
+    {renderMobileSelectOverlay()}
     
     <ProductModal
       product={selectedProduct}
