@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -105,6 +106,7 @@ const ProfilePage = () => {
   const [cityModalVisible, setCityModalVisible] = useState(false);
   const [citySearch, setCitySearch] = useState('');
   const selectedCity = Form.useWatch('city', form);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const originalBodyOverflow = useRef<string | null>(null);
 
   useEffect(() => {
@@ -114,6 +116,12 @@ const ProfilePage = () => {
     
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      setPortalContainer(document.body);
+    }
   }, []);
 
   useEffect(() => {
@@ -662,7 +670,7 @@ const ProfilePage = () => {
                   readOnly
                   onClick={() => setCityModalVisible(true)}
                 />
-                {cityModalVisible && (
+                {isMobile && portalContainer && cityModalVisible && createPortal(
                   <div
                     className="mobile-select-overlay"
                     onClick={handleCityModalClose}
@@ -713,7 +721,8 @@ const ProfilePage = () => {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </div>,
+                  portalContainer
                 )}
               </Form.Item>
             ) : (
