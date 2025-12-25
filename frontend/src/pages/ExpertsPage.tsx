@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Input, Select, Typography, Tag, Space, Spin, Empty, Button } from 'antd';
-import { UserOutlined, EnvironmentOutlined, SearchOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
+import { UserOutlined, EnvironmentOutlined, SearchOutlined, StarOutlined, StarFilled, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import LazyAvatar from '../components/LazyAvatar';
@@ -30,6 +31,13 @@ interface Expert {
   topics: string[];
 }
 
+type MobileSelectType = 'city' | 'topics';
+
+interface MobileSelectOption {
+  label: string;
+  value: string;
+}
+
 const ExpertsPage = () => {
   const { user } = useAuth();
   const [experts, setExperts] = useState<Expert[]>([]);
@@ -49,7 +57,20 @@ const ExpertsPage = () => {
   const [hasMoreExperts, setHasMoreExperts] = useState(true);
   const [displayLimit, setDisplayLimit] = useState(12); // Ограничение отображения
   const searchTimeoutRef = useRef<number | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [mobileSelectType, setMobileSelectType] = useState<MobileSelectType | null>(null);
+  const [mobileSelectSearch, setMobileSelectSearch] = useState('');
+  const originalBodyOverflow = useRef<string | null>(null);
   const navigate = useNavigate();
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
 
   // Debounce для поискового запроса (500ms)
   useEffect(() => {
@@ -376,7 +397,159 @@ const ExpertsPage = () => {
     </Card>
   ), [user, navigate, toggleFavorite]);
 
+  const selectedCityLabel = selectedCity || 'Все города';
+  const selectedTopicsLabel = selectedTopics.length ? selectedTopics.join(', ') : '';
+  const isMobileSelectOpen = isMobile && mobileSelectType !== null;
+
+  useEffect(() => {
+    if (!isMobile) {
+      if (originalBodyOverflow.current !== null) {
+        document.body.style.overflow = originalBodyOverflow.current;
+        originalBodyOverflow.current = null;
+      }
+      return;
+    }
+
+    if (isMobileSelectOpen) {
+      if (originalBodyOverflow.current === null) {
+        originalBodyOverflow.current = document.body.style.overflow;
+      }
+      document.body.style.overflow = 'hidden';
+    } else if (originalBodyOverflow.current !== null) {
+      document.body.style.overflow = originalBodyOverflow.current;
+      originalBodyOverflow.current = null;
+    }
+
+    return () => {
+      if (originalBodyOverflow.current !== null) {
+        document.body.style.overflow = originalBodyOverflow.current;
+        originalBodyOverflow.current = null;
+      }
+    };
+  }, [isMobile, isMobileSelectOpen]);
+
+  const openMobileSelect = (type: MobileSelectType) => {
+    setMobileSelectType(type);
+    setMobileSelectSearch('');
+  };
+
+  const closeMobileSelect = () => {
+    setMobileSelectType(null);
+    setMobileSelectSearch('');
+  };
+
+  const handleMobileOptionClick = (value: string) => {
+    if (!mobileSelectType) return;
+
+    if (mobileSelectType === 'city') {
+      setSelectedCity(value);
+      closeMobileSelect();
+      return;
+    }
+
+    const exists = selectedTopics.includes(value);
+    setSelectedTopics((prev) =>
+      exists ? prev.filter((topic) => topic !== value) : [...prev, value]
+    );
+  };
+
+  const mobileSelectConfig = useMemo<{
+    title: string;
+    multiple: boolean;
+    searchPlaceholder: string;
+    options: MobileSelectOption[];
+    selectedValues: string[];
+  } | null>(() => {
+    if (!mobileSelectType) {
+      return null;
+    }
+
+    if (mobileSelectType === 'city') {
+      return {
+        title: 'Выберите город',
+        multiple: false,
+        searchPlaceholder: 'Поиск города',
+        options: [
+          { label: 'Все города', value: '' },
+          ...cities.map((city) => ({ label: city.name, value: city.name }))
+        ],
+        selectedValues: selectedCity ? [selectedCity] : ['']
+      };
+    }
+
+    return {
+      title: 'Выберите тематики',
+      multiple: true,
+      searchPlaceholder: 'Поиск тематики',
+      options: topics.map((topic) => ({ label: topic.name, value: topic.name })),
+      selectedValues: selectedTopics
+    };
+  }, [mobileSelectType, cities, topics, selectedCity, selectedTopics]);
+
+  const renderMobileSelectOverlay = () => {
+    if (!isMobile || !mobileSelectConfig || typeof document === 'undefined') {
+      return null;
+    }
+
+    const searchValue = mobileSelectSearch.trim().toLowerCase();
+    const filteredOptions = mobileSelectConfig.options.filter((option) =>
+      option.label.toLowerCase().includes(searchValue)
+    );
+
+    return createPortal(
+      <div className="mobile-select-overlay" onClick={closeMobileSelect}>
+        <div className="mobile-select-panel" onClick={(e) => e.stopPropagation()}>
+          <div className="mobile-select-header">
+            <button type="button" className="mobile-select-close" onClick={closeMobileSelect}>
+              <CloseOutlined />
+            </button>
+            <span className="mobile-select-title">{mobileSelectConfig.title}</span>
+            <button type="button" className="mobile-select-ready" onClick={closeMobileSelect}>
+              Готово
+            </button>
+          </div>
+          <Input
+            size="large"
+            prefix={<SearchOutlined />}
+            placeholder={mobileSelectConfig.searchPlaceholder}
+            value={mobileSelectSearch}
+            onChange={(e) => setMobileSelectSearch(e.target.value)}
+            allowClear
+            className="mobile-select-search"
+          />
+          <div className="mobile-select-options">
+            {filteredOptions.map((option) => {
+              const selected = mobileSelectConfig.selectedValues.some(
+                (value) => String(value) === String(option.value)
+              );
+              return (
+                <button
+                  type="button"
+                  key={option.value}
+                  className={`mobile-select-option ${selected ? 'selected' : ''} ${mobileSelectConfig.multiple ? 'multi' : ''}`}
+                  onClick={() => handleMobileOptionClick(option.value)}
+                >
+                  {mobileSelectConfig.multiple && (
+                    <span className={`mobile-select-checkbox ${selected ? 'checked' : ''}`}>
+                      {selected && <CheckOutlined />}
+                    </span>
+                  )}
+                  <span className="mobile-select-label">{option.label}</span>
+                </button>
+              );
+            })}
+            {filteredOptions.length === 0 && (
+              <div className="mobile-select-empty">Ничего не найдено</div>
+            )}
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
   return (
+    <>
     <div className="container">
       <div className="page-header">
         <Title level={2} className="page-title">Эксперты</Title>
@@ -394,38 +567,59 @@ const ExpertsPage = () => {
             allowClear
           />
 
-          <Select
-            size="large"
-            placeholder="Выберите город"
-            prefix={<EnvironmentOutlined />}
-            style={{ width: '100%' }}
-            value={selectedCity || undefined}
-            onChange={setSelectedCity}
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            options={[
-              { label: 'Все города', value: '' },
-              ...cities.map(c => ({ label: c.name, value: c.name }))
-            ]}
-            allowClear
-          />
+          {isMobile ? (
+            <Input
+              size="large"
+              placeholder="Выберите город"
+              prefix={<EnvironmentOutlined />}
+              value={selectedCityLabel}
+              readOnly
+              onClick={() => openMobileSelect('city')}
+            />
+          ) : (
+            <Select
+              size="large"
+              placeholder="Выберите город"
+              prefix={<EnvironmentOutlined />}
+              style={{ width: '100%' }}
+              value={selectedCity || undefined}
+              onChange={setSelectedCity}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              options={[
+                { label: 'Все города', value: '' },
+                ...cities.map(c => ({ label: c.name, value: c.name }))
+              ]}
+              allowClear
+            />
+          )}
 
-          <Select
-            mode="multiple"
-            size="large"
-            placeholder="Выберите тематики"
-            style={{ width: '100%' }}
-            value={selectedTopics}
-            onChange={setSelectedTopics}
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            options={topics.map(t => ({ label: t.name, value: t.name }))}
-            maxTagCount="responsive"
-          />
+          {isMobile ? (
+            <Input
+              size="large"
+              placeholder="Выберите тематики"
+              value={selectedTopicsLabel}
+              readOnly
+              onClick={() => openMobileSelect('topics')}
+            />
+          ) : (
+            <Select
+              mode="multiple"
+              size="large"
+              placeholder="Выберите тематики"
+              style={{ width: '100%' }}
+              value={selectedTopics}
+              onChange={setSelectedTopics}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              options={topics.map(t => ({ label: t.name, value: t.name }))}
+              maxTagCount="responsive"
+            />
+          )}
         </Space>
       </Card>
 
@@ -511,6 +705,8 @@ const ExpertsPage = () => {
         </>
       )}
     </div>
+    {renderMobileSelectOverlay()}
+    </>
   );
 };
 
