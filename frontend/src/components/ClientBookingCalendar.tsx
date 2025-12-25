@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { CloseOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import './ClientBookingCalendar.css';
 
@@ -171,9 +172,15 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
       {showModal && selectedSlot && typeof document !== 'undefined' && createPortal(
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
-            
-            <h3>Подтверждение записи</h3>
+            <div className="modal-header">
+              <div>
+                <p className="modal-eyebrow">Запись к эксперту</p>
+                <h3>Подтверждение записи</h3>
+              </div>
+              <button className="modal-close" onClick={() => setShowModal(false)}>
+                <CloseOutlined />
+              </button>
+            </div>
             
             <div className="booking-summary">
               <p><strong>Эксперт:</strong> {expertName}</p>
