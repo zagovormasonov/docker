@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -15,7 +15,8 @@ import {
   List,
   Popconfirm,
   Tag,
-  Progress
+  Progress,
+  Modal
 } from 'antd';
 import { 
   UserOutlined, 
@@ -24,7 +25,8 @@ import {
   DeleteOutlined,
   UploadOutlined,
   LinkOutlined,
-  ShareAltOutlined
+  ShareAltOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -100,6 +102,9 @@ const ProfilePage = () => {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [cityModalVisible, setCityModalVisible] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const selectedCity = Form.useWatch('city', form);
 
   useEffect(() => {
     const handleResize = () => {
@@ -165,6 +170,25 @@ const ProfilePage = () => {
       });
     }
   }, [user, form]);
+
+  const filteredCities = useMemo(() => {
+    const searchValue = citySearch.trim().toLowerCase();
+    if (!searchValue) {
+      return cities;
+    }
+    return cities.filter((city) => city.name.toLowerCase().includes(searchValue));
+  }, [cities, citySearch]);
+
+  const handleCitySelect = (value: string) => {
+    form.setFieldsValue({ city: value });
+    setCityModalVisible(false);
+    setCitySearch('');
+  };
+
+  const handleCityModalClose = () => {
+    setCityModalVisible(false);
+    setCitySearch('');
+  };
 
   const fetchTopics = async () => {
     try {
@@ -594,20 +618,72 @@ const ProfilePage = () => {
               <TextArea rows={4} placeholder="Поделитесь информацией, которая поможет пользователям почувствовать вашу энергию и понять, чем вы можете быть им полезны." />
             </Form.Item>
 
-            <Form.Item
-              name="city"
-              label="Город"
-            >
-              <Select
-                size="large"
-                placeholder="Выберите город"
-                showSearch
-                filterOption={(input, option) =>
-                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                }
-                options={cities.map(city => ({ label: city.name, value: city.name }))}
-              />
-            </Form.Item>
+            {isMobile ? (
+              <Form.Item label="Город" required>
+                <Form.Item
+                  name="city"
+                  rules={[{ required: true, message: 'Выберите город' }]}
+                  noStyle
+                >
+                  <Input style={{ display: 'none' }} />
+                </Form.Item>
+                <Input
+                  size="large"
+                  placeholder="Выберите город"
+                  value={selectedCity || ''}
+                  readOnly
+                  onClick={() => setCityModalVisible(true)}
+                />
+                <Modal
+                  open={cityModalVisible}
+                  onCancel={handleCityModalClose}
+                  footer={null}
+                  title="Выберите город"
+                  centered
+                  className="mobile-select-modal"
+                >
+                  <Input
+                    size="large"
+                    prefix={<SearchOutlined />}
+                    placeholder="Поиск города"
+                    value={citySearch}
+                    onChange={(e) => setCitySearch(e.target.value)}
+                    allowClear
+                    style={{ marginBottom: 12 }}
+                  />
+                  <div className="mobile-select-options">
+                    {filteredCities.map((city) => (
+                      <button
+                        type="button"
+                        key={city.id}
+                        className={`mobile-select-option ${selectedCity === city.name ? 'selected' : ''}`}
+                        onClick={() => handleCitySelect(city.name)}
+                      >
+                        {city.name}
+                      </button>
+                    ))}
+                    {filteredCities.length === 0 && (
+                      <div className="mobile-select-empty">Город не найден</div>
+                    )}
+                  </div>
+                </Modal>
+              </Form.Item>
+            ) : (
+              <Form.Item
+                name="city"
+                label="Город"
+              >
+                <Select
+                  size="large"
+                  placeholder="Выберите город"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={cities.map(city => ({ label: city.name, value: city.name }))}
+                />
+              </Form.Item>
+            )}
 
             <Divider orientation="left">
               <Text strong>Социальные сети</Text>

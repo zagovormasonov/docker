@@ -343,3 +343,46 @@ body {
     touch-action: pan-y;
   }
 }
+
+/* Модальное окно выбора списка на мобильных устройствах */
+.mobile-select-modal .ant-modal-content {
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.mobile-select-options {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.mobile-select-option {
+  width: 100%;
+  text-align: left;
+  padding: 12px 4px;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-select-option:last-child {
+  border-bottom: none;
+}
+
+.mobile-select-option:hover {
+  background: #f5f5f5;
+}
+
+.mobile-select-option.selected {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.mobile-select-empty {
+  padding: 16px;
+  text-align: center;
+  color: #86868b;
+}
