@@ -330,8 +330,13 @@ body {
 
 /* Корректируем поведение выпадающих списков на мобильных устройствах */
 @media (max-width: 768px) {
+  .ant-select-dropdown {
+    max-height: 75vh !important;
+    overflow: hidden !important;
+  }
+
   .ant-select-dropdown .rc-virtual-list-holder {
-    max-height: 60vh !important;
+    max-height: 72vh !important;
     overflow-y: auto !important;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
