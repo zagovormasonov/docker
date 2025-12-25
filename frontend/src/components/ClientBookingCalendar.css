@@ -131,6 +131,15 @@
   font-size: 14px;
   color: #10b981;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slot-status img {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 /* Модальное окно */

@@ -159,7 +159,10 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
                       {slot.duration && (
                         <span className="slot-duration">⏱️ {formatDuration(slot.duration)}</span>
                       )}
-                      <span className="slot-status">🟢 Доступно</span>
+                      <span className="slot-status">
+                        <img src="/accept.png" alt="" aria-hidden="true" />
+                        Доступно
+                      </span>
                     </button>
                   ))}
               </div>
