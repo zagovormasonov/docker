@@ -10,19 +10,6 @@ body {
   color: #1d1d1f;
 }
 
-body.dark-theme {
-  background-color: #0f172a;
-  color: #f8fafc;
-}
-
-body.dark-theme .page-title {
-  color: #f8fafc;
-}
-
-body.dark-theme .page-subtitle {
-  color: #a5b4fc;
-}
-
 .container {
   max-width: 1200px;
   margin: 0 auto;

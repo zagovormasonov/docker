@@ -215,7 +215,7 @@ const AdminPanel: React.FC = () => {
   const [currentCoverImage, setCurrentCoverImage] = useState<string | null>(null);
   
   // Хук для управления темой
-  const { isDark, setTheme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
 
   // Функция для рендеринга HTML содержимого с картинками и ссылками
   const renderHtmlContent = (content: string) => {
@@ -865,7 +865,7 @@ const AdminPanel: React.FC = () => {
           >
             📊 Логи действий
           </Button>
-          <ThemeSwitch isDark={isDark} onChange={setTheme} />
+          <ThemeSwitch isDark={isDark} onChange={toggleTheme} />
         </Space>
       </div>
       

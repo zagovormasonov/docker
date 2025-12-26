@@ -25,8 +25,6 @@ import { useNotifications } from '../contexts/NotificationContext';
 import Notifications from './Notifications';
 import type { MenuProps } from 'antd';
 import { useState } from 'react';
-import ThemeSwitch from './ThemeSwitch';
-import { useTheme } from '../hooks/useTheme';
 
 const { Header: AntHeader } = Layout;
 
@@ -45,8 +43,6 @@ const Header = () => {
     // markAsRead();
     navigate('/chats');
   };
-
-  const { isDark, setTheme } = useTheme();
 
   const handleSupportSubmit = async (values: { contact: string; message: string }) => {
     try {
@@ -295,23 +291,13 @@ const Header = () => {
     ])
   ];
 
-  const navLinkStyle = (activeColor?: string) => ({
-    fontSize: '16px',
-    color: activeColor || (isDark ? '#cbd5f5' : 'rgb(170 180 251)'),
-    textDecoration: 'none',
-    fontWeight: 400,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px'
-  });
-
   return (
     <>
       <AntHeader 
         style={{ 
-          background: isDark ? 'rgba(15, 23, 42, 0.95)' : '#fff', 
+          background: '#fff', 
           padding: '0 24px',
-          boxShadow: isDark ? '0 1px 12px rgba(15, 23, 42, 0.7)' : '0 2px 8px rgba(0,0,0,0.06)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           position: 'fixed',
           top: 0,
           left: 0,
@@ -320,8 +306,7 @@ const Header = () => {
           zIndex: 999,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : 'none'
+          justifyContent: 'space-between'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flex: 1 }}>
@@ -351,19 +336,43 @@ const Header = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }} className="desktop-menu">
             <Link 
               to="/" 
-              style={navLinkStyle()}
+              style={{ 
+                fontSize: '16px',
+                color: 'rgb(170 180 251)',
+                textDecoration: 'none',
+                fontWeight: 400,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
             >
               <HomeOutlined /> Главная
             </Link>
             <Link 
               to="/experts" 
-              style={navLinkStyle()}
+              style={{ 
+                fontSize: '16px',
+                color: 'rgb(170 180 251)',
+                textDecoration: 'none',
+                fontWeight: 400,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
             >
               <TeamOutlined /> Эксперты
             </Link>
             <Link 
               to="/events" 
-              style={navLinkStyle()}
+              style={{ 
+                fontSize: '16px',
+                color: 'rgb(170 180 251)',
+                textDecoration: 'none',
+                fontWeight: 400,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
             >
               <CalendarOutlined /> События
             </Link>
@@ -372,8 +381,7 @@ const Header = () => {
 
         {/* Десктопные кнопки пользователя - скрыты на мобильных устройствах */}
         <div className="desktop-user-actions">
-          <Space size="middle" align="center">
-            <ThemeSwitch isDark={isDark} onChange={setTheme} />
+          <Space size="middle">
             {user ? (
               <>
                 {(user.userType === 'expert' || user.userType === 'admin') && (
@@ -513,28 +521,18 @@ const Header = () => {
         height="100vh"
         bodyStyle={{ padding: 0 }}
         headerStyle={{ 
-          background: isDark ? '#0f172a' : '#fff', 
-          borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #f0f0f0',
+          background: '#fff', 
+          borderBottom: '1px solid #f0f0f0',
           padding: '16px 24px'
         }}
         style={{ zIndex: 1000 }}
       >
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          padding: '16px 24px',
-          borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #f0f0f0'
-        }}>
-          <span style={{ color: isDark ? '#cbd5f5' : '#1d1d1f', fontWeight: 500 }}>Тема</span>
-          <ThemeSwitch isDark={isDark} onChange={setTheme} />
-        </div>
         <Menu
           mode="vertical"
           items={mobileMenuItems}
           style={{ 
             border: 'none',
-            background: isDark ? '#0f172a' : '#fff',
+            background: '#fff',
             padding: '16px 0'
           }}
         />

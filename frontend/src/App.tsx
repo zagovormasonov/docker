@@ -33,9 +33,7 @@ import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import ExpertLandingPage from './pages/ExpertLandingPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import ExpertDashboardPage from './pages/ExpertDashboardPage';
-import { ThemeProvider, useTheme } from './hooks/useTheme';
 import './App.css';
-import './styles/dark-theme.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, loading } = useAuth();
@@ -47,18 +45,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return token ? <>{children}</> : <Navigate to="/login" />;
 };
 
-const AppContent = () => {
-  const { isDark } = useTheme();
-
+function App() {
   return (
     <ConfigProvider
       locale={ruRU}
       theme={{
-        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        algorithm: theme.defaultAlgorithm,
         token: {
           colorPrimary: '#6366f1',
-          colorBgBase: isDark ? '#0f172a' : '#fafafa',
-          colorTextBase: isDark ? '#f8fafc' : '#1d1d1f',
           borderRadius: 8,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         }
@@ -110,14 +104,6 @@ const AppContent = () => {
         </NotificationProvider>
       </AuthProvider>
     </ConfigProvider>
-  );
-};
-
-function App() {
-  return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
   );
 }
 

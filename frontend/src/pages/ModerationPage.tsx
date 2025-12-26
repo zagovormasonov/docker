@@ -302,13 +302,13 @@ const ModerationPage = () => {
   }
 
   // Хук для управления темой
-  const { isDark, setTheme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <Title level={2} style={{ margin: 0 }}>Модерация контента</Title>
-        <ThemeSwitch isDark={isDark} onChange={setTheme} />
+        <ThemeSwitch isDark={isDark} onChange={toggleTheme} />
       </div>
       
       <Tabs defaultActiveKey="articles">
