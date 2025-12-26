@@ -287,27 +287,21 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
               style={{ marginBottom: 16 }}
             >
             {images.map((image) => (
-              <div key={image.id} style={{ padding: '0 8px' }}>
+              <div key={image.id} style={{ padding: '0 10px' }}>
                 <Card
                   hoverable
                   cover={
-                    <div style={{ height: 250, overflow: 'hidden' }}>
+                    <div style={{ height: 250, overflow: 'hidden', borderRadius: 12 }}>
                       <Image
                         src={image.image_url}
                         alt={image.image_name}
-                        style={{ width: '100%', height: 250, objectFit: 'cover' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         preview={false}
                         onClick={() => handlePreview(image)}
                       />
                     </div>
                   }
                   actions={isOwner ? [
-                    <Button
-                      key="view"
-                      type="text"
-                      icon={<EyeOutlined />}
-                      onClick={() => handlePreview(image)}
-                    />,
                     <Popconfirm
                       key="delete"
                       title="Удалить фотографию?"
