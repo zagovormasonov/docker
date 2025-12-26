@@ -287,11 +287,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
               style={{ marginBottom: 16 }}
             >
             {images.map((image) => (
-              <div key={image.id} style={{ padding: '0 10px' }}>
+              <div key={image.id} style={{ padding: '0 10px', boxSizing: 'border-box' }}>
                 <Card
                   hoverable
+                  style={{ borderRadius: 16, overflow: 'hidden' }}
                   cover={
-                    <div style={{ height: 250, overflow: 'hidden', borderRadius: 12 }}>
+                    <div style={{ height: 250, overflow: 'hidden' }}>
                       <Image
                         src={image.image_url}
                         alt={image.image_name}
@@ -316,17 +317,9 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
                         icon={<DeleteOutlined />}
                       />
                     </Popconfirm>
-                  ] : [
-                    <Button
-                      key="view"
-                      type="text"
-                      icon={<EyeOutlined />}
-                      onClick={() => handlePreview(image)}
-                    />
-                  ]}
+                  ] : undefined}
                   bodyStyle={{ padding: 0 }}
-                >
-                </Card>
+                />
               </div>
             ))}
             </Carousel>
