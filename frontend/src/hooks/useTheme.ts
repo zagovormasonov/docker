@@ -1,34 +1,45 @@
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-export const useTheme = () => {
-  const [isDark, setIsDark] = useState(() => {
-    // Проверяем сохраненную тему в localStorage
-    const savedTheme = localStorage.getItem('admin-theme');
+interface ThemeContextValue {
+  isDark: boolean;
+  toggleTheme: () => void;
+  setTheme: (value: boolean) => void;
+}
+
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+const STORAGE_KEY = 'app-theme';
+
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const savedTheme = localStorage.getItem(STORAGE_KEY);
     return savedTheme === 'dark';
   });
 
   useEffect(() => {
-    // Сохраняем тему в localStorage
-    localStorage.setItem('admin-theme', isDark ? 'dark' : 'light');
-    
-    // Применяем тему к body
-    if (isDark) {
-      document.body.classList.add('dark-theme');
-      document.body.classList.remove('light-theme');
-    } else {
-      document.body.classList.add('light-theme');
-      document.body.classList.remove('dark-theme');
-    }
+    if (typeof document === 'undefined') return;
+    localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light');
+    document.body.classList.toggle('dark-theme', isDark);
+    document.body.classList.toggle('light-theme', !isDark);
   }, [isDark]);
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
-
-  return {
+  const value = useMemo<ThemeContextValue>(() => ({
     isDark,
-    toggleTheme,
-    setIsDark
-  };
+    toggleTheme: () => setIsDark(prev => !prev),
+    setTheme: setIsDark
+  }), [isDark]);
+
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
 };
 
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within ThemeProvider');
+  }
+  return context;
+};
