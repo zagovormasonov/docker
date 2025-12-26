@@ -210,16 +210,18 @@ const HomePage = () => {
         {/* Кнопка создания статьи для экспертов */}
         {(user?.userType === 'expert' || user?.userType === 'admin') && (
           <Button
-            type="primary"
             icon={<EditOutlined />}
             onClick={() => navigate('/create-article')}
             style={{
               height: 40,
-              borderRadius: 20,
-              background: 'linear-gradient(135deg, rgb(183 196 255) 0%, rgb(239 232 255) 100%)',
-              border: 'none',
-              fontWeight: 500
+              borderRadius: 22,
+              background: 'transparent',
+              border: '1px solid #9caaf3',
+              color: '#6366f1',
+              fontWeight: 400,
+              flexShrink: 0
             }}
+            className="home-create-article-btn"
           >
             Создать статью
           </Button>

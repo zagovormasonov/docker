@@ -312,6 +312,10 @@ body {
     padding: 0 16px;
   }
   
+  .home-create-article-btn {
+    width: 100%;
+  }
+  
   .custom-prev-arrow,
   .custom-next-arrow {
     width: 35px;
