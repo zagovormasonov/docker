@@ -918,7 +918,7 @@ const ProfilePage = () => {
               </Form.Item>
             )}
 
-            {user?.userType === 'expert' && (
+            {(user?.userType === 'expert' || user?.userType === 'admin') && (
               <>
                 <Divider />
                 
