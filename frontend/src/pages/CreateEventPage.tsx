@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, message, Typography, Select, DatePicker, Switch,
@@ -10,13 +10,32 @@ import {
 } from '@ant-design/icons';
 import { RussianRuble } from 'lucide-react';
 import dayjs from 'dayjs';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { marked } from 'marked';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { EVENT_TYPES } from './EventsPage';
 import ModerationNotification from '../components/ModerationNotification';
 
 const { Title, Text } = Typography;
-const { TextArea } = Input;
+
+marked.setOptions({
+  breaks: true
+});
+
+const MARKDOWN_PATTERNS = [
+  /\*\*(.*?)\*\*/,
+  /__(.*?)__/,
+  /`{1,3}[^`]+`{1,3}/,
+  /^>{1,}\s/m,
+  /^#{1,6}\s/m,
+  /^\s*[-*+]\s+/m,
+  /\[(.*?)\]\((.*?)\)/,
+  /!\[(.*?)\]\((.*?)\)/
+];
+
+const looksLikeMarkdown = (text: string) => MARKDOWN_PATTERNS.some((pattern) => pattern.test(text));
 
 interface City {
   id: number;
@@ -35,6 +54,8 @@ const CreateEventPage = () => {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [moderationStatus, setModerationStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
   const [moderationReason, setModerationReason] = useState('');
+  const [description, setDescription] = useState('');
+  const quillRef = useRef<ReactQuill>(null);
 
   useEffect(() => {
     if (user?.userType !== 'expert' && user?.userType !== 'admin') {
@@ -67,6 +88,7 @@ const CreateEventPage = () => {
       setCoverImageUrl(event.cover_image || '');
       setModerationStatus(event.moderation_status || null);
       setModerationReason(event.moderation_reason || '');
+      setDescription(event.description || '');
 
       form.setFieldsValue({
         title: event.title,
@@ -116,11 +138,16 @@ const CreateEventPage = () => {
   };
 
   const onFinish = async (values: any) => {
+    if (!description.trim() || description === '<p><br></p>') {
+      message.error('Описание события не может быть пустым');
+      return;
+    }
+
     setLoading(true);
     try {
       const eventData = {
         title: values.title,
-        description: values.description,
+        description,
         coverImage: coverImageUrl || values.coverImage,
         eventType: values.eventType,
         isOnline: values.isOnline,
@@ -181,6 +208,124 @@ const CreateEventPage = () => {
     }
   };
 
+  const imageHandler = useCallback(() => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+          const hide = message.loading('Загрузка изображения...', 0);
+          const response = await api.post('/upload/image', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          hide();
+
+          const imageUrl = response.data.url;
+          const quill = quillRef.current?.getEditor();
+          if (quill) {
+            const range = quill.getSelection(true);
+            quill.insertEmbed(range.index, 'image', imageUrl);
+            quill.setSelection(range.index + 1, 0);
+          }
+          message.success('Изображение загружено!');
+        } catch (error) {
+          console.error('Ошибка загрузки изображения:', error);
+          message.error('Ошибка загрузки изображения');
+        }
+      }
+    };
+  }, []);
+
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ indent: '-1' }, { indent: '+1' }],
+        ['link', 'image'],
+        [{ align: [] }],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
+  }), [imageHandler]);
+
+  const formats = useMemo(() => [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'align'
+  ], []);
+
+  useEffect(() => {
+    const quillInstance = quillRef.current?.getEditor();
+    const quillRoot = quillInstance?.root;
+
+    if (!quillInstance || !quillRoot) {
+      return;
+    }
+
+    const handleMarkdownPaste = (event: ClipboardEvent) => {
+      const plainText = event.clipboardData?.getData('text/plain');
+
+      if (!plainText || !looksLikeMarkdown(plainText)) {
+        return;
+      }
+
+      const htmlFromMarkdown = marked.parse(plainText);
+
+      if (typeof htmlFromMarkdown !== 'string') {
+        return;
+      }
+
+      const normalizedHtml = htmlFromMarkdown.trim();
+
+      if (!normalizedHtml) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const selection = quillInstance.getSelection(true);
+      const insertIndex = selection ? selection.index : quillInstance.getLength();
+
+      if (selection?.length) {
+        quillInstance.deleteText(selection.index, selection.length, 'user');
+      }
+
+      quillInstance.clipboard.dangerouslyPasteHTML(insertIndex, normalizedHtml, 'user');
+    };
+
+    quillRoot.addEventListener('paste', handleMarkdownPaste);
+
+    return () => {
+      quillRoot.removeEventListener('paste', handleMarkdownPaste);
+    };
+  }, []);
+
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value);
+    form.setFieldValue('description', value);
+  };
+
+  useEffect(() => {
+    if (!id) {
+      form.setFieldValue('description', '');
+    }
+  }, [form, id]);
+
   return (
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
       <Card>
@@ -212,11 +357,30 @@ const CreateEventPage = () => {
           <Form.Item
             label={<Text strong>Описание</Text>}
             name="description"
+            rules={[{ required: true, message: 'Введите описание' }]}
           >
-            <TextArea
-              rows={6}
-              placeholder="Подробное описание события..."
-            />
+            <div style={{
+              border: '1px solid #d9d9d9',
+              borderRadius: 8,
+              overflow: 'hidden'
+            }}>
+              <ReactQuill
+                ref={quillRef}
+                theme="snow"
+                value={description}
+                onChange={handleDescriptionChange}
+                modules={modules}
+                formats={formats}
+                placeholder="Подробное описание события..."
+                style={{
+                  minHeight: 300,
+                  backgroundColor: 'white'
+                }}
+              />
+            </div>
+            <Text type="secondary" style={{ fontSize: 12, marginTop: 8, display: 'block' }}>
+              Поддерживается форматирование, списки и изображения
+            </Text>
           </Form.Item>
 
           <Form.Item label={<Text strong>Обложка события</Text>}>
