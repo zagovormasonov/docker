@@ -4,9 +4,27 @@ import { Form, Input, Button, Card, message, Typography, Space, Divider, Spin, U
 import { ArrowLeftOutlined, PictureOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { marked } from 'marked';
 import api from '../api/axios';
 
 const { Title, Text } = Typography;
+
+marked.setOptions({
+  breaks: true
+});
+
+const MARKDOWN_PATTERNS = [
+  /\*\*(.*?)\*\*/,
+  /__(.*?)__/,
+  /`{1,3}[^`]+`{1,3}/,
+  /^>{1,}\s/m,
+  /^#{1,6}\s/m,
+  /^\s*[-*+]\s+/m,
+  /\[(.*?)\]\((.*?)\)/,
+  /!\[(.*?)\]\((.*?)\)/
+];
+
+const looksLikeMarkdown = (text: string) => MARKDOWN_PATTERNS.some((pattern) => pattern.test(text));
 
 const CreateArticlePage = () => {
   const { id } = useParams();
@@ -194,6 +212,52 @@ const CreateArticlePage = () => {
     'list', 'bullet', 'indent',
     'link', 'image', 'align'
   ], []);
+
+  useEffect(() => {
+    const quillInstance = quillRef.current?.getEditor();
+    const quillRoot = quillInstance?.root;
+
+    if (!quillInstance || !quillRoot) {
+      return;
+    }
+
+    const handleMarkdownPaste = (event: ClipboardEvent) => {
+      const plainText = event.clipboardData?.getData('text/plain');
+
+      if (!plainText || !looksLikeMarkdown(plainText)) {
+        return;
+      }
+
+      const htmlFromMarkdown = marked.parse(plainText);
+
+      if (typeof htmlFromMarkdown !== 'string') {
+        return;
+      }
+
+      const normalizedHtml = htmlFromMarkdown.trim();
+
+      if (!normalizedHtml) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const selection = quillInstance.getSelection(true);
+      const insertIndex = selection ? selection.index : quillInstance.getLength();
+
+      if (selection?.length) {
+        quillInstance.deleteText(selection.index, selection.length, 'user');
+      }
+
+      quillInstance.clipboard.dangerouslyPasteHTML(insertIndex, normalizedHtml, 'user');
+    };
+
+    quillRoot.addEventListener('paste', handleMarkdownPaste);
+
+    return () => {
+      quillRoot.removeEventListener('paste', handleMarkdownPaste);
+    };
+  }, []);
 
   if (loadingArticle) {
     return (
