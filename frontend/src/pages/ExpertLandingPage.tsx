@@ -410,7 +410,7 @@ const ExpertLandingPage: React.FC = () => {
                 color: '#ffffff',
                 margin: '12px 0 8px 0'
               }}>
-                1 390₽
+                3 369₽
               </div>
               <div style={{
                 display: 'flex',
@@ -452,7 +452,7 @@ const ExpertLandingPage: React.FC = () => {
                 type="primary"
                 size="large"
                 loading={loadingYearly}
-                onClick={() => handlePayment(1390, false)}
+                onClick={() => handlePayment(3369, false)}
                 style={{
                   height: 48,
                   fontSize: 16,

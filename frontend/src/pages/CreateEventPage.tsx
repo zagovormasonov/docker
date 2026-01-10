@@ -371,12 +371,12 @@ const CreateEventPage = () => {
                 onChange={handleDescriptionChange}
                 modules={modules}
                 formats={formats}
-                placeholder="Подробное описание события..."
+              placeholder="Подробное описание события..."
                 style={{
                   minHeight: 300,
                   backgroundColor: 'white'
                 }}
-              />
+            />
             </div>
             <Text type="secondary" style={{ fontSize: 12, marginTop: 8, display: 'block' }}>
               Поддерживается форматирование, списки и изображения
