@@ -217,6 +217,7 @@ const AdminPanel: React.FC = () => {
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [passwordForm] = Form.useForm();
+  const [changingPassword, setChangingPassword] = useState(false);
   
   // Хук для управления темой
   const { isDark, toggleTheme } = useTheme();
@@ -363,18 +364,25 @@ const AdminPanel: React.FC = () => {
 
   const handlePasswordSubmit = async () => {
     try {
+      setChangingPassword(true);
       const values = await passwordForm.validateFields();
       const response = await axios.put(`/admin/users/${selectedUser?.id}/change-password`, {
         newPassword: values.newPassword
       });
       message.success(response.data.message || 'Пароль успешно изменен');
       setPasswordModalVisible(false);
-      setSelectedUser(null);
-      passwordForm.resetFields();
     } catch (error: any) {
       console.error('Ошибка изменения пароля:', error);
       message.error(error.response?.data?.message || 'Ошибка изменения пароля');
+    } finally {
+      setChangingPassword(false);
     }
+  };
+
+  const handlePasswordModalClose = () => {
+    setPasswordModalVisible(false);
+    setSelectedUser(null);
+    passwordForm.resetFields();
   };
 
   const handleEdit = (item: Article | Event, type: 'article' | 'event') => {
@@ -1420,13 +1428,13 @@ const AdminPanel: React.FC = () => {
         title={`Сменить пароль пользователя ${selectedUser?.name}`}
         open={passwordModalVisible}
         onOk={handlePasswordSubmit}
-        onCancel={() => {
-          setPasswordModalVisible(false);
-          setSelectedUser(null);
-          passwordForm.resetFields();
-        }}
+        onCancel={handlePasswordModalClose}
+        afterClose={handlePasswordModalClose}
         okText="Изменить пароль"
         cancelText="Отмена"
+        confirmLoading={changingPassword}
+        destroyOnClose={true}
+        maskClosable={!changingPassword}
       >
         <Form form={passwordForm} layout="vertical">
           <Form.Item
