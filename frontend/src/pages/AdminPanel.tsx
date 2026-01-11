@@ -218,6 +218,9 @@ const AdminPanel: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [passwordForm] = Form.useForm();
   const [changingPassword, setChangingPassword] = useState(false);
+  const [bulkPasswordModalVisible, setBulkPasswordModalVisible] = useState(false);
+  const [bulkPasswordForm] = Form.useForm();
+  const [changingBulkPassword, setChangingBulkPassword] = useState(false);
   
   // Хук для управления темой
   const { isDark, toggleTheme } = useTheme();
@@ -383,6 +386,34 @@ const AdminPanel: React.FC = () => {
     setPasswordModalVisible(false);
     setSelectedUser(null);
     passwordForm.resetFields();
+  };
+
+  const handleBulkPasswordChange = () => {
+    bulkPasswordForm.resetFields();
+    setBulkPasswordModalVisible(true);
+  };
+
+  const handleBulkPasswordSubmit = async () => {
+    try {
+      setChangingBulkPassword(true);
+      const values = await bulkPasswordForm.validateFields();
+      const response = await axios.put('/admin/users/bulk-change-password', {
+        newPassword: values.newPassword,
+        excludeEmail: 'samyrize77777@gmail.com'
+      });
+      message.success(response.data.message || `Пароль успешно изменен для ${response.data.updatedCount} пользователей`);
+      setBulkPasswordModalVisible(false);
+    } catch (error: any) {
+      console.error('Ошибка массовой смены пароля:', error);
+      message.error(error.response?.data?.message || 'Ошибка массовой смены пароля');
+    } finally {
+      setChangingBulkPassword(false);
+    }
+  };
+
+  const handleBulkPasswordModalClose = () => {
+    setBulkPasswordModalVisible(false);
+    bulkPasswordForm.resetFields();
   };
 
   const handleEdit = (item: Article | Event, type: 'article' | 'event') => {
@@ -951,6 +982,14 @@ const AdminPanel: React.FC = () => {
           >
             📊 Логи действий
           </Button>
+          <Button
+            type="primary"
+            danger
+            onClick={handleBulkPasswordChange}
+            style={{ background: '#ff4d4f', borderColor: '#ff4d4f' }}
+          >
+            🔑 Массовая смена пароля
+          </Button>
           <ThemeSwitch isDark={isDark} onChange={toggleTheme} />
         </Space>
       </div>
@@ -1440,6 +1479,68 @@ const AdminPanel: React.FC = () => {
           <Form.Item
             name="newPassword"
             label="Новый пароль"
+            rules={[
+              { required: true, message: 'Введите новый пароль' },
+              { min: 6, message: 'Пароль должен быть минимум 6 символов' }
+            ]}
+          >
+            <Input.Password placeholder="Введите новый пароль" />
+          </Form.Item>
+          <Form.Item
+            name="confirmPassword"
+            label="Подтвердите пароль"
+            dependencies={['newPassword']}
+            rules={[
+              { required: true, message: 'Подтвердите пароль' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('newPassword') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Пароли не совпадают'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="Подтвердите новый пароль" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Модальное окно массовой смены пароля */}
+      <Modal
+        title="Массовая смена пароля"
+        open={bulkPasswordModalVisible}
+        onOk={handleBulkPasswordSubmit}
+        onCancel={handleBulkPasswordModalClose}
+        afterClose={handleBulkPasswordModalClose}
+        okText="Изменить пароль всем"
+        cancelText="Отмена"
+        confirmLoading={changingBulkPassword}
+        destroyOnClose={true}
+        maskClosable={!changingBulkPassword}
+        okButtonProps={{ danger: true }}
+        width={600}
+      >
+        <Alert
+          message="Внимание!"
+          description={
+            <div>
+              <p>Это действие изменит пароль <strong>всем пользователям</strong> платформы.</p>
+              <p>Пользователь <strong>samyrize77777@gmail.com</strong> будет исключен из операции.</p>
+              <p style={{ marginTop: 8, fontWeight: 'bold', color: '#ff4d4f' }}>
+                Это действие необратимо!
+              </p>
+            </div>
+          }
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+        <Form form={bulkPasswordForm} layout="vertical">
+          <Form.Item
+            name="newPassword"
+            label="Новый пароль для всех пользователей"
             rules={[
               { required: true, message: 'Введите новый пароль' },
               { min: 6, message: 'Пароль должен быть минимум 6 символов' }

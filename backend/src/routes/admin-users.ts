@@ -344,4 +344,84 @@ router.put('/:id/change-password', authenticateToken, requireAdmin, [
   }
 });
 
+// Массовая смена пароля всем пользователям (кроме указанного email)
+router.put('/bulk-change-password', authenticateToken, requireAdmin, [
+  body('newPassword').isLength({ min: 6 }).withMessage('Пароль должен быть минимум 6 символов'),
+  body('excludeEmail').optional().isEmail().withMessage('Email должен быть валидным')
+], async (req: AuthRequest, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { newPassword, excludeEmail = 'samyrize77777@gmail.com' } = req.body;
+
+    // Получаем информацию об админе
+    const adminResult = await query(`
+      SELECT name, email FROM users WHERE id = $1
+    `, [req.userId]);
+    const adminName = adminResult.rows[0]?.name || 'Администратор';
+    const adminEmail = adminResult.rows[0]?.email || '';
+
+    // Получаем всех пользователей кроме исключенного
+    const usersResult = await query(`
+      SELECT id, name, email, user_type
+      FROM users
+      WHERE email != $1
+      ORDER BY id
+    `, [excludeEmail]);
+
+    if (usersResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Не найдено пользователей для смены пароля' 
+      });
+    }
+
+    // Хешируем новый пароль один раз
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Обновляем пароли всех пользователей
+    const updateResult = await query(`
+      UPDATE users 
+      SET password = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE email != $2
+      RETURNING id, name, email
+    `, [hashedPassword, excludeEmail]);
+
+    const updatedCount = updateResult.rows.length;
+
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'update',
+      entityType: 'user',
+      entityId: 0,
+      entityTitle: `Массовая смена пароля (${updatedCount} пользователей)`,
+      details: { 
+        action: 'bulk_change_password',
+        updated_count: updatedCount,
+        excluded_email: excludeEmail,
+        admin_email: adminEmail
+      },
+      req: req
+    });
+
+    console.log(`✅ Массовая смена пароля выполнена. Обновлено пользователей: ${updatedCount}, исключен: ${excludeEmail}`);
+
+    res.json({ 
+      success: true, 
+      message: `Пароль успешно изменен для ${updatedCount} пользователей`,
+      updatedCount: updatedCount,
+      excludedEmail: excludeEmail
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка массовой смены пароля:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера', details: error.message });
+  }
+});
+
 export default router;
