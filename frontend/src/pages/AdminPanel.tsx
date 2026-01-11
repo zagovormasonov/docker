@@ -85,6 +85,7 @@ interface User {
   email: string;
   userType: string;
   slug?: string;
+  isBanned?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -213,6 +214,9 @@ const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('articles');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [currentCoverImage, setCurrentCoverImage] = useState<string | null>(null);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [passwordForm] = Form.useForm();
   
   // Хук для управления темой
   const { isDark, toggleTheme } = useTheme();
@@ -337,6 +341,39 @@ const AdminPanel: React.FC = () => {
     } catch (error: any) {
       console.error('Ошибка изменения прав администратора:', error);
       message.error(error.response?.data?.message || 'Ошибка изменения прав администратора');
+    }
+  };
+
+  const handleUnbanUser = async (userId: number) => {
+    try {
+      const response = await axios.put(`/admin/users/${userId}/unban`);
+      message.success(response.data.message || 'Пользователь удален из черного списка');
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Ошибка удаления из черного списка:', error);
+      message.error(error.response?.data?.message || 'Ошибка удаления из черного списка');
+    }
+  };
+
+  const handleChangePassword = (user: User) => {
+    setSelectedUser(user);
+    passwordForm.resetFields();
+    setPasswordModalVisible(true);
+  };
+
+  const handlePasswordSubmit = async () => {
+    try {
+      const values = await passwordForm.validateFields();
+      const response = await axios.put(`/admin/users/${selectedUser?.id}/change-password`, {
+        newPassword: values.newPassword
+      });
+      message.success(response.data.message || 'Пароль успешно изменен');
+      setPasswordModalVisible(false);
+      setSelectedUser(null);
+      passwordForm.resetFields();
+    } catch (error: any) {
+      console.error('Ошибка изменения пароля:', error);
+      message.error(error.response?.data?.message || 'Ошибка изменения пароля');
     }
   };
 
@@ -733,6 +770,17 @@ const AdminPanel: React.FC = () => {
       },
     },
     {
+      title: 'Статус',
+      dataIndex: 'isBanned',
+      key: 'isBanned',
+      render: (isBanned: boolean) => {
+        if (isBanned) {
+          return <Tag color="red">В черном списке</Tag>;
+        }
+        return <Tag color="green">Активен</Tag>;
+      },
+    },
+    {
       title: 'Дата регистрации',
       dataIndex: 'created_at',
       key: 'created_at',
@@ -790,6 +838,36 @@ const AdminPanel: React.FC = () => {
                 {isAdmin ? '🔓 Отозвать права админа' : '🔑 Сделать админом'}
               </Button>
             </Popconfirm>
+
+            {/* Удаление из черного списка */}
+            {record.isBanned && (
+              <Popconfirm
+                title="Удалить из черного списка?"
+                description={`Пользователь ${record.name} будет разблокирован и сможет снова использовать платформу`}
+                onConfirm={() => handleUnbanUser(record.id)}
+                okText="Да"
+                cancelText="Нет"
+              >
+                <Button 
+                  type="primary"
+                  size="small"
+                  block
+                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                >
+                  ✅ Удалить из БЛ
+                </Button>
+              </Popconfirm>
+            )}
+
+            {/* Смена пароля */}
+            <Button 
+              type="default"
+              size="small"
+              block
+              onClick={() => handleChangePassword(record)}
+            >
+              🔑 Сменить пароль
+            </Button>
           </Space>
         );
       },
@@ -1335,6 +1413,51 @@ const AdminPanel: React.FC = () => {
             )}
           </Row>
         </div>
+      </Modal>
+
+      {/* Модальное окно смены пароля */}
+      <Modal
+        title={`Сменить пароль пользователя ${selectedUser?.name}`}
+        open={passwordModalVisible}
+        onOk={handlePasswordSubmit}
+        onCancel={() => {
+          setPasswordModalVisible(false);
+          setSelectedUser(null);
+          passwordForm.resetFields();
+        }}
+        okText="Изменить пароль"
+        cancelText="Отмена"
+      >
+        <Form form={passwordForm} layout="vertical">
+          <Form.Item
+            name="newPassword"
+            label="Новый пароль"
+            rules={[
+              { required: true, message: 'Введите новый пароль' },
+              { min: 6, message: 'Пароль должен быть минимум 6 символов' }
+            ]}
+          >
+            <Input.Password placeholder="Введите новый пароль" />
+          </Form.Item>
+          <Form.Item
+            name="confirmPassword"
+            label="Подтвердите пароль"
+            dependencies={['newPassword']}
+            rules={[
+              { required: true, message: 'Подтвердите пароль' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('newPassword') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Пароли не совпадают'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="Подтвердите новый пароль" />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

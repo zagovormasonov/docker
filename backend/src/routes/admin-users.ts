@@ -3,6 +3,7 @@ import { body, validationResult } from 'express-validator';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { query } from '../config/database';
 import { logAdminAction } from '../utils/adminLogger';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
@@ -40,6 +41,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
         name,
         email,
         user_type as "userType",
+        COALESCE(is_banned, false) as "isBanned",
         created_at,
         updated_at
       FROM users
@@ -208,6 +210,137 @@ router.put('/:id/admin-rights', authenticateToken, requireAdmin, async (req: Aut
   } catch (error) {
     console.error('❌ Ошибка изменения прав администратора:', error);
     res.status(500).json({ success: false, message: 'Ошибка сервера', details: error.message });
+  }
+});
+
+// Удалить пользователя из черного списка
+router.put('/:id/unban', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+
+    // Получаем информацию о пользователе и админе
+    const userInfo = await query(`
+      SELECT u.id, u.name, u.email, u.is_banned, admin.name as admin_name
+      FROM users u
+      CROSS JOIN users admin
+      WHERE u.id = $1 AND admin.id = $2
+    `, [id, req.userId]);
+
+    if (userInfo.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+    }
+
+    const user = userInfo.rows[0];
+    const adminName = user.admin_name || 'Администратор';
+
+    // Удаляем из черного списка
+    await query(`
+      UPDATE users 
+      SET is_banned = false, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+    `, [id]);
+
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'update',
+      entityType: 'user',
+      entityId: parseInt(id),
+      entityTitle: user.name,
+      details: { 
+        action: 'unban',
+        email: user.email
+      },
+      req: req
+    });
+
+    console.log(`✅ Пользователь ${user.name} (ID: ${id}) удален из черного списка`);
+
+    res.json({ 
+      success: true, 
+      message: `Пользователь ${user.name} удален из черного списка`,
+      user: {
+        id: parseInt(id),
+        name: user.name,
+        email: user.email,
+        isBanned: false
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка удаления из черного списка:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера', details: error.message });
+  }
+});
+
+// Изменить пароль пользователя
+router.put('/:id/change-password', authenticateToken, requireAdmin, [
+  body('newPassword').isLength({ min: 6 }).withMessage('Пароль должен быть минимум 6 символов')
+], async (req: AuthRequest, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    // Проверяем, существует ли пользователь
+    const userResult = await query(`
+      SELECT id, name, email, user_type
+      FROM users
+      WHERE id = $1
+    `, [id]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Получаем информацию об админе
+    const adminResult = await query(`
+      SELECT name FROM users WHERE id = $1
+    `, [req.userId]);
+    const adminName = adminResult.rows[0]?.name || 'Администратор';
+
+    // Хешируем новый пароль
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Обновляем пароль
+    await query(`
+      UPDATE users 
+      SET password = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+    `, [hashedPassword, id]);
+
+    // Логируем действие
+    await logAdminAction({
+      adminId: req.userId!,
+      adminName: adminName,
+      actionType: 'update',
+      entityType: 'user',
+      entityId: parseInt(id),
+      entityTitle: user.name,
+      details: { 
+        action: 'change_password',
+        email: user.email
+      },
+      req: req
+    });
+
+    console.log(`✅ Пароль пользователя ${user.name} (ID: ${id}) изменен администратором`);
+
+    res.json({ 
+      success: true, 
+      message: `Пароль пользователя ${user.name} успешно изменен`
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка изменения пароля:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера' });
   }
 });
 

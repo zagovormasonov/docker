@@ -141,6 +141,7 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(500)`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR(500)`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMP`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT false`);
 
     // Таблица городов
     await query(`
