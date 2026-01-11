@@ -1085,25 +1085,39 @@ const ProfilePage = () => {
                   renderItem={(service) => (
                     <List.Item
                       actions={[
-                        <Button
-                          key="edit"
-                          icon={<EditOutlined />}
-                          onClick={() => handleEditService(service)}
+                        <Space 
+                          key="actions" 
+                          direction={isMobile ? 'vertical' : 'horizontal'} 
+                          style={{ width: isMobile ? '100%' : 'auto' }}
+                          size="small"
                         >
-                          Редактировать
-                        </Button>,
-                        <Popconfirm
-                          key="delete"
-                          title="Удалить услугу?"
-                          description="Это действие нельзя отменить"
-                          onConfirm={() => handleDeleteService(service.id)}
-                          okText="Да"
-                          cancelText="Нет"
-                        >
-                          <Button danger icon={<DeleteOutlined />}>
-                            Удалить
+                          <Button
+                            key="edit"
+                            icon={<EditOutlined />}
+                            onClick={() => handleEditService(service)}
+                            block={isMobile}
+                            style={{ width: isMobile ? '100%' : 'auto' }}
+                          >
+                            Редактировать
                           </Button>
-                        </Popconfirm>
+                          <Popconfirm
+                            key="delete"
+                            title="Удалить услугу?"
+                            description="Это действие нельзя отменить"
+                            onConfirm={() => handleDeleteService(service.id)}
+                            okText="Да"
+                            cancelText="Нет"
+                          >
+                            <Button 
+                              danger 
+                              icon={<DeleteOutlined />}
+                              block={isMobile}
+                              style={{ width: isMobile ? '100%' : 'auto' }}
+                            >
+                              Удалить
+                            </Button>
+                          </Popconfirm>
+                        </Space>
                       ]}
                     >
                       <List.Item.Meta
@@ -1265,31 +1279,47 @@ const ProfilePage = () => {
                     renderItem={(product) => (
                       <List.Item
                         actions={[
-                          <Button
-                            key="view"
-                            onClick={() => handleProductClick(product)}
+                          <Space 
+                            key="actions" 
+                            direction={isMobile ? 'vertical' : 'horizontal'} 
+                            style={{ width: isMobile ? '100%' : 'auto' }}
+                            size="small"
                           >
-                            Просмотр
-                          </Button>,
-                          <Button
-                            key="edit"
-                            icon={<EditOutlined />}
-                            onClick={() => handleEditProduct(product)}
-                          >
-                            Редактировать
-                          </Button>,
-                          <Popconfirm
-                            key="delete"
-                            title="Удалить продукт?"
-                            description="Это действие нельзя отменить"
-                            onConfirm={() => handleDeleteProduct(product.id)}
-                            okText="Да"
-                            cancelText="Нет"
-                          >
-                            <Button danger icon={<DeleteOutlined />}>
-                              Удалить
+                            <Button
+                              key="view"
+                              onClick={() => handleProductClick(product)}
+                              block={isMobile}
+                              style={{ width: isMobile ? '100%' : 'auto' }}
+                            >
+                              Просмотр
                             </Button>
-                          </Popconfirm>
+                            <Button
+                              key="edit"
+                              icon={<EditOutlined />}
+                              onClick={() => handleEditProduct(product)}
+                              block={isMobile}
+                              style={{ width: isMobile ? '100%' : 'auto' }}
+                            >
+                              Редактировать
+                            </Button>
+                            <Popconfirm
+                              key="delete"
+                              title="Удалить продукт?"
+                              description="Это действие нельзя отменить"
+                              onConfirm={() => handleDeleteProduct(product.id)}
+                              okText="Да"
+                              cancelText="Нет"
+                            >
+                              <Button 
+                                danger 
+                                icon={<DeleteOutlined />}
+                                block={isMobile}
+                                style={{ width: isMobile ? '100%' : 'auto' }}
+                              >
+                                Удалить
+                              </Button>
+                            </Popconfirm>
+                          </Space>
                         ]}
                       >
                         <List.Item.Meta
