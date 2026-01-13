@@ -195,12 +195,29 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
       const response = await api.post('/chats/create', { otherUserId: artwork.user_id });
       const chatId = response.data.id;
       
-      // Отправляем сообщение о покупке
-      const artworkUrl = `${window.location.origin}/expert/${artwork.user_id}`;
-      const artworkMessage = `🖼️ Хочу купить это: "${artwork.title || 'Картина'}"${artwork.price ? ` (${artwork.price} ₽)` : ''}. ${artwork.description || ''}\nСсылка: ${artworkUrl}`;
+      // Создаем HTML-сообщение с карточкой товара (как в профиле)
+      const escapedTitle = (artwork.title || 'Картина').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const escapedDescription = artwork.description ? artwork.description.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+      const artworkCardHtml = `
+        <div style="border: 1px solid #d9d9d9; border-radius: 16px; overflow: hidden; background: white; max-width: 400px; margin: 8px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="height: 200px; overflow: hidden; background: #f5f5f5;">
+            <img src="${artwork.image_url}" alt="${escapedTitle}" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+          <div style="padding: 16px;">
+            <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px; color: #1d1d1f; line-height: 1.4;">
+              ${escapedTitle}
+            </div>
+            ${escapedDescription ? `<div style="font-size: 14px; color: #666; margin-bottom: 12px; line-height: 1.5; max-height: 60px; overflow: hidden; text-overflow: ellipsis;">${escapedDescription.length > 100 ? escapedDescription.substring(0, 100) + '...' : escapedDescription}</div>` : ''}
+            ${artwork.price ? `<div style="font-weight: 600; font-size: 18px; color: #1d1d1f; margin-top: 8px;">${artwork.price} ₽</div>` : ''}
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; font-size: 13px; color: #8c8c8c;">
+              🖼️ Хочу купить это
+            </div>
+          </div>
+        </div>
+      `;
       
       await api.post(`/chats/${chatId}/messages`, {
-        content: artworkMessage
+        content: artworkCardHtml
       });
       
       // Переходим в чат
@@ -394,6 +411,13 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
         title="Просмотр картины"
         footer={null}
         onCancel={() => setPreviewVisible(false)}
+        afterClose={() => {
+          setPreviewVisible(false);
+          setPreviewImage('');
+          document.body.style.overflow = 'auto';
+        }}
+        destroyOnClose={true}
+        maskClosable={true}
         width="90%"
         style={{ top: 20 }}
       >

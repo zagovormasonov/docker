@@ -352,14 +352,18 @@ const ChatsPage = () => {
                         padding: '12px 16px',
                         borderRadius: 12,
                         marginBottom: 4,
-                      wordWrap: 'break-word',
-                      wordBreak: 'break-word',
-                      overflowWrap: 'anywhere',
+                        wordWrap: 'break-word',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere',
                         whiteSpace: 'pre-wrap',
                         maxWidth: '100%'
                       }}
                     >
-                      {message.content}
+                      {message.content.includes('<div style=') ? (
+                        <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                      ) : (
+                        message.content
+                      )}
                     </div>
                     <div
                       style={{
@@ -501,7 +505,11 @@ const ChatsPage = () => {
                               maxWidth: '100%'
                             }}
                           >
-                            {message.content}
+                            {message.content.includes('<div style=') ? (
+                              <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                            ) : (
+                              message.content
+                            )}
                           </div>
                           <div
                             style={{
