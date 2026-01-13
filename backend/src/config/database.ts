@@ -84,6 +84,21 @@ export const initDatabase = async () => {
       )
     `);
 
+    // Таблица картин в галерее
+    await query(`
+      CREATE TABLE IF NOT EXISTS artworks (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        image_url VARCHAR(500) NOT NULL,
+        title VARCHAR(255),
+        description TEXT,
+        price DECIMAL(10, 2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await query(`CREATE INDEX IF NOT EXISTS idx_artworks_user ON artworks(user_id)`);
+
     // Таблица статей
     await query(`
       CREATE TABLE IF NOT EXISTS articles (

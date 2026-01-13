@@ -34,7 +34,9 @@ import {
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
+import ArtworkGallery from '../components/ArtworkGallery';
 import ProductModal from '../components/ProductModal';
+import { Tabs } from 'antd';
 import ClientBookingCalendar from '../components/ClientBookingCalendar';
 import ShareProfileModal from '../components/ShareProfileModal';
 import '../components/ServiceDescription.css';
@@ -539,10 +541,24 @@ const ExpertProfilePage = () => {
             </>
           )}
 
-          {/* Галерея фотографий */}
+          {/* Галерея фотографий и картин */}
           <Divider />
           <div>
-            <ProfileGallery userId={expert.id} isOwner={user?.id === expert.id} />
+            <Tabs
+              defaultActiveKey="photos"
+              items={[
+                {
+                  key: 'photos',
+                  label: 'Фото',
+                  children: <ProfileGallery userId={expert.id} isOwner={user?.id === expert.id} />
+                },
+                {
+                  key: 'gallery',
+                  label: 'Галерея',
+                  children: <ArtworkGallery userId={expert.id} isOwner={user?.id === expert.id} />
+                }
+              ]}
+            />
           </div>
 
           {expert.services && expert.services.length > 0 && (

@@ -33,9 +33,11 @@ import {
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
+import ArtworkGallery from '../components/ArtworkGallery';
 import ExpertBenefitsCard from '../components/ExpertBenefitsCard';
 import ProductModal from '../components/ProductModal';
 import ShareProfileModal from '../components/ShareProfileModal';
+import { Tabs } from 'antd';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -995,7 +997,21 @@ const ProfilePage = () => {
               <Divider />
               
               <div>
-                <ProfileGallery userId={user.id} isOwner={true} />
+                <Tabs
+                  defaultActiveKey="photos"
+                  items={[
+                    {
+                      key: 'photos',
+                      label: 'Фото',
+                      children: <ProfileGallery userId={user.id} isOwner={true} />
+                    },
+                    {
+                      key: 'gallery',
+                      label: 'Галерея',
+                      children: <ArtworkGallery userId={user.id} isOwner={true} />
+                    }
+                  ]}
+                />
               </div>
               
               <Divider />
