@@ -199,17 +199,17 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
       const escapedTitle = (artwork.title || 'Картина').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const escapedDescription = artwork.description ? artwork.description.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
       const artworkCardHtml = `
-        <div class="artwork-card-chat" data-user-id="${artwork.user_id}" data-artwork-id="${artwork.id}" style="border: 1px solid #d9d9d9; border-radius: 8px; overflow: hidden; background: white; max-width: 350px; margin: 4px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 1px 4px rgba(0,0,0,0.1)';">
+        <div class="artwork-card-chat" data-user-id="${artwork.user_id}" data-artwork-id="${artwork.id}" style="border: 1px solid #d9d9d9; border-radius: 8px; overflow: hidden; background: white; max-width: 350px; margin: 4px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-align: left;" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 1px 4px rgba(0,0,0,0.1)';">
           <div style="height: 120px; overflow: hidden; background: #f5f5f5;">
             <img src="${artwork.image_url}" alt="${escapedTitle}" style="width: 100%; height: 100%; object-fit: cover;" />
           </div>
-          <div style="padding: 8px 12px;">
-            <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px; color: #1d1d1f; line-height: 1.3; text-align: left;">
+          <div style="padding: 8px 12px; text-align: left;">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 30px; color: #1d1d1f; line-height: 1.3; text-align: left;">
               ${escapedTitle}
             </div>
-            ${escapedDescription ? `<div style="font-size: 12px; color: #666; margin-bottom: 2px; line-height: 1.4; text-align: left; max-height: 36px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapedDescription.length > 80 ? escapedDescription.substring(0, 80) + '...' : escapedDescription}</div>` : ''}
-            ${artwork.price ? `<div style="font-weight: 600; font-size: 16px; color: #1d1d1f; margin-top: 2px; text-align: left;">${artwork.price} ₽</div>` : ''}
-            <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #f0f0f0; font-size: 11px; color: #8c8c8c; text-align: left;">
+            ${escapedDescription ? `<div style="font-size: 12px; color: #666; margin-bottom: 30px; line-height: 1.4; text-align: left; max-height: 36px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapedDescription.length > 80 ? escapedDescription.substring(0, 80) + '...' : escapedDescription}</div>` : ''}
+            ${artwork.price ? `<div style="font-weight: 600; font-size: 16px; color: #1d1d1f; margin-top: 30px; text-align: left;">${artwork.price} ₽</div>` : ''}
+            <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #f0f0f0; font-size: 11px; color: #8c8c8c; text-align: left;">
               🖼️ Хочу купить это
             </div>
           </div>

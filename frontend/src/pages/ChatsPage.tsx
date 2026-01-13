@@ -379,11 +379,12 @@ const ChatsPage = () => {
                         wordBreak: 'break-word',
                         overflowWrap: 'anywhere',
                         whiteSpace: 'pre-wrap',
-                        maxWidth: '100%'
+                        maxWidth: '100%',
+                        textAlign: message.content.includes('<div style=') ? 'left' : (message.sender_id === user?.id ? 'right' : 'left')
                       }}
                     >
                       {message.content.includes('<div style=') ? (
-                        <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                        <div style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: message.content }} />
                       ) : (
                         message.content
                       )}
@@ -525,11 +526,12 @@ const ChatsPage = () => {
                               wordBreak: 'break-word',
                               overflowWrap: 'anywhere',
                               whiteSpace: 'pre-wrap',
-                              maxWidth: '100%'
+                              maxWidth: '100%',
+                              textAlign: message.content.includes('<div style=') ? 'left' : (message.sender_id === user?.id ? 'right' : 'left')
                             }}
                           >
                             {message.content.includes('<div style=') ? (
-                              <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                              <div style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: message.content }} />
                             ) : (
                               message.content
                             )}
