@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Row,
   Col,
@@ -48,6 +48,7 @@ interface Message {
 
 const ChatsPage = () => {
   const { chatId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { fetchUnreadCount, markAsRead } = useNotifications();
   const [chats, setChats] = useState<Chat[]>([]);
@@ -117,6 +118,28 @@ const ChatsPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Обработчик клика на карточки товаров в чате
+  useEffect(() => {
+    const handleArtworkCardClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const card = target.closest('.artwork-card-chat') as HTMLElement;
+      if (card) {
+        const userId = card.getAttribute('data-user-id');
+        if (userId) {
+          navigate(`/experts/${userId}`);
+        }
+      }
+    };
+
+    // Используем делегирование событий на контейнере сообщений
+    const messagesContainer = document.querySelector('.messages-container') || document;
+    messagesContainer.addEventListener('click', handleArtworkCardClick);
+
+    return () => {
+      messagesContainer.removeEventListener('click', handleArtworkCardClick);
+    };
+  }, [navigate, messages]);
 
   // Обработчик прокрутки для отметки сообщений как прочитанных
   useEffect(() => {
