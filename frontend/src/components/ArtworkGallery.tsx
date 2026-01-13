@@ -204,12 +204,12 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
             <img src="${artwork.image_url}" alt="${escapedTitle}" style="width: 100%; height: 100%; object-fit: cover;" />
           </div>
           <div style="padding: 8px 12px; text-align: left;">
-            <div style="font-weight: 600; font-size: 14px; margin-bottom: 30px; color: #1d1d1f; line-height: 1.3; text-align: left;">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #1d1d1f; line-height: 1.3; text-align: left;">
               ${escapedTitle}
             </div>
-            ${escapedDescription ? `<div style="font-size: 12px; color: #666; margin-bottom: 30px; line-height: 1.4; text-align: left; max-height: 36px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapedDescription.length > 80 ? escapedDescription.substring(0, 80) + '...' : escapedDescription}</div>` : ''}
-            ${artwork.price ? `<div style="font-weight: 600; font-size: 16px; color: #1d1d1f; margin-top: 30px; text-align: left;">${artwork.price} ₽</div>` : ''}
-            <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #f0f0f0; font-size: 11px; color: #8c8c8c; text-align: left;">
+            ${escapedDescription ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; line-height: 1.4; text-align: left; max-height: 36px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapedDescription.length > 80 ? escapedDescription.substring(0, 80) + '...' : escapedDescription}</div>` : ''}
+            ${artwork.price ? `<div style="font-weight: 600; font-size: 16px; color: #1d1d1f; margin-top: 8px; text-align: left;">${artwork.price} ₽</div>` : ''}
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f0f0; font-size: 11px; color: #8c8c8c; text-align: left;">
               🖼️ Хочу купить это
             </div>
           </div>
@@ -319,6 +319,7 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
           {artworks.map((artwork) => (
             <Col key={artwork.id} xs={24} sm={12} md={8} lg={6}>
               <Card
+                id={`artwork-${artwork.id}`}
                 hoverable
                 cover={
                   <div style={{ height: 200, overflow: 'hidden', cursor: 'pointer' }}>

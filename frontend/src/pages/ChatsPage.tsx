@@ -126,8 +126,9 @@ const ChatsPage = () => {
       const card = target.closest('.artwork-card-chat') as HTMLElement;
       if (card) {
         const userId = card.getAttribute('data-user-id');
-        if (userId) {
-          navigate(`/experts/${userId}`);
+        const artworkId = card.getAttribute('data-artwork-id');
+        if (userId && artworkId) {
+          navigate(`/experts/${userId}#artwork-${artworkId}`);
         }
       }
     };

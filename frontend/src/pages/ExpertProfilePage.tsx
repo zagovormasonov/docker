@@ -109,6 +109,7 @@ const ExpertProfilePage = () => {
   const [productModalVisible, setProductModalVisible] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('photos');
 
   useEffect(() => {
     // Ждём пока AuthContext загрузит пользователя
@@ -126,6 +127,40 @@ const ExpertProfilePage = () => {
     fetchFavoriteStatus();
     fetchCustomSocials();
   }, [id, user, authLoading]);
+
+  // Обработка hash для перехода на конкретную картину
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#artwork-')) {
+        setActiveTab('gallery');
+        // Прокручиваем к картине после загрузки
+        setTimeout(() => {
+          const artworkId = hash.replace('#artwork-', '');
+          const artworkElement = document.getElementById(`artwork-${artworkId}`);
+          if (artworkElement) {
+            artworkElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Подсвечиваем карточку
+            artworkElement.style.transition = 'box-shadow 0.3s';
+            artworkElement.style.boxShadow = '0 0 0 3px rgba(24, 144, 255, 0.5)';
+            setTimeout(() => {
+              artworkElement.style.boxShadow = '';
+            }, 2000);
+          }
+        }, 500);
+      }
+    };
+
+    // Проверяем hash при загрузке
+    handleHashChange();
+
+    // Слушаем изменения hash
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [expert]);
 
   const fetchFavoriteStatus = async () => {
     if (!id) return;
@@ -545,7 +580,8 @@ const ExpertProfilePage = () => {
           <Divider />
           <div>
             <Tabs
-              defaultActiveKey="photos"
+              activeKey={activeTab}
+              onChange={setActiveTab}
               items={[
                 {
                   key: 'photos',
