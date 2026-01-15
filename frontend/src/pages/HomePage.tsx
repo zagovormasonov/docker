@@ -428,7 +428,7 @@ const HomePage = () => {
                   <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{
                       fontSize: 18,
-                      fontWeight: 700,
+                      fontWeight: 500,
                       marginBottom: 12,
                       lineHeight: 1.4,
                       color: '#1f2937',
