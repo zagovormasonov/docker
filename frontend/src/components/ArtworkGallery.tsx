@@ -355,12 +355,14 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
               <Card
                 id={`artwork-${artwork.id}`}
                 hoverable
+                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                 cover={
-                  <div style={{ height: 200, overflow: 'hidden', cursor: 'pointer' }}>
+                  <div style={{ height: 250, overflow: 'hidden', cursor: 'pointer' }}>
                     <Image
                       src={artwork.image_url}
                       alt={artwork.title || 'Картина'}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{ width: '100%', height: '250px', objectFit: 'cover' }}
                       preview={false}
                       onClick={() => {
                         setPreviewImage(artwork.image_url);
@@ -418,30 +420,32 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
                       : undefined
                 }
               >
-                <Card.Meta
-                  title={
-                    <Typography.Text strong style={{ fontSize: 16 }} ellipsis={{ tooltip: artwork.title }}>
-                      {artwork.title || 'Без названия'}
-                    </Typography.Text>
-                  }
-                  description={
-                    <div style={{ height: 80, overflow: 'hidden' }}>
-                      {artwork.description && (
-                        <Typography.Paragraph
-                          ellipsis={{ rows: 2, tooltip: artwork.description }}
-                          style={{ fontSize: 13, color: '#666', marginBottom: 8 }}
-                        >
-                          {artwork.description}
-                        </Typography.Paragraph>
-                      )}
-                      {artwork.price && (
-                        <Typography.Text type="danger" strong style={{ fontSize: 16 }}>
-                          {artwork.price} ₽
-                        </Typography.Text>
-                      )}
-                    </div>
-                  }
-                />
+                <div style={{ flex: 1 }}>
+                  <Card.Meta
+                    title={
+                      <Typography.Text strong style={{ fontSize: 16 }} ellipsis={{ tooltip: artwork.title }}>
+                        {artwork.title || 'Без названия'}
+                      </Typography.Text>
+                    }
+                    description={
+                      <div style={{ height: 80, overflow: 'hidden' }}>
+                        {artwork.description && (
+                          <Typography.Paragraph
+                            ellipsis={{ rows: 2, tooltip: artwork.description }}
+                            style={{ fontSize: 13, color: '#666', marginBottom: 8 }}
+                          >
+                            {artwork.description}
+                          </Typography.Paragraph>
+                        )}
+                        {artwork.price && (
+                          <Typography.Text type="danger" strong style={{ fontSize: 16 }}>
+                            {artwork.price} ₽
+                          </Typography.Text>
+                        )}
+                      </div>
+                    }
+                  />
+                </div>
               </Card>
             </Col>
           ))}
