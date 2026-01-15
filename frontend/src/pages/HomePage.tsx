@@ -282,7 +282,15 @@ const HomePage = () => {
               {
                 key: 'new',
                 label: (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 15, fontWeight: 500 }}>
+                  <span style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: 15,
+                    fontWeight: 500,
+                    color: sortType === 'new' ? 'rgb(99, 102, 241)' : 'rgb(188, 189, 251)',
+                    transition: 'color 0.3s'
+                  }}>
                     <ClockPlus size={18} />
                     <span>Новое</span>
                   </span>
@@ -291,7 +299,15 @@ const HomePage = () => {
               {
                 key: 'popular',
                 label: (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 15, fontWeight: 500 }}>
+                  <span style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: 15,
+                    fontWeight: 500,
+                    color: sortType === 'popular' ? 'rgb(99, 102, 241)' : 'rgb(188, 189, 251)',
+                    transition: 'color 0.3s'
+                  }}>
                     <Gem size={18} />
                     <span>Популярное</span>
                   </span>

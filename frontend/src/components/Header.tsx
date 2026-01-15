@@ -412,9 +412,9 @@ const Header = () => {
               to="/"
               style={{
                 fontSize: '15px',
-                color: '#4b5563',
+                color: location.pathname === '/' ? 'rgb(99, 102, 241)' : '#4b5563',
                 textDecoration: 'none',
-                fontWeight: 500,
+                fontWeight: location.pathname === '/' ? 600 : 500,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -431,9 +431,9 @@ const Header = () => {
               to="/experts"
               style={{
                 fontSize: '15px',
-                color: '#4b5563',
+                color: location.pathname === '/experts' || location.pathname.startsWith('/experts/') ? 'rgb(99, 102, 241)' : '#4b5563',
                 textDecoration: 'none',
-                fontWeight: 500,
+                fontWeight: location.pathname === '/experts' || location.pathname.startsWith('/experts/') ? 600 : 500,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -450,9 +450,9 @@ const Header = () => {
               to="/events"
               style={{
                 fontSize: '15px',
-                color: '#4b5563',
+                color: location.pathname === '/events' || location.pathname.startsWith('/events/') ? 'rgb(99, 102, 241)' : '#4b5563',
                 textDecoration: 'none',
-                fontWeight: 500,
+                fontWeight: location.pathname === '/events' || location.pathname.startsWith('/events/') ? 600 : 500,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
