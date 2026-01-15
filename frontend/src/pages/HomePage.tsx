@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Space, Tag, Spin, Button, Input, Drawer } from 'antd';
-import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Tabs, Typography, Space, Tag, Spin, Button, Input, Modal } from 'antd';
+import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { Gem, ClockPlus } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -134,18 +134,34 @@ const HomePage = () => {
     }, { replace: true });
   }, [setSearchParams]);
 
-  // State for article bottom sheet
+  // State for article modal
   const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleArticleClick = (articleId: number) => {
     setSelectedArticleId(articleId);
-    setIsDrawerOpen(true);
+    setIsModalOpen(true);
   };
 
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-    setTimeout(() => setSelectedArticleId(null), 300); // Clear after animation
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedArticleId(null), 300);
+  };
+
+  const currentArticleIndex = useMemo(() => {
+    return filteredArticles.findIndex(a => a.id === selectedArticleId);
+  }, [filteredArticles, selectedArticleId]);
+
+  const handlePrevArticle = () => {
+    if (currentArticleIndex > 0) {
+      setSelectedArticleId(filteredArticles[currentArticleIndex - 1].id);
+    }
+  };
+
+  const handleNextArticle = () => {
+    if (currentArticleIndex < filteredArticles.length - 1) {
+      setSelectedArticleId(filteredArticles[currentArticleIndex + 1].id);
+    }
   };
 
   return (
@@ -497,67 +513,118 @@ const HomePage = () => {
         )}
       </div>
 
-      {/* Article Bottom Sheet */}
-      <Drawer
+      {/* Article Modal */}
+      <Modal
         title={null}
-        placement="bottom"
+        footer={null}
         closable={false}
-        onClose={handleCloseDrawer}
-        open={isDrawerOpen}
-        height="90vh"
+        onCancel={handleCloseModal}
+        open={isModalOpen}
+        width="1000px"
+        centered
         maskStyle={{
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
           backgroundColor: 'rgba(0, 0, 0, 0.45)'
         }}
-        style={{
-          borderTopLeftRadius: 32,
-          borderTopRightRadius: 32,
-          overflow: 'hidden',
-          padding: 0
-        }}
         bodyStyle={{
           padding: 0,
-          overflowY: 'auto'
+          borderRadius: 32,
+          overflow: 'hidden',
+          maxHeight: '85vh',
+          display: 'flex',
+          flexDirection: 'column'
         }}
+        style={{ padding: 0 }}
       >
-        <div style={{ position: 'relative', minHeight: '100%' }}>
-          {/* Sticky Close Button Wrapper */}
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Navigation and Close Controls */}
           <div style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 1000,
+            position: 'absolute',
+            top: 24,
+            left: 0,
+            right: 0,
+            padding: '0 24px',
             display: 'flex',
-            justifyContent: 'flex-end',
-            padding: '16px 20px',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            zIndex: 1001,
             pointerEvents: 'none'
           }}>
+            {/* Left Nav */}
             <Button
               type="text"
-              icon={<CloseOutlined style={{ fontSize: 20, color: '#1f2937' }} />}
-              onClick={handleCloseDrawer}
+              icon={<LeftOutlined style={{ fontSize: 18 }} />}
+              onClick={handlePrevArticle}
+              disabled={currentArticleIndex <= 0}
               style={{
                 pointerEvents: 'auto',
                 background: 'rgba(255,255,255,0.9)',
                 backdropFilter: 'blur(8px)',
                 borderRadius: '50%',
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                border: 'none',
+                opacity: currentArticleIndex <= 0 ? 0.3 : 1
               }}
             />
+
+            <Space size={12}>
+              {/* Right Nav */}
+              <Button
+                type="text"
+                icon={<RightOutlined style={{ fontSize: 18 }} />}
+                onClick={handleNextArticle}
+                disabled={currentArticleIndex >= filteredArticles.length - 1}
+                style={{
+                  pointerEvents: 'auto',
+                  background: 'rgba(255,255,255,0.9)',
+                  backdropFilter: 'blur(8px)',
+                  borderRadius: '50%',
+                  width: 44,
+                  height: 44,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  border: 'none',
+                  opacity: currentArticleIndex >= filteredArticles.length - 1 ? 0.3 : 1
+                }}
+              />
+
+              {/* Close Button */}
+              <Button
+                type="text"
+                icon={<CloseOutlined style={{ fontSize: 18, color: '#ef4444' }} />}
+                onClick={handleCloseModal}
+                style={{
+                  pointerEvents: 'auto',
+                  background: 'rgba(255,255,255,0.9)',
+                  backdropFilter: 'blur(8px)',
+                  borderRadius: '50%',
+                  width: 44,
+                  height: 44,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  border: 'none'
+                }}
+              />
+            </Space>
           </div>
 
-          <div style={{ marginTop: -56 }}>
+          <div style={{ overflowY: 'auto', flex: 1, paddingTop: 0 }}>
             {selectedArticleId && (
               <ArticleContentWrapper articleId={selectedArticleId} />
             )}
           </div>
         </div>
-      </Drawer>
+      </Modal>
     </div>
   );
 };
