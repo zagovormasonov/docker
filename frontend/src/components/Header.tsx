@@ -200,7 +200,7 @@ const Header = () => {
             setMobileMenuOpen(false);
           },
           style: {
-            background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
+            background: 'rgb(99, 102, 241)',
             color: '#fff',
             fontWeight: 500,
             borderRadius: 8,
@@ -361,9 +361,7 @@ const Header = () => {
             <div style={{
               fontSize: '22px',
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #4338ca 0%, #6366f1 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: 'rgb(99, 102, 241)',
               letterSpacing: '-0.5px'
             }}>
               SoulSynergy
@@ -481,7 +479,7 @@ const Header = () => {
                     icon={<CalendarOutlined />}
                     onClick={() => navigate('/expert-dashboard')}
                     style={{
-                      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                      background: 'rgb(99, 102, 241)',
                       border: 'none',
                       color: '#fff',
                       fontWeight: 500,
@@ -605,9 +603,7 @@ const Header = () => {
               <span style={{
                 fontSize: '20px',
                 fontWeight: 700,
-                background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+                color: 'rgb(99, 102, 241)'
               }}>
                 SoulSynergy
               </span>

@@ -191,7 +191,7 @@ const HomePage = () => {
             fontWeight: 400,
             lineHeight: 1.3,
             margin: '0 0 16px',
-            color: 'rgb(30, 27, 75)',
+            color: 'rgb(99, 102, 241)',
             letterSpacing: '-0.03em'
           }}>
             SoulSynergy
