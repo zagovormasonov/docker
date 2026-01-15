@@ -188,14 +188,12 @@ const HomePage = () => {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
           <Text style={{
             display: 'block',
-            fontSize: 14,
-            fontWeight: 600,
-            letterSpacing: '2px',
-            color: '#6366f1',
-            textTransform: 'uppercase',
+            fontSize: 18,
+            fontWeight: 400,
+            color: 'rgb(30, 27, 75)',
             marginBottom: 16
           }}>
-            Платформа для развития
+            Платформа развития и синергии
           </Text>
 
           <h1 style={{
@@ -203,11 +201,8 @@ const HomePage = () => {
             fontWeight: 400,
             lineHeight: 1.3,
             margin: '0 0 24px',
-            background: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '-0.03em',
-            paddingBottom: '0.1em' /* Prevent clipping of descenders with gradient text */
+            color: 'rgb(30, 27, 75)',
+            letterSpacing: '-0.03em'
           }}>
             SoulSynergy
           </h1>
@@ -218,8 +213,8 @@ const HomePage = () => {
               interval={4000}
               style={{
                 fontSize: 'clamp(1.1rem, 2vw, 1.25rem)',
-                color: '#4b5563',
-                fontWeight: 500
+                color: 'rgb(30, 27, 75)',
+                fontWeight: 400
               }}
             />
           </div>
