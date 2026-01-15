@@ -587,8 +587,8 @@ const HomePage = () => {
             onClick={handleCloseModal}
             style={{
               position: 'fixed',
-              top: 24,
-              right: 24,
+              top: 40,
+              right: 40,
               zIndex: 2000,
               width: 44,
               height: 44,
@@ -599,58 +599,7 @@ const HomePage = () => {
             }}
           />
 
-          {/* Navigation Arrows - Minimal Design */}
-          <Button
-            type="text"
-            icon={<LeftOutlined style={{ fontSize: 32, color: '#000' }} />}
-            onClick={handlePrevArticle}
-            disabled={currentArticleIndex <= 0}
-            style={{
-              position: 'fixed',
-              left: 40,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 2000,
-              width: 60,
-              height: 60,
-              display: (isModalOpen && currentArticleIndex >= 0) ? 'flex' : 'none',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.3s',
-              opacity: currentArticleIndex <= 0 ? 0.1 : 0.4,
-              pointerEvents: currentArticleIndex <= 0 ? 'none' : 'auto'
-            }}
-            className="desktop-arrow"
-            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
-          />
-
-          <Button
-            type="text"
-            icon={<RightOutlined style={{ fontSize: 32, color: '#000' }} />}
-            onClick={handleNextArticle}
-            disabled={currentArticleIndex >= filteredArticles.length - 1}
-            style={{
-              position: 'fixed',
-              right: 40,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 2000,
-              width: 60,
-              height: 60,
-              display: (isModalOpen && currentArticleIndex < filteredArticles.length) ? 'flex' : 'none',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.3s',
-              opacity: currentArticleIndex >= filteredArticles.length - 1 ? 0.1 : 0.4,
-              pointerEvents: currentArticleIndex >= filteredArticles.length - 1 ? 'none' : 'auto'
-            }}
-            className="desktop-arrow"
-            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
-          />
-
-          {/* Mobile Bottom Navigation Bar */}
+          {/* Bottom Navigation Bar - Universal for all devices */}
           <div style={{
             position: 'fixed',
             bottom: 0,
@@ -660,17 +609,17 @@ const HomePage = () => {
             background: 'rgba(255,255,255,0.9)',
             backdropFilter: 'blur(10px)',
             borderTop: '1px solid #eee',
-            display: 'none', // Shown via Media Query logic in CSS or JS
+            display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'center',
             zIndex: 2000
-          }} className="mobile-only-nav">
+          }}>
             <Button
               type="text"
               icon={<LeftOutlined />}
               disabled={currentArticleIndex <= 0}
               onClick={handlePrevArticle}
-              style={{ flex: 1, height: '100%' }}
+              style={{ flex: 1, height: '100%', fontSize: 15 }}
             >
               Назад
             </Button>
@@ -680,7 +629,7 @@ const HomePage = () => {
               icon={<RightOutlined />}
               disabled={currentArticleIndex >= filteredArticles.length - 1}
               onClick={handleNextArticle}
-              style={{ flex: 1, height: '100%', flexDirection: 'row-reverse' }}
+              style={{ flex: 1, height: '100%', flexDirection: 'row-reverse', fontSize: 15 }}
             >
               Вперед
             </Button>
@@ -688,13 +637,17 @@ const HomePage = () => {
 
           <style>
             {`
-              @media (max-width: 768px) {
-                .mobile-only-nav {
-                  display: flex !important;
-                }
-                .hide-scrollbar {
-                  padding-bottom: 80px !important; /* Space for mobile nav */
-                }
+              .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+              }
+              .hide-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+              }
+              .ant-modal-content {
+                box-shadow: none !important;
+                background: transparent !important;
+                border: none !important;
               }
             `}
           </style>
@@ -705,6 +658,7 @@ const HomePage = () => {
               overflowY: 'auto',
               flex: 1,
               paddingTop: 0,
+              paddingBottom: 80, // Always leave space for the bottom nav
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
