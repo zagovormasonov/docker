@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Space, Tag, Spin, Button, Input } from 'antd';
-import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Card, Row, Col, Tabs, Typography, Space, Tag, Spin, Button, Input, Drawer } from 'antd';
+import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined } from '@ant-design/icons';
 import { Gem, ClockPlus } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +10,7 @@ import LazyImage from '../components/LazyImage';
 import LazyAvatar from '../components/LazyAvatar';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
+import ArticlePage from './ArticlePage';
 
 dayjs.locale('ru');
 
@@ -48,12 +49,13 @@ const animatedTexts = [
 ];
 
 const HomePage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortType, setSortType] = useState<'new' | 'popular'>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>(searchQuery);
   const searchTimeoutRef = useRef<number | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -121,8 +123,30 @@ const HomePage = () => {
 
   // Мемоизированный обработчик изменения поиска
   const handleSearchChange = useCallback((value: string) => {
-    setSearchQuery(value);
-  }, []);
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (value) {
+        newParams.set('q', value);
+      } else {
+        newParams.delete('q');
+      }
+      return newParams;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  // State for article bottom sheet
+  const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const handleArticleClick = (articleId: number) => {
+    setSelectedArticleId(articleId);
+    setIsDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    setTimeout(() => setSelectedArticleId(null), 300); // Clear after animation
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', margin: '-24px -24px 0', paddingBottom: 24, overflowX: 'hidden' }}>
@@ -354,7 +378,7 @@ const HomePage = () => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)';
                   }}
-                  onClick={() => navigate(`/articles/${article.id}`)}
+                  onClick={() => handleArticleClick(article.id)}
                 >
                   <div style={{ height: 220, position: 'relative', overflow: 'hidden' }}>
                     <div style={{
@@ -461,8 +485,66 @@ const HomePage = () => {
           </Row>
         )}
       </div>
+
+      {/* Article Bottom Sheet */}
+      <Drawer
+        title={null}
+        placement="bottom"
+        closable={false}
+        onClose={handleCloseDrawer}
+        open={isDrawerOpen}
+        height="100vh"
+        style={{
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          overflow: 'hidden',
+          padding: 0
+        }}
+        bodyStyle={{
+          padding: 0,
+          overflowY: 'auto'
+        }}
+      >
+        <div style={{ position: 'relative', minHeight: '100%' }}>
+          {/* Close Button */}
+          <Button
+            type="text"
+            icon={<CloseOutlined style={{ fontSize: 24, color: '#1f2937' }} />}
+            onClick={handleCloseDrawer}
+            style={{
+              position: 'fixed',
+              top: 24,
+              right: 24,
+              zIndex: 1000,
+              background: 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(8px)',
+              borderRadius: '50%',
+              width: 48,
+              height: 48,
+              display: 'flex', // Explicitly flex
+              alignItems: 'center', // Center vertical
+              justifyContent: 'center', // Center horizontal
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}
+          />
+          {selectedArticleId && (
+            // We'll lazy load the ArticlePage content here or pass ID to a wrapper
+            // For now, we will render a special "embedded" version of ArticlePage logic or reuse component
+            // Since ArticlePage relies on useParams, we must either refactor ArticlePage or Mock it.
+            // Best approach: Refactor ArticlePage to accept optional articleId prop.
+            // Assuming we can't easily refactor ArticlePage right now without context switch, 
+            // we will create a temporary "EmbeddedArticle" wrapper that uses the same logic.
+            // Actually, the cleanest way is often to iframe it OR refactor ArticlePage.
+            // I will update ArticlePage to accept `articleId` prop!
+            <ArticleContentWrapper articleId={selectedArticleId} onClose={handleCloseDrawer} />
+          )}
+        </div>
+      </Drawer>
     </div>
   );
+};
+const ArticleContentWrapper = ({ articleId }: { articleId: number }) => {
+  return <ArticlePage embeddedArticleId={articleId} />;
 };
 
 export default HomePage;

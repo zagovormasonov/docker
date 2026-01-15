@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Layout, Menu, Button, Avatar, Dropdown, Badge, Space, Drawer, Modal, Form, Input, message as antdMessage } from 'antd';
 import {
   HomeOutlined,
@@ -18,13 +18,14 @@ import {
   SendOutlined,
   SettingOutlined,
   BellOutlined,
-  ScheduleOutlined
+  ScheduleOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import Notifications from './Notifications';
 import type { MenuProps } from 'antd';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const { Header: AntHeader } = Layout;
 
@@ -37,6 +38,39 @@ const Header = () => {
   const [supportForm] = Form.useForm();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsUnreadCount, setNotificationsUnreadCount] = useState(0);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showSearch, setShowSearch] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (location.pathname === '/') {
+        // Show search when scrolled past hero section (approx 400px)
+        setShowSearch(window.scrollY > 400);
+      } else {
+        setShowSearch(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    // Initial check
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location.pathname]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (value) {
+        newParams.set('q', value);
+      } else {
+        newParams.delete('q');
+      }
+      return newParams;
+    }, { replace: true });
+  };
 
   const handleChatsClick = () => {
     // НЕ сбрасываем счетчики при переходе в чаты
@@ -335,6 +369,42 @@ const Header = () => {
               SoulSynergy
             </div>
           </Link>
+
+          {/* Dynamic Search Bar */}
+          <div style={{
+            marginLeft: 32,
+            opacity: showSearch ? 1 : 0,
+            visibility: showSearch ? 'visible' : 'hidden',
+            transform: showSearch ? 'translateY(0)' : 'translateY(10px)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            width: 260
+          }}
+            className="header-search-anim"
+          >
+            <Input
+              placeholder="Поиск статей..."
+              prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+              value={searchParams.get('q') || ''}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              style={{
+                borderRadius: 20,
+                background: '#f3f4f6',
+                border: '1px solid transparent',
+                padding: '6px 12px',
+                fontSize: 14
+              }}
+              onFocus={(e) => {
+                e.target.style.background = '#fff';
+                e.target.style.borderColor = '#6366f1';
+                e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.background = '#f3f4f6';
+                e.target.style.borderColor = 'transparent';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
 
           {/* Десктопное меню - скрыто на мобильных устройствах */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="desktop-menu">

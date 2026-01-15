@@ -11,11 +11,11 @@ import {
   Button,
   Tooltip
 } from 'antd';
-import { 
-  UserOutlined, 
-  EyeOutlined, 
-  ClockCircleOutlined, 
-  EditOutlined, 
+import {
+  UserOutlined,
+  EyeOutlined,
+  ClockCircleOutlined,
+  EditOutlined,
   ArrowLeftOutlined,
   HeartOutlined,
   HeartFilled,
@@ -47,10 +47,13 @@ interface Article {
   updated_at: string;
 }
 
-const ArticlePage = () => {
+const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  // Use embedded ID if present, otherwise fallback to URL params
+  const articleId = embeddedArticleId || id;
+
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
@@ -59,19 +62,21 @@ const ArticlePage = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    fetchArticle();
-    if (user) {
-      fetchInteractionStatus();
+    if (articleId) {
+      fetchArticle();
+      if (user) {
+        fetchInteractionStatus();
+      }
     }
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [id, user]);
+  }, [articleId, user]);
 
   const fetchArticle = async () => {
     try {
-      const response = await api.get(`/articles/${id}`);
+      const response = await api.get(`/articles/${articleId}`);
       setArticle(response.data);
       setLikesCount(response.data.likes_count || 0);
       // Обновляем заголовок и базовые мета-теги
@@ -112,7 +117,7 @@ const ArticlePage = () => {
         setOg('og:url', pageUrl);
         setOg('og:type', 'article');
         setOg('twitter:card', 'summary_large_image');
-      } catch {}
+      } catch { }
     } catch (error: any) {
       console.error('Ошибка загрузки статьи:', error);
       message.error(error.response?.data?.error || 'Ошибка загрузки статьи');
@@ -124,7 +129,7 @@ const ArticlePage = () => {
 
   const fetchInteractionStatus = async () => {
     try {
-      const response = await api.get(`/article-interactions/${id}/status`);
+      const response = await api.get(`/article-interactions/${articleId}/status`);
       setLiked(response.data.liked);
       setFavorited(response.data.favorited);
     } catch (error) {
@@ -139,7 +144,7 @@ const ArticlePage = () => {
     }
 
     try {
-      const response = await api.post(`/article-interactions/${id}/like`);
+      const response = await api.post(`/article-interactions/${articleId}/like`);
       setLiked(response.data.liked);
       setLikesCount(prev => response.data.liked ? prev + 1 : prev - 1);
     } catch (error) {
@@ -155,7 +160,7 @@ const ArticlePage = () => {
     }
 
     try {
-      const response = await api.post(`/article-interactions/${id}/favorite`);
+      const response = await api.post(`/article-interactions/${articleId}/favorite`);
       setFavorited(response.data.favorited);
       message.success(response.data.favorited ? 'Добавлено в избранное!' : 'Удалено из избранного');
     } catch (error) {
@@ -190,15 +195,17 @@ const ArticlePage = () => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: 900 }}>
-      <div style={{ marginBottom: 16 }}>
-        <Button 
-          icon={<ArrowLeftOutlined />} 
-          onClick={() => navigate(-1)}
-        >
-          Назад
-        </Button>
-      </div>
+    <div className="container" style={{ maxWidth: 900, paddingTop: embeddedArticleId ? 60 : 0 }}>
+      {!embeddedArticleId && (
+        <div style={{ marginBottom: 16 }}>
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={() => navigate(-1)}
+          >
+            Назад
+          </Button>
+        </div>
+      )}
 
       <Card>
         <div style={{ marginBottom: 24, borderRadius: 8, overflow: 'hidden' }}>
@@ -218,7 +225,7 @@ const ArticlePage = () => {
           <Title level={1} style={{ margin: 0, marginBottom: 16 }}>
             {article.title}
           </Title>
-          
+
           {isAuthor && (
             <Button
               type="primary"
@@ -263,8 +270,8 @@ const ArticlePage = () => {
 
         <Tooltip title="Перейти в профиль автора">
           <div
-            style={{ 
-              marginBottom: 24, 
+            style={{
+              marginBottom: 24,
               cursor: 'pointer',
               padding: '12px',
               borderRadius: 8,
@@ -317,8 +324,8 @@ const ArticlePage = () => {
 
         <div
           className="article-content"
-          style={{ 
-            fontSize: 16, 
+          style={{
+            fontSize: 16,
             lineHeight: 1.8,
             color: '#1d1d1f',
             wordWrap: 'break-word',
@@ -331,8 +338,8 @@ const ArticlePage = () => {
         <Divider />
 
         {/* Лайки и избранное в конце статьи */}
-        <div style={{ 
-          textAlign: 'center', 
+        <div style={{
+          textAlign: 'center',
           padding: '24px 0',
           background: '#fafafa',
           borderRadius: 8,
@@ -346,7 +353,7 @@ const ArticlePage = () => {
               size="large"
               icon={liked ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
               onClick={handleLike}
-              style={{ 
+              style={{
                 height: 48,
                 padding: '0 24px',
                 fontSize: isMobile ? 14 : 16,
@@ -361,7 +368,7 @@ const ArticlePage = () => {
               size="large"
               icon={favorited ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
               onClick={handleFavorite}
-              style={{ 
+              style={{
                 height: 48,
                 padding: '0 24px',
                 fontSize: isMobile ? 14 : 16,
@@ -376,7 +383,7 @@ const ArticlePage = () => {
               size="large"
               icon={<ShareAltOutlined />}
               onClick={handleShare}
-              style={{ 
+              style={{
                 height: 48,
                 padding: '0 24px',
                 fontSize: isMobile ? 14 : 16,
