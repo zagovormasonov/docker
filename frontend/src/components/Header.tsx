@@ -372,12 +372,14 @@ const Header = () => {
 
           {/* Dynamic Search Bar */}
           <div style={{
-            marginLeft: 32,
+            marginLeft: showSearch ? 32 : 0,
             opacity: showSearch ? 1 : 0,
             visibility: showSearch ? 'visible' : 'hidden',
-            transform: showSearch ? 'translateY(0)' : 'translateY(10px)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            width: 260
+            transform: showSearch ? 'translateX(0)' : 'translateX(-20px)',
+            transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            width: showSearch ? 260 : 0,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap'
           }}
             className="header-search-anim"
           >
