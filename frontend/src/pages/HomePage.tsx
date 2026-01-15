@@ -543,24 +543,7 @@ const HomePage = () => {
       <Modal
         title={null}
         footer={null}
-        closable={true}
-        closeIcon={
-          <div style={{
-            background: 'rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(8px)',
-            borderRadius: '50%',
-            width: 40,
-            height: 40,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            marginTop: -10,
-            transition: 'all 0.3s'
-          }} className="modal-close-btn">
-            <CloseOutlined style={{ fontSize: 18, color: '#ef4444' }} />
-          </div>
-        }
+        closable={false}
         onCancel={handleCloseModal}
         open={isModalOpen}
         width="1100px"
@@ -582,6 +565,34 @@ const HomePage = () => {
         }}
       >
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+          {/* Top Center Close Button */}
+          <Button
+            type="text"
+            icon={<CloseOutlined style={{ fontSize: 24 }} />}
+            onClick={handleCloseModal}
+            style={{
+              position: 'fixed',
+              top: 40,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 2000,
+              background: 'rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '50%',
+              width: 60,
+              height: 60,
+              display: isModalOpen ? 'flex' : 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              color: '#fff',
+              transition: 'all 0.3s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+          />
+
           {/* Navigation Arrows - Fixed to Viewport sides */}
           <Button
             type="text"
