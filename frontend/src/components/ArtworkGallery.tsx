@@ -437,7 +437,7 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
                           </Typography.Paragraph>
                         )}
                         {artwork.price && (
-                          <Typography.Text type="danger" strong style={{ fontSize: 16 }}>
+                          <Typography.Text strong style={{ fontSize: 16, color: '#000' }}>
                             {artwork.price} ₽
                           </Typography.Text>
                         )}

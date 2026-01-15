@@ -99,7 +99,7 @@ router.post('/', authenticateToken, upload.single('image'), async (req: AuthRequ
 });
 
 // Обновить картину
-router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
+router.put('/:id', authenticateToken, upload.single('image'), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const { title, description, price } = req.body;
@@ -111,20 +111,38 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     );
 
     if (checkResult.rows.length === 0) {
+      if (req.file) fs.unlinkSync(req.file.path);
       return res.status(404).json({ error: 'Картина не найдена' });
+    }
+
+    const oldArtwork = checkResult.rows[0];
+    let imageUrl = oldArtwork.image_url;
+
+    // Если загружено новое изображение
+    if (req.file) {
+      imageUrl = `/uploads/artworks/${req.file.filename}`;
+
+      // Удаляем старый файл
+      const oldFilePath = path.join(__dirname, '../../uploads/artworks', path.basename(oldArtwork.image_url));
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
     }
 
     const result = await query(
       `UPDATE artworks 
-       SET title = $1, description = $2, price = $3, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $4 AND user_id = $5 
+       SET title = $1, description = $2, price = $3, image_url = $4, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $5 AND user_id = $6 
        RETURNING *`,
-      [title || null, description || null, price ? parseFloat(price) : null, id, req.userId]
+      [title || null, description || null, price ? parseFloat(price) : null, imageUrl, id, req.userId]
     );
 
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Ошибка обновления картины:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
