@@ -164,6 +164,32 @@ const HomePage = () => {
     }
   };
 
+  // Keyboard navigation handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isModalOpen) return;
+
+      if (e.key === 'ArrowLeft') {
+        handlePrevArticle();
+      } else if (e.key === 'ArrowRight') {
+        handleNextArticle();
+      } else if (e.key === 'Escape') {
+        handleCloseModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, currentArticleIndex, filteredArticles]);
+
+  // Scroll to top when article changes
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [selectedArticleId]);
+
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', margin: '-24px -24px 0', paddingBottom: 24, overflowX: 'hidden' }}>
       {/* Hero Section */}
@@ -609,12 +635,15 @@ const HomePage = () => {
             }}
           />
 
-          <div style={{
-            overflowY: 'auto',
-            flex: 1,
-            paddingTop: 0,
-            WebkitOverflowScrolling: 'touch'
-          }}>
+          <div
+            ref={scrollContainerRef}
+            style={{
+              overflowY: 'auto',
+              flex: 1,
+              paddingTop: 0,
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
             {selectedArticleId && (
               <ArticleContentWrapper articleId={selectedArticleId} />
             )}
