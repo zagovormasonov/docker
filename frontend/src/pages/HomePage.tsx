@@ -653,6 +653,7 @@ const HomePage = () => {
           </style>
 
           <div
+            ref={scrollContainerRef}
             className="hide-scrollbar article-content-container"
             style={{
               overflowY: 'auto',
