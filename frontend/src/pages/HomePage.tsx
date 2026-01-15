@@ -528,15 +528,7 @@ const HomePage = () => {
             }}
           />
           {selectedArticleId && (
-            // We'll lazy load the ArticlePage content here or pass ID to a wrapper
-            // For now, we will render a special "embedded" version of ArticlePage logic or reuse component
-            // Since ArticlePage relies on useParams, we must either refactor ArticlePage or Mock it.
-            // Best approach: Refactor ArticlePage to accept optional articleId prop.
-            // Assuming we can't easily refactor ArticlePage right now without context switch, 
-            // we will create a temporary "EmbeddedArticle" wrapper that uses the same logic.
-            // Actually, the cleanest way is often to iframe it OR refactor ArticlePage.
-            // I will update ArticlePage to accept `articleId` prop!
-            <ArticleContentWrapper articleId={selectedArticleId} onClose={handleCloseDrawer} />
+            <ArticleContentWrapper articleId={selectedArticleId} />
           )}
         </div>
       </Drawer>
