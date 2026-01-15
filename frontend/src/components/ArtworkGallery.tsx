@@ -359,11 +359,10 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
                 bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                 cover={
                   <div style={{ height: 250, overflow: 'hidden', cursor: 'pointer' }}>
-                    <Image
+                    <img
                       src={artwork.image_url}
                       alt={artwork.title || 'Картина'}
-                      style={{ width: '100%', height: '250px', objectFit: 'cover' }}
-                      preview={false}
+                      style={{ width: '100%', height: '250px', objectFit: 'cover', display: 'block' }}
                       onClick={() => {
                         setPreviewImage(artwork.image_url);
                         setPreviewVisible(true);
