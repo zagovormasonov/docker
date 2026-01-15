@@ -493,7 +493,7 @@ const HomePage = () => {
         closable={false}
         onClose={handleCloseDrawer}
         open={isDrawerOpen}
-        height="70vh"
+        height="90vh"
         maskStyle={{
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
