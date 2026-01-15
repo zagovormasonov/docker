@@ -541,8 +541,8 @@ const HomePage = () => {
         centered
         destroyOnClose
         maskStyle={{
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           backgroundColor: 'rgba(0, 0, 0, 0.4)'
         }}
         bodyStyle={{
