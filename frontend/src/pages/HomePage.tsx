@@ -493,10 +493,15 @@ const HomePage = () => {
         closable={false}
         onClose={handleCloseDrawer}
         open={isDrawerOpen}
-        height="100vh"
+        height="70vh"
+        maskStyle={{
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(0, 0, 0, 0.45)'
+        }}
         style={{
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
+          borderTopLeftRadius: 32,
+          borderTopRightRadius: 32,
           overflow: 'hidden',
           padding: 0
         }}
@@ -506,30 +511,40 @@ const HomePage = () => {
         }}
       >
         <div style={{ position: 'relative', minHeight: '100%' }}>
-          {/* Close Button */}
-          <Button
-            type="text"
-            icon={<CloseOutlined style={{ fontSize: 24, color: '#1f2937' }} />}
-            onClick={handleCloseDrawer}
-            style={{
-              position: 'fixed',
-              top: 24,
-              right: 24,
-              zIndex: 1000,
-              background: 'rgba(255,255,255,0.8)',
-              backdropFilter: 'blur(8px)',
-              borderRadius: '50%',
-              width: 48,
-              height: 48,
-              display: 'flex', // Explicitly flex
-              alignItems: 'center', // Center vertical
-              justifyContent: 'center', // Center horizontal
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-            }}
-          />
-          {selectedArticleId && (
-            <ArticleContentWrapper articleId={selectedArticleId} />
-          )}
+          {/* Sticky Close Button Wrapper */}
+          <div style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1000,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            padding: '16px 20px',
+            pointerEvents: 'none'
+          }}>
+            <Button
+              type="text"
+              icon={<CloseOutlined style={{ fontSize: 20, color: '#1f2937' }} />}
+              onClick={handleCloseDrawer}
+              style={{
+                pointerEvents: 'auto',
+                background: 'rgba(255,255,255,0.9)',
+                backdropFilter: 'blur(8px)',
+                borderRadius: '50%',
+                width: 40,
+                height: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              }}
+            />
+          </div>
+
+          <div style={{ marginTop: -56 }}>
+            {selectedArticleId && (
+              <ArticleContentWrapper articleId={selectedArticleId} />
+            )}
+          </div>
         </div>
       </Drawer>
     </div>
