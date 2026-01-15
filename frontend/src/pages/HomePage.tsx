@@ -287,7 +287,7 @@ const HomePage = () => {
                     alignItems: 'center',
                     gap: '8px',
                     fontSize: 15,
-                    fontWeight: 500,
+                    fontWeight: 400,
                     color: sortType === 'new' ? 'rgb(99, 102, 241)' : 'rgb(188, 189, 251)',
                     transition: 'color 0.3s'
                   }}>
@@ -304,7 +304,7 @@ const HomePage = () => {
                     alignItems: 'center',
                     gap: '8px',
                     fontSize: 15,
-                    fontWeight: 500,
+                    fontWeight: 400,
                     color: sortType === 'popular' ? 'rgb(99, 102, 241)' : 'rgb(188, 189, 251)',
                     transition: 'color 0.3s'
                   }}>
