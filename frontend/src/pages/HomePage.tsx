@@ -129,7 +129,9 @@ const HomePage = () => {
       {/* Hero Section */}
       <div style={{
         position: 'relative',
-        background: 'linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%)',
+        background: 'linear-gradient(-45deg, #e0e7ff, #f3e8ff, #eef2ff, #f5f3ff)',
+        backgroundSize: '400% 400%',
+        animation: 'gradient-flow 15s ease infinite',
         padding: '100px 24px 120px',
         borderRadius: '0 0 48px 48px',
         textAlign: 'center',
