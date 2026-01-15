@@ -620,6 +620,7 @@ const HomePage = () => {
               opacity: currentArticleIndex <= 0 ? 0.1 : 0.4,
               pointerEvents: currentArticleIndex <= 0 ? 'none' : 'auto'
             }}
+            className="desktop-arrow"
             onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
             onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
           />
@@ -644,19 +645,70 @@ const HomePage = () => {
               opacity: currentArticleIndex >= filteredArticles.length - 1 ? 0.1 : 0.4,
               pointerEvents: currentArticleIndex >= filteredArticles.length - 1 ? 'none' : 'auto'
             }}
+            className="desktop-arrow"
             onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
             onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
           />
 
+          {/* Mobile Bottom Navigation Bar */}
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 60,
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(10px)',
+            borderTop: '1px solid #eee',
+            display: 'none', // Shown via Media Query logic in CSS or JS
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            zIndex: 2000
+          }} className="mobile-only-nav">
+            <Button
+              type="text"
+              icon={<LeftOutlined />}
+              disabled={currentArticleIndex <= 0}
+              onClick={handlePrevArticle}
+              style={{ flex: 1, height: '100%' }}
+            >
+              Назад
+            </Button>
+            <div style={{ width: 1, height: 24, background: '#eee' }} />
+            <Button
+              type="text"
+              icon={<RightOutlined />}
+              disabled={currentArticleIndex >= filteredArticles.length - 1}
+              onClick={handleNextArticle}
+              style={{ flex: 1, height: '100%', flexDirection: 'row-reverse' }}
+            >
+              Вперед
+            </Button>
+          </div>
+
+          <style>
+            {`
+              @media (max-width: 768px) {
+                .mobile-only-nav {
+                  display: flex !important;
+                }
+                .hide-scrollbar {
+                  padding-bottom: 80px !important; /* Space for mobile nav */
+                }
+              }
+            `}
+          </style>
+
           <div
-            className="hide-scrollbar"
+            className="hide-scrollbar article-content-container"
             style={{
               overflowY: 'auto',
               flex: 1,
               paddingTop: 0,
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center'
+              alignItems: 'center',
+              width: '100%'
             }}
           >
             <div style={{ width: '100%', maxWidth: 900 }}>
