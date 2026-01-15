@@ -550,53 +550,43 @@ const HomePage = () => {
         centered
         destroyOnClose
         maskStyle={{
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          backgroundColor: 'rgba(0, 0, 0, 0.4)'
+          backgroundColor: '#fff',
+          opacity: 1
         }}
         bodyStyle={{
           padding: 0,
-          height: '85vh',
+          height: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: 24,
-          overflow: 'hidden',
-          background: '#fff'
+          background: 'transparent',
+          boxShadow: 'none'
         }}
+        style={{ padding: 0, maxWidth: '100%' }}
       >
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
-          {/* Top Center Close Button */}
+          {/* Top Right Close Button */}
           <Button
             type="text"
-            icon={<CloseOutlined style={{ fontSize: 24 }} />}
+            icon={<CloseOutlined style={{ fontSize: 28, color: '#000' }} />}
             onClick={handleCloseModal}
             style={{
               position: 'fixed',
-              top: 40,
-              left: '50%',
-              transform: 'translateX(-50%)',
+              top: 30,
+              right: 40,
               zIndex: 2000,
-              background: 'rgba(255,255,255,0.2)',
-              backdropFilter: 'blur(12px)',
-              borderRadius: '50%',
-              width: 60,
-              height: 60,
+              width: 50,
+              height: 50,
               display: isModalOpen ? 'flex' : 'none',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#fff',
               transition: 'all 0.3s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
           />
 
-          {/* Navigation Arrows - Fixed to Viewport sides */}
+          {/* Navigation Arrows - Minimal Design */}
           <Button
             type="text"
-            icon={<LeftOutlined style={{ fontSize: 32 }} />}
+            icon={<LeftOutlined style={{ fontSize: 36, color: '#000' }} />}
             onClick={handlePrevArticle}
             disabled={currentArticleIndex <= 0}
             style={{
@@ -605,24 +595,21 @@ const HomePage = () => {
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 2000,
-              background: 'rgba(255,255,255,0.2)',
-              backdropFilter: 'blur(12px)',
-              borderRadius: '50%',
               width: 80,
               height: 80,
               display: (isModalOpen && currentArticleIndex > 0) ? 'flex' : 'none',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#fff',
-              transition: 'all 0.3s'
+              transition: 'all 0.3s',
+              opacity: 0.5
             }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
           />
 
           <Button
             type="text"
-            icon={<RightOutlined style={{ fontSize: 32 }} />}
+            icon={<RightOutlined style={{ fontSize: 36, color: '#000' }} />}
             onClick={handleNextArticle}
             disabled={currentArticleIndex >= filteredArticles.length - 1}
             style={{
@@ -631,30 +618,24 @@ const HomePage = () => {
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 2000,
-              background: 'rgba(255,255,255,0.2)',
-              backdropFilter: 'blur(12px)',
-              borderRadius: '50%',
               width: 80,
               height: 80,
               display: (isModalOpen && currentArticleIndex < filteredArticles.length - 1) ? 'flex' : 'none',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 322px rgba(0,0,0,0.1)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#fff',
-              transition: 'all 0.3s'
+              transition: 'all 0.3s',
+              opacity: 0.5
             }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
           />
 
-          <div
-            ref={scrollContainerRef}
-            style={{
-              overflowY: 'auto',
-              flex: 1,
-              paddingTop: 0,
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
+          <div style={{
+            overflowY: 'auto',
+            flex: 1,
+            paddingTop: 40, // Space for the top close button
+            WebkitOverflowScrolling: 'touch'
+          }}>
             {selectedArticleId && (
               <ArticleContentWrapper articleId={selectedArticleId} />
             )}
