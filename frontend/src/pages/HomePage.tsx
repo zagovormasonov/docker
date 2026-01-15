@@ -125,12 +125,12 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', background: '#f8fafc', margin: '-24px -24px 0', paddingBottom: 24 }}>
       {/* Hero Section */}
       <div style={{
         position: 'relative',
         background: 'linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%)',
-        padding: '80px 24px 100px',
+        padding: '100px 24px 120px',
         borderRadius: '0 0 48px 48px',
         textAlign: 'center',
         overflow: 'hidden'
@@ -174,13 +174,14 @@ const HomePage = () => {
 
           <h1 style={{
             fontSize: 'clamp(3rem, 5vw, 4.5rem)',
-            fontWeight: 800,
-            lineHeight: 1.1,
+            fontWeight: 400,
+            lineHeight: 1.3,
             margin: '0 0 24px',
             background: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            letterSpacing: '-0.03em'
+            letterSpacing: '-0.03em',
+            paddingBottom: '0.1em' /* Prevent clipping of descenders with gradient text */
           }}>
             SoulSynergy
           </h1>
@@ -188,7 +189,7 @@ const HomePage = () => {
           <div style={{ height: 40, marginBottom: 48, display: 'flex', justifyContent: 'center' }}>
             <AnimatedText
               texts={animatedTexts}
-              interval={4000} // Speed up animation slightly for dynamism
+              interval={4000}
               style={{
                 fontSize: 'clamp(1.1rem, 2vw, 1.25rem)',
                 color: '#4b5563',
@@ -239,25 +240,28 @@ const HomePage = () => {
         </div>
       </div>
 
-      <div className="container" style={{ marginTop: -60, position: 'relative', zIndex: 2, paddingBottom: 60 }}>
+      <div className="container" style={{ marginTop: -40, position: 'relative', zIndex: 2, paddingBottom: 60 }}>
+        {/* Unified Toolbar */}
         <div style={{
+          background: 'white',
+          borderRadius: 24,
+          padding: '8px 12px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 32,
           flexWrap: 'wrap',
           gap: 16,
-          padding: '0 16px'
+          marginBottom: 32
         }}>
           <Tabs
             activeKey={sortType}
             onChange={(key) => setSortType(key as 'new' | 'popular')}
-            type="card"
             items={[
               {
                 key: 'new',
                 label: (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 15, fontWeight: 500 }}>
                     <ClockPlus size={18} />
                     <span>Новое</span>
                   </span>
@@ -266,7 +270,7 @@ const HomePage = () => {
               {
                 key: 'popular',
                 label: (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 15, fontWeight: 500 }}>
                     <Gem size={18} />
                     <span>Популярное</span>
                   </span>
@@ -274,11 +278,10 @@ const HomePage = () => {
               }
             ]}
             style={{
-              background: 'white',
-              padding: '6px',
-              borderRadius: 16,
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+              marginBottom: 0,
+              flex: 1
             }}
+            tabBarStyle={{ marginBottom: 0, borderBottom: 'none' }}
           />
 
           {(user?.userType === 'expert' || user?.userType === 'admin') && (
@@ -288,13 +291,15 @@ const HomePage = () => {
               onClick={() => navigate('/create-article')}
               size="large"
               style={{
-                borderRadius: 20,
+                borderRadius: 16,
                 background: '#6366f1',
                 border: 'none',
                 boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                height: 44,
-                padding: '0 24px',
-                fontWeight: 500
+                height: 40,
+                padding: '0 20px',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center'
               }}
             >
               Создать статью
