@@ -186,33 +186,33 @@ const HomePage = () => {
         }} />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <Text style={{
-            display: 'block',
-            fontSize: 18,
-            fontWeight: 400,
-            color: 'rgb(30, 27, 75)',
-            marginBottom: 16
-          }}>
-            Платформа развития и синергии
-          </Text>
-
           <h1 style={{
             fontSize: 'clamp(3rem, 5vw, 4.5rem)',
             fontWeight: 400,
             lineHeight: 1.3,
-            margin: '0 0 24px',
+            margin: '0 0 16px',
             color: 'rgb(30, 27, 75)',
             letterSpacing: '-0.03em'
           }}>
             SoulSynergy
           </h1>
 
-          <div style={{ height: 40, marginBottom: 48, display: 'flex', justifyContent: 'center' }}>
+          <Text style={{
+            display: 'block',
+            fontSize: '1.25rem',
+            fontWeight: 400,
+            color: 'rgb(30, 27, 75)',
+            marginBottom: 8
+          }}>
+            Платформа развития и синергии
+          </Text>
+
+          <div style={{ height: 32, marginBottom: 48, display: 'flex', justifyContent: 'center' }}>
             <AnimatedText
               texts={animatedTexts}
               interval={4000}
               style={{
-                fontSize: 'clamp(1.1rem, 2vw, 1.25rem)',
+                fontSize: '1.25rem',
                 color: 'rgb(30, 27, 75)',
                 fontWeight: 400
               }}
