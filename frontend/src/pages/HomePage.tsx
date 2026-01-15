@@ -287,7 +287,7 @@ const HomePage = () => {
           {(user?.userType === 'expert' || user?.userType === 'admin') && (
             <Button
               type="primary"
-              icon={<EditOutlined />}
+              icon={<EditOutlined className="writing-icon" />}
               onClick={() => navigate('/create-article')}
               size="large"
               style={{
