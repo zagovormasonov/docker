@@ -82,7 +82,7 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
 
       img.onload = () => {
         let { width, height } = img;
-        
+
         if (width > height) {
           if (width > maxWidth) {
             height = (height * maxWidth) / width;
@@ -160,7 +160,7 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
   const handleUpdate = async (values: any) => {
     try {
       if (!editingArtwork) return;
-      
+
       await api.put(`/artworks/${editingArtwork.id}`, values);
       message.success('Картина обновлена!');
       setEditingArtwork(null);
@@ -194,32 +194,32 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
       // Создаем или находим чат с владельцем картины
       const response = await api.post('/chats/create', { otherUserId: artwork.user_id });
       const chatId = response.data.id;
-      
+
       // Создаем HTML-сообщение с карточкой товара (компактная версия)
       const escapedTitle = (artwork.title || 'Картина').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const escapedDescription = artwork.description ? artwork.description.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
       const artworkCardHtml = `
-        <div class="artwork-card-chat" data-user-id="${artwork.user_id}" data-artwork-id="${artwork.id}" style="border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: white; max-width: 340px; margin: 4px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); text-align: left; font-family: inherit;">
-          <div style="height: 180px; overflow: hidden; background: #f3f4f6;">
-            <img src="${artwork.image_url}" alt="${escapedTitle}" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div class="artwork-card-chat" data-user-id="${artwork.user_id}" data-artwork-id="${artwork.id}" style="all: initial; display: block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: white; max-width: 340px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin: 4px 0; text-align: left !important;">
+          <div style="display: block; width: 100%; height: 160px; overflow: hidden; background: #f3f4f6; margin: 0; padding: 0;">
+            <img src="${artwork.image_url}" alt="${escapedTitle}" style="display: block; width: 100%; height: 100%; object-fit: cover; margin: 0; padding: 0; border: none;" />
           </div>
-          <div style="padding: 16px; text-align: left;">
-            <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px; color: #111827; line-height: 1.4; text-align: left;">
+          <div style="display: block; padding: 12px 16px; text-align: left !important; background: white;">
+            <h3 style="display: block; margin: 0 0 4px 0 !important; font-weight: 600; font-size: 16px; color: #111827; line-height: 1.3; text-align: left !important; padding: 0;">
               ${escapedTitle}
-            </div>
-            ${escapedDescription ? `<div style="font-size: 14px; color: #4b5563; margin-bottom: 12px; line-height: 1.5; text-align: left; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${escapedDescription}</div>` : ''}
-            ${artwork.price ? `<div style="font-weight: 700; font-size: 18px; color: #000000; margin-bottom: 12px; text-align: left;">${artwork.price} ₽</div>` : ''}
-            <div style="padding-top: 12px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; text-align: left; display: flex; align-items: center; gap: 6px;">
-              <span>🖼️</span> Хочу купить эту картину
+            </h3>
+            ${escapedDescription ? `<p style="display: block; margin: 0 0 8px 0 !important; font-size: 14px; color: #4b5563; line-height: 1.4; text-align: left !important; padding: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${escapedDescription}</p>` : ''}
+            ${artwork.price ? `<div style="display: block; margin: 0 0 12px 0 !important; font-weight: 700; font-size: 18px; color: #000000; text-align: left !important; padding: 0;">${artwork.price} ₽</div>` : ''}
+            <div style="display: flex; align-items: center; gap: 8px; margin: 0 !important; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; text-align: left !important;">
+              <span style="font-size: 14px;">🖼️</span> <span>Хочу купить эту картину</span>
             </div>
           </div>
         </div>
       `;
-      
+
       await api.post(`/chats/${chatId}/messages`, {
         content: artworkCardHtml
       });
-      
+
       // Переходим в чат
       navigate(`/chats/${chatId}`);
       message.success('Сообщение о покупке отправлено в чат!');
@@ -338,37 +338,37 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
                 actions={
                   isOwner
                     ? [
-                        <Button
-                          key="edit"
-                          type="text"
-                          icon={<EditOutlined />}
-                          onClick={() => {
-                            setEditingArtwork(artwork);
-                            setShowAddForm(false);
-                            form.setFieldsValue({
-                              title: artwork.title,
-                              description: artwork.description,
-                              price: artwork.price
-                            });
-                          }}
-                        >
-                          Редактировать
-                        </Button>,
-                        <Popconfirm
-                          key="delete"
-                          title="Удалить картину?"
-                          description="Это действие нельзя отменить"
-                          onConfirm={() => handleDelete(artwork.id)}
-                          okText="Да"
-                          cancelText="Нет"
-                        >
-                          <Button type="text" danger icon={<DeleteOutlined />}>
-                            Удалить
-                          </Button>
-                        </Popconfirm>
-                      ]
+                      <Button
+                        key="edit"
+                        type="text"
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                          setEditingArtwork(artwork);
+                          setShowAddForm(false);
+                          form.setFieldsValue({
+                            title: artwork.title,
+                            description: artwork.description,
+                            price: artwork.price
+                          });
+                        }}
+                      >
+                        Редактировать
+                      </Button>,
+                      <Popconfirm
+                        key="delete"
+                        title="Удалить картину?"
+                        description="Это действие нельзя отменить"
+                        onConfirm={() => handleDelete(artwork.id)}
+                        okText="Да"
+                        cancelText="Нет"
+                      >
+                        <Button type="text" danger icon={<DeleteOutlined />}>
+                          Удалить
+                        </Button>
+                      </Popconfirm>
+                    ]
                     : artwork.price
-                    ? [
+                      ? [
                         <Button
                           key="buy"
                           type="primary"
@@ -379,7 +379,7 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
                           Купить {artwork.price} ₽
                         </Button>
                       ]
-                    : undefined
+                      : undefined
                 }
               >
                 <Card.Meta
