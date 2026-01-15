@@ -293,11 +293,14 @@ const Header = () => {
 
   return (
     <>
-      <AntHeader 
-        style={{ 
-          background: '#fff', 
+      <AntHeader
+        style={{
+          background: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           padding: '0 24px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.05)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
           position: 'fixed',
           top: 0,
           left: 0,
@@ -306,24 +309,25 @@ const Header = () => {
           zIndex: 999,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          height: 72
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flex: 1 }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-            <img 
-              src="/logo.png" 
-              alt="SoulSynergy Logo" 
-              style={{ 
-                height: '58px', 
-                width: '58px',
+            <img
+              src="/logo.png"
+              alt="SoulSynergy Logo"
+              style={{
+                height: '48px',
+                width: '48px',
                 objectFit: 'contain'
-              }} 
+              }}
             />
             <div style={{
-              fontSize: '24px',
-              fontWeight: 500,
-              background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
+              fontSize: '22px',
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #4338ca 0%, #6366f1 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.5px'
@@ -333,46 +337,61 @@ const Header = () => {
           </Link>
 
           {/* Десктопное меню - скрыто на мобильных устройствах */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }} className="desktop-menu">
-            <Link 
-              to="/" 
-              style={{ 
-                fontSize: '16px',
-                color: 'rgb(170 180 251)',
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="desktop-menu">
+            <Link
+              to="/"
+              style={{
+                fontSize: '15px',
+                color: '#4b5563',
                 textDecoration: 'none',
-                fontWeight: 400,
+                fontWeight: 500,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                transition: 'all 0.2s ease'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
               <HomeOutlined /> Главная
             </Link>
-            <Link 
-              to="/experts" 
-              style={{ 
-                fontSize: '16px',
-                color: 'rgb(170 180 251)',
+            <Link
+              to="/experts"
+              style={{
+                fontSize: '15px',
+                color: '#4b5563',
                 textDecoration: 'none',
-                fontWeight: 400,
+                fontWeight: 500,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                transition: 'all 0.2s ease'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
               <TeamOutlined /> Эксперты
             </Link>
-            <Link 
-              to="/events" 
-              style={{ 
-                fontSize: '16px',
-                color: 'rgb(170 180 251)',
+            <Link
+              to="/events"
+              style={{
+                fontSize: '15px',
+                color: '#4b5563',
                 textDecoration: 'none',
-                fontWeight: 400,
+                fontWeight: 500,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                transition: 'all 0.2s ease'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
               <CalendarOutlined /> События
             </Link>
@@ -389,39 +408,45 @@ const Header = () => {
                     type="primary"
                     icon={<CalendarOutlined />}
                     onClick={() => navigate('/expert-dashboard')}
-                    style={{ 
-                      background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
+                    style={{
+                      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
                       border: 'none',
                       color: '#fff',
-                      fontWeight: 500
+                      fontWeight: 500,
+                      borderRadius: '12px',
+                      height: '40px',
+                      boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
                     }}
                   >
                     Кабинет эксперта
                   </Button>
                 )}
-                <Badge count={unreadCount} offset={[-5, 5]}>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <Badge count={unreadCount} offset={[-5, 5]}>
+                    <Button
+                      type="text"
+                      icon={<MessageOutlined />}
+                      onClick={handleChatsClick}
+                      style={{ fontSize: '18px', width: 40, height: 40, borderRadius: '10px' }}
+                    />
+                  </Badge>
+                  <Badge count={notificationsUnreadCount} offset={[-5, 5]}>
+                    <Button
+                      type="text"
+                      icon={<BellOutlined />}
+                      onClick={() => setNotificationsOpen(true)}
+                      style={{ fontSize: '18px', width: 40, height: 40, borderRadius: '10px' }}
+                    />
+                  </Badge>
                   <Button
                     type="text"
-                    icon={<MessageOutlined />}
-                    onClick={handleChatsClick}
-                    style={{ fontSize: '18px' }}
+                    icon={<CustomerServiceOutlined />}
+                    onClick={() => setSupportModalOpen(true)}
+                    style={{ fontSize: '18px', width: 40, height: 40, borderRadius: '10px' }}
+                    title="Поддержка"
                   />
-                </Badge>
-                <Badge count={notificationsUnreadCount} offset={[-5, 5]}>
-                  <Button
-                    type="text"
-                    icon={<BellOutlined />}
-                    onClick={() => setNotificationsOpen(true)}
-                    style={{ fontSize: '18px' }}
-                  />
-                </Badge>
-                <Button
-                  type="text"
-                  icon={<CustomerServiceOutlined />}
-                  onClick={() => setSupportModalOpen(true)}
-                  style={{ fontSize: '18px' }}
-                  title="Поддержка"
-                />
+                </div>
+
                 {/* Тестовая кнопка для проверки уведомлений - только в разработке */}
                 {import.meta.env.DEV && (
                   <Button
@@ -434,30 +459,38 @@ const Header = () => {
                 )}
                 <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                   <Avatar
-                    size={48}
+                    size={44}
                     src={user.avatarUrl || '/emp.jpg'}
                     icon={!user.avatarUrl && <UserOutlined />}
-                    style={{ 
-                      cursor: 'pointer', 
+                    style={{
+                      cursor: 'pointer',
                       backgroundColor: '#6366f1',
-                      border: '3px solid #6366f1',
+                      border: '2px solid #fff',
                       boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
                     }}
                   />
                 </Dropdown>
               </>
             ) : (
-              <Space>
+              <Space size={12}>
                 <Button
                   type="text"
                   icon={<LoginOutlined />}
                   onClick={() => navigate('/login')}
+                  style={{ fontWeight: 500 }}
                 >
                   Войти
                 </Button>
                 <Button
                   type="primary"
                   onClick={() => navigate('/register')}
+                  style={{
+                    background: '#6366f1',
+                    height: 40,
+                    borderRadius: 12,
+                    fontWeight: 500,
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)'
+                  }}
                 >
                   Регистрация
                 </Button>
@@ -473,7 +506,7 @@ const Header = () => {
               type="text"
               icon={<MenuOutlined />}
               onClick={() => setMobileMenuOpen(true)}
-              style={{ 
+              style={{
                 fontSize: '18px',
                 display: 'none'
               }}
@@ -488,14 +521,14 @@ const Header = () => {
         title={
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img 
-                src="/logo.png" 
-                alt="SoulSynergy Logo" 
-                style={{ 
-                  height: '58px', 
+              <img
+                src="/logo.png"
+                alt="SoulSynergy Logo"
+                style={{
+                  height: '58px',
                   width: '58px',
                   objectFit: 'contain'
-                }} 
+                }}
               />
               <span style={{
                 fontSize: '20px',
@@ -520,8 +553,8 @@ const Header = () => {
         onClose={() => setMobileMenuOpen(false)}
         height="100vh"
         bodyStyle={{ padding: 0 }}
-        headerStyle={{ 
-          background: '#fff', 
+        headerStyle={{
+          background: '#fff',
           borderBottom: '1px solid #f0f0f0',
           padding: '16px 24px'
         }}
@@ -530,7 +563,7 @@ const Header = () => {
         <Menu
           mode="vertical"
           items={mobileMenuItems}
-          style={{ 
+          style={{
             border: 'none',
             background: '#fff',
             padding: '16px 0'

@@ -125,7 +125,7 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', margin: '-24px -24px 0', paddingBottom: 24 }}>
+    <div style={{ minHeight: '100vh', background: '#f8fafc', margin: '-24px -24px 0', paddingBottom: 24, overflowX: 'hidden' }}>
       {/* Hero Section */}
       <div style={{
         position: 'relative',
