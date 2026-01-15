@@ -42,9 +42,10 @@ interface Artwork {
 interface ArtworkGalleryProps {
   userId: number;
   isOwner: boolean;
+  onItemsCountChange?: (count: number) => void;
 }
 
-const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
+const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItemsCountChange }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [artworks, setArtworks] = useState<Artwork[]>([]);
@@ -66,6 +67,9 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
       const endpoint = isOwner ? '/artworks' : `/artworks/user/${userId}`;
       const response = await api.get(endpoint);
       setArtworks(response.data);
+      if (onItemsCountChange) {
+        onItemsCountChange(response.data.length);
+      }
     } catch (error) {
       console.error('Ошибка загрузки картин:', error);
       message.error('Ошибка загрузки картин');
@@ -144,7 +148,13 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
         },
       });
 
-      setArtworks(prev => [response.data, ...prev]);
+      setArtworks(prev => {
+        const newArtworks = [response.data, ...prev];
+        if (onItemsCountChange) {
+          onItemsCountChange(newArtworks.length);
+        }
+        return newArtworks;
+      });
       message.success('Картина добавлена!');
       form.resetFields();
       setUploadFile(null);
@@ -165,7 +175,7 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
       message.success('Картина обновлена!');
       setEditingArtwork(null);
       form.resetFields();
-      fetchArtworks();
+      fetchArtworks(); // Re-fetch to update the list, which will also call onItemsCountChange
     } catch (error) {
       console.error('Ошибка обновления картины:', error);
       message.error('Ошибка обновления картины');
@@ -175,7 +185,13 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner }) => {
   const handleDelete = async (artworkId: number) => {
     try {
       await api.delete(`/artworks/${artworkId}`);
-      setArtworks(prev => prev.filter(art => art.id !== artworkId));
+      setArtworks(prev => {
+        const newArtworks = prev.filter(art => art.id !== artworkId);
+        if (onItemsCountChange) {
+          onItemsCountChange(newArtworks.length);
+        }
+        return newArtworks;
+      });
       message.success('Картина удалена');
     } catch (error) {
       console.error('Ошибка удаления:', error);

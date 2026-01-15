@@ -37,9 +37,10 @@ interface GalleryImage {
 interface ProfileGalleryProps {
   userId: number;
   isOwner: boolean;
+  onItemsCountChange?: (count: number) => void;
 }
 
-const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
+const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner, onItemsCountChange }) => {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -62,10 +63,13 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
       // Если это другой пользователь, используем публичный эндпоинт
       const endpoint = isOwner ? '/gallery' : `/gallery/user/${userId}`;
       console.log('📸 Загружаем галерею с эндпоинта:', endpoint);
-      
+
       const response = await api.get(endpoint);
       setImages(response.data);
       setImageCount(response.data.length);
+      if (onItemsCountChange) {
+        onItemsCountChange(response.data.length);
+      }
     } catch (error) {
       console.error('Ошибка загрузки галереи:', error);
       message.error('Ошибка загрузки галереи');
@@ -84,7 +88,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
       img.onload = () => {
         // Вычисляем новые размеры с сохранением пропорций
         let { width, height } = img;
-        
+
         if (width > height) {
           if (width > maxWidth) {
             height = (height * maxWidth) / width;
@@ -130,11 +134,11 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
     setUploading(true);
     try {
       console.log('📸 Исходный размер файла:', (file.size / 1024 / 1024).toFixed(2), 'MB');
-      
+
       // Сжимаем изображение
       const compressedFile = await compressImage(file);
       console.log('📸 Сжатый размер файла:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
-      
+
       const formData = new FormData();
       formData.append('image', compressedFile);
 
@@ -144,7 +148,11 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
         },
       });
 
-      setImages(prev => [response.data, ...prev]);
+      setImages(prev => {
+        const newImages = [response.data, ...prev];
+        if (onItemsCountChange) onItemsCountChange(newImages.length);
+        return newImages;
+      });
       setImageCount(prev => prev + 1);
       message.success('Фотография загружена!');
     } catch (error: any) {
@@ -159,7 +167,11 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
   const handleDelete = async (imageId: number) => {
     try {
       await api.delete(`/gallery/${imageId}`);
-      setImages(prev => prev.filter(img => img.id !== imageId));
+      setImages(prev => {
+        const newImages = prev.filter(img => img.id !== imageId);
+        if (onItemsCountChange) onItemsCountChange(newImages.length);
+        return newImages;
+      });
       setImageCount(prev => prev - 1);
       message.success('Фотография удалена');
     } catch (error) {
@@ -229,12 +241,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
       </div>
 
       {imageCount >= 20 && isOwner && (
-        <div style={{ 
-          background: '#fff7e6', 
-          border: '1px solid #ffd591', 
-          borderRadius: 6, 
-          padding: 12, 
-          marginBottom: 16 
+        <div style={{
+          background: '#fff7e6',
+          border: '1px solid #ffd591',
+          borderRadius: 6,
+          padding: 12,
+          marginBottom: 16
         }}>
           <Text type="warning">
             Достигнуто максимальное количество фотографий (20). Удалите некоторые фотографии, чтобы добавить новые.
@@ -286,42 +298,42 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
               ]}
               style={{ marginBottom: 16 }}
             >
-            {images.map((image) => (
-              <div key={image.id} style={{ padding: '0 10px', boxSizing: 'border-box' }}>
-                <Card
-                  hoverable
-                  style={{ borderRadius: 16, overflow: 'hidden' }}
-                  cover={
-                    <div style={{ height: 250, overflow: 'hidden' }}>
-                      <Image
-                        src={image.image_url}
-                        alt={image.image_name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        preview={false}
-                        onClick={() => handlePreview(image)}
-                      />
-                    </div>
-                  }
-                  actions={isOwner ? [
-                    <Popconfirm
-                      key="delete"
-                      title="Удалить фотографию?"
-                      description="Это действие нельзя отменить"
-                      onConfirm={() => handleDelete(image.id)}
-                      okText="Да"
-                      cancelText="Нет"
-                    >
-                      <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                      />
-                    </Popconfirm>
-                  ] : undefined}
-                  bodyStyle={{ padding: 0 }}
-                />
-              </div>
-            ))}
+              {images.map((image) => (
+                <div key={image.id} style={{ padding: '0 10px', boxSizing: 'border-box' }}>
+                  <Card
+                    hoverable
+                    style={{ borderRadius: 16, overflow: 'hidden' }}
+                    cover={
+                      <div style={{ height: 250, overflow: 'hidden' }}>
+                        <Image
+                          src={image.image_url}
+                          alt={image.image_name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          preview={false}
+                          onClick={() => handlePreview(image)}
+                        />
+                      </div>
+                    }
+                    actions={isOwner ? [
+                      <Popconfirm
+                        key="delete"
+                        title="Удалить фотографию?"
+                        description="Это действие нельзя отменить"
+                        onConfirm={() => handleDelete(image.id)}
+                        okText="Да"
+                        cancelText="Нет"
+                      >
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                        />
+                      </Popconfirm>
+                    ] : undefined}
+                    bodyStyle={{ padding: 0 }}
+                  />
+                </div>
+              ))}
             </Carousel>
           </div>
         </>
@@ -347,7 +359,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ userId, isOwner }) => {
             style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain', borderRadius: 8 }}
             src={previewImage}
           />
-          
+
           {/* Кнопки навигации */}
           {images.length > 1 && (
             <>
