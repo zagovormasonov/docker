@@ -546,7 +546,7 @@ const HomePage = () => {
         closable={false}
         onCancel={handleCloseModal}
         open={isModalOpen}
-        width="1100px"
+        width="100%"
         centered
         destroyOnClose
         maskStyle={{
@@ -561,21 +561,37 @@ const HomePage = () => {
           background: 'transparent',
           boxShadow: 'none'
         }}
-        style={{ padding: 0, maxWidth: '100%' }}
+        style={{ padding: 0, maxWidth: '100%', top: 0 }}
       >
+        <style>
+          {`
+            .hide-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+            .hide-scrollbar {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+            .ant-modal-content {
+              box-shadow: none !important;
+              background: transparent !important;
+              border: none !important;
+            }
+          `}
+        </style>
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
           {/* Top Right Close Button */}
           <Button
             type="text"
-            icon={<CloseOutlined style={{ fontSize: 28, color: '#000' }} />}
+            icon={<CloseOutlined style={{ fontSize: 24, color: '#000' }} />}
             onClick={handleCloseModal}
             style={{
               position: 'fixed',
-              top: 30,
-              right: 40,
+              top: 24,
+              right: 24,
               zIndex: 2000,
-              width: 50,
-              height: 50,
+              width: 44,
+              height: 44,
               display: isModalOpen ? 'flex' : 'none',
               alignItems: 'center',
               justifyContent: 'center',
@@ -586,7 +602,7 @@ const HomePage = () => {
           {/* Navigation Arrows - Minimal Design */}
           <Button
             type="text"
-            icon={<LeftOutlined style={{ fontSize: 36, color: '#000' }} />}
+            icon={<LeftOutlined style={{ fontSize: 32, color: '#000' }} />}
             onClick={handlePrevArticle}
             disabled={currentArticleIndex <= 0}
             style={{
@@ -595,21 +611,22 @@ const HomePage = () => {
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 2000,
-              width: 80,
-              height: 80,
-              display: (isModalOpen && currentArticleIndex > 0) ? 'flex' : 'none',
+              width: 60,
+              height: 60,
+              display: (isModalOpen && currentArticleIndex >= 0) ? 'flex' : 'none',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.3s',
-              opacity: 0.5
+              opacity: currentArticleIndex <= 0 ? 0.1 : 0.4,
+              pointerEvents: currentArticleIndex <= 0 ? 'none' : 'auto'
             }}
             onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
           />
 
           <Button
             type="text"
-            icon={<RightOutlined style={{ fontSize: 36, color: '#000' }} />}
+            icon={<RightOutlined style={{ fontSize: 32, color: '#000' }} />}
             onClick={handleNextArticle}
             disabled={currentArticleIndex >= filteredArticles.length - 1}
             style={{
@@ -618,27 +635,35 @@ const HomePage = () => {
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 2000,
-              width: 80,
-              height: 80,
-              display: (isModalOpen && currentArticleIndex < filteredArticles.length - 1) ? 'flex' : 'none',
+              width: 60,
+              height: 60,
+              display: (isModalOpen && currentArticleIndex < filteredArticles.length) ? 'flex' : 'none',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.3s',
-              opacity: 0.5
+              opacity: currentArticleIndex >= filteredArticles.length - 1 ? 0.1 : 0.4,
+              pointerEvents: currentArticleIndex >= filteredArticles.length - 1 ? 'none' : 'auto'
             }}
             onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
           />
 
-          <div style={{
-            overflowY: 'auto',
-            flex: 1,
-            paddingTop: 40, // Space for the top close button
-            WebkitOverflowScrolling: 'touch'
-          }}>
-            {selectedArticleId && (
-              <ArticleContentWrapper articleId={selectedArticleId} />
-            )}
+          <div
+            className="hide-scrollbar"
+            style={{
+              overflowY: 'auto',
+              flex: 1,
+              paddingTop: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
+          >
+            <div style={{ width: '100%', maxWidth: 900 }}>
+              {selectedArticleId && (
+                <ArticleContentWrapper articleId={selectedArticleId} />
+              )}
+            </div>
           </div>
         </div>
       </Modal>

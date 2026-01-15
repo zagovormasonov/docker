@@ -207,7 +207,7 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
         </div>
       )}
 
-      <Card>
+      <Card bordered={!embeddedArticleId} style={{ boxShadow: embeddedArticleId ? 'none' : undefined, border: embeddedArticleId ? 'none' : undefined }}>
         <div style={{ marginBottom: 24, borderRadius: 8, overflow: 'hidden' }}>
           <img
             src={article.cover_image || '/art.jpg'}
