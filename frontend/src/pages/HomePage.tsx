@@ -517,108 +517,104 @@ const HomePage = () => {
       <Modal
         title={null}
         footer={null}
-        closable={false}
+        closable={true}
+        closeIcon={
+          <div style={{
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '50%',
+            width: 40,
+            height: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            marginTop: -10,
+            transition: 'all 0.3s'
+          }} className="modal-close-btn">
+            <CloseOutlined style={{ fontSize: 18, color: '#ef4444' }} />
+          </div>
+        }
         onCancel={handleCloseModal}
         open={isModalOpen}
-        width="1000px"
+        width="1100px"
         centered
+        destroyOnClose
         maskStyle={{
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          backgroundColor: 'rgba(0, 0, 0, 0.45)'
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          backgroundColor: 'rgba(0, 0, 0, 0.4)'
         }}
         bodyStyle={{
           padding: 0,
-          borderRadius: 32,
-          overflow: 'hidden',
-          maxHeight: '85vh',
+          height: '85vh',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          borderRadius: 24,
+          overflow: 'hidden',
+          background: '#fff'
         }}
-        style={{ padding: 0 }}
       >
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Navigation and Close Controls */}
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+          {/* Navigation Arrows - Fixed to Viewport sides */}
+          <Button
+            type="text"
+            icon={<LeftOutlined style={{ fontSize: 32 }} />}
+            onClick={handlePrevArticle}
+            disabled={currentArticleIndex <= 0}
+            style={{
+              position: 'fixed',
+              left: 40,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2000,
+              background: 'rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '50%',
+              width: 80,
+              height: 80,
+              display: (isModalOpen && currentArticleIndex > 0) ? 'flex' : 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              color: '#fff',
+              transition: 'all 0.3s'
+            }}
+          />
+
+          <Button
+            type="text"
+            icon={<RightOutlined style={{ fontSize: 32 }} />}
+            onClick={handleNextArticle}
+            disabled={currentArticleIndex >= filteredArticles.length - 1}
+            style={{
+              position: 'fixed',
+              right: 40,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2000,
+              background: 'rgba(255,255,255,0.2)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '50%',
+              width: 80,
+              height: 80,
+              display: (isModalOpen && currentArticleIndex < filteredArticles.length - 1) ? 'flex' : 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 322px rgba(0,0,0,0.1)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              color: '#fff',
+              transition: 'all 0.3s'
+            }}
+          />
+
           <div style={{
-            position: 'absolute',
-            top: 24,
-            left: 0,
-            right: 0,
-            padding: '0 24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            zIndex: 1001,
-            pointerEvents: 'none'
+            overflowY: 'auto',
+            flex: 1,
+            paddingTop: 0,
+            WebkitOverflowScrolling: 'touch'
           }}>
-            {/* Left Nav */}
-            <Button
-              type="text"
-              icon={<LeftOutlined style={{ fontSize: 18 }} />}
-              onClick={handlePrevArticle}
-              disabled={currentArticleIndex <= 0}
-              style={{
-                pointerEvents: 'auto',
-                background: 'rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(8px)',
-                borderRadius: '50%',
-                width: 44,
-                height: 44,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                border: 'none',
-                opacity: currentArticleIndex <= 0 ? 0.3 : 1
-              }}
-            />
-
-            <Space size={12}>
-              {/* Right Nav */}
-              <Button
-                type="text"
-                icon={<RightOutlined style={{ fontSize: 18 }} />}
-                onClick={handleNextArticle}
-                disabled={currentArticleIndex >= filteredArticles.length - 1}
-                style={{
-                  pointerEvents: 'auto',
-                  background: 'rgba(255,255,255,0.9)',
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '50%',
-                  width: 44,
-                  height: 44,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  border: 'none',
-                  opacity: currentArticleIndex >= filteredArticles.length - 1 ? 0.3 : 1
-                }}
-              />
-
-              {/* Close Button */}
-              <Button
-                type="text"
-                icon={<CloseOutlined style={{ fontSize: 18, color: '#ef4444' }} />}
-                onClick={handleCloseModal}
-                style={{
-                  pointerEvents: 'auto',
-                  background: 'rgba(255,255,255,0.9)',
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '50%',
-                  width: 44,
-                  height: 44,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  border: 'none'
-                }}
-              />
-            </Space>
-          </div>
-
-          <div style={{ overflowY: 'auto', flex: 1, paddingTop: 0 }}>
             {selectedArticleId && (
               <ArticleContentWrapper articleId={selectedArticleId} />
             )}
