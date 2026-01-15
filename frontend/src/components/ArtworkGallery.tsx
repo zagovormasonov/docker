@@ -171,14 +171,32 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
     try {
       if (!editingArtwork) return;
 
-      await api.put(`/artworks/${editingArtwork.id}`, values);
+      setUploading(true);
+      const formData = new FormData();
+      if (uploadFile) {
+        const compressedFile = await compressImage(uploadFile);
+        formData.append('image', compressedFile);
+      }
+      formData.append('title', values.title || '');
+      formData.append('description', values.description || '');
+      formData.append('price', values.price ? values.price.toString() : '');
+
+      await api.put(`/artworks/${editingArtwork.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       message.success('Картина обновлена!');
       setEditingArtwork(null);
+      setUploadFile(null);
       form.resetFields();
-      fetchArtworks(); // Re-fetch to update the list, which will also call onItemsCountChange
-    } catch (error) {
+      fetchArtworks();
+    } catch (error: any) {
       console.error('Ошибка обновления картины:', error);
-      message.error('Ошибка обновления картины');
+      message.error(error.response?.data?.error || 'Ошибка обновления картины');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -331,9 +349,9 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
           </Text>
         </Card>
       ) : (
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 24]}>
           {artworks.map((artwork) => (
-            <Col key={artwork.id} xs={24} sm={12} md={8} lg={6}>
+            <Col key={artwork.id} xs={24} sm={12}>
               <Card
                 id={`artwork-${artwork.id}`}
                 hoverable
@@ -358,9 +376,11 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
                         key="edit"
                         type="text"
                         icon={<EditOutlined />}
+                        style={{ padding: '0 8px' }}
                         onClick={() => {
                           setEditingArtwork(artwork);
                           setShowAddForm(false);
+                          setUploadFile(null);
                           form.setFieldsValue({
                             title: artwork.title,
                             description: artwork.description,
@@ -378,7 +398,7 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
                         okText="Да"
                         cancelText="Нет"
                       >
-                        <Button type="text" danger icon={<DeleteOutlined />}>
+                        <Button type="text" danger icon={<DeleteOutlined />} style={{ padding: '0 8px' }}>
                           Удалить
                         </Button>
                       </Popconfirm>
@@ -399,22 +419,27 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
                 }
               >
                 <Card.Meta
-                  title={artwork.title || 'Без названия'}
+                  title={
+                    <Typography.Text strong style={{ fontSize: 16 }} ellipsis={{ tooltip: artwork.title }}>
+                      {artwork.title || 'Без названия'}
+                    </Typography.Text>
+                  }
                   description={
-                    <>
+                    <div style={{ height: 80, overflow: 'hidden' }}>
                       {artwork.description && (
-                        <div style={{ marginBottom: 8, fontSize: 12 }}>
-                          {artwork.description.length > 100
-                            ? `${artwork.description.substring(0, 100)}...`
-                            : artwork.description}
-                        </div>
+                        <Typography.Paragraph
+                          ellipsis={{ rows: 2, tooltip: artwork.description }}
+                          style={{ fontSize: 13, color: '#666', marginBottom: 8 }}
+                        >
+                          {artwork.description}
+                        </Typography.Paragraph>
                       )}
                       {artwork.price && (
-                        <Text strong style={{ fontSize: 16 }}>
+                        <Typography.Text type="danger" strong style={{ fontSize: 16 }}>
                           {artwork.price} ₽
-                        </Text>
+                        </Typography.Text>
                       )}
-                    </>
+                    </div>
                   }
                 />
               </Card>
@@ -466,6 +491,29 @@ const ArtworkGallery: React.FC<ArtworkGalleryProps> = ({ userId, isOwner, onItem
             </Form.Item>
             <Form.Item name="price" label="Цена (₽)">
               <InputNumber min={0} style={{ width: '100%' }} placeholder="Цена" />
+            </Form.Item>
+            <Form.Item label="Изменить изображение">
+              <Upload
+                accept="image/*"
+                showUploadList={true}
+                beforeUpload={handleFileSelect}
+                fileList={uploadFile ? [{
+                  uid: '-1',
+                  name: uploadFile.name,
+                  status: 'done',
+                }] : []}
+                onRemove={() => {
+                  setUploadFile(null);
+                  return true;
+                }}
+              >
+                <Button icon={<PlusOutlined />}>
+                  Выбрать новое изображение
+                </Button>
+              </Upload>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Оставьте пустым, чтобы сохранить текущее изображение
+              </Text>
             </Form.Item>
           </Form>
         </Modal>
