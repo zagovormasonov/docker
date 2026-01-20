@@ -183,6 +183,18 @@ const ExpertProfilePage = () => {
       const response = await api.get(`/experts/${id}`);
       setExpert(response.data);
 
+      // DEBUG: Проверяем типы и значения ID
+      console.log('🔍 DEBUG ExpertProfilePage:', {
+        currentUserId: user?.id,
+        expertId: response.data.id,
+        userIdType: typeof user?.id,
+        expertIdType: typeof response.data.id,
+        areEqual: user?.id === response.data.id,
+        userIdString: String(user?.id),
+        expertIdString: String(response.data.id),
+        areEqualAsStrings: String(user?.id) === String(response.data.id)
+      });
+
       // Устанавливаем счетчики из ответа API
       if (response.data.galleryCount !== undefined) {
         setPhotosCount(response.data.galleryCount);
