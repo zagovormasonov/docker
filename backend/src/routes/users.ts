@@ -191,20 +191,30 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
       GROUP BY u.id
     `, [req.userId]);
 
-    const updatedUser = userResult.rows[0];
+    const dbUser = userResult.rows[0];
 
-    // Обрабатываем consultationTypes если это JSON строка
-    if (updatedUser.consultation_types && typeof updatedUser.consultation_types === 'string') {
-      try {
-        updatedUser.consultationTypes = JSON.parse(updatedUser.consultation_types);
-      } catch (e) {
-        updatedUser.consultationTypes = [];
-      }
-    } else {
-      updatedUser.consultationTypes = updatedUser.consultation_types || [];
-    }
+    // Преобразуем snake_case в camelCase для frontend
+    const user: any = {
+      id: dbUser.id,
+      email: dbUser.email,
+      name: dbUser.name,
+      userType: dbUser.user_type,
+      slug: dbUser.slug,
+      avatarUrl: dbUser.avatar_url,
+      bio: dbUser.bio,
+      city: dbUser.city,
+      vkUrl: dbUser.vk_url,
+      telegramUrl: dbUser.telegram_url,
+      whatsapp: dbUser.whatsapp,
+      consultationTypes: dbUser.consultation_types ? (typeof dbUser.consultation_types === 'string' ? JSON.parse(dbUser.consultation_types) : dbUser.consultation_types) : [],
+      topics: dbUser.topics || [],
+      referralCode: dbUser.referral_code,
+      bonuses: dbUser.bonuses || 0,
+      referredById: dbUser.referred_by_id,
+      createdAt: dbUser.created_at
+    };
 
-    res.json(updatedUser);
+    res.json(user);
   } catch (error) {
     console.error('Ошибка обновления профиля:', error);
     console.error('Детали ошибки:', {
