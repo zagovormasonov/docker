@@ -771,6 +771,39 @@ const ProfilePage = () => {
                   </Space>
                 </div>
               )}
+
+              {/* Социальные сети */}
+              {(user?.vkUrl || user?.telegramUrl || user?.whatsapp || customSocials.length > 0) && (
+                <div style={{ marginTop: 16 }}>
+                  <Text strong style={{ display: 'block', marginBottom: 8 }}>Контакты и социальные сети:</Text>
+                  <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                    {user?.vkUrl && (
+                      <a href={user.vkUrl.startsWith('http') ? user.vkUrl : `https://${user.vkUrl}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6366f1' }}>
+                        <img src="/vk.png" alt="VK" style={{ width: 16, height: 16 }} onError={(e) => (e.currentTarget.style.display = 'none')} />
+                        VK: {user.vkUrl}
+                      </a>
+                    )}
+                    {user?.telegramUrl && (
+                      <a href={user.telegramUrl.startsWith('http') ? user.telegramUrl : `https://t.me/${user.telegramUrl.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6366f1' }}>
+                        <img src="/tg.png" alt="Telegram" style={{ width: 16, height: 16 }} />
+                        Telegram: {user.telegramUrl}
+                      </a>
+                    )}
+                    {user?.whatsapp && (
+                      <a href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6366f1' }}>
+                        <img src="/wp.png" alt="WhatsApp" style={{ width: 16, height: 16 }} />
+                        WhatsApp: {user.whatsapp}
+                      </a>
+                    )}
+                    {customSocials.map((social) => (
+                      <a key={social.id} href={social.url.startsWith('http') ? social.url : `https://${social.url}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#6366f1' }}>
+                        <LinkOutlined style={{ fontSize: 14 }} />
+                        {social.name}: {social.url}
+                      </a>
+                    ))}
+                  </Space>
+                </div>
+              )}
             </div>
 
             {(user?.userType === 'expert' || user?.userType === 'admin') && (

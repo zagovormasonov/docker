@@ -500,23 +500,29 @@ const ExpertProfilePage = () => {
             })()}
 
             {/* Социальные сети */}
-            {(expert.telegram_url || expert.whatsapp) && (
+            {(expert.vk_url || expert.telegram_url || expert.whatsapp || customSocials.length > 0) && (
               <>
                 <Divider />
                 <div>
-                  <Title level={4}><LinkOutlined /> Контакты и социальные сети</Title>
-                  <Space direction="vertical" size="small">
+                  <Title level={4} style={{ marginBottom: 16 }}><LinkOutlined /> Контакты и социальные сети</Title>
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    {expert.vk_url && (
+                      <a href={expert.vk_url.startsWith('http') ? expert.vk_url : `https://${expert.vk_url}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <img src="/vk.png" alt="VK" style={{ width: 24, height: 24 }} onError={(e) => (e.currentTarget.style.display = 'none')} />
+                        <Text style={{ color: '#6366f1', fontSize: 16 }}>VK: {expert.vk_url}</Text>
+                      </a>
+                    )}
                     {expert.telegram_url && (
-                      <a href={expert.telegram_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <img src="/tg.png" alt="Telegram" style={{ width: 20, height: 20 }} />
-                        Telegram: {expert.telegram_url}
+                      <a href={expert.telegram_url.startsWith('http') ? expert.telegram_url : `https://t.me/${expert.telegram_url.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <img src="/tg.png" alt="Telegram" style={{ width: 24, height: 24 }} />
+                        <Text style={{ color: '#6366f1', fontSize: 16 }}>Telegram: {expert.telegram_url}</Text>
                       </a>
                     )}
                     {expert.whatsapp && (
-                      <Text style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <img src="/wp.png" alt="WhatsApp" style={{ width: 20, height: 20 }} />
-                        WhatsApp: {expert.whatsapp}
-                      </Text>
+                      <a href={`https://wa.me/${expert.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <img src="/wp.png" alt="WhatsApp" style={{ width: 24, height: 24 }} />
+                        <Text style={{ color: '#6366f1', fontSize: 16 }}>WhatsApp: {expert.whatsapp}</Text>
+                      </a>
                     )}
 
                     {/* Отображение кастомных соцсетей */}
@@ -524,14 +530,20 @@ const ExpertProfilePage = () => {
                       <div key={index} style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 8,
-                        padding: 8,
-                        backgroundColor: '#f5f5f5',
-                        borderRadius: 6,
-                        marginTop: 8
+                        gap: 12,
+                        padding: '10px 16px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: 12,
+                        border: '1px solid #edf2f7',
+                        marginTop: 4
                       }}>
-                        <Text style={{ fontSize: 16, fontWeight: 500 }}>{social.name}:</Text>
-                        <a href={social.url} target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1' }}>
+                        <Text style={{ fontSize: 16, fontWeight: 600, color: '#4a5568', minWidth: 60 }}>{social.name}:</Text>
+                        <a href={social.url.startsWith('http') ? social.url : `https://${social.url}`} target="_blank" rel="noopener noreferrer" style={{
+                          color: '#6366f1',
+                          fontSize: 15,
+                          wordBreak: 'break-all',
+                          flex: 1
+                        }}>
                           {social.url}
                         </a>
                       </div>
