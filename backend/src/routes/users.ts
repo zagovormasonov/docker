@@ -97,31 +97,35 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
       console.log('Сгенерирован новый slug:', newSlug);
     }
 
+    // Получаем текущие данные пользователя для слияния
+    const currentUserResult = await query('SELECT * FROM users WHERE id = $1', [req.userId]);
+    const currentUser = currentUserResult.rows[0];
+
     // Обновляем основные поля пользователя
     console.log('Обновление основных полей пользователя');
     await query(
       `UPDATE users 
-       SET name = COALESCE($1, name), 
-           bio = COALESCE($2, bio), 
-           city = COALESCE($3, city),
-           avatar_url = COALESCE($4, avatar_url),
-           vk_url = COALESCE($5, vk_url),
-           telegram_url = COALESCE($6, telegram_url),
-           whatsapp = COALESCE($7, whatsapp),
-           consultation_types = COALESCE($8, consultation_types),
-           slug = COALESCE($9, slug),
+       SET name = $1, 
+           bio = $2, 
+           city = $3,
+           avatar_url = $4,
+           vk_url = $5,
+           telegram_url = $6,
+           whatsapp = $7,
+           consultation_types = $8,
+           slug = $9,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $10`,
       [
-        name,
-        bio,
-        city,
-        avatarUrl,
-        vkUrl,
-        telegramUrl,
-        whatsapp,
-        consultationTypes ? JSON.stringify(consultationTypes) : null,
-        newSlug,
+        name !== undefined ? name : currentUser.name,
+        bio !== undefined ? bio : currentUser.bio,
+        city !== undefined ? city : currentUser.city,
+        avatarUrl !== undefined ? avatarUrl : currentUser.avatar_url,
+        vkUrl !== undefined ? vkUrl : currentUser.vk_url,
+        telegramUrl !== undefined ? telegramUrl : currentUser.telegram_url,
+        whatsapp !== undefined ? whatsapp : currentUser.whatsapp,
+        consultationTypes !== undefined ? JSON.stringify(consultationTypes) : currentUser.consultation_types,
+        newSlug !== undefined ? newSlug : currentUser.slug,
         req.userId
       ]
     );
