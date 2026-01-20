@@ -43,6 +43,7 @@ import '../components/ServiceDescription.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 import { LucideBadgeRussianRuble, RussianRuble, RussianRubleIcon } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 dayjs.locale('ru');
 
@@ -362,6 +363,18 @@ const ExpertProfilePage = () => {
     }
   };
 
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const items = Array.from(tabsOrder);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    handleTabsReorder(items);
+  };
+
   // Модальное окно для незарегистрированных пользователей
   if (showAuthModal) {
     return (
@@ -627,73 +640,109 @@ const ExpertProfilePage = () => {
             <div>
               {user?.id === expert.id && (
                 <div style={{ marginBottom: 12, padding: '8px 12px', background: '#f0f5ff', borderRadius: 6, fontSize: 13, color: '#1890ff' }}>
-                  💡 Перетащите вкладки, чтобы изменить их порядок
+                  💡 Перетащите вкладки мышью, чтобы изменить их порядок
                 </div>
               )}
-              <Tabs
-                activeKey={activeTab}
-                onChange={setActiveTab}
-                type={user?.id === expert.id ? "editable-card" : "line"}
-                hideAdd
-                onEdit={(targetKey, action) => {
-                  // Обработка перетаскивания через onEdit не работает, используем другой подход
-                }}
-                items={(() => {
-                  const allTabs = {
-                    photos: {
-                      key: 'photos',
-                      label: `Фото (${photosCount})`,
-                      children: <ProfileGallery
-                        userId={expert.id}
-                        isOwner={user?.id === expert.id}
-                        onItemsCountChange={(count) => setPhotosCount(count)}
-                      />
-                    },
-                    gallery: {
-                      key: 'gallery',
-                      label: `Галерея (${artworksCount})`,
-                      children: <ArtworkGallery
-                        userId={expert.id}
-                        isOwner={user?.id === expert.id}
-                        onItemsCountChange={(count) => setArtworksCount(count)}
-                      />
-                    }
-                  };
 
-                  // Возвращаем табы в правильном порядке
-                  return tabsOrder.map(key => allTabs[key as keyof typeof allTabs]).filter(Boolean);
-                })()}
-                tabBarExtraContent={
-                  user?.id === expert.id ? (
-                    <Space size="small">
-                      <Button
-                        size="small"
-                        type="text"
-                        disabled={tabsOrder[0] === 'photos'}
-                        onClick={() => {
-                          const newOrder = ['photos', 'gallery'];
-                          handleTabsReorder(newOrder);
-                        }}
-                        title="Фото первым"
-                      >
-                        📷 ←
-                      </Button>
-                      <Button
-                        size="small"
-                        type="text"
-                        disabled={tabsOrder[0] === 'gallery'}
-                        onClick={() => {
-                          const newOrder = ['gallery', 'photos'];
-                          handleTabsReorder(newOrder);
-                        }}
-                        title="Галерея первой"
-                      >
-                        🖼️ ←
-                      </Button>
-                    </Space>
-                  ) : null
-                }
-              />
+              {/* Определяем все табы */}
+              {(() => {
+                const allTabs = {
+                  photos: {
+                    key: 'photos',
+                    label: `Фото (${photosCount})`,
+                    icon: '📷',
+                    children: <ProfileGallery
+                      userId={expert.id}
+                      isOwner={user?.id === expert.id}
+                      onItemsCountChange={(count) => setPhotosCount(count)}
+                    />
+                  },
+                  gallery: {
+                    key: 'gallery',
+                    label: `Галерея (${artworksCount})`,
+                    icon: '🖼️',
+                    children: <ArtworkGallery
+                      userId={expert.id}
+                      isOwner={user?.id === expert.id}
+                      onItemsCountChange={(count) => setArtworksCount(count)}
+                    />
+                  }
+                };
+
+                const orderedTabs = tabsOrder.map(key => allTabs[key as keyof typeof allTabs]).filter(Boolean);
+
+                return (
+                  <DragDropContext onDragEnd={onDragEnd}>
+                    <Droppable droppableId="tabs" direction="horizontal">
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          style={{
+                            background: snapshot.isDraggingOver ? '#f0f5ff' : 'transparent',
+                            borderRadius: 8,
+                            padding: '4px 0',
+                            transition: 'background 0.2s'
+                          }}
+                        >
+                          {/* Tab Headers */}
+                          <div style={{
+                            display: 'flex',
+                            gap: 8,
+                            borderBottom: '1px solid #f0f0f0',
+                            paddingBottom: 8,
+                            marginBottom: 16
+                          }}>
+                            {orderedTabs.map((tab, index) => (
+                              <Draggable
+                                key={tab.key}
+                                draggableId={tab.key}
+                                index={index}
+                                isDragDisabled={user?.id !== expert.id}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    onClick={() => setActiveTab(tab.key)}
+                                    style={{
+                                      padding: '8px 16px',
+                                      borderRadius: 6,
+                                      cursor: user?.id === expert.id ? 'grab' : 'pointer',
+                                      background: activeTab === tab.key ? '#1890ff' : '#fafafa',
+                                      color: activeTab === tab.key ? '#fff' : '#000',
+                                      fontWeight: activeTab === tab.key ? 600 : 400,
+                                      border: `2px solid ${activeTab === tab.key ? '#1890ff' : '#d9d9d9'}`,
+                                      transition: 'all 0.2s',
+                                      userSelect: 'none',
+                                      boxShadow: snapshot.isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
+                                      transform: snapshot.isDragging ? 'rotate(2deg)' : 'none',
+                                      ...provided.draggableProps.style
+                                    }}
+                                  >
+                                    <Space size={4}>
+                                      {user?.id === expert.id && <span style={{ opacity: 0.6 }}>⋮⋮</span>}
+                                      <span>{tab.icon}</span>
+                                      <span>{tab.label}</span>
+                                    </Space>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+
+                          {/* Tab Content */}
+                          <div>
+                            {orderedTabs.find(tab => tab.key === activeTab)?.children}
+                          </div>
+                        </div>
+                      )}
+                    </Droppable>
+                  </DragDropContext>
+                );
+              })()}
             </div>
 
             {expert.services && expert.services.length > 0 && (
