@@ -99,6 +99,17 @@ services:
     depends_on:
       - postgres
 
+  adminer:
+    image: adminer:latest
+    container_name: synergy-adminer-prod
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    networks:
+      - synergy-network
+    depends_on:
+      - postgres
+
 networks:
   synergy-network:
     driver: bridge

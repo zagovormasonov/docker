@@ -31,6 +31,14 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
+  adminer:
+    image: adminer:latest
+    container_name: synergy-adminer
+    ports:
+      - "8082:8080"
+    depends_on:
+      - postgres
+
 volumes:
   postgres_data:
   pgadmin_data:

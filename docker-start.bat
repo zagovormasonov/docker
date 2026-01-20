@@ -28,6 +28,9 @@ echo ==========================================
 echo.
 echo Приложение доступно на: http://localhost
 echo.
+echo Админка БД (Adminer): http://localhost:8082
+echo Админка БД (pgAdmin): http://localhost:5050
+echo.
 echo Для просмотра логов:
 echo   docker compose -f docker-compose.prod.yml logs -f
 echo.
