@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Typography } from 'antd';
+import { Button, Typography, Space } from 'antd';
+import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeftOutlined, DownOutlined } from '@ant-design/icons';
 import './ExpertLandingPage.css';
 
@@ -16,7 +17,7 @@ const preloadImages = () => {
     '/brand.png',
     '/bg.png'
   ];
-  
+
   imageUrls.forEach(url => {
     const img = new Image();
     img.src = url;
@@ -27,7 +28,9 @@ const { Title, Paragraph } = Typography;
 
 const ExpertLandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [useBonuses, setUseBonuses] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [loadingMonthly, setLoadingMonthly] = useState(false);
@@ -36,7 +39,7 @@ const ExpertLandingPage: React.FC = () => {
   useEffect(() => {
     // Предзагружаем изображения при загрузке компонента
     preloadImages();
-    
+
     const handleScroll = () => {
       // Отключаем параллакс на мобильных устройствах для лучшей производительности
       if (window.innerWidth > 768) {
@@ -86,17 +89,18 @@ const ExpertLandingPage: React.FC = () => {
         body: JSON.stringify({
           planId: isMonthly ? 'monthly' : 'yearly',
           amount: amount,
-          description: isMonthly 
+          description: isMonthly
             ? 'Ежемесячная подписка на функции эксперта'
             : 'Ежегодная подписка на функции эксперта',
           isRecurring: true,
-          recurringInterval: isMonthly ? 'month' : 'year'
+          recurringInterval: isMonthly ? 'month' : 'year',
+          useBonuses: useBonuses
         })
       });
 
       if (response.ok) {
         const paymentData = await response.json();
-        
+
         // Перенаправляем на страницу оплаты Юкассы
         if (paymentData.payment_url) {
           window.location.href = paymentData.payment_url;
@@ -125,7 +129,7 @@ const ExpertLandingPage: React.FC = () => {
       image: "/anketa.png"
     },
     {
-      title: "ВАШИ УСЛУГИ", 
+      title: "ВАШИ УСЛУГИ",
       description: "Вас легко найдут, благодаря удобному расширенному поиску. Размещайте ваши персональные услуги и получайте стабильные заказы.",
       image: "/serv.png"
     },
@@ -197,7 +201,7 @@ const ExpertLandingPage: React.FC = () => {
   return (
     <div className="expert-landing-container">
       {/* Header Image */}
-      <div 
+      <div
         className="header-image"
         style={{
           backgroundPosition: `center ${50 - scrollY * 0.3}%`
@@ -215,14 +219,14 @@ const ExpertLandingPage: React.FC = () => {
 
       {/* Back Button */}
       <div className="back-button-container">
-        <Button 
-          icon={<ArrowLeftOutlined />} 
+        <Button
+          icon={<ArrowLeftOutlined />}
           onClick={() => navigate(-1)}
           className="back-button"
         >
           Назад
         </Button>
-          </div>
+      </div>
 
       {/* Main Content */}
       <div className="main-content">
@@ -241,16 +245,16 @@ const ExpertLandingPage: React.FC = () => {
               <div className="feature-content">
                 <Title level={3} className="feature-title">
                   {feature.title}
-              </Title>
-                
+                </Title>
+
                 <Paragraph className="feature-description">
                   {feature.description}
-              </Paragraph>
+                </Paragraph>
               </div>
-              
+
               <div className="feature-image">
-                <img 
-                  src={feature.image} 
+                <img
+                  src={feature.image}
                   alt={feature.title}
                   loading="lazy"
                   decoding="async"
@@ -288,7 +292,7 @@ const ExpertLandingPage: React.FC = () => {
             }}>
               Выберите профессиональный профиль
             </Title>
-            
+
             <p style={{
               fontSize: 14,
               color: 'grey',
@@ -326,13 +330,13 @@ const ExpertLandingPage: React.FC = () => {
               }}>
                 Месячный план
               </h3>
-                <div style={{
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontSize: 44,
-                  fontWeight: 700,
-                  color: 'black',
-                  margin: '12px 0 24px 0'
-                }}>
+              <div style={{
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: 44,
+                fontWeight: 700,
+                color: 'black',
+                margin: '12px 0 24px 0'
+              }}>
                 790₽
               </div>
               <p style={{
@@ -410,8 +414,13 @@ const ExpertLandingPage: React.FC = () => {
                 color: '#ffffff',
                 margin: '12px 0 8px 0'
               }}>
-                3 369₽
+                {user?.referredById ? (Math.max(0, 3369 - 300)).toLocaleString() : '3 369'}₽
               </div>
+              {user?.referredById && (
+                <div style={{ color: 'white', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
+                  Скидка по приглашению -300₽ применится при оплате
+                </div>
+              )}
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -467,26 +476,40 @@ const ExpertLandingPage: React.FC = () => {
               >
                 Выбрать
               </Button>
+              {user && user.bonuses && user.bonuses > 0 ? (
+                <div
+                  onClick={() => setUseBonuses(!useBonuses)}
+                  style={{
+                    marginTop: 12,
+                    color: 'white',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  {useBonuses ? `Списать ${user.bonuses} бонусов (отмена)` : `Списать ${user.bonuses} бонусов`}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* FAQ Section */}
       <div className="faq-section">
         <div className="main-content">
           <Title level={2} className="faq-title">
             Часто задаваемые вопросы
           </Title>
-          
+
           {faqData.map((faq, index) => (
             <div key={index} className="faq-item">
-              <div 
+              <div
                 className="faq-question"
                 onClick={() => toggleFaq(index)}
               >
                 <span>{faq.question}</span>
-                <DownOutlined 
+                <DownOutlined
                   className={`faq-icon ${openFaq === index ? 'active' : ''}`}
                 />
               </div>
@@ -495,12 +518,12 @@ const ExpertLandingPage: React.FC = () => {
               </div>
             </div>
           ))}
-          </div>
+        </div>
       </div>
-      
+
       {/* Footer Background Image */}
       <div className="footer-bg"></div>
-    </div>
+    </div >
   );
 };
 

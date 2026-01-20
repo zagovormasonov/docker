@@ -57,16 +57,16 @@ function verifyYooKassaWebhookSignature(body: string, signature: string, secret:
       .createHmac('sha256', secret)
       .update(body)
       .digest('hex');
-    
+
     // Юкасса может отправлять подпись в другом формате, поэтому делаем мягкую проверку
     const signatureMatch = signature.toLowerCase() === expectedSignature.toLowerCase();
-    
+
     if (!signatureMatch) {
       console.warn('Подпись webhook не совпадает, но продолжаем обработку (может быть тестовый режим)');
       // В продакшене можно сделать return false для строгой проверки
       return true; // Разрешаем для автоматизации
     }
-    
+
     return true;
   } catch (error) {
     console.error('Ошибка проверки подписи webhook:', error);
@@ -79,7 +79,7 @@ function verifyYooKassaWebhookSignature(body: string, signature: string, secret:
 router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
   try {
     console.log('Создание платежа:', req.body);
-    const { planId, amount, description, isRecurring, recurringInterval } = req.body;
+    const { planId, amount, description, isRecurring, recurringInterval, useBonuses } = req.body;
     const userId = req.userId;
 
     // Проверяем обязательные поля
@@ -103,25 +103,51 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
     }
 
     const user = userResult.rows[0];
-    
-    if (user.user_type === 'expert') {
-      return res.status(400).json({ error: 'Пользователь уже является экспертом' });
+
+    if (user.user_type === 'expert' && planId !== 'yearly' && planId !== 'monthly') {
+      // Allow renewal for experts, but check other plans if needed
+    } else if (user.user_type === 'expert' && !isRecurring) {
+      // If they are already expert and just want to "become expert", it's redundant unless it's a renewal
+    }
+
+    // Расчет скидки
+    let finalAmount = amount;
+    let discountReason = null;
+    let discountAmount = 0;
+    let bonusUsedAmount = 0;
+
+    // 1. Скидка по реферальной ссылке (300 руб для годовой подписки)
+    const userDetails = await query(
+      'SELECT referred_by_id, bonuses FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userDetails.rows[0].referred_by_id && planId === 'yearly') {
+      discountAmount = 300;
+      finalAmount = Math.max(0, finalAmount - 300);
+      discountReason = 'referral_discount';
+    }
+
+    // 2. Использование бонусов
+    if (useBonuses && userDetails.rows[0].bonuses > 0) {
+      bonusUsedAmount = Math.min(userDetails.rows[0].bonuses, finalAmount);
+      finalAmount -= bonusUsedAmount;
     }
 
     // Создаем запись о платеже в базе данных
     let paymentResult;
     try {
       paymentResult = await query(
-        `INSERT INTO payments (user_id, plan_id, amount, description, status, created_at) 
-         VALUES ($1, $2, $3, $4, 'pending', CURRENT_TIMESTAMP) 
+        `INSERT INTO payments (user_id, plan_id, amount, description, status, used_bonuses, discount_amount, discount_type, created_at) 
+         VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7, CURRENT_TIMESTAMP) 
          RETURNING id`,
-        [userId, planId, amount, description]
+        [userId, planId, finalAmount, description, bonusUsedAmount, discountAmount, discountReason]
       );
     } catch (dbError) {
       console.error('Ошибка создания записи платежа в БД:', dbError);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Ошибка создания записи платежа. Возможно, таблица payments не создана. Выполните SQL скрипт CREATE-PAYMENTS-TABLE.sql',
-        details: dbError.message 
+        details: dbError.message
       });
     }
 
@@ -131,7 +157,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
     // Одностадийный платеж: деньги списываются автоматически сразу после оплаты
     const paymentData: any = {
       amount: {
-        value: amount.toFixed(2),
+        value: finalAmount.toFixed(2),
         currency: 'RUB'
       },
       confirmation: {
@@ -143,7 +169,9 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       metadata: {
         payment_id: paymentId,
         user_id: userId,
-        plan_id: planId
+        plan_id: planId,
+        use_bonuses: useBonuses ? 'true' : 'false',
+        discount_applied: discountReason || ''
       }
     };
 
@@ -158,7 +186,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
             description: description,
             quantity: 1,
             amount: {
-              value: amount.toFixed(2),
+              value: finalAmount.toFixed(2),
               currency: 'RUB'
             },
             vat_code: 1
@@ -180,16 +208,16 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       });
     } catch (fetchError) {
       console.error('Ошибка запроса к Юкассе:', fetchError);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Ошибка соединения с Юкассой',
-        details: fetchError.message 
+        details: fetchError.message
       });
     }
 
     if (!yookassaResponse.ok) {
       const errorText = await yookassaResponse.text();
       console.error('Ошибка Юкассы:', yookassaResponse.status, errorText);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Ошибка создания платежа в Юкассе',
         details: `Статус: ${yookassaResponse.status}, Ответ: ${errorText}`
       });
@@ -219,7 +247,7 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
 async function processSuccessfulPayment(payment: any) {
   try {
     console.log(`🔄 Обработка платежа ${payment.id} для пользователя ${payment.user_id}, план: ${payment.plan_id}`);
-    
+
     // Проверяем, что платеж еще не обработан
     if (payment.status === 'succeeded') {
       console.log(`⚠️ Платеж ${payment.id} уже обработан ранее`);
@@ -238,7 +266,7 @@ async function processSuccessfulPayment(payment: any) {
     const expertPlans = ['monthly', 'yearly'];
     if (expertPlans.includes(payment.plan_id)) {
       console.log(`✅ План ${payment.plan_id} дает статус эксперта. Автоматически обновляем пользователя...`);
-      
+
       // Проверяем текущий статус пользователя
       const userResult = await query(
         'SELECT id, email, user_type FROM users WHERE id = $1',
@@ -256,7 +284,7 @@ async function processSuccessfulPayment(payment: any) {
       // Вычисляем дату окончания подписки
       let subscriptionInterval = '1 year';
       let subscriptionMessage = 'годовая';
-      
+
       if (payment.plan_id === 'monthly') {
         subscriptionInterval = '1 month';
         subscriptionMessage = 'месячная';
@@ -275,17 +303,52 @@ async function processSuccessfulPayment(payment: any) {
       );
 
       console.log(`✅ Пользователь ${currentUser.email} (ID: ${payment.user_id}) успешно стал экспертом после оплаты плана ${payment.plan_id}`);
+
+      // Начисляем бонусы пригласившему
+      const referralCheck = await query(
+        'SELECT referred_by_id FROM users WHERE id = $1',
+        [payment.user_id]
+      );
+
+      if (referralCheck.rows.length > 0 && referralCheck.rows[0].referred_by_id) {
+        const referrerId = referralCheck.rows[0].referred_by_id;
+
+        // Антифрод: не начисляем самому себе (хотя referred_by_id не должен быть равен id)
+        if (referrerId !== payment.user_id) {
+          await query(
+            'UPDATE users SET bonuses = bonuses + 300 WHERE id = $1',
+            [referrerId]
+          );
+          console.log(`🎁 Начислено 300 бонусов пользователю ${referrerId} за приглашение ${payment.user_id}`);
+
+          await query(
+            `INSERT INTO notifications (user_id, type, title, message, created_at) 
+             VALUES ($1, 'bonus_received', 'Начислены бонусы!', $2, CURRENT_TIMESTAMP)`,
+            [referrerId, `Вам начислено 300 бонусов за регистрацию и оплату подписки вашим другом!`]
+          );
+        }
+      }
+
+      // Списываем бонусы у текущего пользователя, если он их использовал
+      if (payment.used_bonuses > 0) {
+        await query(
+          'UPDATE users SET bonuses = bonuses - $1 WHERE id = $2',
+          [payment.used_bonuses, payment.user_id]
+        );
+        console.log(`📉 Списано ${payment.used_bonuses} бонусов у пользователя ${payment.user_id}`);
+      }
+
       console.log(`⏰ Подписка действительна до: ${new Date(Date.now() + (payment.plan_id === 'monthly' ? 30 * 24 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000)).toISOString()}`);
-      
+
       // Отправляем уведомление пользователю
       try {
         const expirationDate = new Date(Date.now() + (payment.plan_id === 'monthly' ? 30 * 24 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000));
-        const expirationText = expirationDate.toLocaleDateString('ru-RU', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        const expirationText = expirationDate.toLocaleDateString('ru-RU', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
         });
-        
+
         await query(
           `INSERT INTO notifications (user_id, type, title, message, created_at) 
            VALUES ($1, 'payment_success', 'Оплата прошла успешно!', $2, CURRENT_TIMESTAMP)`,
@@ -345,11 +408,11 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     console.log('=====================================');
     console.log('📥 Получен webhook от Юкассы');
     console.log('Время:', new Date().toISOString());
-    
+
     // Проверяем тип req.body - может быть Buffer или уже объект
     let webhookData: YooKassaWebhookEvent;
     let bodyString: string;
-    
+
     if (Buffer.isBuffer(req.body)) {
       // Если Buffer - конвертируем в строку и парсим
       bodyString = req.body.toString();
@@ -366,17 +429,17 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       bodyString = JSON.stringify(req.body);
       console.log('Данные webhook (уже объект):', bodyString.substring(0, 200));
     }
-    
+
     const signature = req.headers['x-yookassa-signature'] as string;
-    
+
     // Проверяем подпись webhook (мягкая проверка для автоматизации)
     if (!verifyYooKassaWebhookSignature(bodyString, signature, YOOKASSA_SECRET_KEY)) {
       console.error('⚠️ Неверная подпись webhook от Юкассы, но продолжаем обработку');
       // Не блокируем, чтобы не нарушать автоматизацию
     }
-    
+
     const { event, object } = webhookData;
-    
+
     console.log(`📋 Событие: ${event}`);
     console.log(`📋 ID платежа Юкассы: ${object.id}`);
     console.log(`📋 Статус: ${object.status}`);
@@ -386,9 +449,9 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     if (event === 'payment.succeeded') {
       const { id: yookassaPaymentId, metadata } = object;
-      
+
       console.log(`🔍 Ищем платеж в базе данных с yookassa_payment_id: ${yookassaPaymentId}`);
-      
+
       // Находим платеж в нашей базе данных
       const paymentResult = await query(
         'SELECT * FROM payments WHERE yookassa_payment_id = $1',
@@ -403,9 +466,9 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
       const payment = paymentResult.rows[0];
       console.log(`✅ Платеж найден в БД: ID ${payment.id}, user_id: ${payment.user_id}, plan_id: ${payment.plan_id}, текущий статус: ${payment.status}`);
-      
+
       const result = await processSuccessfulPayment(payment);
-      
+
       if (result.success) {
         console.log(`✅ Платеж ${payment.id} успешно обработан`);
       } else if (result.alreadyProcessed) {
@@ -413,18 +476,18 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       } else if (result.error) {
         console.error(`❌ Ошибка обработки платежа ${payment.id}: ${result.error}`);
       }
-      
+
     } else if (event === 'payment.canceled') {
       const { id: yookassaPaymentId } = object;
-      
+
       console.log(`❌ Получено событие отмены платежа: ${yookassaPaymentId}`);
-      
+
       // Обновляем статус платежа на отмененный
       await query(
         'UPDATE payments SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE yookassa_payment_id = $2',
         ['canceled', yookassaPaymentId]
       );
-      
+
       console.log(`✅ Статус платежа ${yookassaPaymentId} обновлен на 'canceled'`);
     } else {
       console.log(`ℹ️ Получено неизвестное событие: ${event}`);
@@ -468,16 +531,16 @@ router.get('/status/:paymentId', authenticateToken, async (req: AuthRequest, res
     if (payment.status === 'pending' && payment.yookassa_payment_id) {
       console.log(`🔄 [FALLBACK] Проверка статуса платежа ${payment.id} (plan: ${payment.plan_id}) в Юкассе...`);
       const yooKassaPayment = await checkPaymentStatusFromYooKassa(payment.yookassa_payment_id);
-      
+
       if (yooKassaPayment && yooKassaPayment.status === 'succeeded') {
         console.log(`✅ [FALLBACK] Платеж ${payment.id} успешен в Юкассе, обрабатываем автоматически`);
         // Автоматически обрабатываем успешный платеж
         const result = await processSuccessfulPayment(payment);
-        
+
         if (result.success) {
           console.log(`✅ [FALLBACK] Платеж ${payment.id} успешно обработан через fallback механизм`);
         }
-        
+
         // Обновляем payment для ответа
         const updatedResult = await query(
           'SELECT * FROM payments WHERE id = $1',
@@ -504,7 +567,7 @@ router.get('/status/:paymentId', authenticateToken, async (req: AuthRequest, res
         'SELECT user_type FROM users WHERE id = $1',
         [userId]
       );
-      
+
       if (userResult.rows.length > 0) {
         payment.user_type = userResult.rows[0].user_type;
       }
@@ -563,7 +626,7 @@ router.post('/confirm/:paymentId', authenticateToken, async (req: AuthRequest, r
 
     console.log(`✅ Админ ${userId} вручную подтвердил платеж ${payment.id} для пользователя ${payment.user_id}`);
 
-    res.json({ 
+    res.json({
       message: 'Платеж успешно подтвержден',
       payment_id: payment.id,
       user_id: payment.user_id

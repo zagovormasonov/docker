@@ -5,9 +5,9 @@ import { RUSSIAN_CITIES } from './cities';
 dotenv.config();
 
 // Определяем нужен ли SSL (для облачных БД)
-const isProduction = process.env.DATABASE_URL?.includes('twc1.net') || 
-                     process.env.DATABASE_URL?.includes('elephantsql') ||
-                     process.env.NODE_ENV === 'production';
+const isProduction = process.env.DATABASE_URL?.includes('twc1.net') ||
+  process.env.DATABASE_URL?.includes('elephantsql') ||
+  process.env.NODE_ENV === 'production';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -157,6 +157,22 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR(500)`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMP`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT false`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(50) UNIQUE`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by_id INTEGER REFERENCES users(id)`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bonuses INTEGER DEFAULT 0`);
+
+    // Таблица платежей (могла быть создана внешним скриптом)
+    await query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS used_bonuses INTEGER DEFAULT 0`);
+    await query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS discount_amount INTEGER DEFAULT 0`);
+    await query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS discount_type VARCHAR(50)`);
+
+    // Генерация реферальных кодов для существующих пользователей
+    const usersWithoutCode = await query(`SELECT id, name FROM users WHERE referral_code IS NULL`);
+    for (const user of usersWithoutCode.rows) {
+      const { generateReferralCode } = await import('../utils/referral');
+      const code = generateReferralCode(user.name);
+      await query(`UPDATE users SET referral_code = $1 WHERE id = $2`, [code, user.id]);
+    }
 
     // Таблица городов
     await query(`
@@ -231,7 +247,7 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS price VARCHAR(100)`);
     await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_link TEXT`);
     await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS organizer_id INTEGER REFERENCES users(id) ON DELETE CASCADE`);
-    
+
     // Поля для модерации событий (только если их нет)
     try {
       await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false`);
@@ -242,7 +258,7 @@ export const initDatabase = async () => {
     } catch (error) {
       console.log('⚠️ Поля модерации событий уже существуют или ошибка:', error.message);
     }
-    
+
     // Переименовываем старые колонки если они есть
     try {
       await query(`ALTER TABLE events DROP COLUMN IF EXISTS author_id`);
@@ -315,7 +331,7 @@ export const initDatabase = async () => {
         UNIQUE(expert_id, day_of_week, start_time, end_time)
       )
     `);
-    
+
     // Оставляем старую таблицу для совместимости
     await query(`
       CREATE TABLE IF NOT EXISTS expert_availability (

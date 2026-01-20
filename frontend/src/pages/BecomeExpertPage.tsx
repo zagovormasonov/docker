@@ -23,19 +23,20 @@ const BecomeExpertPage: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>('free');
   const [loading, setLoading] = useState(false);
   const [registrationData, setRegistrationData] = useState<any>(null);
+  const [useBonuses, setUseBonuses] = useState(false);
 
   useEffect(() => {
     // Проверяем, пришли ли мы с регистрации
     const fromRegistration = searchParams.get('from') === 'registration';
     const planFromUrl = searchParams.get('plan');
-    
+
     if (fromRegistration) {
       // Загружаем данные регистрации из localStorage
       const savedData = localStorage.getItem('registrationData');
       if (savedData) {
         setRegistrationData(JSON.parse(savedData));
       }
-      
+
       // Устанавливаем предвыбранный план
       if (planFromUrl === 'yearly') {
         setSelectedPlan('yearly');
@@ -76,18 +77,18 @@ const BecomeExpertPage: React.FC = () => {
         // Если есть данные регистрации, сначала регистрируем пользователя
         if (registrationData) {
           const result = await register(
-            registrationData.email, 
-            registrationData.password, 
-            registrationData.name, 
+            registrationData.email,
+            registrationData.password,
+            registrationData.name,
             'expert'
           );
-          
+
           // Очищаем данные регистрации
           localStorage.removeItem('registrationData');
-          
+
           // Автоматически авторизуем пользователя
           await login(registrationData.email, registrationData.password);
-          
+
           Modal.success({
             title: 'Регистрация и активация эксперта успешны!',
             content: 'Теперь вы зарегистрированы как эксперт. Проверьте email для подтверждения аккаунта.',
@@ -107,7 +108,7 @@ const BecomeExpertPage: React.FC = () => {
 
           if (response.ok) {
             const data = await response.json();
-            
+
             // Сохраняем новый токен и обновляем пользователя
             if (data.token && data.user) {
               localStorage.setItem('token', data.token);
@@ -116,7 +117,7 @@ const BecomeExpertPage: React.FC = () => {
               // Fallback: обновляем только локальное состояние
               updateUser({ ...user, userType: 'expert' });
             }
-            
+
             Modal.success({
               title: 'Поздравляем!',
               content: 'Теперь вы эксперт! Вы можете публиковать статьи и события.',
@@ -145,15 +146,15 @@ const BecomeExpertPage: React.FC = () => {
         // Если есть данные регистрации, сначала регистрируем пользователя
         if (registrationData) {
           const result = await register(
-            registrationData.email, 
-            registrationData.password, 
-            registrationData.name, 
+            registrationData.email,
+            registrationData.password,
+            registrationData.name,
             'expert'
           );
-          
+
           // Автоматически авторизуем пользователя
           await login(registrationData.email, registrationData.password);
-          
+
           // Очищаем данные регистрации
           localStorage.removeItem('registrationData');
         }
@@ -168,13 +169,14 @@ const BecomeExpertPage: React.FC = () => {
           body: JSON.stringify({
             planId: selectedPlan,
             amount: plan.price,
-            description: `Подписка "${plan.name}" - ${plan.description}`
+            description: `Подписка "${plan.name}" - ${plan.description}`,
+            useBonuses: useBonuses
           })
         });
 
         if (response.ok) {
           const paymentData = await response.json();
-          
+
           // Перенаправляем на страницу оплаты Юкассы
           if (paymentData.payment_url) {
             window.location.href = paymentData.payment_url;
@@ -196,8 +198,8 @@ const BecomeExpertPage: React.FC = () => {
 
   return (
     <div className="container" style={{ paddingTop: 24, paddingBottom: 48 }}>
-      <Button 
-        icon={<ArrowLeftOutlined />} 
+      <Button
+        icon={<ArrowLeftOutlined />}
         onClick={() => navigate(-1)}
         style={{ marginBottom: 16 }}
       >
@@ -208,7 +210,7 @@ const BecomeExpertPage: React.FC = () => {
         <Title level={1} style={{ textAlign: 'center', marginBottom: 32 }}>
           {registrationData ? 'Завершите регистрацию эксперта' : 'Стать экспертом'}
         </Title>
-        
+
         {registrationData && (
           <Card style={{ marginBottom: 24, background: '#f6ffed', border: '1px solid #b7eb8f' }}>
             <div style={{ textAlign: 'center' }}>
@@ -230,86 +232,118 @@ const BecomeExpertPage: React.FC = () => {
             Выберите тариф
           </Title>
 
-          <Radio.Group 
-            value={selectedPlan} 
+          <Radio.Group
+            value={selectedPlan}
             onChange={(e) => setSelectedPlan(e.target.value)}
             style={{ width: '100%' }}
           >
             <Space direction="vertical" size={16} style={{ width: '100%' }}>
-              {paymentPlans.map((plan) => (
-                <Radio key={plan.id} value={plan.id} style={{ width: '100%' }}>
-                  <Card
-                    style={{
-                      width: '100%',
-                      border: selectedPlan === plan.id ? '2px solid #6366f1' : '1px solid #d9d9d9',
-                      background: plan.popular ? 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' : '#fff',
-                      position: 'relative'
-                    }}
-                  >
-                    {plan.popular && (
-                      <div style={{
-                        position: 'absolute',
-                        top: -8,
-                        right: 16,
-                        background: '#52c41a',
-                        color: 'white',
-                        padding: '4px 12px',
-                        borderRadius: 12,
-                        fontSize: 12,
-                        fontWeight: 600
-                      }}>
-                        Популярный
-                      </div>
-                    )}
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <Title level={4} style={{ margin: 0, color: '#1d1d1f' }}>
-                          {plan.name}
-                        </Title>
-                        <Text type="secondary">{plan.description}</Text>
-                        <div style={{ marginTop: 8 }}>
-                          <Text strong style={{ color: '#1d1d1f' }}>
-                            {plan.price === 0 ? 'Бесплатно' : `${plan.price} ₽`}
-                          </Text>
-                          <Text type="secondary" style={{ marginLeft: 8 }}>
-                            {plan.duration}
-                          </Text>
+              {paymentPlans.map((plan) => {
+                const isReferredYearly = plan.id === 'yearly' && user?.referredById;
+                const displayPrice = isReferredYearly ? Math.max(0, plan.price - 300) : plan.price;
+
+                return (
+                  <Radio key={plan.id} value={plan.id} style={{ width: '100%' }}>
+                    <Card
+                      style={{
+                        width: '100%',
+                        border: selectedPlan === plan.id ? '2px solid #6366f1' : '1px solid #d9d9d9',
+                        background: plan.popular ? 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' : '#fff',
+                        position: 'relative'
+                      }}
+                    >
+                      {plan.popular && (
+                        <div style={{
+                          position: 'absolute',
+                          top: -8,
+                          right: 16,
+                          background: '#52c41a',
+                          color: 'white',
+                          padding: '4px 12px',
+                          borderRadius: 12,
+                          fontSize: 12,
+                          fontWeight: 600
+                        }}>
+                          Популярный
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <Title level={4} style={{ margin: 0, color: '#1d1d1f' }}>
+                            {plan.name}
+                          </Title>
+                          <Text type="secondary">{plan.description}</Text>
+                          <div style={{ marginTop: 8 }}>
+                            <Text strong style={{ color: '#1d1d1f' }}>
+                              {displayPrice === 0 ? 'Бесплатно' : `${displayPrice} ₽`}
+                            </Text>
+                            <Text type="secondary" style={{ marginLeft: 8 }}>
+                              {plan.duration}
+                            </Text>
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right' }}>
+                          {displayPrice === 0 ? (
+                            <Text style={{ fontSize: 24, fontWeight: 600, color: '#52c41a' }}>
+                              Бесплатно
+                            </Text>
+                          ) : (
+                            <div>
+                              <Text style={{ fontSize: 24, fontWeight: 600, color: '#1d1d1f' }}>
+                                {displayPrice} ₽
+                              </Text>
+                              {(plan.id === 'yearly' || isReferredYearly) && (
+                                <div style={{ marginTop: 4 }}>
+                                  <Text
+                                    style={{
+                                      textDecoration: 'line-through',
+                                      color: '#86868b',
+                                      fontSize: 14
+                                    }}
+                                  >
+                                    {isReferredYearly ? `${plan.price} ₽` : '3499 ₽'}
+                                  </Text>
+                                  {isReferredYearly && (
+                                    <div style={{ color: '#52c41a', fontSize: 12 }}>
+                                      Скидка по приглашению -300₽
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      
-                      <div style={{ textAlign: 'right' }}>
-                        {plan.price === 0 ? (
-                          <Text style={{ fontSize: 24, fontWeight: 600, color: '#52c41a' }}>
-                            Бесплатно
-                          </Text>
-                        ) : (
-                          <div>
-                            <Text style={{ fontSize: 24, fontWeight: 600, color: '#1d1d1f' }}>
-                              {plan.price} ₽
-                            </Text>
-                            {plan.id === 'yearly' && (
-                              <div style={{ marginTop: 4 }}>
-                                <Text 
-                                  style={{ 
-                                    textDecoration: 'line-through', 
-                                    color: '#86868b',
-                                    fontSize: 14
-                                  }}
-                                >
-                                  3499 ₽
-                                </Text>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                </Radio>
-              ))}
+                    </Card>
+                  </Radio>
+                );
+              })}
             </Space>
           </Radio.Group>
+
+          {selectedPlan !== 'free' && user?.bonuses ? (
+            <div style={{ marginTop: 24, padding: '16px', background: '#f5f5f5', borderRadius: 8 }}>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text>У вас есть {user.bonuses} бонусов</Text>
+                  <Button
+                    type={useBonuses ? "primary" : "default"}
+                    size="small"
+                    onClick={() => setUseBonuses(!useBonuses)}
+                  >
+                    {useBonuses ? "Использовать" : "Применить"}
+                  </Button>
+                </div>
+                {useBonuses && (
+                  <Text type="success" style={{ fontSize: 12 }}>
+                    Будет списано до {user.bonuses} бонусов при оплате
+                  </Text>
+                )}
+              </Space>
+            </div>
+          ) : null}
 
           <div style={{ textAlign: 'center', marginTop: 32 }}>
             <Button
@@ -360,7 +394,7 @@ const BecomeExpertPage: React.FC = () => {
           </Space>
         </Card>
       </div>
-    </div>
+    </div >
   );
 };
 

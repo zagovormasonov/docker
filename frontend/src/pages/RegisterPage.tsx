@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Form, Input, Button, Card, message, Typography, Modal, Checkbox } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +12,8 @@ const RegisterPage = () => {
   const [consentChecked, setConsentChecked] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref') || '';
 
   const sendVerificationEmail = async (email: string, name: string, verificationToken: string) => {
     try {
@@ -21,7 +23,7 @@ const RegisterPage = () => {
 
       const baseUrl = baseUrlRaw.replace(/\/+$/, '');
       const verificationUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(verificationToken)}`;
-      
+
       await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_VERIFICATION_TEMPLATE_ID,
@@ -34,7 +36,7 @@ const RegisterPage = () => {
         },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
-      
+
       return true;
     } catch (error) {
       console.error('Ошибка отправки email:', error);
@@ -46,15 +48,15 @@ const RegisterPage = () => {
     // Обычная регистрация клиента
     setLoading(true);
     try {
-      const result = await register(values.email, values.password, values.name, 'client');
-      
+      const result = await register(values.email, values.password, values.name, 'client', referralCode);
+
       // Отправка email верификации
       const emailSent = await sendVerificationEmail(
         result.user.email,
         result.user.name,
         result.user.verificationToken
       );
-      
+
       if (emailSent) {
         Modal.success({
           title: 'Регистрация успешна!',
@@ -96,15 +98,33 @@ const RegisterPage = () => {
       <Card
         style={{
           width: '100%',
-          maxWidth: 480,
-          borderRadius: 16,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          maxWidth: '440px',
+          borderRadius: '24px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+          border: 'none',
+          padding: '10px'
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ marginBottom: 8 }}>Регистрация</Title>
-          <Text type="secondary">Присоединяйтесь к сообществу Synergy</Text>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <Title level={2} style={{ margin: 0, fontWeight: 700, color: '#1a1a1a' }}>Регистрация</Title>
+          <Text style={{ color: '#666', fontSize: '15px' }}>Присоединяйтесь к сообществу Soul Synergy</Text>
         </div>
+
+        {referralCode && (
+          <div style={{
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+            padding: '16px',
+            borderRadius: '16px',
+            marginBottom: '24px',
+            border: '1px solid #bae6fd',
+            textAlign: 'center'
+          }}>
+            <Text strong style={{ color: '#0369a1', display: 'block' }}>🎁 Вам доступен бонус!</Text>
+            <Text style={{ color: '#0c4a6e', fontSize: '13px' }}>
+              Скидка 300₽ на годовую подписку эксперта применится автоматически после регистрации.
+            </Text>
+          </div>
+        )}
 
         <Form
           name="register"

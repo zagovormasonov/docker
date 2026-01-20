@@ -17,13 +17,16 @@ interface User {
   whatsapp?: string;
   consultationTypes?: string[];
   topics?: any[];
+  referralCode?: string;
+  bonuses?: number;
+  referredById?: number;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (emailOrToken: string, passwordOrUser?: string | User) => Promise<void>;
-  register: (email: string, password: string, name: string, userType: string) => Promise<any>;
+  register: (email: string, password: string, name: string, userType: string, referralCode?: string) => Promise<any>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
   loading: boolean;
@@ -66,35 +69,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (typeof passwordOrUser === 'object') {
       const newToken = emailOrToken;
       const userData = passwordOrUser;
-      
+
       localStorage.setItem('token', newToken);
       setToken(newToken);
       setUser(userData);
       socketService.connect(newToken);
       return;
     }
-    
+
     // Обычный вход по email и паролю
-    const response = await api.post('/auth/login', { 
-      email: emailOrToken, 
-      password: passwordOrUser 
+    const response = await api.post('/auth/login', {
+      email: emailOrToken,
+      password: passwordOrUser
     });
     const { token: newToken, user: userData } = response.data;
-    
+
     localStorage.setItem('token', newToken);
     setToken(newToken);
     setUser(userData);
     socketService.connect(newToken);
   };
 
-  const register = async (email: string, password: string, name: string, userType: string) => {
+  const register = async (email: string, password: string, name: string, userType: string, referralCode?: string) => {
     const response = await api.post('/auth/register', {
       email,
       password,
       name,
-      userType
+      userType,
+      referralCode
     });
-    
+
     // Возвращаем данные для отправки email
     return response.data;
   };

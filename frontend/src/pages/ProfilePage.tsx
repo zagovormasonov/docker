@@ -18,10 +18,10 @@ import {
   Tag,
   Progress
 } from 'antd';
-import { 
-  UserOutlined, 
-  PlusOutlined, 
-  EditOutlined, 
+import {
+  UserOutlined,
+  PlusOutlined,
+  EditOutlined,
   DeleteOutlined,
   UploadOutlined,
   LinkOutlined,
@@ -111,7 +111,7 @@ const ProfilePage = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productModalVisible, setProductModalVisible] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
-  const [customSocials, setCustomSocials] = useState<Array<{id: number, name: string, url: string, created_at: string}>>([]);
+  const [customSocials, setCustomSocials] = useState<Array<{ id: number, name: string, url: string, created_at: string }>>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [mobileSelectType, setMobileSelectType] = useState<MobileSelectType | null>(null);
   const [mobileSelectSearch, setMobileSelectSearch] = useState('');
@@ -125,7 +125,7 @@ const ProfilePage = () => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -144,15 +144,15 @@ const ProfilePage = () => {
   useEffect(() => {
     if (lastUploadedAvatarUrl && user?.avatarUrl) {
       // Нормализуем оба URL для сравнения
-      const userAvatarNormalized = user.avatarUrl.startsWith('http') 
-        ? user.avatarUrl 
+      const userAvatarNormalized = user.avatarUrl.startsWith('http')
+        ? user.avatarUrl
         : `${window.location.origin}${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`;
-      
+
       // Извлекаем путь из lastUploadedAvatarUrl для сравнения
       const lastUploadedPath = lastUploadedAvatarUrl.includes(window.location.origin)
         ? lastUploadedAvatarUrl.split(window.location.origin)[1]
         : lastUploadedAvatarUrl;
-      
+
       // Если user.avatarUrl совпадает с последним загруженным, сбрасываем временные значения
       if (userAvatarNormalized === lastUploadedAvatarUrl || user.avatarUrl === lastUploadedPath) {
         // user.avatarUrl обновился корректно, можно убрать временные значения
@@ -168,7 +168,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (user) {
-      const topicsValue = user.topics 
+      const topicsValue = user.topics
         ? user.topics.map((t: any) => typeof t === 'object' ? t.id : t)
         : [];
 
@@ -587,7 +587,7 @@ const ProfilePage = () => {
 
     setUploading(true);
     setUploadProgress(0);
-    
+
     try {
       const formData = new FormData();
       formData.append('image', file);
@@ -605,22 +605,22 @@ const ProfilePage = () => {
       });
 
       const avatarUrl = uploadResponse.data.url;
-      
+
       // Обновляем превью на реальный URL сразу - пользователь видит новый аватар во время загрузки
       // Формируем полный URL если это относительный путь
-      const fullAvatarUrl = avatarUrl.startsWith('http') 
-        ? avatarUrl 
+      const fullAvatarUrl = avatarUrl.startsWith('http')
+        ? avatarUrl
         : `${window.location.origin}${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
       setTempAvatarUrl(fullAvatarUrl);
       setLastUploadedAvatarUrl(fullAvatarUrl); // Сохраняем для проверки в useEffect
-      
+
       const response = await api.put('/users/profile', { avatarUrl });
       // Важно: обновляем пользователя с правильным avatarUrl
       const updatedUser = { ...response.data, avatarUrl };
       updateUser(updatedUser);
       setUploadProgress(100);
       message.success('Аватар успешно загружен!');
-      
+
       // Сбрасываем только прогресс, tempAvatarUrl будет сброшен в useEffect когда user.avatarUrl обновится
       setTimeout(() => {
         setUploadProgress(0);
@@ -662,522 +662,580 @@ const ProfilePage = () => {
 
   return (
     <>
-    <div className="container" style={{ maxWidth: 800 }}>
-      <Card>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
-              <Avatar
-                size={100}
-                src={
-                  tempAvatarUrl || 
-                  lastUploadedAvatarUrl || 
-                  user?.avatarUrl || 
-                  '/emp.jpg'
-                }
-                icon={!tempAvatarUrl && !lastUploadedAvatarUrl && !user?.avatarUrl && <UserOutlined />}
-                style={{ backgroundColor: '#6366f1' }}
-              />
-              {uploading && (
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  borderRadius: '50%'
-                }}>
-                  <Progress
-                    type="circle"
-                    percent={uploadProgress}
-                    size={80}
-                    strokeColor="#6366f1"
-                    format={(percent) => `${percent}%`}
-                  />
-                </div>
-              )}
-            </div>
-            <div style={{ marginTop: 16, marginBottom: 16 }}>
-              <Upload
-                accept="image/*"
-                showUploadList={false}
-                beforeUpload={handleAvatarUpload}
-                disabled={uploading}
-              >
-                <Button icon={<UploadOutlined />} loading={uploading}>
-                  {uploading ? 'Загрузка...' : 'Загрузить аватар'}
+      <div className="container" style={{ maxWidth: 800 }}>
+        <Card>
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
+                <Avatar
+                  size={100}
+                  src={
+                    tempAvatarUrl ||
+                    lastUploadedAvatarUrl ||
+                    user?.avatarUrl ||
+                    '/emp.jpg'
+                  }
+                  icon={!tempAvatarUrl && !lastUploadedAvatarUrl && !user?.avatarUrl && <UserOutlined />}
+                  style={{ backgroundColor: '#6366f1' }}
+                />
+                {uploading && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    borderRadius: '50%'
+                  }}>
+                    <Progress
+                      type="circle"
+                      percent={uploadProgress}
+                      size={80}
+                      strokeColor="#6366f1"
+                      format={(percent) => `${percent}%`}
+                    />
+                  </div>
+                )}
+              </div>
+              <div style={{ marginTop: 16, marginBottom: 16 }}>
+                <Upload
+                  accept="image/*"
+                  showUploadList={false}
+                  beforeUpload={handleAvatarUpload}
+                  disabled={uploading}
+                >
+                  <Button icon={<UploadOutlined />} loading={uploading}>
+                    {uploading ? 'Загрузка...' : 'Загрузить аватар'}
+                  </Button>
+                </Upload>
+                {uploading && uploadProgress > 0 && (
+                  <div style={{ marginTop: 8, maxWidth: 200, margin: '8px auto 0' }}>
+                    <Progress
+                      percent={uploadProgress}
+                      strokeColor="#6366f1"
+                      showInfo={true}
+                    />
+                  </div>
+                )}
+              </div>
+              <Title level={3}>{user?.name}</Title>
+              <Text type="secondary">{user?.email}</Text>
+
+              {/* Кнопка "Поделиться профилем" */}
+              <div style={{ marginTop: 16 }}>
+                <Button
+                  icon={<ShareAltOutlined />}
+                  onClick={() => setShareModalVisible(true)}
+                  style={{
+                    borderColor: '#6366f1',
+                    color: '#6366f1'
+                  }}
+                >
+                  Поделиться профилем
                 </Button>
-              </Upload>
-              {uploading && uploadProgress > 0 && (
-                <div style={{ marginTop: 8, maxWidth: 200, margin: '8px auto 0' }}>
-                  <Progress
-                    percent={uploadProgress}
-                    strokeColor="#6366f1"
-                    showInfo={true}
-                  />
+              </div>
+
+              {user?.bio && (
+                <div style={{ marginTop: 16 }}>
+                  <Text strong style={{ display: 'block', marginBottom: 8 }}>О себе:</Text>
+                  <Text>{user.bio}</Text>
+                </div>
+              )}
+
+              {user?.topics && user.topics.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <Text strong style={{ display: 'block', marginBottom: 8 }}>Тематики:</Text>
+                  <Space wrap>
+                    {user.topics.map((topic: any) => (
+                      <Tag key={topic.id} color="purple">
+                        {typeof topic === 'object' ? topic.name : topic}
+                      </Tag>
+                    ))}
+                  </Space>
+                </div>
+              )}
+
+              {user?.consultationTypes && user.consultationTypes.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <Text strong style={{ display: 'block', marginBottom: 8 }}>Типы консультаций:</Text>
+                  <Space wrap>
+                    {user.consultationTypes.map((type: string, index: number) => (
+                      <Tag key={index} color="blue">
+                        {type}
+                      </Tag>
+                    ))}
+                  </Space>
                 </div>
               )}
             </div>
-            <Title level={3}>{user?.name}</Title>
-            <Text type="secondary">{user?.email}</Text>
-            
-            {/* Кнопка "Поделиться профилем" */}
-            <div style={{ marginTop: 16 }}>
-              <Button
-                icon={<ShareAltOutlined />}
-                onClick={() => setShareModalVisible(true)}
+
+            {(user?.userType === 'expert' || user?.userType === 'admin') && (
+              <Card
                 style={{
-                  borderColor: '#6366f1',
-                  color: '#6366f1'
+                  marginTop: 24,
+                  background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                  color: 'white',
+                  borderRadius: 16,
+                  border: 'none',
+                  boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)'
                 }}
               >
-                Поделиться профилем
-              </Button>
-            </div>
-            
-            {user?.bio && (
-              <div style={{ marginTop: 16 }}>
-                <Text strong style={{ display: 'block', marginBottom: 8 }}>О себе:</Text>
-                <Text>{user.bio}</Text>
-              </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <Title level={4} style={{ color: 'white', margin: 0 }}>Реферальная программа</Title>
+                    <Text style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                      Приглашайте друзей и получайте бонусы
+                    </Text>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 24, fontWeight: 700 }}>{user?.bonuses || 0}</div>
+                    <div style={{ fontSize: 12, opacity: 0.8 }}>бонусов</div>
+                  </div>
+                </div>
+
+                <Divider style={{ borderColor: 'rgba(255, 255, 255, 0.2)', margin: '16px 0' }} />
+
+                <div>
+                  <Text style={{ color: 'white', display: 'block', marginBottom: 8 }}>Ваша уникальная ссылка:</Text>
+                  <div style={{
+                    display: 'flex',
+                    gap: 8,
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    padding: 8,
+                    borderRadius: 8,
+                    alignItems: 'center'
+                  }}>
+                    <Text style={{ color: 'white', flex: 1, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {`${window.location.origin}/register?ref=${user?.referralCode}`}
+                    </Text>
+                    <Button
+                      size="small"
+                      icon={<LinkOutlined />}
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.referralCode}`);
+                        message.success('Ссылка скопирована!');
+                      }}
+                      style={{ background: 'white', border: 'none' }}
+                    >
+                      Копировать
+                    </Button>
+                  </div>
+                  <Text style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 12, display: 'block', marginTop: 8 }}>
+                    Друзья получат скидку 300₽ на годовую подписку, а вы — 300 бонусов на свой баланс
+                  </Text>
+                </div>
+              </Card>
             )}
-            
-            {user?.topics && user.topics.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <Text strong style={{ display: 'block', marginBottom: 8 }}>Тематики:</Text>
-                <Space wrap>
-                  {user.topics.map((topic: any) => (
-                    <Tag key={topic.id} color="purple">
-                      {typeof topic === 'object' ? topic.name : topic}
-                    </Tag>
-                  ))}
-                </Space>
-              </div>
+
+            {user?.userType === 'client' && (
+              <>
+                <Divider />
+                <ExpertBenefitsCard />
+              </>
             )}
-            
-            {user?.consultationTypes && user.consultationTypes.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <Text strong style={{ display: 'block', marginBottom: 8 }}>Типы консультаций:</Text>
-                <Space wrap>
-                  {user.consultationTypes.map((type: string, index: number) => (
-                    <Tag key={index} color="blue">
-                      {type}
-                    </Tag>
-                  ))}
-                </Space>
-              </div>
-            )}
-          </div>
 
-          {user?.userType === 'client' && (
-            <>
-              <Divider />
-              <ExpertBenefitsCard />
-            </>
-          )}
+            <Divider />
 
-          <Divider />
-
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-          >
-            <Form.Item
-              name="name"
-              label="Имя"
-              rules={[{ required: true, message: 'Введите имя' }]}
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={onFinish}
             >
-              <Input size="large" />
-            </Form.Item>
+              <Form.Item
+                name="name"
+                label="Имя"
+                rules={[{ required: true, message: 'Введите имя' }]}
+              >
+                <Input size="large" />
+              </Form.Item>
 
-            <Form.Item
-              name="email"
-              label="Email"
-            >
-              <Input size="large" disabled />
-            </Form.Item>
+              <Form.Item
+                name="email"
+                label="Email"
+              >
+                <Input size="large" disabled />
+              </Form.Item>
 
-            <Form.Item
-              name="bio"
-              label="О себе"
-            >
-              <TextArea rows={4} placeholder="Поделитесь информацией, которая поможет пользователям почувствовать вашу энергию и понять, чем вы можете быть им полезны." />
-            </Form.Item>
+              <Form.Item
+                name="bio"
+                label="О себе"
+              >
+                <TextArea rows={4} placeholder="Поделитесь информацией, которая поможет пользователям почувствовать вашу энергию и понять, чем вы можете быть им полезны." />
+              </Form.Item>
 
-            {isMobile ? (
-              <Form.Item label="Город" required>
+              {isMobile ? (
+                <Form.Item label="Город" required>
+                  <Form.Item
+                    name="city"
+                    rules={[{ required: true, message: 'Выберите город' }]}
+                    noStyle
+                  >
+                    <Input style={{ display: 'none' }} />
+                  </Form.Item>
+                  <Input
+                    size="large"
+                    placeholder="Выберите город"
+                    value={selectedCity || ''}
+                    readOnly
+                    onClick={() => openMobileSelect('city')}
+                  />
+                </Form.Item>
+              ) : (
                 <Form.Item
                   name="city"
-                  rules={[{ required: true, message: 'Выберите город' }]}
-                  noStyle
+                  label="Город"
                 >
-                  <Input style={{ display: 'none' }} />
+                  <Select
+                    size="large"
+                    placeholder="Выберите город"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={cities.map(city => ({ label: city.name, value: city.name }))}
+                  />
                 </Form.Item>
+              )}
+
+              <Divider orientation="left">
+                <Text strong>Социальные сети</Text>
+              </Divider>
+
+              <Form.Item name="vkUrl" label="ВКонтакте">
                 <Input
                   size="large"
-                  placeholder="Выберите город"
-                  value={selectedCity || ''}
-                  readOnly
-                  onClick={() => openMobileSelect('city')}
+                  placeholder="https://vk.com/username"
+                  prefix={<LinkOutlined />}
                 />
               </Form.Item>
-            ) : (
-              <Form.Item
-                name="city"
-                label="Город"
-              >
-                <Select
+
+              <Form.Item name="telegramUrl" label="Telegram">
+                <Input
                   size="large"
-                  placeholder="Выберите город"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={cities.map(city => ({ label: city.name, value: city.name }))}
+                  placeholder="https://t.me/username"
+                  prefix={<LinkOutlined />}
                 />
               </Form.Item>
-            )}
 
-            <Divider orientation="left">
-              <Text strong>Социальные сети</Text>
-            </Divider>
+              <Form.Item name="whatsapp" label="WhatsApp">
+                <Input
+                  size="large"
+                  placeholder="+7 (999) 123-45-67"
+                  prefix={<LinkOutlined />}
+                />
+              </Form.Item>
 
-            <Form.Item name="vkUrl" label="ВКонтакте">
-              <Input
-                size="large"
-                placeholder="https://vk.com/username"
-                prefix={<LinkOutlined />}
-              />
-            </Form.Item>
+              {customSocials.length > 0 && (
+                <Form.Item label="Дополнительные соцсети">
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    {customSocials.map((social) => (
+                      <div key={social.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Text strong>{social.name}:</Text>
+                        <Text copyable={{ text: social.url }}>{social.url}</Text>
+                        <Button
+                          type="text"
+                          danger
+                          size="small"
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDeleteSocial(social.id)}
+                        />
+                      </div>
+                    ))}
+                  </Space>
+                </Form.Item>
+              )}
 
-            <Form.Item name="telegramUrl" label="Telegram">
-              <Input
-                size="large"
-                placeholder="https://t.me/username"
-                prefix={<LinkOutlined />}
-              />
-            </Form.Item>
+              {showAddSocial ? (
+                <Form.Item label="Добавить соцсеть">
+                  <Space style={{ width: '100%' }}>
+                    <Input
+                      placeholder="Название"
+                      value={newSocialName}
+                      onChange={(e) => setNewSocialName(e.target.value)}
+                    />
+                    <Input
+                      placeholder="URL"
+                      value={newSocialUrl}
+                      onChange={(e) => setNewSocialUrl(e.target.value)}
+                    />
+                    <Button onClick={handleAddSocial}>Добавить</Button>
+                    <Button onClick={handleCancelSocial}>Отмена</Button>
+                  </Space>
+                </Form.Item>
+              ) : (
+                <Form.Item>
+                  <Button
+                    type="dashed"
+                    onClick={() => setShowAddSocial(true)}
+                    icon={<PlusOutlined />}
+                  >
+                    Добавить соцсеть
+                  </Button>
+                </Form.Item>
+              )}
 
-            <Form.Item name="whatsapp" label="WhatsApp">
-              <Input
-                size="large"
-                placeholder="+7 (999) 123-45-67"
-                prefix={<LinkOutlined />}
-              />
-            </Form.Item>
+              {(user?.userType === 'expert' || user?.userType === 'admin') && (
+                <>
+                  <Divider />
 
-            {customSocials.length > 0 && (
-              <Form.Item label="Дополнительные соцсети">
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  {customSocials.map((social) => (
-                    <div key={social.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Text strong>{social.name}:</Text>
-                      <Text copyable={{ text: social.url }}>{social.url}</Text>
-                      <Button
-                        type="text"
-                        danger
-                        size="small"
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleDeleteSocial(social.id)}
+                  {isMobile ? (
+                    <Form.Item label="Типы консультаций">
+                      <Form.Item name="consultationTypes" noStyle>
+                        <Input style={{ display: 'none' }} />
+                      </Form.Item>
+                      <Input
+                        size="large"
+                        placeholder="Выберите типы консультаций"
+                        value={selectedConsultationTypesLabel}
+                        readOnly
+                        onClick={() => openMobileSelect('consultationTypes')}
                       />
-                    </div>
-                  ))}
-                </Space>
-              </Form.Item>
-            )}
+                    </Form.Item>
+                  ) : (
+                    <Form.Item
+                      name="consultationTypes"
+                      label="Типы консультаций"
+                    >
+                      <Select
+                        mode="multiple"
+                        size="large"
+                        placeholder="Выберите типы консультаций"
+                        options={CONSULTATION_TYPES.map(t => ({ label: t, value: t }))}
+                      />
+                    </Form.Item>
+                  )}
 
-            {showAddSocial ? (
-              <Form.Item label="Добавить соцсеть">
-                <Space style={{ width: '100%' }}>
-                  <Input
-                    placeholder="Название"
-                    value={newSocialName}
-                    onChange={(e) => setNewSocialName(e.target.value)}
-                  />
-                  <Input
-                    placeholder="URL"
-                    value={newSocialUrl}
-                    onChange={(e) => setNewSocialUrl(e.target.value)}
-                  />
-                  <Button onClick={handleAddSocial}>Добавить</Button>
-                  <Button onClick={handleCancelSocial}>Отмена</Button>
-                </Space>
-              </Form.Item>
-            ) : (
+                  {isMobile ? (
+                    <Form.Item label="Тематики">
+                      <Form.Item name="topics" noStyle>
+                        <Input style={{ display: 'none' }} />
+                      </Form.Item>
+                      <Input
+                        size="large"
+                        placeholder="Выберите тематики"
+                        value={selectedTopicsLabel}
+                        readOnly
+                        onClick={() => openMobileSelect('topics')}
+                      />
+                    </Form.Item>
+                  ) : (
+                    <Form.Item
+                      name="topics"
+                      label="Тематики"
+                    >
+                      <Select
+                        mode="multiple"
+                        size="large"
+                        placeholder="Выберите тематики"
+                        showSearch
+                        filterOption={(input, option) =>
+                          (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                        }
+                        options={topics.map(t => ({ label: t.name, value: t.id }))}
+                        maxTagCount="responsive"
+                      />
+                    </Form.Item>
+                  )}
+                </>
+              )}
+
               <Form.Item>
-                <Button
-                  type="dashed"
-                  onClick={() => setShowAddSocial(true)}
-                  icon={<PlusOutlined />}
-                >
-                  Добавить соцсеть
+                <Button type="primary" htmlType="submit" loading={loading} size="large" block>
+                  Сохранить изменения
                 </Button>
               </Form.Item>
-            )}
+            </Form>
 
             {(user?.userType === 'expert' || user?.userType === 'admin') && (
               <>
                 <Divider />
-                
-                {isMobile ? (
-                  <Form.Item label="Типы консультаций">
-                    <Form.Item name="consultationTypes" noStyle>
-                      <Input style={{ display: 'none' }} />
-                    </Form.Item>
-                    <Input
-                      size="large"
-                      placeholder="Выберите типы консультаций"
-                      value={selectedConsultationTypesLabel}
-                      readOnly
-                      onClick={() => openMobileSelect('consultationTypes')}
-                    />
-                  </Form.Item>
-                ) : (
-                  <Form.Item
-                    name="consultationTypes"
-                    label="Типы консультаций"
-                  >
-                    <Select
-                      mode="multiple"
-                      size="large"
-                      placeholder="Выберите типы консультаций"
-                      options={CONSULTATION_TYPES.map(t => ({ label: t, value: t }))}
-                    />
-                  </Form.Item>
-                )}
 
-                {isMobile ? (
-                  <Form.Item label="Тематики">
-                    <Form.Item name="topics" noStyle>
-                      <Input style={{ display: 'none' }} />
-                    </Form.Item>
-                    <Input
-                      size="large"
-                      placeholder="Выберите тематики"
-                      value={selectedTopicsLabel}
-                      readOnly
-                      onClick={() => openMobileSelect('topics')}
-                    />
-                  </Form.Item>
-                ) : (
-                  <Form.Item
-                    name="topics"
-                    label="Тематики"
-                  >
-                    <Select
-                      mode="multiple"
-                      size="large"
-                      placeholder="Выберите тематики"
-                      showSearch
-                      filterOption={(input, option) =>
-                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                <div>
+                  <Tabs
+                    defaultActiveKey="photos"
+                    items={[
+                      {
+                        key: 'photos',
+                        label: 'Фото',
+                        children: <ProfileGallery userId={user.id} isOwner={true} />
+                      },
+                      {
+                        key: 'gallery',
+                        label: 'Галерея',
+                        children: <ArtworkGallery userId={user.id} isOwner={true} />
                       }
-                      options={topics.map(t => ({ label: t.name, value: t.id }))}
-                      maxTagCount="responsive"
-                    />
-                  </Form.Item>
-                )}
-              </>
-            )}
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit" loading={loading} size="large" block>
-                Сохранить изменения
-              </Button>
-            </Form.Item>
-          </Form>
-
-          {(user?.userType === 'expert' || user?.userType === 'admin') && (
-            <>
-              <Divider />
-              
-              <div>
-                <Tabs
-                  defaultActiveKey="photos"
-                  items={[
-                    {
-                      key: 'photos',
-                      label: 'Фото',
-                      children: <ProfileGallery userId={user.id} isOwner={true} />
-                    },
-                    {
-                      key: 'gallery',
-                      label: 'Галерея',
-                      children: <ArtworkGallery userId={user.id} isOwner={true} />
-                    }
-                  ]}
-                />
-              </div>
-              
-              <Divider />
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <Title level={4} style={{ margin: 0 }}>Мои услуги</Title>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setShowServiceForm(!showServiceForm)}
-                  >
-                    Добавить услугу
-                  </Button>
+                    ]}
+                  />
                 </div>
 
-                {showServiceForm && (
-                  <Card style={{ marginBottom: 16 }}>
-                    <Form
-                      form={serviceForm}
-                      layout="vertical"
-                      onFinish={handleAddService}
+                <Divider />
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <Title level={4} style={{ margin: 0 }}>Мои услуги</Title>
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => setShowServiceForm(!showServiceForm)}
                     >
-                      <Form.Item
-                        name="title"
-                        label="Название"
-                        rules={[{ required: true, message: 'Введите название услуги' }]}
-                      >
-                        <Input placeholder="Например: Консультация по таро" />
-                      </Form.Item>
+                      Добавить услугу
+                    </Button>
+                  </div>
 
-                      <Form.Item
-                        name="description"
-                        label="Описание"
-                        rules={[{ required: true, message: 'Введите описание услуги' }]}
+                  {showServiceForm && (
+                    <Card style={{ marginBottom: 16 }}>
+                      <Form
+                        form={serviceForm}
+                        layout="vertical"
+                        onFinish={handleAddService}
                       >
-                        <TextArea rows={5} placeholder="Опишите вашу услугу..." />
-                      </Form.Item>
-
-                      <Space 
-                        style={{ width: '100%' }} 
-                        size="middle"
-                        direction={isMobile ? 'vertical' : 'horizontal'}
-                      >
-                        <Form.Item name="price" label="Цена (₽)" style={{ width: isMobile ? '100%' : 'auto' }}>
-                          <Input type="number" placeholder="3000" />
-                        </Form.Item>
-
-                        <Form.Item name="duration" label="Длительность (мин)" style={{ width: isMobile ? '100%' : 'auto' }}>
-                          <Input type="number" placeholder="60" />
+                        <Form.Item
+                          name="title"
+                          label="Название"
+                          rules={[{ required: true, message: 'Введите название услуги' }]}
+                        >
+                          <Input placeholder="Например: Консультация по таро" />
                         </Form.Item>
 
                         <Form.Item
-                          name="serviceType"
-                          label="Тип"
-                          rules={[{ required: true, message: 'Выберите тип' }]}
-                          style={{ width: isMobile ? '100%' : 'auto' }}
+                          name="description"
+                          label="Описание"
+                          rules={[{ required: true, message: 'Введите описание услуги' }]}
                         >
-                          <Select style={{ width: isMobile ? '100%' : 150 }} placeholder="Тип">
-                            <Select.Option value="online">Онлайн</Select.Option>
-                            <Select.Option value="offline">Офлайн</Select.Option>
-                            <Select.Option value="both">Оба</Select.Option>
-                          </Select>
+                          <TextArea rows={5} placeholder="Опишите вашу услугу..." />
                         </Form.Item>
-                      </Space>
 
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary" htmlType="submit">
-                            {editingService ? 'Сохранить' : 'Добавить'}
-                          </Button>
-                          <Button onClick={() => {
-                            setShowServiceForm(false);
-                            setEditingService(null);
-                            serviceForm.resetFields();
-                          }}>
-                            Отмена
-                          </Button>
+                        <Space
+                          style={{ width: '100%' }}
+                          size="middle"
+                          direction={isMobile ? 'vertical' : 'horizontal'}
+                        >
+                          <Form.Item name="price" label="Цена (₽)" style={{ width: isMobile ? '100%' : 'auto' }}>
+                            <Input type="number" placeholder="3000" />
+                          </Form.Item>
+
+                          <Form.Item name="duration" label="Длительность (мин)" style={{ width: isMobile ? '100%' : 'auto' }}>
+                            <Input type="number" placeholder="60" />
+                          </Form.Item>
+
+                          <Form.Item
+                            name="serviceType"
+                            label="Тип"
+                            rules={[{ required: true, message: 'Выберите тип' }]}
+                            style={{ width: isMobile ? '100%' : 'auto' }}
+                          >
+                            <Select style={{ width: isMobile ? '100%' : 150 }} placeholder="Тип">
+                              <Select.Option value="online">Онлайн</Select.Option>
+                              <Select.Option value="offline">Офлайн</Select.Option>
+                              <Select.Option value="both">Оба</Select.Option>
+                            </Select>
+                          </Form.Item>
                         </Space>
-                      </Form.Item>
-                    </Form>
-                  </Card>
-                )}
 
-                <List
-                  dataSource={services}
-                  locale={{ emptyText: 'Нет добавленных услуг' }}
-                  renderItem={(service) => (
-                    <List.Item
-                      actions={!isMobile ? [
-                        <Button
-                          key="edit"
-                          icon={<EditOutlined />}
-                          onClick={() => handleEditService(service)}
-                        >
-                          Редактировать
-                        </Button>,
-                        <Popconfirm
-                          key="delete"
-                          title="Удалить услугу?"
-                          description="Это действие нельзя отменить"
-                          onConfirm={() => handleDeleteService(service.id)}
-                          okText="Да"
-                          cancelText="Нет"
-                        >
-                          <Button danger icon={<DeleteOutlined />}>
-                            Удалить
-                          </Button>
-                        </Popconfirm>
-                      ] : undefined}
-                    >
-                      <List.Item.Meta
-                        title={
+                        <Form.Item>
                           <Space>
-                            {service.title}
-                            <Tag color={
-                              service.service_type === 'online' ? 'blue' :
-                              service.service_type === 'offline' ? 'green' : 'purple'
-                            }>
-                              {service.service_type === 'online' ? 'Онлайн' :
-                               service.service_type === 'offline' ? 'Офлайн' : 'Оба'}
-                            </Tag>
+                            <Button type="primary" htmlType="submit">
+                              {editingService ? 'Сохранить' : 'Добавить'}
+                            </Button>
+                            <Button onClick={() => {
+                              setShowServiceForm(false);
+                              setEditingService(null);
+                              serviceForm.resetFields();
+                            }}>
+                              Отмена
+                            </Button>
                           </Space>
-                        }
-                        description={
-                          <>
-                            <div style={{ width: '100%' }}>{service.description}</div>
-                            <Space style={{ marginTop: 8 }}>
-                              {service.price && <Text strong>{service.price} ₽</Text>}
-                              {service.duration && <Text type="secondary">{service.duration} мин</Text>}
-                            </Space>
-                            {isMobile && (
-                              <Space 
-                                direction="vertical" 
-                                style={{ width: '100%', marginTop: 12 }}
-                                size="small"
-                              >
-                                <Button
-                                  icon={<EditOutlined />}
-                                  onClick={() => handleEditService(service)}
-                                  block
-                                >
-                                  Редактировать
-                                </Button>
-                                <Popconfirm
-                                  title="Удалить услугу?"
-                                  description="Это действие нельзя отменить"
-                                  onConfirm={() => handleDeleteService(service.id)}
-                                  okText="Да"
-                                  cancelText="Нет"
-                                >
-                                  <Button danger icon={<DeleteOutlined />} block>
-                                    Удалить
-                                  </Button>
-                                </Popconfirm>
-                              </Space>
-                            )}
-                          </>
-                        }
-                      />
-                    </List.Item>
+                        </Form.Item>
+                      </Form>
+                    </Card>
                   )}
-                />
-              </div>
 
-              <Divider />
-                
+                  <List
+                    dataSource={services}
+                    locale={{ emptyText: 'Нет добавленных услуг' }}
+                    renderItem={(service) => (
+                      <List.Item
+                        actions={!isMobile ? [
+                          <Button
+                            key="edit"
+                            icon={<EditOutlined />}
+                            onClick={() => handleEditService(service)}
+                          >
+                            Редактировать
+                          </Button>,
+                          <Popconfirm
+                            key="delete"
+                            title="Удалить услугу?"
+                            description="Это действие нельзя отменить"
+                            onConfirm={() => handleDeleteService(service.id)}
+                            okText="Да"
+                            cancelText="Нет"
+                          >
+                            <Button danger icon={<DeleteOutlined />}>
+                              Удалить
+                            </Button>
+                          </Popconfirm>
+                        ] : undefined}
+                      >
+                        <List.Item.Meta
+                          title={
+                            <Space>
+                              {service.title}
+                              <Tag color={
+                                service.service_type === 'online' ? 'blue' :
+                                  service.service_type === 'offline' ? 'green' : 'purple'
+                              }>
+                                {service.service_type === 'online' ? 'Онлайн' :
+                                  service.service_type === 'offline' ? 'Офлайн' : 'Оба'}
+                              </Tag>
+                            </Space>
+                          }
+                          description={
+                            <>
+                              <div style={{ width: '100%' }}>{service.description}</div>
+                              <Space style={{ marginTop: 8 }}>
+                                {service.price && <Text strong>{service.price} ₽</Text>}
+                                {service.duration && <Text type="secondary">{service.duration} мин</Text>}
+                              </Space>
+                              {isMobile && (
+                                <Space
+                                  direction="vertical"
+                                  style={{ width: '100%', marginTop: 12 }}
+                                  size="small"
+                                >
+                                  <Button
+                                    icon={<EditOutlined />}
+                                    onClick={() => handleEditService(service)}
+                                    block
+                                  >
+                                    Редактировать
+                                  </Button>
+                                  <Popconfirm
+                                    title="Удалить услугу?"
+                                    description="Это действие нельзя отменить"
+                                    onConfirm={() => handleDeleteService(service.id)}
+                                    okText="Да"
+                                    cancelText="Нет"
+                                  >
+                                    <Button danger icon={<DeleteOutlined />} block>
+                                      Удалить
+                                    </Button>
+                                  </Popconfirm>
+                                </Space>
+                              )}
+                            </>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                </div>
+
+                <Divider />
+
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <Title level={4} style={{ margin: 0 }}>Готовые продукты</Title>
@@ -1211,9 +1269,9 @@ const ProfilePage = () => {
                           rules={[{ required: true, message: 'Введите описание продукта' }]}
                           extra="Используйте Enter для переноса строк. Переносы будут сохранены в описании."
                         >
-                          <TextArea 
-                            rows={4} 
-                            placeholder="Опишите ваш продукт...&#10;Можно использовать переносы строк&#10;для лучшего форматирования текста" 
+                          <TextArea
+                            rows={4}
+                            placeholder="Опишите ваш продукт...&#10;Можно использовать переносы строк&#10;для лучшего форматирования текста"
                           />
                         </Form.Item>
 
@@ -1253,20 +1311,20 @@ const ProfilePage = () => {
                             </Upload>
                             {productForm.getFieldValue('imageUrl') && (
                               <div style={{ textAlign: 'center' }}>
-                                <img 
-                                  src={productForm.getFieldValue('imageUrl')} 
+                                <img
+                                  src={productForm.getFieldValue('imageUrl')}
                                   alt="Предварительный просмотр"
-                                  style={{ 
-                                    maxWidth: 200, 
-                                    maxHeight: 200, 
+                                  style={{
+                                    maxWidth: 200,
+                                    maxHeight: 200,
                                     objectFit: 'cover',
                                     borderRadius: 8,
                                     border: '1px solid #d9d9d9'
                                   }}
                                 />
                                 <div style={{ marginTop: 8 }}>
-                                  <Button 
-                                    size="small" 
+                                  <Button
+                                    size="small"
                                     onClick={() => {
                                       productForm.setFieldsValue({ imageUrl: '' });
                                     }}
@@ -1276,8 +1334,8 @@ const ProfilePage = () => {
                                 </div>
                               </div>
                             )}
-                            <Input 
-                              placeholder="Или введите URL изображения" 
+                            <Input
+                              placeholder="Или введите URL изображения"
                               style={{ marginTop: 8 }}
                             />
                           </Space>
@@ -1340,17 +1398,17 @@ const ProfilePage = () => {
                               {product.title}
                               <Tag color={
                                 product.product_type === 'digital' ? 'blue' :
-                                product.product_type === 'physical' ? 'green' : 'purple'
+                                  product.product_type === 'physical' ? 'green' : 'purple'
                               }>
                                 {product.product_type === 'digital' ? 'Цифровой' :
-                                 product.product_type === 'physical' ? 'Физический' : 'Услуга'}
+                                  product.product_type === 'physical' ? 'Физический' : 'Услуга'}
                               </Tag>
                             </Space>
                           }
                           description={
                             <>
-                              <div 
-                                style={{ 
+                              <div
+                                style={{
                                   whiteSpace: 'pre-wrap',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
@@ -1373,16 +1431,16 @@ const ProfilePage = () => {
                                 <div style={{ marginBottom: 8 }}>
                                   <Tag color={
                                     product.product_type === 'digital' ? 'blue' :
-                                    product.product_type === 'physical' ? 'green' : 'purple'
+                                      product.product_type === 'physical' ? 'green' : 'purple'
                                   }>
                                     {product.product_type === 'digital' ? 'Цифровой' :
-                                     product.product_type === 'physical' ? 'Физический' : 'Услуга'}
+                                      product.product_type === 'physical' ? 'Физический' : 'Услуга'}
                                   </Tag>
                                 </div>
                                 {product.image_url && (
                                   <div>
-                                    <img 
-                                      src={product.image_url} 
+                                    <img
+                                      src={product.image_url}
                                       alt={product.title}
                                       style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
                                     />
@@ -1390,8 +1448,8 @@ const ProfilePage = () => {
                                 )}
                               </div>
                               {isMobile && (
-                                <Space 
-                                  direction="vertical" 
+                                <Space
+                                  direction="vertical"
                                   style={{ width: '100%', marginTop: 12 }}
                                   size="small"
                                 >
@@ -1428,39 +1486,39 @@ const ProfilePage = () => {
                     )}
                   />
                 </div>
-            </>
-          )}
-        </Space>
-      </Card>
-    </div>
-    
-    {renderMobileSelectOverlay()}
-    
-    <ProductModal
-      product={selectedProduct}
-      visible={productModalVisible}
-      onClose={handleProductModalClose}
-      onBuy={handleBuyProduct}
-    />
-    
-    {user && (
-      <ShareProfileModal
-        visible={shareModalVisible}
-        onClose={() => setShareModalVisible(false)}
-        expert={{
-          id: user.id,
-          name: user.name,
-          slug: user.slug,
-          avatar_url: user.avatarUrl,
-          bio: user.bio,
-          city: user.city,
-          topics: user.topics || [],
-          telegram_url: user.telegramUrl,
-          whatsapp: user.whatsapp,
-          customSocials: customSocials
-        }}
+              </>
+            )}
+          </Space>
+        </Card>
+      </div>
+
+      {renderMobileSelectOverlay()}
+
+      <ProductModal
+        product={selectedProduct}
+        visible={productModalVisible}
+        onClose={handleProductModalClose}
+        onBuy={handleBuyProduct}
       />
-    )}
+
+      {user && (
+        <ShareProfileModal
+          visible={shareModalVisible}
+          onClose={() => setShareModalVisible(false)}
+          expert={{
+            id: user.id,
+            name: user.name,
+            slug: user.slug,
+            avatar_url: user.avatarUrl,
+            bio: user.bio,
+            city: user.city,
+            topics: user.topics || [],
+            telegram_url: user.telegramUrl,
+            whatsapp: user.whatsapp,
+            customSocials: customSocials
+          }}
+        />
+      )}
     </>
   );
 };

@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import { query } from '../config/database';
 import { generateUniqueSlug } from '../utils/transliterate';
+import { generateReferralCode } from '../utils/referral';
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.post(
     }
 
     try {
-      const { email, password, name, userType } = req.body;
+      const { email, password, name, userType, referralCode } = req.body;
 
       // Проверка существования пользователя по email
       const existingUserByEmail = await query(
@@ -60,15 +61,30 @@ router.post(
         );
         return result.rows.length > 0;
       };
-      
+
       const userSlug = await generateUniqueSlug(name, null, checkSlugExists);
+
+      // Обработка реферального кода
+      let referredById = null;
+      if (referralCode) {
+        const referrerResult = await query(
+          'SELECT id FROM users WHERE referral_code = $1',
+          [referralCode]
+        );
+        if (referrerResult.rows.length > 0) {
+          referredById = referrerResult.rows[0].id;
+        }
+      }
+
+      // Генерация собственного реферального кода
+      const myReferralCode = generateReferralCode(name);
 
       // Создание пользователя (неподтвержденный)
       const result = await query(
-        `INSERT INTO users (email, password, name, user_type, email_verified, verification_token, slug) 
-         VALUES ($1, $2, $3, $4, false, $5, $6) 
-         RETURNING id, email, name, user_type, verification_token, slug, created_at`,
-        [email, hashedPassword, name, userType, verificationToken, userSlug]
+        `INSERT INTO users (email, password, name, user_type, email_verified, verification_token, slug, referral_code, referred_by_id) 
+         VALUES ($1, $2, $3, $4, false, $5, $6, $7, $8) 
+         RETURNING id, email, name, user_type, verification_token, slug, referral_code, bonuses, created_at`,
+        [email, hashedPassword, name, userType, verificationToken, userSlug, myReferralCode, referredById]
       );
 
       const user = result.rows[0];
@@ -108,7 +124,7 @@ router.post(
 
       // Поиск пользователя
       const result = await query(
-        'SELECT * FROM users WHERE email = $1',
+        'SELECT id, email, password, name, user_type, avatar_url, bio, city, referral_code, bonuses, referred_by_id, email_verified FROM users WHERE email = $1',
         [email]
       );
 
@@ -127,8 +143,8 @@ router.post(
 
       // Проверка подтверждения email
       if (!user.email_verified) {
-        return res.status(403).json({ 
-          error: 'Email не подтвержден. Проверьте почту и перейдите по ссылке подтверждения.' 
+        return res.status(403).json({
+          error: 'Email не подтвержден. Проверьте почту и перейдите по ссылке подтверждения.'
         });
       }
 
@@ -148,7 +164,10 @@ router.post(
           userType: user.user_type,
           avatarUrl: user.avatar_url,
           bio: user.bio,
-          city: user.city
+          city: user.city,
+          referralCode: user.referral_code,
+          bonuses: user.bonuses || 0,
+          referredById: user.referred_by_id
         }
       });
     } catch (error) {
@@ -165,7 +184,7 @@ router.get('/verify-email/:token', async (req, res) => {
 
     // Поиск пользователя по токену
     const result = await query(
-      'SELECT id, email, name, user_type FROM users WHERE verification_token = $1',
+      'SELECT id, email, name, user_type, referral_code, bonuses, referred_by_id FROM users WHERE verification_token = $1',
       [token]
     );
 
@@ -197,7 +216,10 @@ router.get('/verify-email/:token', async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name,
-        userType: user.user_type
+        userType: user.user_type,
+        referralCode: user.referral_code,
+        bonuses: user.bonuses || 0,
+        referredById: user.referred_by_id
       }
     });
   } catch (error) {
@@ -321,25 +343,25 @@ router.post('/reset-password', async (req, res) => {
 router.post('/verify-email-manual', async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({ error: 'Email обязателен' });
     }
-    
+
     // Проверяем существование пользователя
     const userResult = await query(
       'SELECT id, name, email, email_verified FROM users WHERE email = $1',
       [email]
     );
-    
+
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
-    
+
     const user = userResult.rows[0];
-    
+
     if (user.email_verified) {
-      return res.json({ 
+      return res.json({
         message: 'Email уже подтвержден',
         user: {
           id: user.id,
@@ -349,14 +371,14 @@ router.post('/verify-email-manual', async (req, res) => {
         }
       });
     }
-    
+
     // Обновляем статус верификации
     await query(
       'UPDATE users SET email_verified = true WHERE email = $1',
       [email]
     );
-    
-    res.json({ 
+
+    res.json({
       message: 'Email успешно подтвержден',
       user: {
         id: user.id,
@@ -365,7 +387,7 @@ router.post('/verify-email-manual', async (req, res) => {
         email_verified: true
       }
     });
-    
+
   } catch (error) {
     console.error('Ошибка ручной верификации email:', error);
     res.status(500).json({ error: 'Ошибка сервера' });

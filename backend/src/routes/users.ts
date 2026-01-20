@@ -11,7 +11,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const result = await query(
       `SELECT id, email, name, user_type, slug, avatar_url, bio, city, 
-       vk_url, telegram_url, whatsapp, consultation_types, created_at 
+       vk_url, telegram_url, whatsapp, consultation_types, referral_code, bonuses, referred_by_id, created_at 
        FROM users WHERE id = $1`,
       [req.userId]
     );
@@ -36,6 +36,9 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       telegramUrl: dbUser.telegram_url,
       whatsapp: dbUser.whatsapp,
       consultationTypes: dbUser.consultation_types ? JSON.parse(dbUser.consultation_types) : [],
+      referralCode: dbUser.referral_code,
+      bonuses: dbUser.bonuses || 0,
+      referredById: dbUser.referred_by_id,
       createdAt: dbUser.created_at
     };
 
@@ -65,7 +68,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
   try {
     console.log('Обновление профиля для пользователя:', req.userId);
     console.log('Данные запроса:', req.body);
-    
+
     const { name, bio, city, avatarUrl, vkUrl, telegramUrl, whatsapp, consultationTypes, topics } = req.body;
 
     // Генерируем slug если изменилось имя
@@ -89,7 +92,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
         );
         return result.rows.length > 0;
       };
-      
+
       newSlug = await generateUniqueSlug(name, req.userId!, checkSlugExists);
       console.log('Сгенерирован новый slug:', newSlug);
     }
@@ -110,12 +113,12 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $10`,
       [
-        name, 
-        bio, 
-        city, 
-        avatarUrl, 
-        vkUrl, 
-        telegramUrl, 
+        name,
+        bio,
+        city,
+        avatarUrl,
+        vkUrl,
+        telegramUrl,
         whatsapp,
         consultationTypes ? JSON.stringify(consultationTypes) : null,
         newSlug,
@@ -147,7 +150,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
         // Удаляем старые тематики
         await query('DELETE FROM user_topics WHERE user_id = $1', [req.userId]);
         console.log('Старые тематики удалены');
-        
+
         // Добавляем новые тематики
         for (const topicId of topics) {
           await query(
@@ -185,7 +188,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
     `, [req.userId]);
 
     const updatedUser = userResult.rows[0];
-    
+
     // Обрабатываем consultationTypes если это JSON строка
     if (updatedUser.consultation_types && typeof updatedUser.consultation_types === 'string') {
       try {
@@ -223,7 +226,7 @@ router.post('/become-expert', authenticateToken, async (req: AuthRequest, res) =
     }
 
     const user = userResult.rows[0];
-    
+
     if (user.user_type === 'expert') {
       return res.status(400).json({ error: 'Пользователь уже является экспертом' });
     }
@@ -241,7 +244,7 @@ router.post('/become-expert', authenticateToken, async (req: AuthRequest, res) =
       { expiresIn: '30d' }
     );
 
-    res.json({ 
+    res.json({
       message: 'Поздравляем! Теперь вы эксперт!',
       userType: 'expert',
       token: newToken,
