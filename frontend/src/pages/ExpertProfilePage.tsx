@@ -37,13 +37,13 @@ import ProfileGallery from '../components/ProfileGallery';
 import ArtworkGallery from '../components/ArtworkGallery';
 import ProductModal from '../components/ProductModal';
 import { Tabs } from 'antd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import ClientBookingCalendar from '../components/ClientBookingCalendar';
 import ShareProfileModal from '../components/ShareProfileModal';
 import '../components/ServiceDescription.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 import { LucideBadgeRussianRuble, RussianRuble, RussianRubleIcon } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 dayjs.locale('ru');
 
