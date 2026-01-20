@@ -20,6 +20,8 @@ interface User {
   referralCode?: string;
   bonuses?: number;
   referredById?: number;
+  tabsOrder?: string[] | string;
+  tabs_order?: string[] | string;
 }
 
 interface AuthContextType {

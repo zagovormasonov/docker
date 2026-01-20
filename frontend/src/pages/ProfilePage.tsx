@@ -28,7 +28,8 @@ import {
   ShareAltOutlined,
   CheckOutlined,
   CloseOutlined,
-  SearchOutlined
+  SearchOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -38,6 +39,7 @@ import ExpertBenefitsCard from '../components/ExpertBenefitsCard';
 import ProductModal from '../components/ProductModal';
 import ShareProfileModal from '../components/ShareProfileModal';
 import { Tabs } from 'antd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -120,6 +122,10 @@ const ProfilePage = () => {
   const selectedTopics = Form.useWatch('topics', form) || [];
   const originalBodyOverflow = useRef<string | null>(null);
   const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
+  const [activeTab, setActiveTab] = useState('photos');
+  const [tabsOrder, setTabsOrder] = useState<string[]>(['photos', 'gallery']);
+  const [photosCount, setPhotosCount] = useState<number>(0);
+  const [artworksCount, setArtworksCount] = useState<number>(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -185,6 +191,52 @@ const ProfilePage = () => {
       });
     }
   }, [user, form]);
+
+  useEffect(() => {
+    if (user?.tabsOrder) {
+      try {
+        const order = typeof user.tabsOrder === 'string'
+          ? JSON.parse(user.tabsOrder)
+          : user.tabsOrder;
+        if (Array.isArray(order) && order.length > 0) {
+          setTabsOrder(order);
+        }
+      } catch (e) {
+        console.error('Ошибка парсинга tabsOrder:', e);
+      }
+    } else if (user?.tabs_order) {
+      try {
+        const order = typeof user.tabs_order === 'string'
+          ? JSON.parse(user.tabs_order)
+          : user.tabs_order;
+        if (Array.isArray(order) && order.length > 0) {
+          setTabsOrder(order);
+        }
+      } catch (e) {
+        console.error('Ошибка парсинга tabs_order:', e);
+      }
+    }
+  }, [user]);
+
+  const handleTabsReorder = async (newOrder: string[]) => {
+    setTabsOrder(newOrder);
+    try {
+      const response = await api.put('/users/profile', { tabsOrder: newOrder });
+      updateUser(response.data);
+      message.success('Порядок вкладок сохранен');
+    } catch (error) {
+      console.error('Ошибка сохранения порядка табов:', error);
+      message.error('Ошибка при сохранении порядка');
+    }
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const items = Array.from(tabsOrder);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    handleTabsReorder(items);
+  };
 
   const isMobileSelectOpen = isMobile && mobileSelectType !== null;
 
@@ -1088,21 +1140,120 @@ const ProfilePage = () => {
                 <Divider />
 
                 <div>
-                  <Tabs
-                    defaultActiveKey="photos"
-                    items={[
-                      {
+                  <div style={{
+                    marginBottom: 16,
+                    padding: '10px 16px',
+                    background: 'linear-gradient(90deg, #f0f5ff 0%, #ffffff 100%)',
+                    borderRadius: 12,
+                    fontSize: 14,
+                    color: '#1890ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    borderLeft: '4px solid #1890ff'
+                  }}>
+                    <InfoCircleOutlined />
+                    <span><b>Режим настройки:</b> Перетащите вкладки мышью, чтобы изменить их порядок для посетителей</span>
+                  </div>
+
+                  {(() => {
+                    const allTabsMap = {
+                      photos: {
                         key: 'photos',
-                        label: 'Фото',
-                        children: <ProfileGallery userId={user.id} isOwner={true} />
+                        label: `Фото (${photosCount})`,
+                        icon: '📷',
+                        children: <ProfileGallery
+                          userId={user.id}
+                          isOwner={true}
+                          onItemsCountChange={(count) => setPhotosCount(count)}
+                        />
                       },
-                      {
+                      gallery: {
                         key: 'gallery',
-                        label: 'Галерея',
-                        children: <ArtworkGallery userId={user.id} isOwner={true} />
+                        label: `Галерея (${artworksCount})`,
+                        icon: '🖼️',
+                        children: <ArtworkGallery
+                          userId={user.id}
+                          isOwner={true}
+                          onItemsCountChange={(count) => setArtworksCount(count)}
+                        />
                       }
-                    ]}
-                  />
+                    };
+
+                    const orderedTabs = tabsOrder.map(key => allTabsMap[key as keyof typeof allTabsMap]).filter(Boolean);
+
+                    return (
+                      <DragDropContext onDragEnd={onDragEnd}>
+                        <Droppable droppableId="profile-tabs" direction="horizontal">
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              style={{
+                                borderRadius: 12,
+                                transition: 'all 0.3s'
+                              }}
+                            >
+                              <div style={{
+                                display: 'flex',
+                                gap: 12,
+                                borderBottom: '1px solid #f0f0f0',
+                                paddingBottom: 12,
+                                marginBottom: 20,
+                                overflowX: 'auto'
+                              }}>
+                                {orderedTabs.map((tab, index) => (
+                                  <Draggable
+                                    key={tab.key}
+                                    draggableId={tab.key}
+                                    index={index}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        style={{
+                                          padding: '10px 20px',
+                                          borderRadius: 10,
+                                          cursor: snapshot.isDragging ? 'grabbing' : 'grab',
+                                          background: activeTab === tab.key ? '#6366f1' : '#fff',
+                                          color: activeTab === tab.key ? '#fff' : '#4b5563',
+                                          fontWeight: 600,
+                                          border: `1px solid ${activeTab === tab.key ? '#6366f1' : '#e5e7eb'}`,
+                                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                          userSelect: 'none',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 8,
+                                          boxShadow: snapshot.isDragging
+                                            ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+                                            : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                                          transform: snapshot.isDragging ? 'scale(1.05) rotate(1deg)' : 'none',
+                                          zIndex: snapshot.isDragging ? 100 : 1,
+                                          ...provided.draggableProps.style
+                                        }}
+                                      >
+                                        <span style={{ opacity: 0.4, fontSize: 18, marginRight: 4 }}>⋮⋮</span>
+                                        <span style={{ fontSize: 18 }}>{tab.icon}</span>
+                                        <span>{tab.label}</span>
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </div>
+
+                              <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                                {orderedTabs.find(tab => tab.key === activeTab)?.children}
+                              </div>
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+                    );
+                  })()}
                 </div>
 
                 <Divider />
