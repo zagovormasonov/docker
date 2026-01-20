@@ -12,7 +12,7 @@ router.get('/count', async (req, res) => {
     const result = await query(
       "SELECT COUNT(*) as count FROM users WHERE user_type IN ('expert', 'admin')"
     );
-    
+
     res.json({ count: parseInt(result.rows[0].count) });
   } catch (error) {
     console.error('Ошибка получения количества экспертов:', error);
@@ -99,13 +99,13 @@ router.get('/:idOrSlug', async (req, res) => {
 
     // Определяем, это ID (число) или slug (строка)
     const isNumericId = /^\d+$/.test(idOrSlug);
-    
+
     let userResult;
     if (isNumericId) {
       // Поиск по ID
       userResult = await query(
         `SELECT id, name, email, avatar_url, bio, city, slug,
-         vk_url, telegram_url, whatsapp, consultation_types,
+         vk_url, telegram_url, whatsapp, consultation_types, tabs_order,
          created_at 
          FROM users WHERE id = $1 AND user_type IN ('expert', 'admin')`,
         [idOrSlug]
@@ -114,7 +114,7 @@ router.get('/:idOrSlug', async (req, res) => {
       // Поиск по slug
       userResult = await query(
         `SELECT id, name, email, avatar_url, bio, city, slug,
-         vk_url, telegram_url, whatsapp, consultation_types,
+         vk_url, telegram_url, whatsapp, consultation_types, tabs_order,
          created_at 
          FROM users WHERE slug = $1 AND user_type IN ('expert', 'admin')`,
         [idOrSlug]
@@ -148,11 +148,26 @@ router.get('/:idOrSlug', async (req, res) => {
       [expertId]
     );
 
+    // Получение количества фотографий (галерея)
+    const galleryCountResult = await query(
+      `SELECT COUNT(*) as count FROM profile_gallery WHERE user_id = $1`,
+      [expertId]
+    );
+
+    // Получение количества картин
+    const artworksCountResult = await query(
+      `SELECT COUNT(*) as count FROM artworks WHERE user_id = $1`,
+      [expertId]
+    );
+
     res.json({
       ...expert,
       topics: topicsResult.rows,
       services: servicesResult.rows,
-      products: productsResult.rows
+      products: productsResult.rows,
+      tabs_order: expert.tabs_order || ['photos', 'gallery'],
+      galleryCount: parseInt(galleryCountResult.rows[0].count) || 0,
+      artworksCount: parseInt(artworksCountResult.rows[0].count) || 0
     });
   } catch (error) {
     console.error('Ошибка получения профиля:', error);
@@ -168,7 +183,7 @@ router.put(
   async (req: AuthRequest, res) => {
     try {
       const { name, bio, city, avatarUrl, vkUrl, telegramUrl, whatsapp, consultationTypes, topics } = req.body;
-      
+
       // Генерируем slug если изменилось имя
       let newSlug: string | undefined;
       if (name) {
@@ -180,7 +195,7 @@ router.put(
           );
           return result.rows.length > 0;
         };
-        
+
         newSlug = await generateUniqueSlug(name, req.userId!, checkSlugExists);
       }
 
@@ -210,12 +225,12 @@ router.put(
              updated_at = CURRENT_TIMESTAMP
          WHERE id = $10`,
         [
-          name, 
-          bio, 
-          city, 
-          avatarUrl, 
-          vkUrl, 
-          telegramUrl, 
+          name,
+          bio,
+          city,
+          avatarUrl,
+          vkUrl,
+          telegramUrl,
           whatsapp,
           consultationTypes ? JSON.stringify(consultationTypes) : null,
           newSlug,

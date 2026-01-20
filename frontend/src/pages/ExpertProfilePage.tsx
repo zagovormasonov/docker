@@ -110,6 +110,7 @@ const ExpertProfilePage = () => {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [activeTab, setActiveTab] = useState('photos');
+  const [tabsOrder, setTabsOrder] = useState<string[]>(['photos', 'gallery']);
 
   /* State for item counts */
   const [photosCount, setPhotosCount] = useState<number>(0);
@@ -180,6 +181,22 @@ const ExpertProfilePage = () => {
     try {
       const response = await api.get(`/experts/${id}`);
       setExpert(response.data);
+
+      // Устанавливаем счетчики из ответа API
+      if (response.data.galleryCount !== undefined) {
+        setPhotosCount(response.data.galleryCount);
+      }
+      if (response.data.artworksCount !== undefined) {
+        setArtworksCount(response.data.artworksCount);
+      }
+
+      // Устанавливаем порядок табов из профиля (только для владельца)
+      if (user?.id === response.data.id && response.data.tabs_order) {
+        const order = typeof response.data.tabs_order === 'string'
+          ? JSON.parse(response.data.tabs_order)
+          : response.data.tabs_order;
+        setTabsOrder(order);
+      }
     } catch (error) {
       console.error('Ошибка загрузки профиля:', error);
       message.error('Ошибка загрузки профиля эксперта');
@@ -330,6 +347,19 @@ const ExpertProfilePage = () => {
   const handleShare = () => {
     console.log('Opening share modal with customSocials:', customSocials);
     setShareModalVisible(true);
+  };
+
+  const handleTabsReorder = async (newOrder: string[]) => {
+    setTabsOrder(newOrder);
+
+    // Сохраняем порядок только если это владелец профиля
+    if (user?.id === expert?.id) {
+      try {
+        await api.put('/users/profile', { tabsOrder: newOrder });
+      } catch (error) {
+        console.error('Ошибка сохранения порядка табов:', error);
+      }
+    }
   };
 
   // Модальное окно для незарегистрированных пользователей
@@ -595,29 +625,74 @@ const ExpertProfilePage = () => {
             {/* Галерея фотографий и картин */}
             <Divider />
             <div>
+              {user?.id === expert.id && (
+                <div style={{ marginBottom: 12, padding: '8px 12px', background: '#f0f5ff', borderRadius: 6, fontSize: 13, color: '#1890ff' }}>
+                  💡 Перетащите вкладки, чтобы изменить их порядок
+                </div>
+              )}
               <Tabs
                 activeKey={activeTab}
                 onChange={setActiveTab}
-                items={[
-                  {
-                    key: 'photos',
-                    label: `Фото` + (photosCount > 0 ? ` (${photosCount})` : ''),
-                    children: <ProfileGallery
-                      userId={expert.id}
-                      isOwner={user?.id === expert.id}
-                      onItemsCountChange={(count) => setPhotosCount(count)}
-                    />
-                  },
-                  {
-                    key: 'gallery',
-                    label: `Галерея` + (artworksCount > 0 ? ` (${artworksCount})` : ''),
-                    children: <ArtworkGallery
-                      userId={expert.id}
-                      isOwner={user?.id === expert.id}
-                      onItemsCountChange={(count) => setArtworksCount(count)}
-                    />
-                  }
-                ]}
+                type={user?.id === expert.id ? "editable-card" : "line"}
+                hideAdd
+                onEdit={(targetKey, action) => {
+                  // Обработка перетаскивания через onEdit не работает, используем другой подход
+                }}
+                items={(() => {
+                  const allTabs = {
+                    photos: {
+                      key: 'photos',
+                      label: `Фото (${photosCount})`,
+                      children: <ProfileGallery
+                        userId={expert.id}
+                        isOwner={user?.id === expert.id}
+                        onItemsCountChange={(count) => setPhotosCount(count)}
+                      />
+                    },
+                    gallery: {
+                      key: 'gallery',
+                      label: `Галерея (${artworksCount})`,
+                      children: <ArtworkGallery
+                        userId={expert.id}
+                        isOwner={user?.id === expert.id}
+                        onItemsCountChange={(count) => setArtworksCount(count)}
+                      />
+                    }
+                  };
+
+                  // Возвращаем табы в правильном порядке
+                  return tabsOrder.map(key => allTabs[key as keyof typeof allTabs]).filter(Boolean);
+                })()}
+                tabBarExtraContent={
+                  user?.id === expert.id ? (
+                    <Space size="small">
+                      <Button
+                        size="small"
+                        type="text"
+                        disabled={tabsOrder[0] === 'photos'}
+                        onClick={() => {
+                          const newOrder = ['photos', 'gallery'];
+                          handleTabsReorder(newOrder);
+                        }}
+                        title="Фото первым"
+                      >
+                        📷 ←
+                      </Button>
+                      <Button
+                        size="small"
+                        type="text"
+                        disabled={tabsOrder[0] === 'gallery'}
+                        onClick={() => {
+                          const newOrder = ['gallery', 'photos'];
+                          handleTabsReorder(newOrder);
+                        }}
+                        title="Галерея первой"
+                      >
+                        🖼️ ←
+                      </Button>
+                    </Space>
+                  ) : null
+                }
               />
             </div>
 

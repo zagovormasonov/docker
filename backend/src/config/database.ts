@@ -160,6 +160,7 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(50) UNIQUE`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by_id INTEGER REFERENCES users(id)`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bonuses INTEGER DEFAULT 0`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS tabs_order JSONB DEFAULT '["photos", "gallery"]'::jsonb`);
 
     // Таблица платежей (могла быть создана внешним скриптом)
     await query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS used_bonuses INTEGER DEFAULT 0`);

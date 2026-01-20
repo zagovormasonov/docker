@@ -11,7 +11,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const result = await query(
       `SELECT id, email, name, user_type, slug, avatar_url, bio, city, 
-       vk_url, telegram_url, whatsapp, consultation_types, referral_code, bonuses, referred_by_id, created_at 
+       vk_url, telegram_url, whatsapp, consultation_types, referral_code, bonuses, referred_by_id, tabs_order, created_at 
        FROM users WHERE id = $1`,
       [req.userId]
     );
@@ -35,10 +35,11 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       vkUrl: dbUser.vk_url,
       telegramUrl: dbUser.telegram_url,
       whatsapp: dbUser.whatsapp,
-      consultationTypes: dbUser.consultation_types ? JSON.parse(dbUser.consultation_types) : [],
+      consultationTypes: dbUser.consultation_types ? (typeof dbUser.consultation_types === 'string' ? JSON.parse(dbUser.consultation_types) : dbUser.consultation_types) : [],
       referralCode: dbUser.referral_code,
       bonuses: dbUser.bonuses || 0,
       referredById: dbUser.referred_by_id,
+      tabsOrder: dbUser.tabs_order || ['photos', 'gallery'],
       createdAt: dbUser.created_at
     };
 
@@ -69,7 +70,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
     console.log('Обновление профиля для пользователя:', req.userId);
     console.log('Данные запроса:', req.body);
 
-    const { name, bio, city, avatarUrl, vkUrl, telegramUrl, whatsapp, consultationTypes, topics } = req.body;
+    const { name, bio, city, avatarUrl, vkUrl, telegramUrl, whatsapp, consultationTypes, topics, tabsOrder } = req.body;
 
     // Генерируем slug если изменилось имя
     let newSlug: string | undefined;
@@ -114,8 +115,9 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
            whatsapp = $7,
            consultation_types = $8,
            slug = $9,
+           tabs_order = $10,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $10`,
+       WHERE id = $11`,
       [
         name !== undefined ? name : currentUser.name,
         bio !== undefined ? bio : currentUser.bio,
@@ -126,6 +128,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
         whatsapp !== undefined ? whatsapp : currentUser.whatsapp,
         consultationTypes !== undefined ? JSON.stringify(consultationTypes) : currentUser.consultation_types,
         newSlug !== undefined ? newSlug : currentUser.slug,
+        tabsOrder !== undefined ? JSON.stringify(tabsOrder) : currentUser.tabs_order,
         req.userId
       ]
     );
@@ -211,6 +214,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
       referralCode: dbUser.referral_code,
       bonuses: dbUser.bonuses || 0,
       referredById: dbUser.referred_by_id,
+      tabsOrder: dbUser.tabs_order || ['photos', 'gallery'],
       createdAt: dbUser.created_at
     };
 
