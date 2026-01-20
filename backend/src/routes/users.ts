@@ -100,10 +100,33 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
 
     // Получаем текущие данные пользователя для слияния
     const currentUserResult = await query('SELECT * FROM users WHERE id = $1', [req.userId]);
+    if (currentUserResult.rows.length === 0) {
+      console.error('❌ Пользователь не найден при обновлении профиля:', req.userId);
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
     const currentUser = currentUserResult.rows[0];
 
     // Обновляем основные поля пользователя
-    console.log('Обновление основных полей пользователя');
+    console.log('Обновление основных полей пользователя. tabsOrder:', tabsOrder);
+
+    // Подготовка значений для сохранения. 
+    const finalTabsOrder = tabsOrder !== undefined ? tabsOrder : currentUser.tabs_order;
+
+    let finalConsultationTypes = [];
+    if (consultationTypes !== undefined) {
+      finalConsultationTypes = consultationTypes;
+    } else if (currentUser.consultation_types) {
+      if (typeof currentUser.consultation_types === 'string') {
+        try {
+          finalConsultationTypes = JSON.parse(currentUser.consultation_types);
+        } catch (e) {
+          finalConsultationTypes = [currentUser.consultation_types];
+        }
+      } else {
+        finalConsultationTypes = currentUser.consultation_types;
+      }
+    }
+
     await query(
       `UPDATE users 
        SET name = $1, 
@@ -126,9 +149,9 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
         vkUrl !== undefined ? vkUrl : currentUser.vk_url,
         telegramUrl !== undefined ? telegramUrl : currentUser.telegram_url,
         whatsapp !== undefined ? whatsapp : currentUser.whatsapp,
-        consultationTypes !== undefined ? JSON.stringify(consultationTypes) : currentUser.consultation_types,
+        JSON.stringify(finalConsultationTypes),
         newSlug !== undefined ? newSlug : currentUser.slug,
-        tabsOrder !== undefined ? JSON.stringify(tabsOrder) : currentUser.tabs_order,
+        finalTabsOrder ? JSON.stringify(finalTabsOrder) : null,
         req.userId
       ]
     );
