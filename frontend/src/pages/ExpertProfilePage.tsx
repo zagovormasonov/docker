@@ -113,6 +113,8 @@ const ExpertProfilePage = () => {
   const [activeTab, setActiveTab] = useState('photos');
   const [tabsOrder, setTabsOrder] = useState<string[]>(['photos', 'gallery']);
 
+  const isOwner = user && expert && String(user.id) === String(expert.id);
+
   /* State for item counts */
   const [photosCount, setPhotosCount] = useState<number>(0);
   const [artworksCount, setArtworksCount] = useState<number>(0);
@@ -203,12 +205,19 @@ const ExpertProfilePage = () => {
         setArtworksCount(response.data.artworksCount);
       }
 
-      // Устанавливаем порядок табов из профиля (только для владельца)
-      if (user?.id === response.data.id && response.data.tabs_order) {
-        const order = typeof response.data.tabs_order === 'string'
-          ? JSON.parse(response.data.tabs_order)
-          : response.data.tabs_order;
-        setTabsOrder(order);
+      // Устанавливаем порядок табов из профиля (для всех посетителей)
+      if (response.data.tabs_order) {
+        try {
+          const order = typeof response.data.tabs_order === 'string'
+            ? JSON.parse(response.data.tabs_order)
+            : response.data.tabs_order;
+
+          if (Array.isArray(order) && order.length > 0) {
+            setTabsOrder(order);
+          }
+        } catch (e) {
+          console.error('Ошибка парсинга tabs_order:', e);
+        }
       }
     } catch (error) {
       console.error('Ошибка загрузки профиля:', error);
@@ -258,7 +267,7 @@ const ExpertProfilePage = () => {
     }
 
     // Проверяем, что пользователь не пытается создать чат с самим собой
-    if (user.id === expert?.id) {
+    if (isOwner) {
       message.warning('Нельзя создать чат с самим собой');
       return;
     }
@@ -366,11 +375,13 @@ const ExpertProfilePage = () => {
     setTabsOrder(newOrder);
 
     // Сохраняем порядок только если это владелец профиля
-    if (user?.id === expert?.id) {
+    if (isOwner) {
       try {
         await api.put('/users/profile', { tabsOrder: newOrder });
+        message.success('Порядок вкладок сохранен');
       } catch (error) {
         console.error('Ошибка сохранения порядка табов:', error);
+        message.error('Ошибка при сохранении порядка');
       }
     }
   };
@@ -435,7 +446,7 @@ const ExpertProfilePage = () => {
   }
 
   if (!expert) {
-    return <div className="container">Эксперт не найден</div>;
+    return <div className="container" style={{ textAlign: 'center', padding: 50 }}>Эксперт не найден</div>;
   }
 
   return (
@@ -499,7 +510,7 @@ const ExpertProfilePage = () => {
             )}
 
             {/* Кнопки действий */}
-            {user?.id !== expert.id && (
+            {!isOwner && (
               <div style={{ width: '100%' }}>
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                   <Button
@@ -604,7 +615,7 @@ const ExpertProfilePage = () => {
                       </div>
                     ))}
                     {/* Кнопка добавления новой соцсети - только для владельца профиля */}
-                    {user?.id === expert.id && (
+                    {isOwner && (
                       <Button
                         type="dashed"
                         icon={<PlusOutlined />}
@@ -649,138 +660,154 @@ const ExpertProfilePage = () => {
 
             {/* Галерея фотографий и картин */}
             <Divider />
-            <div>
-              {/* Версия для владельца - с drag-and-drop */}
-              {user?.id === expert.id ? (
-                <>
-                  <div style={{ marginBottom: 12, padding: '8px 12px', background: '#f0f5ff', borderRadius: 6, fontSize: 13, color: '#1890ff' }}>
-                    💡 Перетащите вкладки мышью, чтобы изменить их порядок
-                  </div>
+            {/* Секция табов (Фото и Галерея) */}
+            {isOwner ? (
+              <>
+                <div style={{
+                  marginBottom: 16,
+                  padding: '10px 16px',
+                  background: 'linear-gradient(90deg, #f0f5ff 0%, #ffffff 100%)',
+                  borderRadius: 12,
+                  fontSize: 14,
+                  color: '#1890ff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  borderLeft: '4px solid #1890ff'
+                }}>
+                  <InfoCircleOutlined />
+                  <span><b>Режим настройки:</b> Перетащите вкладки мышью, чтобы изменить их порядок для посетителей</span>
+                </div>
 
-                  {(() => {
-                    const allTabs = {
-                      photos: {
-                        key: 'photos',
-                        label: `Фото (${photosCount})`,
-                        icon: '📷',
-                        children: <ProfileGallery
-                          userId={expert.id}
-                          isOwner={true}
-                          onItemsCountChange={(count) => setPhotosCount(count)}
-                        />
-                      },
-                      gallery: {
-                        key: 'gallery',
-                        label: `Галерея (${artworksCount})`,
-                        icon: '🖼️',
-                        children: <ArtworkGallery
-                          userId={expert.id}
-                          isOwner={true}
-                          onItemsCountChange={(count) => setArtworksCount(count)}
-                        />
-                      }
-                    };
-
-                    const orderedTabs = tabsOrder.map(key => allTabs[key as keyof typeof allTabs]).filter(Boolean);
-
-                    return (
-                      <DragDropContext onDragEnd={onDragEnd}>
-                        <Droppable droppableId="tabs" direction="horizontal">
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                              style={{
-                                background: snapshot.isDraggingOver ? '#f0f5ff' : 'transparent',
-                                borderRadius: 8,
-                                padding: '4px 0',
-                                transition: 'background 0.2s'
-                              }}
-                            >
-                              <div style={{
-                                display: 'flex',
-                                gap: 8,
-                                borderBottom: '1px solid #f0f0f0',
-                                paddingBottom: 8,
-                                marginBottom: 16
-                              }}>
-                                {orderedTabs.map((tab, index) => (
-                                  <Draggable
-                                    key={tab.key}
-                                    draggableId={tab.key}
-                                    index={index}
-                                  >
-                                    {(provided, snapshot) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        onClick={() => setActiveTab(tab.key)}
-                                        style={{
-                                          padding: '8px 16px',
-                                          borderRadius: 6,
-                                          cursor: 'grab',
-                                          background: activeTab === tab.key ? '#1890ff' : '#fafafa',
-                                          color: activeTab === tab.key ? '#fff' : '#000',
-                                          fontWeight: activeTab === tab.key ? 600 : 400,
-                                          border: `2px solid ${activeTab === tab.key ? '#1890ff' : '#d9d9d9'}`,
-                                          transition: 'all 0.2s',
-                                          userSelect: 'none',
-                                          boxShadow: snapshot.isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
-                                          transform: snapshot.isDragging ? 'rotate(2deg)' : 'none',
-                                          ...provided.draggableProps.style
-                                        }}
-                                      >
-                                        <Space size={4}>
-                                          <span style={{ opacity: 0.6 }}>⋮⋮</span>
-                                          <span>{tab.icon}</span>
-                                          <span>{tab.label}</span>
-                                        </Space>
-                                      </div>
-                                    )}
-                                  </Draggable>
-                                ))}
-                                {provided.placeholder}
-                              </div>
-
-                              <div>
-                                {orderedTabs.find(tab => tab.key === activeTab)?.children}
-                              </div>
-                            </div>
-                          )}
-                        </Droppable>
-                      </DragDropContext>
-                    );
-                  })()}
-                </>
-              ) : (
-                /* Версия для посетителей - стандартные Ant Design Tabs */
-                <Tabs
-                  activeKey={activeTab}
-                  onChange={setActiveTab}
-                  items={[
-                    {
+                {(() => {
+                  const allTabsMap = {
+                    photos: {
                       key: 'photos',
                       label: `Фото (${photosCount})`,
+                      icon: '📷',
+                      children: <ProfileGallery
+                        userId={expert.id}
+                        isOwner={true}
+                        onItemsCountChange={(count) => setPhotosCount(count)}
+                      />
+                    },
+                    gallery: {
+                      key: 'gallery',
+                      label: `Галерея (${artworksCount})`,
+                      icon: '🖼️',
+                      children: <ArtworkGallery
+                        userId={expert.id}
+                        isOwner={true}
+                        onItemsCountChange={(count) => setArtworksCount(count)}
+                      />
+                    }
+                  };
+
+                  const orderedTabs = tabsOrder.map(key => allTabsMap[key as keyof typeof allTabsMap]).filter(Boolean);
+
+                  return (
+                    <DragDropContext onDragEnd={onDragEnd}>
+                      <Droppable droppableId="tabs" direction="horizontal">
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            style={{
+                              borderRadius: 12,
+                              transition: 'all 0.3s'
+                            }}
+                          >
+                            <div style={{
+                              display: 'flex',
+                              gap: 12,
+                              borderBottom: '1px solid #f0f0f0',
+                              paddingBottom: 12,
+                              marginBottom: 20,
+                              overflowX: 'auto'
+                            }}>
+                              {orderedTabs.map((tab, index) => (
+                                <Draggable
+                                  key={tab.key}
+                                  draggableId={tab.key}
+                                  index={index}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      onClick={() => setActiveTab(tab.key)}
+                                      style={{
+                                        padding: '10px 20px',
+                                        borderRadius: 10,
+                                        cursor: snapshot.isDragging ? 'grabbing' : 'grab',
+                                        background: activeTab === tab.key ? '#6366f1' : '#fff',
+                                        color: activeTab === tab.key ? '#fff' : '#4b5563',
+                                        fontWeight: 600,
+                                        border: `1px solid ${activeTab === tab.key ? '#6366f1' : '#e5e7eb'}`,
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        userSelect: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                        boxShadow: snapshot.isDragging
+                                          ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+                                          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                                        transform: snapshot.isDragging ? 'scale(1.05) rotate(1deg)' : 'none',
+                                        zIndex: snapshot.isDragging ? 100 : 1,
+                                        ...provided.draggableProps.style
+                                      }}
+                                    >
+                                      <span style={{ opacity: 0.4, fontSize: 18, marginRight: 4 }}>⋮⋮</span>
+                                      <span style={{ fontSize: 18 }}>{tab.icon}</span>
+                                      <span>{tab.label}</span>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+
+                            <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                              {orderedTabs.find(tab => tab.key === activeTab)?.children}
+                            </div>
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  );
+                })()}
+              </>
+            ) : (
+              /* Версия для посетителей - уважаем порядок, установленный владельцем */
+              <Tabs
+                activeKey={activeTab}
+                onChange={setActiveTab}
+                items={tabsOrder.map(key => {
+                  if (key === 'photos') {
+                    return {
+                      key: 'photos',
+                      label: <span><span style={{ marginRight: 8 }}>📷</span>Фото ({photosCount})</span>,
                       children: <ProfileGallery
                         userId={expert.id}
                         isOwner={false}
                         onItemsCountChange={(count) => setPhotosCount(count)}
                       />
-                    },
-                    {
+                    };
+                  } else {
+                    return {
                       key: 'gallery',
-                      label: `Галерея (${artworksCount})`,
+                      label: <span><span style={{ marginRight: 8 }}>🖼️</span>Галерея ({artworksCount})</span>,
                       children: <ArtworkGallery
                         userId={expert.id}
                         isOwner={false}
                         onItemsCountChange={(count) => setArtworksCount(count)}
                       />
-                    }
-                  ]}
-                />
-              )}
-            </div>
+                    };
+                  }
+                })}
+              />
+            )}
 
             {expert.services && expert.services.length > 0 && (
               <>
@@ -953,7 +980,7 @@ const ExpertProfilePage = () => {
             )}
 
             {/* Календарь записей */}
-            {user && user.id !== expert.id && (
+            {user && !isOwner && (
               <>
                 <Divider />
                 <div>
@@ -1042,7 +1069,7 @@ const ExpertProfilePage = () => {
             </div>
           </Space>
         </Card>
-      </div>
+      </div >
 
       <ProductModal
         product={selectedProduct}
@@ -1051,16 +1078,18 @@ const ExpertProfilePage = () => {
         onBuy={handleBuyProduct}
       />
 
-      {expert && (
-        <ShareProfileModal
-          visible={shareModalVisible}
-          onClose={() => setShareModalVisible(false)}
-          expert={{
-            ...expert,
-            customSocials: customSocials
-          }}
-        />
-      )}
+      {
+        expert && (
+          <ShareProfileModal
+            visible={shareModalVisible}
+            onClose={() => setShareModalVisible(false)}
+            expert={{
+              ...expert,
+              customSocials: customSocials
+            }}
+          />
+        )
+      }
     </>
   );
 };
