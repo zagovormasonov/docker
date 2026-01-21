@@ -59,6 +59,14 @@ const HomePage = () => {
   const searchTimeoutRef = useRef<number | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Мемоизированная функция загрузки статей
   const fetchArticles = useCallback(async () => {
@@ -191,14 +199,14 @@ const HomePage = () => {
   }, [selectedArticleId]);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', margin: '-24px -24px 0', paddingBottom: 24, overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: '#f8fafc', margin: '-24px 0 0', paddingBottom: 24, overflowX: 'hidden' }}>
       {/* Hero Section */}
       <div style={{
         position: 'relative',
         background: 'linear-gradient(-45deg, #e0e7ff, #f3e8ff, #eef2ff, #f5f3ff)',
         backgroundSize: '400% 400%',
         animation: 'gradient-flow 15s ease infinite',
-        padding: '100px 24px 120px',
+        padding: isMobile ? '60px 16px 80px' : '100px 24px 120px',
         borderRadius: '0 0 48px 48px',
         textAlign: 'center',
         overflow: 'hidden'
@@ -229,7 +237,7 @@ const HomePage = () => {
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
           <h1 style={{
-            fontSize: 'clamp(3rem, 5vw, 4.5rem)',
+            fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
             fontWeight: 400,
             lineHeight: 1.3,
             margin: '0 0 16px',
@@ -368,17 +376,18 @@ const HomePage = () => {
               type="primary"
               icon={<EditOutlined className="writing-icon" />}
               onClick={() => navigate('/create-article')}
-              size="large"
+              size={isMobile ? "middle" : "large"}
               style={{
                 borderRadius: 16,
                 background: '#6366f1',
                 border: 'none',
                 boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                height: 40,
-                padding: '0 20px',
+                height: isMobile ? 36 : 40,
+                padding: isMobile ? '0 12px' : '0 20px',
                 fontWeight: 500,
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                flex: isMobile ? 1 : 'none'
               }}
             >
               Создать статью
@@ -587,14 +596,17 @@ const HomePage = () => {
             onClick={handleCloseModal}
             style={{
               position: 'fixed',
-              top: 40,
-              right: 40,
+              top: isMobile ? 12 : 40,
+              right: isMobile ? 12 : 40,
               zIndex: 2000,
               width: 44,
               height: 44,
               display: isModalOpen ? 'flex' : 'none',
               alignItems: 'center',
               justifyContent: 'center',
+              backgroundColor: isMobile ? 'rgba(255,255,255,0.8)' : 'transparent',
+              borderRadius: '50%',
+              boxShadow: isMobile ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
               transition: 'all 0.3s'
             }}
           />

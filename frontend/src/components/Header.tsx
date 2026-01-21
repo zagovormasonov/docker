@@ -34,6 +34,14 @@ const Header = () => {
   const { unreadCount, markAsRead, testNotification } = useNotifications();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportForm] = Form.useForm();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -332,7 +340,7 @@ const Header = () => {
           background: 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          padding: '0 24px',
+          padding: isMobile ? '0 12px' : '0 24px',
           boxShadow: '0 4px 30px rgba(0, 0, 0, 0.05)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
           position: 'fixed',

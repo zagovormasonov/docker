@@ -195,7 +195,12 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: 900, paddingTop: embeddedArticleId ? 60 : 0 }}>
+    <div className="container" style={{
+      maxWidth: 900,
+      paddingTop: embeddedArticleId ? 60 : 24,
+      paddingLeft: isMobile ? 0 : undefined,
+      paddingRight: isMobile ? 0 : undefined
+    }}>
       {!embeddedArticleId && (
         <div style={{ marginBottom: 16 }}>
           <Button
@@ -207,14 +212,22 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
         </div>
       )}
 
-      <Card bordered={!embeddedArticleId} style={{ boxShadow: embeddedArticleId ? 'none' : undefined, border: embeddedArticleId ? 'none' : undefined }}>
+      <Card
+        bordered={!embeddedArticleId && !isMobile}
+        styles={{ body: { padding: isMobile ? '16px 12px' : '24px' } }}
+        style={{
+          boxShadow: (embeddedArticleId || isMobile) ? 'none' : undefined,
+          border: (embeddedArticleId || isMobile) ? 'none' : undefined,
+          background: isMobile ? 'transparent' : undefined
+        }}
+      >
         <div style={{ marginBottom: 24, borderRadius: 8, overflow: 'hidden' }}>
           <img
             src={article.cover_image || '/art.jpg'}
             alt={article.title}
             style={{
               width: '100%',
-              height: 400,
+              height: isMobile ? 250 : 400,
               objectFit: 'cover',
               display: 'block'
             }}
@@ -222,7 +235,7 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
         </div>
 
         <div style={{ marginBottom: 24 }}>
-          <Title level={1} style={{ margin: 0, marginBottom: 16 }}>
+          <Title level={isMobile ? 2 : 1} style={{ margin: 0, marginBottom: 16 }}>
             {article.title}
           </Title>
 
