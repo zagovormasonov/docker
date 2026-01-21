@@ -42,6 +42,12 @@ interface City {
   name: string;
 }
 
+const stripHtml = (html: string): string => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 const CreateEventPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -146,7 +152,7 @@ const CreateEventPage = () => {
     setLoading(true);
     try {
       const eventData = {
-        title: values.title,
+        title: stripHtml(values.title),
         description,
         coverImage: coverImageUrl || values.coverImage,
         eventType: values.eventType,
@@ -163,7 +169,7 @@ const CreateEventPage = () => {
       if (id) {
         console.log('📝 Обновляем событие:', id);
         const response = await api.put(`/events/${id}`, eventData);
-        
+
         // Показываем уведомление в зависимости от ответа сервера
         if (response.data.message) {
           message.success(response.data.message);
@@ -173,14 +179,14 @@ const CreateEventPage = () => {
       } else {
         console.log('📝 Создаем новое событие');
         const response = await api.post('/events', eventData);
-        
+
         // Показываем уведомление в зависимости от ответа сервера
         if (response.data.message) {
           message.success(response.data.message);
         } else {
           message.success('Событие создано и отправлено на модерацию');
         }
-        
+
         setModerationStatus('pending');
       }
 
@@ -371,12 +377,12 @@ const CreateEventPage = () => {
                 onChange={handleDescriptionChange}
                 modules={modules}
                 formats={formats}
-              placeholder="Подробное описание события..."
+                placeholder="Подробное описание события..."
                 style={{
                   minHeight: 300,
                   backgroundColor: 'white'
                 }}
-            />
+              />
             </div>
             <Text type="secondary" style={{ fontSize: 12, marginTop: 8, display: 'block' }}>
               Поддерживается форматирование, списки и изображения

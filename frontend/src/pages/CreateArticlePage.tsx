@@ -26,6 +26,12 @@ const MARKDOWN_PATTERNS = [
 
 const looksLikeMarkdown = (text: string) => MARKDOWN_PATTERNS.some((pattern) => pattern.test(text));
 
+const stripHtml = (html: string): string => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 const CreateArticlePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -49,7 +55,7 @@ const CreateArticlePage = () => {
     try {
       const response = await api.get(`/articles/${id}`);
       const article = response.data;
-      
+
       form.setFieldsValue({
         title: article.title,
         coverImage: article.cover_image || ''
@@ -74,38 +80,38 @@ const CreateArticlePage = () => {
     setLoading(true);
     try {
       const data = {
-        title: values.title,
+        title: stripHtml(values.title),
         content,
         coverImage: coverImageUrl || values.coverImage || null
       };
 
       if (isEdit) {
         const response = await api.put(`/articles/${id}`, data);
-        
+
         // Показываем уведомление в зависимости от ответа сервера
         if (response.data.message) {
           message.success(response.data.message);
         } else {
           message.success('Статья успешно обновлена!');
         }
-        
+
         // Обновляем URL обложки после сохранения
         if (data.coverImage) {
           setCoverImageUrl(data.coverImage);
         }
-        
+
         // После сохранения переходим к списку статей
         navigate('/my-articles');
       } else {
         const response = await api.post('/articles', data);
-        
+
         // Показываем уведомление в зависимости от ответа сервера
         if (response.data.message) {
           message.success(response.data.message);
         } else {
           message.success('Статья успешно создана!');
         }
-        
+
         // После создания переходим к списку статей
         navigate('/my-articles');
       }
@@ -270,8 +276,8 @@ const CreateArticlePage = () => {
   return (
     <div className="container" style={{ maxWidth: 900 }}>
       <div style={{ marginBottom: 16 }}>
-        <Button 
-          icon={<ArrowLeftOutlined />} 
+        <Button
+          icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/my-articles')}
         >
           К моим статьям
@@ -297,9 +303,9 @@ const CreateArticlePage = () => {
               { max: 200, message: 'Максимум 200 символов' }
             ]}
           >
-            <Input 
-              size="large" 
-              placeholder="Введите заголовок статьи" 
+            <Input
+              size="large"
+              placeholder="Введите заголовок статьи"
               showCount
               maxLength={200}
             />
@@ -326,7 +332,7 @@ const CreateArticlePage = () => {
                   </Button>
                 </div>
               )}
-              
+
               {!coverImageUrl && (
                 <>
                   <Upload
@@ -335,8 +341,8 @@ const CreateArticlePage = () => {
                     beforeUpload={handleCoverUpload}
                     disabled={uploadingCover}
                   >
-                    <Button 
-                      icon={<UploadOutlined />} 
+                    <Button
+                      icon={<UploadOutlined />}
                       loading={uploadingCover}
                       size="large"
                     >
@@ -350,8 +356,8 @@ const CreateArticlePage = () => {
                     name="coverImage"
                     noStyle
                   >
-                    <Input 
-                      size="large" 
+                    <Input
+                      size="large"
                       placeholder="https://example.com/image.jpg"
                       prefix={<PictureOutlined />}
                       onChange={(e) => setCoverImageUrl(e.target.value)}
@@ -362,12 +368,12 @@ const CreateArticlePage = () => {
             </Space>
           </Form.Item>
 
-          <Form.Item 
+          <Form.Item
             label={<Text strong>Содержание статьи</Text>}
             required
           >
-            <div style={{ 
-              border: '1px solid #d9d9d9', 
+            <div style={{
+              border: '1px solid #d9d9d9',
               borderRadius: 8,
               overflow: 'hidden'
             }}>
@@ -379,7 +385,7 @@ const CreateArticlePage = () => {
                 modules={modules}
                 formats={formats}
                 placeholder="Напишите вашу статью здесь..."
-                style={{ 
+                style={{
                   minHeight: 400,
                   backgroundColor: 'white'
                 }}
@@ -394,7 +400,7 @@ const CreateArticlePage = () => {
 
           <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
             <Text type="secondary" style={{ fontSize: 13 }}>
-              💡 Статья будет сохранена как черновик. Чтобы отправить её на модерацию, 
+              💡 Статья будет сохранена как черновик. Чтобы отправить её на модерацию,
               нажмите кнопку "Опубликовать" в списке ваших статей.
             </Text>
           </Space>

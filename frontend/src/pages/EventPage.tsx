@@ -261,7 +261,7 @@ const EventPage = () => {
               {!event.is_online && event.location && (
                 <div style={{ marginTop: 16 }}>
                   <Title level={5} style={{ marginBottom: 12 }}>Местоположение на карте</Title>
-                  <EventMap 
+                  <EventMap
                     location={event.location}
                     cityName={event.city_name}
                     eventTitle={event.title}
@@ -289,9 +289,15 @@ const EventPage = () => {
         {event.description && (
           <>
             <Title level={4}>Описание</Title>
-            <Paragraph style={{ fontSize: 16, whiteSpace: 'pre-wrap' }}>
-              {event.description}
-            </Paragraph>
+            <div
+              className="article-content"
+              style={{
+                fontSize: 16,
+                lineHeight: 1.8,
+                color: '#1d1d1f'
+              }}
+              dangerouslySetInnerHTML={{ __html: event.description }}
+            />
             <Divider />
           </>
         )}
