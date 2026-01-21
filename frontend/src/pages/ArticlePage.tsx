@@ -197,7 +197,7 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
   return (
     <div className="container" style={{
       maxWidth: 900,
-      paddingTop: embeddedArticleId ? 60 : 24,
+      paddingTop: embeddedArticleId ? (isMobile ? 0 : 60) : 24,
       paddingLeft: isMobile ? 0 : undefined,
       paddingRight: isMobile ? 0 : undefined
     }}>
@@ -214,7 +214,7 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
 
       <Card
         bordered={!embeddedArticleId && !isMobile}
-        styles={{ body: { padding: isMobile ? '16px 12px' : '24px' } }}
+        styles={{ body: { padding: isMobile ? '12px' : '24px' } }}
         style={{
           boxShadow: (embeddedArticleId || isMobile) ? 'none' : undefined,
           border: (embeddedArticleId || isMobile) ? 'none' : undefined,
@@ -306,6 +306,7 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
                 src={article.author_avatar || '/emp.jpg'}
                 icon={!article.author_avatar && <UserOutlined />}
                 size={56}
+                style={{ flexShrink: 0, objectFit: 'cover' }}
               />
               <div>
                 <Text strong style={{ fontSize: 16 }}>

@@ -7,11 +7,11 @@ interface LazyAvatarProps extends Omit<AvatarProps, 'src'> {
   defaultSrc?: string;
 }
 
-const LazyAvatar: React.FC<LazyAvatarProps> = ({ 
-  src, 
+const LazyAvatar: React.FC<LazyAvatarProps> = ({
+  src,
   defaultSrc = '/emp.jpg',
   icon = <UserOutlined />,
-  ...props 
+  ...props
 }) => {
   const [imageSrc, setImageSrc] = useState<string | undefined>(undefined);
   const [isInView, setIsInView] = useState(false);
@@ -59,7 +59,7 @@ const LazyAvatar: React.FC<LazyAvatarProps> = ({
   }, [isInView, src, defaultSrc]);
 
   return (
-    <div ref={avatarRef}>
+    <div ref={avatarRef} style={{ display: 'inline-flex', flexShrink: 0 }}>
       <Avatar
         {...props}
         src={imageSrc}

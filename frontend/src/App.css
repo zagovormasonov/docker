@@ -59,6 +59,20 @@ body {
   transform-origin: center bottom;
 }
 
+/* Ensure all avatars are perfectly circular and not squashed */
+.ant-avatar {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ant-avatar img {
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
