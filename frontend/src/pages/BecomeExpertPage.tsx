@@ -140,8 +140,13 @@ const BecomeExpertPage: React.FC = () => {
       }
     } else {
       // Платное становление экспертом через Юкассу
-      const plan = paymentPlans.find(p => p.id === selectedPlan);
+      let plan = paymentPlans.find(p => p.id === selectedPlan);
       if (!plan) return;
+
+      // Если это регистрация по реферальной ссылке и выбран годовой план - перезаписываем цену
+      if (fromRegistration && plan.id === 'yearly') {
+        plan = { ...plan, price: 400 };
+      }
 
       setLoading(true);
       try {
