@@ -82,7 +82,7 @@ const BecomeExpertPage: React.FC = () => {
               registrationData.email,
               registrationData.password,
               registrationData.name,
-              'expert',
+              'client',
               registrationData.referralCode
             );
           } catch (regError: any) {
@@ -101,7 +101,7 @@ const BecomeExpertPage: React.FC = () => {
             if (loginError.response?.status === 403) {
               Modal.success({
                 title: 'Регистрация успешна!',
-                content: 'Аккаунт создан. Пожалуйста, подтвердите свой email из письма, которое мы вам отправили, чтобы активировать аккаунт эксперта.',
+                content: 'Аккаунт создан. Пожалуйста, подтвердите свой email из письма, которое мы вам отправили. После подтверждения вы сможете стать экспертом по специальной цене.',
                 onOk: () => {
                   navigate('/login');
                 }
@@ -113,8 +113,8 @@ const BecomeExpertPage: React.FC = () => {
           }
 
           Modal.success({
-            title: 'Регистрация и активация эксперта успешны!',
-            content: 'Теперь вы зарегистрированы как эксперт. Проверьте email для подтверждения аккаунта.',
+            title: 'Регистрация успешна!',
+            content: 'Теперь вы зарегистрированы. Перейдите в профиль, чтобы продолжить.',
             onOk: () => {
               navigate('/profile');
             }
@@ -164,8 +164,9 @@ const BecomeExpertPage: React.FC = () => {
       let plan = paymentPlans.find(p => p.id === selectedPlan);
       if (!plan) return;
 
-      // Если это регистрация по реферальной ссылке и выбран годовой план - перезаписываем цену
-      if (fromRegistration && plan.id === 'yearly') {
+      // Если это реферальная ссылка и выбран годовой план - перезаписываем базовую цену на 400
+      const isReferredYearly = selectedPlan === 'yearly' && (user?.referredById || registrationData?.referralCode);
+      if (isReferredYearly) {
         plan = { ...plan, price: 400 };
       }
 
@@ -178,7 +179,7 @@ const BecomeExpertPage: React.FC = () => {
               registrationData.email,
               registrationData.password,
               registrationData.name,
-              'expert',
+              'client',
               registrationData.referralCode
             );
           } catch (regError: any) {
@@ -298,12 +299,13 @@ const BecomeExpertPage: React.FC = () => {
                   return true;
                 })
                 .map((originalPlan) => {
-                  // If from referral registration, force the price to be 400 (base base for discount)
-                  const plan = fromRegistration && originalPlan.id === 'yearly'
+                  const isReferredYearly = originalPlan.id === 'yearly' && (user?.referredById || registrationData?.referralCode);
+
+                  // If referred, force the base price to be 400
+                  const plan = isReferredYearly
                     ? { ...originalPlan, price: 400 }
                     : originalPlan;
 
-                  const isReferredYearly = plan.id === 'yearly' && (user?.referredById || registrationData?.referralCode);
                   const isVerified = user?.emailVerified;
                   const displayPrice = (isReferredYearly && isVerified) ? Math.max(0, plan.price - 300) : plan.price;
 

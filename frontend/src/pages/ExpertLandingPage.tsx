@@ -414,11 +414,11 @@ const ExpertLandingPage: React.FC = () => {
                 color: '#ffffff',
                 margin: '12px 0 8px 0'
               }}>
-                {user?.referredById ? (Math.max(0, 3369 - 300)).toLocaleString() : '3 369'}₽
+                {user?.referredById ? '100' : '3 369'}₽
               </div>
               {user?.referredById && (
                 <div style={{ color: 'white', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
-                  Скидка по приглашению -300₽ применится при оплате
+                  Специальная цена по приглашению! (100₽ вместо 400₽)
                 </div>
               )}
               <div style={{
@@ -434,7 +434,7 @@ const ExpertLandingPage: React.FC = () => {
                   color: 'rgba(255, 255, 255, 0.6)',
                   fontSize: 14
                 }}>
-                  9 480₽
+                  {user?.referredById ? '400₽' : '9 480₽'}
                 </span>
                 <span style={{
                   background: 'rgba(255, 255, 255, 0.2)',
@@ -461,7 +461,7 @@ const ExpertLandingPage: React.FC = () => {
                 type="primary"
                 size="large"
                 loading={loadingYearly}
-                onClick={() => handlePayment(3369, false)}
+                onClick={() => handlePayment(user?.referredById ? 400 : 3369, false)}
                 style={{
                   height: 48,
                   fontSize: 16,
