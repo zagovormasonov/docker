@@ -60,13 +60,6 @@ const BecomeExpertPage: React.FC = () => {
       duration: '365 дней',
       description: 'Полный доступ ко всем функциям эксперта на год',
       popular: true
-    },
-    {
-      id: 'lifetime',
-      name: 'Пожизненный доступ',
-      price: 3369,
-      duration: 'Навсегда',
-      description: 'Пожизненный доступ ко всем функциям эксперта'
     }
   ];
 
@@ -165,11 +158,7 @@ const BecomeExpertPage: React.FC = () => {
       let plan = paymentPlans.find(p => p.id === selectedPlan);
       if (!plan) return;
 
-      // Если это реферальная ссылка и выбран годовой план - перезаписываем базовую цену на 400
       const isReferredYearly = selectedPlan === 'yearly' && (user?.referredById || registrationData?.referralCode);
-      if (isReferredYearly) {
-        plan = { ...plan, price: 400 };
-      }
 
       setLoading(true);
       try {
@@ -301,11 +290,7 @@ const BecomeExpertPage: React.FC = () => {
                 })
                 .map((originalPlan) => {
                   const isReferredYearly = originalPlan.id === 'yearly' && (user?.referredById || registrationData?.referralCode);
-
-                  // If referred, force the base price to be 400
-                  const plan = isReferredYearly
-                    ? { ...originalPlan, price: 400 }
-                    : originalPlan;
+                  const plan = originalPlan;
 
                   const isVerified = user?.emailVerified;
                   const displayPrice = (isReferredYearly && isVerified) ? Math.max(0, plan.price - 300) : plan.price;
@@ -371,12 +356,12 @@ const BecomeExpertPage: React.FC = () => {
                                         fontSize: 14
                                       }}
                                     >
-                                      {plan.price === 400 ? '400 ₽' : '3499 ₽'}
+                                      {plan.price} ₽
                                     </Text>
                                     {isReferredYearly && (
                                       <div style={{ color: isVerified ? '#52c41a' : '#faad14', fontSize: 12 }}>
                                         {isVerified
-                                          ? 'Скидка по приглашению -300₽ (Итого: 100₽)'
+                                          ? `Скидка по приглашению -300₽ (Итого: ${displayPrice}₽)`
                                           : 'Подтвердите email, чтобы получить скидку 300₽'}
                                       </div>
                                     )}

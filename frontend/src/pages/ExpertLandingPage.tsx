@@ -414,11 +414,11 @@ const ExpertLandingPage: React.FC = () => {
                 color: '#ffffff',
                 margin: '12px 0 8px 0'
               }}>
-                {user?.referredById ? '100' : '3 369'}₽
+                {user?.referredById ? '3 069' : '3 369'}₽
               </div>
               {user?.referredById && (
                 <div style={{ color: 'white', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
-                  Специальная цена по приглашению! (100₽ вместо 400₽)
+                  Специальная цена по приглашению! (3 069₽ вместо 3 369₽)
                 </div>
               )}
               <div style={{
@@ -434,7 +434,7 @@ const ExpertLandingPage: React.FC = () => {
                   color: 'rgba(255, 255, 255, 0.6)',
                   fontSize: 14
                 }}>
-                  {user?.referredById ? '400₽' : '9 480₽'}
+                  9 480₽
                 </span>
                 <span style={{
                   background: 'rgba(255, 255, 255, 0.2)',
@@ -461,7 +461,7 @@ const ExpertLandingPage: React.FC = () => {
                 type="primary"
                 size="large"
                 loading={loadingYearly}
-                onClick={() => handlePayment(user?.referredById ? 400 : 3369, false)}
+                onClick={() => handlePayment(3369, false)}
                 style={{
                   height: 48,
                   fontSize: 16,

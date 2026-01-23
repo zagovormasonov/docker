@@ -882,7 +882,7 @@ const ProfilePage = () => {
                       <div style={{ marginTop: 16 }}>
                         <Text style={{ color: 'rgba(255, 255, 255, 0.7)', display: 'block', fontSize: 13 }}>Тариф:</Text>
                         <Text style={{ color: 'white', fontSize: 16, fontWeight: 600 }}>
-                          {user?.subscriptionPlan === 'yearly' ? 'Годовой' : user?.subscriptionPlan === 'monthly' ? 'Месячный' : 'Пожизненный'}
+                          {user?.subscriptionPlan === 'yearly' ? 'Годовой' : user?.subscriptionPlan === 'monthly' ? 'Месячный' : 'Не указан'}
                         </Text>
                       </div>
                       <div style={{ marginTop: 12 }}>
@@ -891,7 +891,7 @@ const ProfilePage = () => {
                           <CalendarOutlined style={{ marginRight: 6, fontSize: 14 }} />
                           {user?.subscriptionExpiresAt
                             ? new Date(user.subscriptionExpiresAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
-                            : 'Бессрочно'}
+                            : 'Дата не определена'}
                         </Text>
                       </div>
                     </div>
