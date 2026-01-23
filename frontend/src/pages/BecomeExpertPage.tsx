@@ -75,8 +75,8 @@ const BecomeExpertPage: React.FC = () => {
       // Бесплатное становление экспертом
       setLoading(true);
       try {
-        // Если есть данные регистрации, сначала регистрируем пользователя
-        if (registrationData) {
+        // Если есть данные регистрации и пользователь НЕ авторизован
+        if (registrationData && !user) {
           try {
             await register(
               registrationData.email,
@@ -86,7 +86,8 @@ const BecomeExpertPage: React.FC = () => {
               registrationData.referralCode
             );
           } catch (regError: any) {
-            if (regError.response?.status !== 409) {
+            // Если пользователь уже существует (400 или 409), просто продолжаем к логину
+            if (regError.response?.status !== 409 && regError.response?.status !== 400) {
               throw regError;
             }
           }
@@ -172,8 +173,8 @@ const BecomeExpertPage: React.FC = () => {
 
       setLoading(true);
       try {
-        // Если есть данные регистрации, сначала регистрируем пользователя
-        if (registrationData) {
+        // Если есть данные регистрации и пользователь НЕ авторизован
+        if (registrationData && !user) {
           try {
             await register(
               registrationData.email,
@@ -183,8 +184,8 @@ const BecomeExpertPage: React.FC = () => {
               registrationData.referralCode
             );
           } catch (regError: any) {
-            // Если пользователь уже существует, просто продолжаем к логину
-            if (regError.response?.status !== 409) {
+            // Если пользователь уже существует (400 или 409), просто продолжаем к логину
+            if (regError.response?.status !== 409 && regError.response?.status !== 400) {
               throw regError;
             }
           }

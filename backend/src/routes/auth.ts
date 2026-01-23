@@ -34,7 +34,7 @@ router.post(
       );
 
       if (existingUserByEmail.rows.length > 0) {
-        return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
+        return res.status(409).json({ error: 'Пользователь с таким email уже существует' });
       }
 
       // Проверка существования пользователя по имени
@@ -44,7 +44,7 @@ router.post(
       );
 
       if (existingUserByName.rows.length > 0) {
-        return res.status(400).json({ error: 'Пользователь с таким именем уже существует' });
+        return res.status(409).json({ error: 'Пользователь с таким именем уже существует' });
       }
 
       // Хеширование пароля
