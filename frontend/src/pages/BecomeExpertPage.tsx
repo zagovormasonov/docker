@@ -77,19 +77,40 @@ const BecomeExpertPage: React.FC = () => {
       try {
         // Если есть данные регистрации, сначала регистрируем пользователя
         if (registrationData) {
-          const result = await register(
-            registrationData.email,
-            registrationData.password,
-            registrationData.name,
-            'expert',
-            registrationData.referralCode
-          );
+          try {
+            await register(
+              registrationData.email,
+              registrationData.password,
+              registrationData.name,
+              'expert',
+              registrationData.referralCode
+            );
+          } catch (regError: any) {
+            if (regError.response?.status !== 409) {
+              throw regError;
+            }
+          }
 
           // Очищаем данные регистрации
           localStorage.removeItem('registrationData');
 
           // Автоматически авторизуем пользователя
-          await login(registrationData.email, registrationData.password);
+          try {
+            await login(registrationData.email, registrationData.password);
+          } catch (loginError: any) {
+            if (loginError.response?.status === 403) {
+              Modal.success({
+                title: 'Регистрация успешна!',
+                content: 'Аккаунт создан. Пожалуйста, подтвердите свой email из письма, которое мы вам отправили, чтобы активировать аккаунт эксперта.',
+                onOk: () => {
+                  navigate('/login');
+                }
+              });
+              setLoading(false);
+              return;
+            }
+            throw loginError;
+          }
 
           Modal.success({
             title: 'Регистрация и активация эксперта успешны!',
@@ -152,16 +173,39 @@ const BecomeExpertPage: React.FC = () => {
       try {
         // Если есть данные регистрации, сначала регистрируем пользователя
         if (registrationData) {
-          const result = await register(
-            registrationData.email,
-            registrationData.password,
-            registrationData.name,
-            'expert',
-            registrationData.referralCode
-          );
+          try {
+            await register(
+              registrationData.email,
+              registrationData.password,
+              registrationData.name,
+              'expert',
+              registrationData.referralCode
+            );
+          } catch (regError: any) {
+            // Если пользователь уже существует, просто продолжаем к логину
+            if (regError.response?.status !== 409) {
+              throw regError;
+            }
+          }
 
           // Автоматически авторизуем пользователя
-          await login(registrationData.email, registrationData.password);
+          try {
+            await login(registrationData.email, registrationData.password);
+          } catch (loginError: any) {
+            // Если email не подтвержден, показываем модальное окно
+            if (loginError.response?.status === 403) {
+              Modal.success({
+                title: 'Регистрация успешна!',
+                content: 'Аккаунт создан. Для получения скидки по реферальной ссылке и проведения оплаты, пожалуйста, подтвердите свой email из письма, которое мы вам отправили.',
+                onOk: () => {
+                  navigate('/login');
+                }
+              });
+              setLoading(false);
+              return;
+            }
+            throw loginError;
+          }
 
           // Очищаем данные регистрации
           localStorage.removeItem('registrationData');
@@ -260,7 +304,8 @@ const BecomeExpertPage: React.FC = () => {
                     : originalPlan;
 
                   const isReferredYearly = plan.id === 'yearly' && (user?.referredById || registrationData?.referralCode);
-                  const displayPrice = isReferredYearly ? Math.max(0, plan.price - 300) : plan.price;
+                  const isVerified = user?.emailVerified;
+                  const displayPrice = (isReferredYearly && isVerified) ? Math.max(0, plan.price - 300) : plan.price;
 
                   return (
                     <Radio key={plan.id} value={plan.id} style={{ width: '100%' }}>
@@ -326,8 +371,10 @@ const BecomeExpertPage: React.FC = () => {
                                       {plan.price === 400 ? '400 ₽' : '3499 ₽'}
                                     </Text>
                                     {isReferredYearly && (
-                                      <div style={{ color: '#52c41a', fontSize: 12 }}>
-                                        Скидка по приглашению -300₽ (Итого: 100₽)
+                                      <div style={{ color: isVerified ? '#52c41a' : '#faad14', fontSize: 12 }}>
+                                        {isVerified
+                                          ? 'Скидка по приглашению -300₽ (Итого: 100₽)'
+                                          : 'Подтвердите email, чтобы получить скидку 300₽'}
                                       </div>
                                     )}
                                   </div>

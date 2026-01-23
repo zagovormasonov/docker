@@ -118,11 +118,11 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
 
     // 1. Скидка по реферальной ссылке (300 руб для годовой подписки)
     const userDetails = await query(
-      'SELECT referred_by_id, bonuses FROM users WHERE id = $1',
+      'SELECT referred_by_id, bonuses, email_verified FROM users WHERE id = $1',
       [userId]
     );
 
-    if (userDetails.rows[0].referred_by_id && planId === 'yearly') {
+    if (userDetails.rows[0].referred_by_id && planId === 'yearly' && userDetails.rows[0].email_verified === true) {
       discountAmount = 300;
       finalAmount = Math.max(0, finalAmount - 300);
       discountReason = 'referral_discount';

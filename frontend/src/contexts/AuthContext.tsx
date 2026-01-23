@@ -22,6 +22,7 @@ interface User {
   referredById?: number;
   tabsOrder?: string[] | string;
   tabs_order?: string[] | string;
+  emailVerified?: boolean;
 }
 
 interface AuthContextType {

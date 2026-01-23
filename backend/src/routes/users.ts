@@ -11,7 +11,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const result = await query(
       `SELECT id, email, name, user_type, slug, avatar_url, bio, city, 
-       vk_url, telegram_url, whatsapp, consultation_types, referral_code, bonuses, referred_by_id, tabs_order, created_at 
+       vk_url, telegram_url, whatsapp, consultation_types, referral_code, bonuses, referred_by_id, tabs_order, created_at, email_verified 
        FROM users WHERE id = $1`,
       [req.userId]
     );
@@ -40,7 +40,8 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       bonuses: dbUser.bonuses || 0,
       referredById: dbUser.referred_by_id,
       tabsOrder: dbUser.tabs_order || ['photos', 'gallery'],
-      createdAt: dbUser.created_at
+      createdAt: dbUser.created_at,
+      emailVerified: dbUser.email_verified
     };
 
     // Получаем тематики для всех пользователей
@@ -238,7 +239,8 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
       bonuses: dbUser.bonuses || 0,
       referredById: dbUser.referred_by_id,
       tabsOrder: dbUser.tabs_order || ['photos', 'gallery'],
-      createdAt: dbUser.created_at
+      createdAt: dbUser.created_at,
+      emailVerified: dbUser.email_verified
     };
 
     res.json(user);
