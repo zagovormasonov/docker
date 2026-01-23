@@ -23,6 +23,9 @@ interface User {
   tabsOrder?: string[] | string;
   tabs_order?: string[] | string;
   emailVerified?: boolean;
+  subscriptionPlan?: string;
+  subscriptionExpiresAt?: string;
+  lastPaymentDate?: string;
 }
 
 interface AuthContextType {

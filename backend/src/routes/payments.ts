@@ -290,12 +290,15 @@ async function processSuccessfulPayment(payment: any) {
         subscriptionMessage = 'месячная';
       }
 
-      // Делаем пользователя экспертом и устанавливаем срок подписки
+      // Делаем пользователя экспертом и устанавливаем срок подписки (складываем с текущей датой окончания, если она в будущем)
       await query(
         `UPDATE users 
          SET user_type = $1, 
              subscription_plan = $2,
-             subscription_expires_at = CURRENT_TIMESTAMP + INTERVAL '${subscriptionInterval}',
+             subscription_expires_at = CASE 
+                WHEN subscription_expires_at > CURRENT_TIMESTAMP THEN subscription_expires_at + INTERVAL '${subscriptionInterval}'
+                ELSE CURRENT_TIMESTAMP + INTERVAL '${subscriptionInterval}'
+             END,
              last_payment_date = CURRENT_TIMESTAMP,
              updated_at = CURRENT_TIMESTAMP 
          WHERE id = $3`,
