@@ -414,7 +414,7 @@ const ExpertLandingPage: React.FC = () => {
                 color: '#ffffff',
                 margin: '12px 0 8px 0'
               }}>
-                {user?.referredById ? (Math.max(0, 400 - 300)).toLocaleString() : '400'}₽
+                {user?.referredById ? (Math.max(0, 3369 - 300)).toLocaleString() : '3 369'}₽
               </div>
               {user?.referredById && (
                 <div style={{ color: 'white', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
@@ -461,7 +461,7 @@ const ExpertLandingPage: React.FC = () => {
                 type="primary"
                 size="large"
                 loading={loadingYearly}
-                onClick={() => handlePayment(400, false)}
+                onClick={() => handlePayment(3369, false)}
                 style={{
                   height: 48,
                   fontSize: 16,

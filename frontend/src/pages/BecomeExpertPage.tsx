@@ -25,9 +25,10 @@ const BecomeExpertPage: React.FC = () => {
   const [registrationData, setRegistrationData] = useState<any>(null);
   const [useBonuses, setUseBonuses] = useState(false);
 
+  const fromRegistration = searchParams.get('from') === 'registration';
+
   useEffect(() => {
     // Проверяем, пришли ли мы с регистрации
-    const fromRegistration = searchParams.get('from') === 'registration';
     const planFromUrl = searchParams.get('plan');
 
     if (fromRegistration) {
@@ -55,7 +56,7 @@ const BecomeExpertPage: React.FC = () => {
     {
       id: 'yearly',
       name: 'Эксперт на год',
-      price: 400,
+      price: 3369,
       duration: '365 дней',
       description: 'Полный доступ ко всем функциям эксперта на год',
       popular: true
@@ -240,88 +241,100 @@ const BecomeExpertPage: React.FC = () => {
             style={{ width: '100%' }}
           >
             <Space direction="vertical" size={16} style={{ width: '100%' }}>
-              {paymentPlans.map((plan) => {
-                const isReferredYearly = plan.id === 'yearly' && user?.referredById;
-                const displayPrice = isReferredYearly ? Math.max(0, plan.price - 300) : plan.price;
+              {paymentPlans
+                .filter(plan => {
+                  if (fromRegistration) {
+                    return plan.id === 'yearly';
+                  }
+                  return true;
+                })
+                .map((originalPlan) => {
+                  // If from referral registration, force the price to be 400 (base base for discount)
+                  const plan = fromRegistration && originalPlan.id === 'yearly'
+                    ? { ...originalPlan, price: 400 }
+                    : originalPlan;
 
-                return (
-                  <Radio key={plan.id} value={plan.id} style={{ width: '100%' }}>
-                    <Card
-                      style={{
-                        width: '100%',
-                        border: selectedPlan === plan.id ? '2px solid #6366f1' : '1px solid #d9d9d9',
-                        background: plan.popular ? 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' : '#fff',
-                        position: 'relative'
-                      }}
-                    >
-                      {plan.popular && (
-                        <div style={{
-                          position: 'absolute',
-                          top: -8,
-                          right: 16,
-                          background: '#52c41a',
-                          color: 'white',
-                          padding: '4px 12px',
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 600
-                        }}>
-                          Популярный
-                        </div>
-                      )}
+                  const isReferredYearly = plan.id === 'yearly' && (user?.referredById || registrationData?.referralCode);
+                  const displayPrice = isReferredYearly ? Math.max(0, plan.price - 300) : plan.price;
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <Title level={4} style={{ margin: 0, color: '#1d1d1f' }}>
-                            {plan.name}
-                          </Title>
-                          <Text type="secondary">{plan.description}</Text>
-                          <div style={{ marginTop: 8 }}>
-                            <Text strong style={{ color: '#1d1d1f' }}>
-                              {displayPrice === 0 ? 'Бесплатно' : `${displayPrice} ₽`}
-                            </Text>
-                            <Text type="secondary" style={{ marginLeft: 8 }}>
-                              {plan.duration}
-                            </Text>
+                  return (
+                    <Radio key={plan.id} value={plan.id} style={{ width: '100%' }}>
+                      <Card
+                        style={{
+                          width: '100%',
+                          border: selectedPlan === plan.id ? '2px solid #6366f1' : '1px solid #d9d9d9',
+                          background: plan.popular ? 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' : '#fff',
+                          position: 'relative'
+                        }}
+                      >
+                        {plan.popular && (
+                          <div style={{
+                            position: 'absolute',
+                            top: -8,
+                            right: 16,
+                            background: '#52c41a',
+                            color: 'white',
+                            padding: '4px 12px',
+                            borderRadius: 12,
+                            fontSize: 12,
+                            fontWeight: 600
+                          }}>
+                            Популярный
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <Title level={4} style={{ margin: 0, color: '#1d1d1f' }}>
+                              {plan.name}
+                            </Title>
+                            <Text type="secondary">{plan.description}</Text>
+                            <div style={{ marginTop: 8 }}>
+                              <Text strong style={{ color: '#1d1d1f' }}>
+                                {displayPrice === 0 ? 'Бесплатно' : `${displayPrice} ₽`}
+                              </Text>
+                              <Text type="secondary" style={{ marginLeft: 8 }}>
+                                {plan.duration}
+                              </Text>
+                            </div>
+                          </div>
+
+                          <div style={{ textAlign: 'right' }}>
+                            {displayPrice === 0 ? (
+                              <Text style={{ fontSize: 24, fontWeight: 600, color: '#52c41a' }}>
+                                Бесплатно
+                              </Text>
+                            ) : (
+                              <div>
+                                <Text style={{ fontSize: 24, fontWeight: 600, color: '#1d1d1f' }}>
+                                  {displayPrice} ₽
+                                </Text>
+                                {(plan.id === 'yearly' || isReferredYearly) && (
+                                  <div style={{ marginTop: 4 }}>
+                                    <Text
+                                      style={{
+                                        textDecoration: 'line-through',
+                                        color: '#86868b',
+                                        fontSize: 14
+                                      }}
+                                    >
+                                      {plan.price === 400 ? '400 ₽' : '3499 ₽'}
+                                    </Text>
+                                    {isReferredYearly && (
+                                      <div style={{ color: '#52c41a', fontSize: 12 }}>
+                                        Скидка по приглашению -300₽ (Итого: 100₽)
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
-
-                        <div style={{ textAlign: 'right' }}>
-                          {displayPrice === 0 ? (
-                            <Text style={{ fontSize: 24, fontWeight: 600, color: '#52c41a' }}>
-                              Бесплатно
-                            </Text>
-                          ) : (
-                            <div>
-                              <Text style={{ fontSize: 24, fontWeight: 600, color: '#1d1d1f' }}>
-                                {displayPrice} ₽
-                              </Text>
-                              {(plan.id === 'yearly' || isReferredYearly) && (
-                                <div style={{ marginTop: 4 }}>
-                                  <Text
-                                    style={{
-                                      textDecoration: 'line-through',
-                                      color: '#86868b',
-                                      fontSize: 14
-                                    }}
-                                  >
-                                    {isReferredYearly ? `${plan.price} ₽` : '3499 ₽'}
-                                  </Text>
-                                  {isReferredYearly && (
-                                    <div style={{ color: '#52c41a', fontSize: 12 }}>
-                                      Скидка по приглашению -300₽ (Итого: 100₽)
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  </Radio>
-                );
-              })}
+                      </Card>
+                    </Radio>
+                  );
+                })}
             </Space>
           </Radio.Group>
 
