@@ -895,13 +895,13 @@ const ProfilePage = () => {
                     alignItems: 'center'
                   }}>
                     <Text style={{ color: 'white', flex: 1, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {`${window.location.origin}/register?ref=${user?.referralCode}`}
+                      {`${window.location.origin}/register?ref=${user?.referralCode}&plan=yearly`}
                     </Text>
                     <Button
                       size="small"
                       icon={<LinkOutlined />}
                       onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.referralCode}`);
+                        navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.referralCode}&plan=yearly`);
                         message.success('Ссылка скопирована!');
                       }}
                       style={{ background: 'white', border: 'none' }}
@@ -910,7 +910,7 @@ const ProfilePage = () => {
                     </Button>
                   </div>
                   <Text style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 12, display: 'block', marginTop: 8 }}>
-                    Друзья получат скидку 300₽ на годовую подписку, а вы — 300 бонусов на свой баланс
+                    Друзья получат скидку 300₽ на годовую подписку (итого 100₽ вместо 400₽), а вы — 300 бонусов на свой баланс
                   </Text>
                 </div>
               </Card>

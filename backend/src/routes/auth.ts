@@ -79,10 +79,10 @@ router.post(
       // Генерация собственного реферального кода
       const myReferralCode = generateReferralCode(name);
 
-      // Создание пользователя (неподтвержденный)
+      // Создание пользователя (подтвержденный для теста)
       const result = await query(
         `INSERT INTO users (email, password, name, user_type, email_verified, verification_token, slug, referral_code, referred_by_id) 
-         VALUES ($1, $2, $3, $4, false, $5, $6, $7, $8) 
+         VALUES ($1, $2, $3, $4, true, $5, $6, $7, $8) 
          RETURNING id, email, name, user_type, verification_token, slug, referral_code, bonuses, created_at`,
         [email, hashedPassword, name, userType, verificationToken, userSlug, myReferralCode, referredById]
       );

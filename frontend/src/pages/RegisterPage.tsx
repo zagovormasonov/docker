@@ -14,6 +14,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const referralCode = searchParams.get('ref') || '';
+  const plan = searchParams.get('plan') || '';
 
   const sendVerificationEmail = async (email: string, name: string, verificationToken: string) => {
     try {
@@ -45,12 +46,21 @@ const RegisterPage = () => {
   };
 
   const onFinish = async (values: any) => {
+    if (plan) {
+      // Если указан план, сохраняем данные и перенаправляем на страницу оплаты
+      localStorage.setItem('registrationData', JSON.stringify({
+        ...values,
+        referralCode
+      }));
+      navigate(`/become-expert?from=registration&plan=${plan}`);
+      return;
+    }
+
     // Обычная регистрация клиента
     setLoading(true);
     try {
       const result = await register(values.email, values.password, values.name, 'client', referralCode);
-
-      // Отправка email верификации
+      // ... rest of the existing code ...
       const emailSent = await sendVerificationEmail(
         result.user.email,
         result.user.name,
@@ -121,7 +131,8 @@ const RegisterPage = () => {
           }}>
             <Text strong style={{ color: '#0369a1', display: 'block' }}>🎁 Вам доступен бонус!</Text>
             <Text style={{ color: '#0c4a6e', fontSize: '13px' }}>
-              Скидка 300₽ на годовую подписку эксперта применится автоматически после регистрации.
+              Скидка 300₽ на годовую подписку эксперта применится автоматически.
+              {plan === 'yearly' ? ' Сейчас вы перейдете к оплате за 100₽.' : ''}
             </Text>
           </div>
         )}
@@ -201,7 +212,7 @@ const RegisterPage = () => {
               block
               style={{ height: 48 }}
             >
-              Зарегистрироваться
+              {plan ? 'Продолжить к оплате' : 'Зарегистрироваться'}
             </Button>
           </Form.Item>
 

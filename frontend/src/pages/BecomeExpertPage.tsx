@@ -55,7 +55,7 @@ const BecomeExpertPage: React.FC = () => {
     {
       id: 'yearly',
       name: 'Эксперт на год',
-      price: 990,
+      price: 400,
       duration: '365 дней',
       description: 'Полный доступ ко всем функциям эксперта на год',
       popular: true
@@ -80,7 +80,8 @@ const BecomeExpertPage: React.FC = () => {
             registrationData.email,
             registrationData.password,
             registrationData.name,
-            'expert'
+            'expert',
+            registrationData.referralCode
           );
 
           // Очищаем данные регистрации
@@ -149,7 +150,8 @@ const BecomeExpertPage: React.FC = () => {
             registrationData.email,
             registrationData.password,
             registrationData.name,
-            'expert'
+            'expert',
+            registrationData.referralCode
           );
 
           // Автоматически авторизуем пользователя
@@ -307,7 +309,7 @@ const BecomeExpertPage: React.FC = () => {
                                   </Text>
                                   {isReferredYearly && (
                                     <div style={{ color: '#52c41a', fontSize: 12 }}>
-                                      Скидка по приглашению -300₽
+                                      Скидка по приглашению -300₽ (Итого: 100₽)
                                     </div>
                                   )}
                                 </div>
