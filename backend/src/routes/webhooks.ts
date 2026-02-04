@@ -68,9 +68,9 @@ router.post('/n8n/events', async (req, res) => {
         const result = await query(
             `INSERT INTO events (
         title, description, cover_image, event_type, is_online, city_id,
-        event_date, location, price, registration_link,
+        event_date, location, price, registration_link, organizer_id,
         is_published, moderation_status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *`,
             [
                 title,
@@ -83,6 +83,7 @@ router.post('/n8n/events', async (req, res) => {
                 location || '',
                 price || '',
                 registrationLink || '',
+                adminId, // organizer_id
                 false, // is_published
                 'pending' // moderation_status
             ]
