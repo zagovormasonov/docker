@@ -44,6 +44,7 @@ import bookingsRoutes, { setIO as setBookingsIO } from './routes/bookings';
 import scheduleRoutes from './routes/schedule';
 import subscriptionCheckerRoutes from './routes/subscription-checker';
 import adminPinnedArticlesRoutes from './routes/admin-pinned-articles';
+import webhooksRoutes from './routes/webhooks';
 
 dotenv.config();
 
@@ -112,12 +113,15 @@ app.use('/api/schedule', scheduleRoutes);
 // Публичные страницы шаринга для соцсетей (с SSR OG-мета)
 app.use('/share', shareRoutes);
 
+// Вебхуки (n8n, платежи и т.д.)
+app.use('/api/webhooks', webhooksRoutes);
+
 // Socket.IO для чатов
 const userSockets = new Map<number, string>();
 
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
-  
+
   if (!token) {
     return next(new Error('Требуется авторизация'));
   }
@@ -204,13 +208,13 @@ const PORT = process.env.PORT || 3001;
 const startServer = async () => {
   try {
     await initDatabase();
-    
+
     // Передаем Socket.IO инстанс в модули, которым он нужен
     setBookingsIO(io);
-    
+
     // Запускаем cron job для ежедневной проверки подписок
     startSubscriptionCron();
-    
+
     httpServer.listen(PORT, () => {
       console.log(`🚀 Сервер запущен на порту ${PORT}`);
       console.log(`📊 Frontend URL: ${process.env.FRONTEND_URL}`);
