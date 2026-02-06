@@ -123,8 +123,20 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
     );
 
     if (userDetails.rows[0].referred_by_id && planId === 'yearly' && userDetails.rows[0].email_verified === true) {
-      discountAmount = 300;
-      finalAmount = Math.max(0, finalAmount - 300);
+      const referrerId = userDetails.rows[0].referred_by_id;
+
+      // Считаем сколько человек уже зарегистрировалось по ссылке этого пригласителя
+      const referralCountResult = await query(
+        'SELECT COUNT(*) FROM users WHERE referred_by_id = $1',
+        [referrerId]
+      );
+      const referralCount = parseInt(referralCountResult.rows[0].count || '0');
+
+      // Если более 3-х человек, то бонус 500, иначе 300
+      const currentBonusAmount = referralCount > 3 ? 500 : 300;
+
+      discountAmount = currentBonusAmount;
+      finalAmount = Math.max(0, finalAmount - currentBonusAmount);
       discountReason = 'referral_discount';
     }
 
@@ -316,18 +328,28 @@ async function processSuccessfulPayment(payment: any) {
       if (referralCheck.rows.length > 0 && referralCheck.rows[0].referred_by_id) {
         const referrerId = referralCheck.rows[0].referred_by_id;
 
-        // Антифрод: не начисляем самому себе (хотя referred_by_id не должен быть равен id)
+        // Антифрод: не начисляем самому себе
         if (referrerId !== payment.user_id) {
-          await query(
-            'UPDATE users SET bonuses = bonuses + 300 WHERE id = $1',
+          // Считаем сколько человек уже зарегистрировалось по ссылке этого пригласителя
+          const referralCountResult = await query(
+            'SELECT COUNT(*) FROM users WHERE referred_by_id = $1',
             [referrerId]
           );
-          console.log(`🎁 Начислено 300 бонусов пользователю ${referrerId} за приглашение ${payment.user_id}`);
+          const referralCount = parseInt(referralCountResult.rows[0].count || '0');
+
+          // Если более 3-х человек, то бонус 500, иначе 300
+          const currentBonusAmount = referralCount > 3 ? 500 : 300;
+
+          await query(
+            'UPDATE users SET bonuses = bonuses + $1 WHERE id = $2',
+            [currentBonusAmount, referrerId]
+          );
+          console.log(`🎁 Начислено ${currentBonusAmount} бонусов пользователю ${referrerId} за приглашение ${payment.user_id} (всего рефералов: ${referralCount})`);
 
           await query(
             `INSERT INTO notifications (user_id, type, title, message, created_at) 
              VALUES ($1, 'bonus_received', 'Начислены бонусы!', $2, CURRENT_TIMESTAMP)`,
-            [referrerId, `Вам начислено 300 бонусов за регистрацию и оплату подписки вашим другом!`]
+            [referrerId, `Вам начислено ${currentBonusAmount} бонусов за регистрацию и оплату подписки вашим другом!`]
           );
         }
       }
