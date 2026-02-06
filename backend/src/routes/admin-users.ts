@@ -19,7 +19,7 @@ const requireAdmin = (req: any, res: any, next: any) => {
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     console.log('🔍 Запрос пользователей для админа');
-    
+
     // Проверяем, существует ли таблица users
     const tableCheck = await query(`
       SELECT EXISTS (
@@ -27,13 +27,13 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
         WHERE table_name = 'users'
       );
     `);
-    
+
     console.log('📊 Таблица users существует:', tableCheck.rows[0].exists);
-    
+
     if (!tableCheck.rows[0].exists) {
       return res.json({ success: true, users: [] });
     }
-    
+
     // Получаем всех пользователей
     const result = await query(`
       SELECT 
@@ -47,7 +47,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
       FROM users
       ORDER BY id DESC
     `);
-    
+
     console.log('✅ Пользователи загружены:', result.rows.length);
     res.json({ success: true, users: result.rows });
   } catch (error) {
@@ -82,17 +82,33 @@ router.put('/:id/expert-status', authenticateToken, requireAdmin, [
 
     const user = userResult.rows[0];
 
-    // Обновляем тип пользователя
-    await query(`
-      UPDATE users 
-      SET user_type = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-    `, [userType, id]);
+    // Обновляем тип пользователя и устанавливаем срок подписки на 1 год, если назначен эксперт
+    if (userType === 'expert') {
+      await query(`
+        UPDATE users 
+        SET user_type = $1, 
+            subscription_plan = 'yearly',
+            subscription_expires_at = CURRENT_TIMESTAMP + INTERVAL '1 year',
+            last_payment_date = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+      `, [userType, id]);
+    } else {
+      // Если статус эксперта снимается, очищаем данные подписки
+      await query(`
+        UPDATE users 
+        SET user_type = $1, 
+            subscription_plan = NULL,
+            subscription_expires_at = NULL,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+      `, [userType, id]);
+    }
 
     console.log(`✅ Пользователь ${user.name} (ID: ${id}) изменен на тип: ${userType}`);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Пользователь ${userType === 'expert' ? 'назначен' : 'лишен'} статуса эксперта`,
       user: {
         id: parseInt(id),
@@ -112,7 +128,7 @@ router.put('/:id/expert-status', authenticateToken, requireAdmin, [
 router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const result = await query(`
       SELECT 
         id,
@@ -159,9 +175,9 @@ router.put('/:id/admin-rights', authenticateToken, requireAdmin, async (req: Aut
 
     // Запрещаем изменять права самому себе
     if (parseInt(id) === req.userId) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Вы не можете изменить свои собственные права администратора' 
+      return res.status(403).json({
+        success: false,
+        message: 'Вы не можете изменить свои собственные права администратора'
       });
     }
 
@@ -183,7 +199,7 @@ router.put('/:id/admin-rights', authenticateToken, requireAdmin, async (req: Aut
       entityType: 'user',
       entityId: parseInt(id),
       entityTitle: user.name,
-      details: { 
+      details: {
         action: grantAdmin ? 'grant_admin' : 'revoke_admin',
         old_type: user.user_type,
         new_type: newUserType,
@@ -194,10 +210,10 @@ router.put('/:id/admin-rights', authenticateToken, requireAdmin, async (req: Aut
 
     console.log(`✅ Пользователь ${user.name} (ID: ${id}): права администратора ${grantAdmin ? 'выданы' : 'отозваны'}`);
 
-    res.json({ 
-      success: true, 
-      message: grantAdmin 
-        ? `Пользователь ${user.name} назначен администратором` 
+    res.json({
+      success: true,
+      message: grantAdmin
+        ? `Пользователь ${user.name} назначен администратором`
         : `У пользователя ${user.name} отозваны права администратора`,
       user: {
         id: parseInt(id),
@@ -248,7 +264,7 @@ router.put('/:id/unban', authenticateToken, requireAdmin, async (req: AuthReques
       entityType: 'user',
       entityId: parseInt(id),
       entityTitle: user.name,
-      details: { 
+      details: {
         action: 'unban',
         email: user.email
       },
@@ -257,8 +273,8 @@ router.put('/:id/unban', authenticateToken, requireAdmin, async (req: AuthReques
 
     console.log(`✅ Пользователь ${user.name} (ID: ${id}) удален из черного списка`);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Пользователь ${user.name} удален из черного списка`,
       user: {
         id: parseInt(id),
@@ -324,7 +340,7 @@ router.put('/:id/change-password', authenticateToken, requireAdmin, [
       entityType: 'user',
       entityId: parseInt(id),
       entityTitle: user.name,
-      details: { 
+      details: {
         action: 'change_password',
         email: user.email
       },
@@ -333,8 +349,8 @@ router.put('/:id/change-password', authenticateToken, requireAdmin, [
 
     console.log(`✅ Пароль пользователя ${user.name} (ID: ${id}) изменен администратором`);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Пароль пользователя ${user.name} успешно изменен`
     });
 
