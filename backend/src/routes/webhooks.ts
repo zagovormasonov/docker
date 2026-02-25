@@ -227,4 +227,4 @@ router.post('/n8n/article', async (req, res) => {
     }
 });
 
-export default router;
+export default router; 
