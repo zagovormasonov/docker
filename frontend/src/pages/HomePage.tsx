@@ -244,7 +244,7 @@ const HomePage = () => {
             color: 'rgb(99, 102, 241)',
             letterSpacing: '-0.03em'
           }}>
-            SoulSynergy
+            SoulSynergy — Синергия душ
           </h1>
 
           <Text style={{

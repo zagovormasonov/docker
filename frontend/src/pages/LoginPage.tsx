@@ -42,7 +42,7 @@ const LoginPage = () => {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ marginBottom: 8 }}>Вход в SoulSynergy</Title>
+          <Title level={2} style={{ marginBottom: 8 }}>Вход в SoulSynergy — Синергия душ</Title>
           <Text type="secondary">Добро пожаловать обратно!</Text>
         </div>
 

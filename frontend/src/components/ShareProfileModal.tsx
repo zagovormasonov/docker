@@ -25,7 +25,7 @@ interface ShareProfileModalProps {
 const ShareProfileModal: React.FC<ShareProfileModalProps> = ({ visible, onClose, expert }) => {
   console.log('ShareProfileModal opened with expert:', expert);
   console.log('Custom socials:', expert.customSocials);
-  
+
   const profileUrl = `${window.location.origin}/experts/${expert.slug || expert.id}`;
 
   const contactsText = [];
@@ -49,7 +49,7 @@ ${contactsText.length > 0 ? `📞 Контакты:\n${contactsText.join('\n')}`
 
 🔗 Профиль: ${profileUrl}
 
-SoulSynergy - пространство совместного духовного развития`;
+SoulSynergy — Синергия душ — пространство совместного духовного развития`;
 
   const handleCopyLink = async () => {
     try {
@@ -111,7 +111,7 @@ SoulSynergy - пространство совместного духовного
         padding: 'clamp(20px, 5vw, 40px) clamp(15px, 4vw, 30px) clamp(15px, 4vw, 30px) clamp(15px, 4vw, 30px)',
         borderRadius: '8px 8px 0 0'
       }}>
-        <div style={{ 
+        <div style={{
           textAlign: 'center',
           background: 'white',
           borderRadius: 16,
@@ -145,10 +145,10 @@ SoulSynergy - пространство совместного духовного
 
           {/* Описание */}
           {expert.bio && (
-            <Paragraph 
-              style={{ 
-                fontSize: 15, 
-                color: '#666', 
+            <Paragraph
+              style={{
+                fontSize: 15,
+                color: '#666',
                 marginBottom: 20,
                 lineHeight: 1.6
               }}
@@ -165,10 +165,10 @@ SoulSynergy - пространство совместного духовного
               </Text>
               <Space wrap size={[8, 8]}>
                 {expert.topics.slice(0, 5).map((topic) => (
-                  <Tag 
-                    key={topic.id} 
+                  <Tag
+                    key={topic.id}
                     color="purple"
-                    style={{ 
+                    style={{
                       fontSize: 13,
                       padding: '4px 12px',
                       borderRadius: 12
@@ -253,7 +253,7 @@ SoulSynergy - пространство совместного духовного
                 icon={<CopyOutlined />}
                 onClick={handleCopyLink}
                 className="share-button"
-                style={{ 
+                style={{
                   flex: 1,
                   height: 48,
                   minWidth: 0
@@ -266,7 +266,7 @@ SoulSynergy - пространство совместного духовного
                 icon={<CopyOutlined />}
                 onClick={handleCopyAll}
                 className="share-button"
-                style={{ 
+                style={{
                   flex: 1,
                   height: 48,
                   minWidth: 0
@@ -285,14 +285,14 @@ SoulSynergy - пространство совместного духовного
             color: '#999',
             fontSize: 13
           }}>
-            <div style={{ 
-              fontWeight: 600, 
+            <div style={{
+              fontWeight: 600,
               color: '#6366f1',
               marginBottom: 4
             }}>
-              SoulSynergy
+              SoulSynergy — Синергия душ
             </div>
-            <div>Пространство совместного духовного развития</div>
+            <div>Синергия душ — пространство совместного духовного развития</div>
           </div>
         </div>
       </div>

@@ -359,7 +359,7 @@ const Header = () => {
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
             <img
               src="/logo.png"
-              alt="SoulSynergy Logo"
+              alt="SoulSynergy — Синергия душ Logo"
               style={{
                 height: '48px',
                 width: '48px',
@@ -372,7 +372,7 @@ const Header = () => {
               color: 'rgb(99, 102, 241)',
               letterSpacing: '-0.5px'
             }}>
-              SoulSynergy
+              SoulSynergy — Синергия душ
             </div>
           </Link>
 
@@ -601,7 +601,7 @@ const Header = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <img
                 src="/logo.png"
-                alt="SoulSynergy Logo"
+                alt="SoulSynergy — Синергия душ Logo"
                 style={{
                   height: '58px',
                   width: '58px',
@@ -613,7 +613,7 @@ const Header = () => {
                 fontWeight: 700,
                 color: 'rgb(99, 102, 241)'
               }}>
-                SoulSynergy
+                SoulSynergy — Синергия душ
               </span>
             </div>
             <Button

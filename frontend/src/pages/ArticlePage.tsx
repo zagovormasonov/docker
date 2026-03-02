@@ -81,7 +81,7 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
       setLikesCount(response.data.likes_count || 0);
       // Обновляем заголовок и базовые мета-теги
       try {
-        document.title = `${response.data.title} — SoulSynergy`;
+        document.title = `${response.data.title} — SoulSynergy — Синергия душ`;
         const setTag = (name: string, content: string) => {
           if (!content) return;
           let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;

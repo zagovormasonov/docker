@@ -33,7 +33,7 @@ const RegisterPage = () => {
           to_name: name,
           verification_url: verificationUrl,
           verification_token: verificationToken,
-          app_name: 'SoulSynergy'
+          app_name: 'SoulSynergy — Синергия душ'
         },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
@@ -117,7 +117,7 @@ const RegisterPage = () => {
       >
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <Title level={2} style={{ margin: 0, fontWeight: 700, color: '#1a1a1a' }}>Регистрация</Title>
-          <Text style={{ color: '#666', fontSize: '15px' }}>Присоединяйтесь к сообществу Soul Synergy</Text>
+          <Text style={{ color: '#666', fontSize: '15px' }}>Присоединяйтесь к сообществу SoulSynergy — Синергия душ</Text>
         </div>
 
         {referralCode && (

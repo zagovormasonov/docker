@@ -14,7 +14,7 @@ const ForgotPasswordPage = () => {
   const sendResetEmail = async (email: string, name: string, resetToken: string) => {
     try {
       const resetUrl = `${window.location.origin}/reset-password?token=${resetToken}`;
-      
+
       await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID,
@@ -22,11 +22,11 @@ const ForgotPasswordPage = () => {
           to_email: email,
           to_name: name,
           reset_url: resetUrl,
-          app_name: 'SoulSynergy'
+          app_name: 'SoulSynergy — Синергия душ'
         },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
-      
+
       return true;
     } catch (error) {
       console.error('Ошибка отправки email:', error);
@@ -37,10 +37,10 @@ const ForgotPasswordPage = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      const response = await api.post('/auth/forgot-password', { 
-        email: values.email 
+      const response = await api.post('/auth/forgot-password', {
+        email: values.email
       });
-      
+
       // Отправка email через EmailJS
       if (response.data.user) {
         const emailSuccess = await sendResetEmail(
@@ -48,7 +48,7 @@ const ForgotPasswordPage = () => {
           response.data.user.name,
           response.data.user.resetToken
         );
-        
+
         if (emailSuccess) {
           setEmailSent(true);
         } else {

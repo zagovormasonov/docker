@@ -45,7 +45,7 @@ router.get('/articles/:id', async (req, res) => {
       : `${hostBase}${rawCover.startsWith('/') ? '' : '/'}${rawCover}`;
 
     const spaUrl = `${frontendUrl}/articles/${article.id}`;
-    const pageTitle = `${article.title} — SoulSynergy`;
+    const pageTitle = `${article.title} — SoulSynergy — Синергия душ`;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(`<!doctype html>
@@ -133,7 +133,7 @@ router.get('/events/:id', async (req, res) => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${event.title} — Событие — SoulSynergy</title>
+  <title>${event.title} — Событие — SoulSynergy — Синергия душ</title>
   <meta name="description" content="${description}">
   <meta property="og:title" content="${event.title}">
   <meta property="og:description" content="${description}">
