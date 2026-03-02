@@ -366,13 +366,25 @@ const Header = () => {
                 objectFit: 'contain'
               }}
             />
-            <div style={{
-              fontSize: '22px',
-              fontWeight: 600,
-              color: 'rgb(99, 102, 241)',
-              letterSpacing: '-0.5px'
-            }}>
-              SoulSynergy — Синергия душ
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <div style={{
+                fontSize: '22px',
+                fontWeight: 600,
+                color: 'rgb(99, 102, 241)',
+                letterSpacing: '-0.5px'
+              }}>
+                SoulSynergy
+              </div>
+              <div style={{
+                fontSize: '11px',
+                fontWeight: 400,
+                color: 'rgb(99, 102, 241)',
+                opacity: 0.8,
+                textTransform: 'lowercase',
+                letterSpacing: '0.5px'
+              }}>
+                синергия душ
+              </div>
             </div>
           </Link>
 
@@ -608,13 +620,25 @@ const Header = () => {
                   objectFit: 'contain'
                 }}
               />
-              <span style={{
-                fontSize: '20px',
-                fontWeight: 700,
-                color: 'rgb(99, 102, 241)'
-              }}>
-                SoulSynergy — Синергия душ
-              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+                <span style={{
+                  fontSize: '20px',
+                  fontWeight: 700,
+                  color: 'rgb(99, 102, 241)'
+                }}>
+                  SoulSynergy
+                </span>
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: 400,
+                  color: 'rgb(99, 102, 241)',
+                  opacity: 0.8,
+                  textTransform: 'lowercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  синергия душ
+                </span>
+              </div>
             </div>
             <Button
               type="text"

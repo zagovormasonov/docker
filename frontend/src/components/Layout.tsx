@@ -34,7 +34,10 @@ const Layout = () => {
       {!isChatsRoute && (
         <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0', padding: '24px 0' }}>
           <Space direction="vertical" size="small">
-            <Text>SoulSynergy — Синергия душ © 2025 — Синергия в единстве</Text>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontWeight: 600, color: 'rgb(99, 102, 241)', fontSize: '16px' }}>SoulSynergy</div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'lowercase', marginTop: -2, letterSpacing: '1px' }}>синергия душ</div>
+            </div>
             <Space size="large">
               <Link to="/offer" style={{ color: '#666', textDecoration: 'none' }}>
                 Публичная оферта

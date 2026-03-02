@@ -236,16 +236,29 @@ const HomePage = () => {
         }} />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <h1 style={{
-            fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
-            fontWeight: 400,
-            lineHeight: 1.3,
-            margin: '0 0 16px',
-            color: 'rgb(99, 102, 241)',
-            letterSpacing: '-0.03em'
-          }}>
-            SoulSynergy — Синергия душ
-          </h1>
+          <div style={{ marginBottom: 16 }}>
+            <h1 style={{
+              fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
+              fontWeight: 400,
+              lineHeight: 1,
+              margin: 0,
+              color: 'rgb(99, 102, 241)',
+              letterSpacing: '-0.03em'
+            }}>
+              SoulSynergy
+            </h1>
+            <div style={{
+              fontSize: 'clamp(1rem, 3vw, 1.5rem)',
+              fontWeight: 300,
+              color: 'rgb(99, 102, 241)',
+              opacity: 0.7,
+              textTransform: 'lowercase',
+              marginTop: 8,
+              letterSpacing: '2px'
+            }}>
+              синергия душ
+            </div>
+          </div>
 
           <Text style={{
             display: 'block',
