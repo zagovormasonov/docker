@@ -132,8 +132,15 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
       );
       const referralCount = parseInt(referralCountResult.rows[0].count || '0');
 
-      // Если более 3-х человек, то бонус 500, иначе 300
-      const currentBonusAmount = referralCount > 3 ? 500 : 300;
+      // Распределение по реферальной системе: 3 человека 10%, 10 человек 20%, 30 человек 30%
+      let discountPercent = 10; // по умолчанию 10% (в т.ч. для первых 3-х)
+      if (referralCount >= 30) {
+        discountPercent = 30;
+      } else if (referralCount >= 10) {
+        discountPercent = 20;
+      }
+
+      const currentBonusAmount = Math.round(finalAmount * (discountPercent / 100));
 
       discountAmount = currentBonusAmount;
       finalAmount = Math.max(0, finalAmount - currentBonusAmount);
@@ -337,8 +344,16 @@ async function processSuccessfulPayment(payment: any) {
           );
           const referralCount = parseInt(referralCountResult.rows[0].count || '0');
 
-          // Если более 3-х человек, то бонус 500, иначе 300
-          const currentBonusAmount = referralCount > 3 ? 500 : 300;
+          // Распределение по реферальной системе: 3 человека 10%, 10 человек 20%, 30 человек 30%
+          let bonusPercent = 10;
+          if (referralCount >= 30) {
+            bonusPercent = 30;
+          } else if (referralCount >= 10) {
+            bonusPercent = 20;
+          }
+
+          // Начисляем % от финальной суммы (с учетом скидки, которая была применена), или от базовой суммы? payment.amount содержит сумму после скидки
+          const currentBonusAmount = Math.round(payment.amount * (bonusPercent / 100));
 
           await query(
             'UPDATE users SET bonuses = bonuses + $1 WHERE id = $2',

@@ -293,7 +293,10 @@ const BecomeExpertPage: React.FC = () => {
                   const plan = originalPlan;
 
                   const isVerified = user?.emailVerified;
-                  const displayPrice = (isReferredYearly && isVerified) ? Math.max(0, plan.price - 300) : plan.price;
+                  // Поскольку точная скидка теперь зависит от уровня пригласившего (от 10% до 30%), 
+                  // мы не можем точно показать ее здесь до создания платежа. 
+                  // Для интерфейса покажем базовую цену, но укажем, что будет применена скидка.
+                  const displayPrice = plan.price;
 
                   return (
                     <Radio key={plan.id} value={plan.id} style={{ width: '100%' }}>
@@ -347,24 +350,13 @@ const BecomeExpertPage: React.FC = () => {
                                 <Text style={{ fontSize: 24, fontWeight: 600, color: '#1d1d1f' }}>
                                   {displayPrice} ₽
                                 </Text>
-                                {(plan.id === 'yearly' || isReferredYearly) && (
+                                {(isReferredYearly) && (
                                   <div style={{ marginTop: 4 }}>
-                                    <Text
-                                      style={{
-                                        textDecoration: 'line-through',
-                                        color: '#86868b',
-                                        fontSize: 14
-                                      }}
-                                    >
-                                      {plan.price} ₽
-                                    </Text>
-                                    {isReferredYearly && (
-                                      <div style={{ color: isVerified ? '#52c41a' : '#faad14', fontSize: 12 }}>
-                                        {isVerified
-                                          ? `Скидка по приглашению -300₽ (Итого: ${displayPrice}₽)`
-                                          : 'Подтвердите email, чтобы получить скидку 300₽'}
-                                      </div>
-                                    )}
+                                    <div style={{ color: isVerified ? '#52c41a' : '#faad14', fontSize: 12 }}>
+                                      {isVerified
+                                        ? `Применится скидка по приглашению`
+                                        : 'Подтвердите email, чтобы получить скидку'}
+                                    </div>
                                   </div>
                                 )}
                               </div>
