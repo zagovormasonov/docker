@@ -166,7 +166,7 @@ const MyArticlesPage = () => {
                 cover={
                   article.cover_image ? (
                     <div style={{ height: 200, overflow: 'hidden', cursor: 'pointer' }}
-                         onClick={() => navigate(`/articles/${article.id}`)}>
+                      onClick={() => navigate(`/articles/${article.id}`)}>
                       <img
                         src={article.cover_image}
                         alt={article.title}
@@ -174,7 +174,7 @@ const MyArticlesPage = () => {
                       />
                     </div>
                   ) : (
-                    <div 
+                    <div
                       style={{
                         height: 200,
                         background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
@@ -194,8 +194,8 @@ const MyArticlesPage = () => {
               >
                 <Space direction="vertical" size={12} style={{ width: '100%', flex: 1 }}>
                   {/* Заголовок */}
-                  <Title 
-                    level={4} 
+                  <Title
+                    level={4}
                     style={{ margin: 0, cursor: 'pointer' }}
                     onClick={() => navigate(`/articles/${article.id}`)}
                   >
@@ -239,7 +239,7 @@ const MyArticlesPage = () => {
                   </div>
 
                   {/* Превью текста */}
-                  <div style={{ 
+                  <div style={{
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
@@ -305,6 +305,7 @@ const MyArticlesPage = () => {
                         icon={<FolderOpenOutlined />}
                         onClick={() => handleUnarchive(article.id)}
                         size="small"
+                        style={{ color: '#fa8c16', borderColor: '#ffd591', background: '#fff7e6' }}
                       >
                         Из архива
                       </Button>

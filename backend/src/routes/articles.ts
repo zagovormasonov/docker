@@ -45,11 +45,15 @@ router.post('/:id/archive', authenticateToken, async (req: AuthRequest, res) => 
     const { id } = req.params;
     const userId = req.userId;
 
-    // Проверяем, что статья принадлежит пользователю
-    const articleResult = await query(
-      'SELECT * FROM articles WHERE id = $1 AND author_id = $2',
-      [id, userId]
-    );
+    const userResult = await query('SELECT user_type FROM users WHERE id = $1', [userId]);
+    const userType = userResult.rows[0]?.user_type;
+
+    let articleResult;
+    if (userType === 'admin') {
+      articleResult = await query('SELECT id FROM articles WHERE id = $1', [id]);
+    } else {
+      articleResult = await query('SELECT id FROM articles WHERE id = $1 AND author_id = $2', [id, userId]);
+    }
 
     if (articleResult.rows.length === 0) {
       return res.status(404).json({ error: 'Статья не найдена или у вас нет прав на её редактирование' });
@@ -74,11 +78,15 @@ router.post('/:id/unarchive', authenticateToken, async (req: AuthRequest, res) =
     const { id } = req.params;
     const userId = req.userId;
 
-    // Проверяем, что статья принадлежит пользователю
-    const articleResult = await query(
-      'SELECT * FROM articles WHERE id = $1 AND author_id = $2',
-      [id, userId]
-    );
+    const userResult = await query('SELECT user_type FROM users WHERE id = $1', [userId]);
+    const userType = userResult.rows[0]?.user_type;
+
+    let articleResult;
+    if (userType === 'admin') {
+      articleResult = await query('SELECT id FROM articles WHERE id = $1', [id]);
+    } else {
+      articleResult = await query('SELECT id FROM articles WHERE id = $1 AND author_id = $2', [id, userId]);
+    }
 
     if (articleResult.rows.length === 0) {
       return res.status(404).json({ error: 'Статья не найдена или у вас нет прав на её редактирование' });
@@ -101,7 +109,7 @@ router.post('/:id/unarchive', authenticateToken, async (req: AuthRequest, res) =
 router.get('/author/:authorId', async (req, res) => {
   try {
     const { authorId } = req.params;
-    
+
     const result = await query(
       `SELECT a.*, u.id as author_id, u.name as author_name, u.avatar_url as author_avatar,
        COALESCE(a.likes_count, 0) as likes_count
@@ -292,7 +300,7 @@ router.post(
       const article = result.rows[0];
 
       // НЕ отправляем уведомление администратору при создании черновика
-      
+
       res.status(201).json({
         ...article,
         message: 'Статья сохранена как черновик. Нажмите "Опубликовать" для отправки на модерацию.'
@@ -327,10 +335,10 @@ router.put(
       }
 
       const article = currentArticle.rows[0];
-      console.log('📄 Текущая статья:', { 
-        id: article.id, 
-        moderation_status: article.moderation_status, 
-        is_published: article.is_published 
+      console.log('📄 Текущая статья:', {
+        id: article.id,
+        moderation_status: article.moderation_status,
+        is_published: article.is_published
       });
 
       // Обновляем статью БЕЗ изменения статуса модерации
@@ -417,29 +425,29 @@ router.post(
 
         if (adminResult.rows.length > 0) {
           const admin = adminResult.rows[0];
-          
+
           // Создаем или находим чат с администратором
           let chatResult = await query(
             'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
             [req.userId, admin.id]
           );
-          
+
           if (chatResult.rows.length === 0) {
             chatResult = await query(
               'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
               [req.userId, admin.id]
             );
           }
-          
+
           const chatId = chatResult.rows[0].id;
-          
+
           // Отправляем уведомление о статье на модерацию
           await query(
             `INSERT INTO messages (chat_id, sender_id, content, is_read) 
              VALUES ($1, $2, $3, false)`,
             [chatId, req.userId, `📝 Статья отправлена на модерацию:\n\n📌 Название: ${article.title}\n\n📄 Содержание:\n${article.content.substring(0, 500)}${article.content.length > 500 ? '...' : ''}\n\n🔗 ID статьи: ${article.id}`]
           );
-          
+
           console.log('📨 Уведомление администратору отправлено');
         }
       } catch (notificationError) {

@@ -45,6 +45,7 @@ interface Article {
   likes_count: number;
   created_at: string;
   updated_at: string;
+  archived?: boolean;
 }
 
 const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
@@ -239,16 +240,49 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
             {article.title}
           </Title>
 
-          {isAuthor && (
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/edit-article/${article.id}`)}
-              style={{ marginBottom: 16 }}
-            >
-              Редактировать
-            </Button>
-          )}
+          <Space style={{ marginBottom: 16, flexWrap: 'wrap' }}>
+            {isAuthor && (
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => navigate(`/edit-article/${article.id}`)}
+              >
+                Редактировать
+              </Button>
+            )}
+            {(user?.userType === 'admin' || isAuthor) && (
+              article.archived ? (
+                <Button
+                  onClick={async () => {
+                    try {
+                      await api.post(`/articles/${article.id}/unarchive`);
+                      message.success('Статья разархивирована');
+                      fetchArticle();
+                    } catch (e) {
+                      message.error('Ошибка разархивирования');
+                    }
+                  }}
+                  style={{ color: '#fa8c16', borderColor: '#ffd591', background: '#fff7e6' }}
+                >
+                  Из архива
+                </Button>
+              ) : (
+                <Button
+                  onClick={async () => {
+                    try {
+                      await api.post(`/articles/${article.id}/archive`);
+                      message.success('Статья в архиве');
+                      fetchArticle();
+                    } catch (e) {
+                      message.error('Ошибка архивации');
+                    }
+                  }}
+                >
+                  В архив
+                </Button>
+              )
+            )}
+          </Space>
         </div>
 
         <Space size="middle" style={{ marginBottom: 24, width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>

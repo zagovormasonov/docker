@@ -260,15 +260,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          <Text style={{
-            display: 'block',
-            fontSize: '1.25rem',
-            fontWeight: 400,
-            color: 'rgb(30, 27, 75)',
-            marginBottom: 8
-          }}>
-            Платформа развития и синергии
-          </Text>
+
 
           <div style={{ height: 32, marginBottom: 48, display: 'flex', justifyContent: 'center' }}>
             <AnimatedText
