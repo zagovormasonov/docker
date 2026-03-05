@@ -4,7 +4,7 @@ import {
   Card, List, Tag, Button, Space, Typography, Empty, Spin, Modal, Checkbox, Select, DatePicker, Divider
 } from 'antd';
 import {
-  CalendarOutlined, EnvironmentOutlined, FilterOutlined, PlusOutlined, 
+  CalendarOutlined, EnvironmentOutlined, FilterOutlined, PlusOutlined,
   GlobalOutlined, HomeOutlined, StarOutlined, StarFilled
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -26,7 +26,8 @@ export const EVENT_TYPES = [
   'Выставка',
   'Концерт',
   'Экскурсия',
-  'Благотворительное мероприятие'
+  'Благотворительное мероприятие',
+  'Ярмарка'
 ];
 
 interface Event {
@@ -110,13 +111,13 @@ const EventsPage = () => {
       const response = await api.get('/events', { params });
       const eventsData = response.data;
       setEvents(eventsData);
-      
+
       // Загружаем статус избранного для каждого события
       if (eventsData.length > 0) {
-        const favoritePromises = eventsData.map((event: Event) => 
+        const favoritePromises = eventsData.map((event: Event) =>
           api.get(`/event-interactions/${event.id}/status`).catch(() => ({ data: { favorited: false } }))
         );
-        
+
         try {
           const favoriteResponses = await Promise.all(favoritePromises);
           const favoriteStatusMap: Record<number, boolean> = {};
@@ -194,7 +195,8 @@ const EventsPage = () => {
       'Выставка': 'geekblue',
       'Концерт': 'red',
       'Экскурсия': 'lime',
-      'Благотворительное мероприятие': 'pink'
+      'Благотворительное мероприятие': 'pink',
+      'Ярмарка': 'orange'
     };
     return colors[type] || 'default';
   }, []);
@@ -261,15 +263,24 @@ const EventsPage = () => {
           }}
           dataSource={events}
           renderItem={(event) => (
-            <List.Item>
+            <List.Item style={{ height: '100%' }}>
               <Card
                 hoverable
+                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                 cover={
-                  <div style={{ height: 200, overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ paddingBottom: '100%', position: 'relative', overflow: 'hidden' }}>
                     <img
                       src={event.cover_image || '/eve.jpg'}
                       alt={event.title}
-                      style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
                     />
                     <Button
                       type="text"

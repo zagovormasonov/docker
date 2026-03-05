@@ -25,14 +25,34 @@ export const EVENT_TYPES = [
   'Выставка',
   'Концерт',
   'Экскурсия',
-  'Благотворительное мероприятие'
+  'Благотворительное мероприятие',
+  'Ярмарка'
 ];
+
+// Получение событий пользователя (должен быть перед /:id)
+router.get('/my/events', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      `SELECT e.*, c.name as city_name 
+       FROM events e
+       LEFT JOIN cities c ON e.city_id = c.id
+       WHERE e.organizer_id = $1 
+       ORDER BY e.event_date DESC`,
+      [req.userId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Ошибка получения событий пользователя:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
 
 // Получить список событий с фильтрами
 router.get('/', async (req: AuthRequest, res) => {
   try {
     console.log('🔍 Запрос событий:', req.query);
-    
+
     const {
       isOnline,
       cityId,
@@ -47,13 +67,13 @@ router.get('/', async (req: AuthRequest, res) => {
       FROM information_schema.columns 
       WHERE table_name = 'events'
     `);
-    
+
     const hasModerationStatus = structureCheck.rows.some(row => row.column_name === 'moderation_status');
     const hasIsPublished = structureCheck.rows.some(row => row.column_name === 'is_published');
-    
+
     console.log('📊 moderation_status существует:', hasModerationStatus);
     console.log('📊 is_published существует:', hasIsPublished);
-    
+
     let queryText = `
       SELECT 
         e.*,
@@ -65,7 +85,7 @@ router.get('/', async (req: AuthRequest, res) => {
       LEFT JOIN cities c ON e.city_id = c.id
       WHERE e.event_date >= NOW()
     `;
-    
+
     // Добавляем фильтр по статусу в зависимости от доступных колонок
     if (hasModerationStatus) {
       queryText += ` AND (e.moderation_status = 'approved' OR e.moderation_status IS NULL)`;
@@ -121,10 +141,10 @@ router.get('/', async (req: AuthRequest, res) => {
 
     console.log('📝 SQL запрос:', queryText);
     console.log('📝 Параметры:', params);
-    
+
     const result = await query(queryText, params);
     console.log('✅ Найдено событий:', result.rows.length);
-    
+
     res.json(result.rows);
   } catch (error) {
     console.error('Ошибка получения событий:', error);
@@ -203,7 +223,7 @@ router.post(
   ],
   async (req: AuthRequest, res) => {
     console.log('🎯 Создание события, пользователь:', req.userId);
-    
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.log('❌ Ошибки валидации:', errors.array());
@@ -231,7 +251,7 @@ router.post(
       }
 
       console.log('📝 Создаем событие:', { title, eventType, isOnline, cityId, eventDate });
-      
+
       // Создаем событие с полями модерации
       const result = await query(
         `INSERT INTO events (
@@ -259,14 +279,14 @@ router.post(
 
       const newEvent = result.rows[0];
       console.log('✅ Событие создано:', newEvent.id);
-      
+
       // Упрощенная версия - только создание события без уведомлений
       console.log('✅ Событие успешно создано');
 
-        res.status(201).json({
-          ...newEvent,
-          message: 'Событие создано и отправлено на модерацию'
-        });
+      res.status(201).json({
+        ...newEvent,
+        message: 'Событие создано и отправлено на модерацию'
+      });
     } catch (error) {
       console.error('❌ Ошибка создания события:', error);
       console.error('❌ Детали ошибки:', {
@@ -275,8 +295,8 @@ router.post(
         userId: req.userId,
         body: req.body
       });
-      res.status(500).json({ 
-        error: 'Ошибка сервера', 
+      res.status(500).json({
+        error: 'Ошибка сервера',
         details: error.message,
         userId: req.userId
       });
@@ -322,10 +342,10 @@ router.put(
       }
 
       const currentEvent = checkResult.rows[0];
-      console.log('📄 Текущее событие:', { 
-        id: currentEvent.id, 
-        moderation_status: currentEvent.moderation_status, 
-        is_published: currentEvent.is_published 
+      console.log('📄 Текущее событие:', {
+        id: currentEvent.id,
+        moderation_status: currentEvent.moderation_status,
+        is_published: currentEvent.is_published
       });
 
       // Проверка: если офлайн, город обязателен
@@ -382,29 +402,29 @@ router.put(
 
         if (adminResult.rows.length > 0) {
           const admin = adminResult.rows[0];
-          
+
           // Создаем или находим чат с администратором
           let chatResult = await query(
             'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
             [req.userId, admin.id]
           );
-          
+
           if (chatResult.rows.length === 0) {
             chatResult = await query(
               'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
               [req.userId, admin.id]
             );
           }
-          
+
           const chatId = chatResult.rows[0].id;
-          
+
           // Отправляем уведомление о повторной модерации
           await query(
             `INSERT INTO messages (chat_id, sender_id, content, is_read) 
              VALUES ($1, $2, $3, false)`,
             [chatId, req.userId, `🔄 Событие отредактировано и отправлено на повторную модерацию:\n\n📌 Название: ${title}\n\n📅 Дата: ${new Date(eventDate).toLocaleDateString('ru-RU')}\n\n🔗 ID события: ${updatedEvent.id}`]
           );
-          
+
           console.log('📨 Уведомление администратору отправлено');
         }
       } catch (notificationError) {

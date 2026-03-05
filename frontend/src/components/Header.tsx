@@ -140,6 +140,12 @@ const Header = () => {
         onClick: () => navigate('/my-articles')
       },
       {
+        key: 'my-events',
+        icon: <CalendarOutlined />,
+        label: 'Мои события',
+        onClick: () => navigate('/my-events')
+      },
+      {
         key: 'create-article',
         icon: <EditOutlined />,
         label: 'Создать статью',
@@ -268,6 +274,15 @@ const Header = () => {
           label: 'Мои статьи',
           onClick: () => {
             navigate('/my-articles');
+            setMobileMenuOpen(false);
+          }
+        },
+        {
+          key: 'my-events',
+          icon: <CalendarOutlined />,
+          label: 'Мои события',
+          onClick: () => {
+            navigate('/my-events');
             setMobileMenuOpen(false);
           }
         },
