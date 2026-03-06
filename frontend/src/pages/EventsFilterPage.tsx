@@ -40,13 +40,41 @@ const EventsFilterPage = () => {
     const [mobileSelectSearch, setMobileSelectSearch] = useState('');
     const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const lastOpenTime = useRef<number>(0);
+    const originalBodyOverflow = useRef<string | null>(null);
+    const isMobileSelectOpen = isMobile && mobileSelectType !== null;
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    useEffect(() => {
+        if (!isMobile) {
+            if (originalBodyOverflow.current !== null) {
+                document.body.style.overflow = originalBodyOverflow.current;
+                originalBodyOverflow.current = null;
+            }
+            return;
+        }
+
+        if (isMobileSelectOpen) {
+            if (originalBodyOverflow.current === null) {
+                originalBodyOverflow.current = document.body.style.overflow;
+            }
+            document.body.style.overflow = 'hidden';
+        } else if (originalBodyOverflow.current !== null) {
+            document.body.style.overflow = originalBodyOverflow.current;
+            originalBodyOverflow.current = null;
+        }
+
+        return () => {
+            if (originalBodyOverflow.current !== null) {
+                document.body.style.overflow = originalBodyOverflow.current;
+                originalBodyOverflow.current = null;
+            }
+        };
+    }, [isMobile, isMobileSelectOpen]);
 
     useEffect(() => {
         const fetchCities = async () => {
@@ -82,57 +110,42 @@ const EventsFilterPage = () => {
             ]);
         }
 
-        return () => {
-            document.body.style.overflow = 'auto';
-        };
     }, []);
 
 
 
-    const openMobileSelect = (type: MobileSelectType, e?: React.MouseEvent) => {
-        if (e) {
-            e.stopPropagation();
-            e.preventDefault();
-        }
-        lastOpenTime.current = Date.now();
+    const openMobileSelect = (type: MobileSelectType) => {
         setMobileSelectClosing(false);
         setMobileSelectType(type);
         setMobileSelectSearch('');
-        document.body.style.overflow = 'hidden';
     };
 
-    const closeMobileSelect = (e?: React.MouseEvent) => {
-        if (!mobileSelectType || mobileSelectClosing) return;
-
-        // If triggered by a click on the overlay, ensure it's on the overlay itself (backdrop)
-        if (e && e.target !== e.currentTarget) return;
-
-        // Prevent immediate close (debouncing touch/ghost clicks)
-        const timeSinceOpen = Date.now() - lastOpenTime.current;
-        if (timeSinceOpen < 700) return; // Increased to 700ms to be very safe
-
+    const closeMobileSelect = () => {
+        if (!mobileSelectType || mobileSelectClosing) {
+            return;
+        }
         setMobileSelectClosing(true);
         setTimeout(() => {
             setMobileSelectType(null);
             setMobileSelectClosing(false);
             setMobileSelectSearch('');
-            if (typeof document !== 'undefined') {
-                document.body.style.overflow = 'auto';
-            }
         }, 250);
     };
 
     const handleMobileOptionClick = (value: string | number) => {
+        if (!mobileSelectType) return;
+
         if (mobileSelectType === 'city') {
             setSelectedCity(value === '' ? null : Number(value));
             closeMobileSelect();
-        } else {
-            const val = String(value);
-            const exists = selectedEventTypes.includes(val);
-            setSelectedEventTypes(prev =>
-                exists ? prev.filter(t => t !== val) : [...prev, val]
-            );
+            return;
         }
+
+        const val = String(value);
+        const exists = selectedEventTypes.includes(val);
+        setSelectedEventTypes(prev =>
+            exists ? prev.filter(t => t !== val) : [...prev, val]
+        );
     };
 
     const handleApply = () => {
@@ -188,17 +201,14 @@ const EventsFilterPage = () => {
         );
 
         return createPortal(
-            <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`}
-                onClick={(e) => closeMobileSelect(e)}
-                onTouchStart={(e) => e.stopPropagation()}
-            >
+            <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`} onClick={closeMobileSelect}>
                 <div className={`mobile-select-panel ${mobileSelectClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
                     <div className="mobile-select-header">
-                        <button type="button" className="mobile-select-close" onClick={() => closeMobileSelect()}>
+                        <button type="button" className="mobile-select-close" onClick={closeMobileSelect}>
                             <CloseOutlined />
                         </button>
                         <span className="mobile-select-title">{mobileSelectConfig.title}</span>
-                        <button type="button" className="mobile-select-ready" onClick={() => closeMobileSelect()}>
+                        <button type="button" className="mobile-select-ready" onClick={closeMobileSelect}>
                             Готово
                         </button>
                     </div>
@@ -230,6 +240,11 @@ const EventsFilterPage = () => {
                                 </button>
                             );
                         })}
+                        {filteredOptions.length === 0 && (
+                            <div className="mobile-select-empty" style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                                Ничего не найдено
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>,
@@ -284,39 +299,29 @@ const EventsFilterPage = () => {
                 {selectedOnline.includes(false) && (
                     <div>
                         <Text strong>Город:</Text>
-                        <div
-                            style={{ position: 'relative', marginTop: 8 }}
-                            onClick={(e) => openMobileSelect('city', e)}
-                        >
-                            <Input
-                                size="large"
-                                prefix={<EnvironmentOutlined />}
-                                placeholder="Выберите город"
-                                value={selectedCityName}
-                                readOnly
-                                style={{ pointerEvents: 'none' }}
-                            />
-                            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }} />
-                        </div>
+                        <Input
+                            size="large"
+                            prefix={<EnvironmentOutlined />}
+                            placeholder="Выберите город"
+                            value={selectedCityName}
+                            readOnly
+                            onClick={() => openMobileSelect('city')}
+                            style={{ marginTop: 8 }}
+                        />
                     </div>
                 )}
 
                 <div>
                     <Text strong>Тип мероприятия:</Text>
-                    <div
-                        style={{ position: 'relative', marginTop: 8 }}
-                        onClick={(e) => openMobileSelect('types', e)}
-                    >
-                        <Input
-                            size="large"
-                            prefix={<FilterOutlined />}
-                            placeholder="Выберите типы"
-                            value={selectedTypesLabel}
-                            readOnly
-                            style={{ pointerEvents: 'none' }}
-                        />
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }} />
-                    </div>
+                    <Input
+                        size="large"
+                        prefix={<FilterOutlined />}
+                        placeholder="Выберите типы"
+                        value={selectedTypesLabel}
+                        readOnly
+                        onClick={() => openMobileSelect('types')}
+                        style={{ marginTop: 8 }}
+                    />
                 </div>
 
                 <div>
