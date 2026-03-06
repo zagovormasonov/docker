@@ -255,22 +255,24 @@ const EventsFilterPage = () => {
                 height="85vh"
                 closable={false}
                 styles={{
-                    header: { borderBottom: '1px solid #f0f0f0', padding: '16px 20px' },
-                    body: { padding: '16px 20px' },
+                    header: { borderBottom: '1px solid #f0f0f0', padding: '16px 16px' },
+                    body: { padding: '16px 0' },
                     wrapper: { borderRadius: '20px 20px 0 0', overflow: 'hidden' }
                 }}
                 style={{ borderRadius: '20px 20px 0 0' }}
                 destroyOnClose
             >
-                <Input
-                    size="large"
-                    prefix={<SearchOutlined />}
-                    placeholder={drawerConfig?.searchPlaceholder || 'Поиск'}
-                    value={drawerSearch}
-                    onChange={e => setDrawerSearch(e.target.value)}
-                    allowClear
-                    style={{ marginBottom: 16, borderRadius: 12 }}
-                />
+                <div style={{ padding: '0 16px' }}>
+                    <Input
+                        size="large"
+                        prefix={<SearchOutlined />}
+                        placeholder={drawerConfig?.searchPlaceholder || 'Поиск'}
+                        value={drawerSearch}
+                        onChange={e => setDrawerSearch(e.target.value)}
+                        allowClear
+                        style={{ marginBottom: 16, borderRadius: 12 }}
+                    />
+                </div>
                 <div style={{ overflowY: 'auto', flex: 1 }}>
                     {filteredOptions.map(option => {
                         const selected = drawerConfig?.selectedValues.some(
@@ -285,7 +287,7 @@ const EventsFilterPage = () => {
                                     width: '100%',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    padding: '14px 0',
+                                    padding: '14px 16px',
                                     border: 'none',
                                     borderBottom: '1px solid #f0f0f0',
                                     background: 'none',
