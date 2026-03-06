@@ -36,11 +36,17 @@ const EventsFilterPage = () => {
     const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
 
-    // Mobile select state
     const [mobileSelectType, setMobileSelectType] = useState<MobileSelectType | null>(null);
     const [mobileSelectSearch, setMobileSelectSearch] = useState('');
     const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
-    const originalBodyOverflow = useRef<string | null>(null);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const lastOpenTime = useRef<number>(0);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchCities = async () => {
@@ -81,7 +87,7 @@ const EventsFilterPage = () => {
         };
     }, []);
 
-    const lastOpenTime = useRef<number>(0);
+
 
     const openMobileSelect = (type: MobileSelectType, e?: React.MouseEvent) => {
         if (e) {
@@ -95,18 +101,24 @@ const EventsFilterPage = () => {
         document.body.style.overflow = 'hidden';
     };
 
-    const closeMobileSelect = () => {
+    const closeMobileSelect = (e?: React.MouseEvent) => {
         if (!mobileSelectType || mobileSelectClosing) return;
 
-        // Prevent immediate close (debouncing touch event)
-        if (Date.now() - lastOpenTime.current < 300) return;
+        // If triggered by a click on the overlay, ensure it's on the overlay itself (backdrop)
+        if (e && e.target !== e.currentTarget) return;
+
+        // Prevent immediate close (debouncing touch/ghost clicks)
+        const timeSinceOpen = Date.now() - lastOpenTime.current;
+        if (timeSinceOpen < 700) return; // Increased to 700ms to be very safe
 
         setMobileSelectClosing(true);
         setTimeout(() => {
             setMobileSelectType(null);
             setMobileSelectClosing(false);
             setMobileSelectSearch('');
-            document.body.style.overflow = 'auto';
+            if (typeof document !== 'undefined') {
+                document.body.style.overflow = 'auto';
+            }
         }, 250);
     };
 
@@ -168,7 +180,7 @@ const EventsFilterPage = () => {
     }, [mobileSelectType, cities, selectedCity, selectedEventTypes]);
 
     const renderMobileSelectOverlay = () => {
-        if (!mobileSelectConfig) return null;
+        if (!isMobile || !mobileSelectConfig) return null;
 
         const searchValue = mobileSelectSearch.trim().toLowerCase();
         const filteredOptions = mobileSelectConfig.options.filter(o =>
@@ -176,14 +188,17 @@ const EventsFilterPage = () => {
         );
 
         return createPortal(
-            <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`} onClick={closeMobileSelect}>
+            <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`}
+                onClick={(e) => closeMobileSelect(e)}
+                onTouchStart={(e) => e.stopPropagation()}
+            >
                 <div className={`mobile-select-panel ${mobileSelectClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
                     <div className="mobile-select-header">
-                        <button type="button" className="mobile-select-close" onClick={closeMobileSelect}>
+                        <button type="button" className="mobile-select-close" onClick={() => closeMobileSelect()}>
                             <CloseOutlined />
                         </button>
                         <span className="mobile-select-title">{mobileSelectConfig.title}</span>
-                        <button type="button" className="mobile-select-ready" onClick={closeMobileSelect}>
+                        <button type="button" className="mobile-select-ready" onClick={() => closeMobileSelect()}>
                             Готово
                         </button>
                     </div>
@@ -269,30 +284,38 @@ const EventsFilterPage = () => {
                 {selectedOnline.includes(false) && (
                     <div>
                         <Text strong>Город:</Text>
-                        <div onClick={(e) => openMobileSelect('city', e)}>
+                        <div
+                            style={{ position: 'relative', marginTop: 8 }}
+                            onClick={(e) => openMobileSelect('city', e)}
+                        >
                             <Input
                                 size="large"
                                 prefix={<EnvironmentOutlined />}
                                 placeholder="Выберите город"
                                 value={selectedCityName}
                                 readOnly
-                                style={{ marginTop: 8, pointerEvents: 'none' }}
+                                style={{ pointerEvents: 'none' }}
                             />
+                            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }} />
                         </div>
                     </div>
                 )}
 
                 <div>
                     <Text strong>Тип мероприятия:</Text>
-                    <div onClick={(e) => openMobileSelect('types', e)}>
+                    <div
+                        style={{ position: 'relative', marginTop: 8 }}
+                        onClick={(e) => openMobileSelect('types', e)}
+                    >
                         <Input
                             size="large"
                             prefix={<FilterOutlined />}
                             placeholder="Выберите типы"
                             value={selectedTypesLabel}
                             readOnly
-                            style={{ marginTop: 8, pointerEvents: 'none' }}
+                            style={{ pointerEvents: 'none' }}
                         />
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }} />
                     </div>
                 </div>
 
