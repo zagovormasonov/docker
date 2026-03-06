@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createPortal } from 'react-dom';
 import {
-    Button, Space, Typography, Checkbox, Input, Select, DatePicker, Divider
+    Button, Space, Typography, Checkbox, Input, DatePicker, Drawer
 } from 'antd';
 import {
     SearchOutlined, GlobalOutlined, HomeOutlined, CheckOutlined, CloseOutlined,
@@ -22,11 +21,6 @@ interface City {
 
 type MobileSelectType = 'city' | 'types';
 
-interface MobileSelectOption {
-    label: string;
-    value: string | number;
-}
-
 const EventsFilterPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -36,45 +30,9 @@ const EventsFilterPage = () => {
     const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
 
-    const [mobileSelectType, setMobileSelectType] = useState<MobileSelectType | null>(null);
-    const [mobileSelectSearch, setMobileSelectSearch] = useState('');
-    const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const originalBodyOverflow = useRef<string | null>(null);
-    const isMobileSelectOpen = isMobile && mobileSelectType !== null;
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    useEffect(() => {
-        if (!isMobile) {
-            if (originalBodyOverflow.current !== null) {
-                document.body.style.overflow = originalBodyOverflow.current;
-                originalBodyOverflow.current = null;
-            }
-            return;
-        }
-
-        if (isMobileSelectOpen) {
-            if (originalBodyOverflow.current === null) {
-                originalBodyOverflow.current = document.body.style.overflow;
-            }
-            document.body.style.overflow = 'hidden';
-        } else if (originalBodyOverflow.current !== null) {
-            document.body.style.overflow = originalBodyOverflow.current;
-            originalBodyOverflow.current = null;
-        }
-
-        return () => {
-            if (originalBodyOverflow.current !== null) {
-                document.body.style.overflow = originalBodyOverflow.current;
-                originalBodyOverflow.current = null;
-            }
-        };
-    }, [isMobile, isMobileSelectOpen]);
+    // Drawer state (using antd Drawer instead of custom portal)
+    const [drawerType, setDrawerType] = useState<MobileSelectType | null>(null);
+    const [drawerSearch, setDrawerSearch] = useState('');
 
     useEffect(() => {
         const fetchCities = async () => {
@@ -109,35 +67,24 @@ const EventsFilterPage = () => {
                 to ? dayjs(to) : null
             ]);
         }
-
     }, []);
 
-
-
-    const openMobileSelect = (type: MobileSelectType) => {
-        setMobileSelectClosing(false);
-        setMobileSelectType(type);
-        setMobileSelectSearch('');
+    const openDrawer = (type: MobileSelectType) => {
+        setDrawerSearch('');
+        setDrawerType(type);
     };
 
-    const closeMobileSelect = () => {
-        if (!mobileSelectType || mobileSelectClosing) {
-            return;
-        }
-        setMobileSelectClosing(true);
-        setTimeout(() => {
-            setMobileSelectType(null);
-            setMobileSelectClosing(false);
-            setMobileSelectSearch('');
-        }, 250);
+    const closeDrawer = () => {
+        setDrawerType(null);
+        setDrawerSearch('');
     };
 
-    const handleMobileOptionClick = (value: string | number) => {
-        if (!mobileSelectType) return;
+    const handleOptionClick = (value: string | number) => {
+        if (!drawerType) return;
 
-        if (mobileSelectType === 'city') {
+        if (drawerType === 'city') {
             setSelectedCity(value === '' ? null : Number(value));
-            closeMobileSelect();
+            closeDrawer();
             return;
         }
 
@@ -167,19 +114,19 @@ const EventsFilterPage = () => {
         setDateRange([null, null]);
     };
 
-    const mobileSelectConfig = useMemo(() => {
-        if (!mobileSelectType) return null;
+    const drawerConfig = useMemo(() => {
+        if (!drawerType) return null;
 
-        if (mobileSelectType === 'city') {
+        if (drawerType === 'city') {
             return {
                 title: 'Выберите город',
                 multiple: false,
                 searchPlaceholder: 'Поиск города',
                 options: [
-                    { label: 'Все города', value: '' },
-                    ...cities.map(c => ({ label: c.name, value: c.id }))
+                    { label: 'Все города', value: '' as string | number },
+                    ...cities.map(c => ({ label: c.name, value: c.id as string | number }))
                 ],
-                selectedValues: [selectedCity || '']
+                selectedValues: [selectedCity || ''] as (string | number)[]
             };
         }
 
@@ -187,70 +134,15 @@ const EventsFilterPage = () => {
             title: 'Тип мероприятия',
             multiple: true,
             searchPlaceholder: 'Поиск типа',
-            options: EVENT_TYPES.map(t => ({ label: t, value: t })),
-            selectedValues: selectedEventTypes
+            options: EVENT_TYPES.map(t => ({ label: t, value: t as string | number })),
+            selectedValues: selectedEventTypes as (string | number)[]
         };
-    }, [mobileSelectType, cities, selectedCity, selectedEventTypes]);
+    }, [drawerType, cities, selectedCity, selectedEventTypes]);
 
-    const renderMobileSelectOverlay = () => {
-        if (!isMobile || !mobileSelectConfig) return null;
-
-        const searchValue = mobileSelectSearch.trim().toLowerCase();
-        const filteredOptions = mobileSelectConfig.options.filter(o =>
-            o.label.toLowerCase().includes(searchValue)
-        );
-
-        return createPortal(
-            <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`} onClick={closeMobileSelect}>
-                <div className={`mobile-select-panel ${mobileSelectClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
-                    <div className="mobile-select-header">
-                        <button type="button" className="mobile-select-close" onClick={closeMobileSelect}>
-                            <CloseOutlined />
-                        </button>
-                        <span className="mobile-select-title">{mobileSelectConfig.title}</span>
-                        <button type="button" className="mobile-select-ready" onClick={closeMobileSelect}>
-                            Готово
-                        </button>
-                    </div>
-                    <Input
-                        size="large"
-                        prefix={<SearchOutlined />}
-                        placeholder={mobileSelectConfig.searchPlaceholder}
-                        value={mobileSelectSearch}
-                        onChange={e => setMobileSelectSearch(e.target.value)}
-                        allowClear
-                        className="mobile-select-search"
-                    />
-                    <div className="mobile-select-options">
-                        {filteredOptions.map(option => {
-                            const selected = mobileSelectConfig.selectedValues.some(v => String(v) === String(option.value));
-                            return (
-                                <button
-                                    type="button"
-                                    key={String(option.value)}
-                                    className={`mobile-select-option ${selected ? 'selected' : ''} ${mobileSelectConfig.multiple ? 'multi' : ''}`}
-                                    onClick={() => handleMobileOptionClick(option.value)}
-                                >
-                                    {mobileSelectConfig.multiple && (
-                                        <span className={`mobile-select-checkbox ${selected ? 'checked' : ''}`}>
-                                            {selected && <CheckOutlined />}
-                                        </span>
-                                    )}
-                                    <span className="mobile-select-label">{option.label}</span>
-                                </button>
-                            );
-                        })}
-                        {filteredOptions.length === 0 && (
-                            <div className="mobile-select-empty" style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
-                                Ничего не найдено
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>,
-            document.body
-        );
-    };
+    const searchValue = drawerSearch.trim().toLowerCase();
+    const filteredOptions = drawerConfig
+        ? drawerConfig.options.filter(o => o.label.toLowerCase().includes(searchValue))
+        : [];
 
     const selectedCityName = cities.find(c => c.id === selectedCity)?.name || 'Все города';
     const selectedTypesLabel = selectedEventTypes.length ? selectedEventTypes.join(', ') : 'Выберите типы';
@@ -305,7 +197,7 @@ const EventsFilterPage = () => {
                             placeholder="Выберите город"
                             value={selectedCityName}
                             readOnly
-                            onClick={() => openMobileSelect('city')}
+                            onClick={() => openDrawer('city')}
                             style={{ marginTop: 8 }}
                         />
                     </div>
@@ -319,7 +211,7 @@ const EventsFilterPage = () => {
                         placeholder="Выберите типы"
                         value={selectedTypesLabel}
                         readOnly
-                        onClick={() => openMobileSelect('types')}
+                        onClick={() => openDrawer('types')}
                         style={{ marginTop: 8 }}
                     />
                 </div>
@@ -345,102 +237,96 @@ const EventsFilterPage = () => {
                 </div>
             </Space>
 
-            {renderMobileSelectOverlay()}
-
-            <style>{`
-        .mobile-select-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.45);
-          z-index: 2000;
-          display: flex;
-          align-items: flex-end;
-          transition: opacity 0.3s;
-        }
-        .mobile-select-overlay.closing {
-          opacity: 0;
-        }
-        .mobile-select-panel {
-          width: 100%;
-          background: white;
-          border-radius: 20px 20px 0 0;
-          padding: 20px 16px;
-          max-height: 85vh;
-          display: flex;
-          flex-direction: column;
-          animation: slide-up 0.3s ease-out;
-        }
-        .mobile-select-panel.closing {
-          animation: slide-down 0.3s ease-in forwards;
-        }
-        @keyframes slide-up {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-        @keyframes slide-down {
-          from { transform: translateY(0); }
-          to { transform: translateY(100%); }
-        }
-        .mobile-select-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        .mobile-select-title {
-          font-size: 18px;
-          font-weight: 600;
-        }
-        .mobile-select-close, .mobile-select-ready {
-          border: none;
-          background: none;
-          font-size: 16px;
-          color: #6366f1;
-          cursor: pointer;
-        }
-        .mobile-select-search {
-          margin-bottom: 16px;
-          border-radius: 12px;
-        }
-        .mobile-select-options {
-          overflow-y: auto;
-          flex: 1;
-        }
-        .mobile-select-option {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          padding: 14px 0;
-          border: none;
-          border-bottom: 1px solid #f0f0f0;
-          background: none;
-          text-align: left;
-          font-size: 16px;
-        }
-        .mobile-select-option.selected .mobile-select-label {
-          color: #6366f1;
-          font-weight: 500;
-        }
-        .mobile-select-checkbox {
-          width: 20px;
-          height: 20px;
-          border: 2px solid #ddd;
-          border-radius: 4px;
-          margin-right: 12px;
-          display: flex;
-          align-items: center;
-          justifyContent: center;
-          font-size: 12px;
-        }
-        .mobile-select-checkbox.checked {
-          background: #6366f1;
-          border-color: #6366f1;
-          color: white;
-        }
-      `}</style>
+            {/* Bottom Sheet Drawer — антд компонент, который корректно работает на мобильных */}
+            <Drawer
+                title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 18, fontWeight: 600 }}>
+                            {drawerConfig?.title}
+                        </span>
+                        <Button type="link" onClick={closeDrawer} style={{ color: '#6366f1', fontWeight: 500 }}>
+                            Готово
+                        </Button>
+                    </div>
+                }
+                placement="bottom"
+                open={drawerType !== null}
+                onClose={closeDrawer}
+                height="85vh"
+                closable={false}
+                styles={{
+                    header: { borderBottom: '1px solid #f0f0f0', padding: '16px 20px' },
+                    body: { padding: '16px 20px' },
+                    wrapper: { borderRadius: '20px 20px 0 0', overflow: 'hidden' }
+                }}
+                style={{ borderRadius: '20px 20px 0 0' }}
+                destroyOnClose
+            >
+                <Input
+                    size="large"
+                    prefix={<SearchOutlined />}
+                    placeholder={drawerConfig?.searchPlaceholder || 'Поиск'}
+                    value={drawerSearch}
+                    onChange={e => setDrawerSearch(e.target.value)}
+                    allowClear
+                    style={{ marginBottom: 16, borderRadius: 12 }}
+                />
+                <div style={{ overflowY: 'auto', flex: 1 }}>
+                    {filteredOptions.map(option => {
+                        const selected = drawerConfig?.selectedValues.some(
+                            v => String(v) === String(option.value)
+                        );
+                        return (
+                            <button
+                                type="button"
+                                key={String(option.value)}
+                                onClick={() => handleOptionClick(option.value)}
+                                style={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '14px 0',
+                                    border: 'none',
+                                    borderBottom: '1px solid #f0f0f0',
+                                    background: 'none',
+                                    textAlign: 'left',
+                                    fontSize: 16,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {drawerConfig?.multiple && (
+                                    <span style={{
+                                        width: 20,
+                                        height: 20,
+                                        border: `2px solid ${selected ? '#6366f1' : '#ddd'}`,
+                                        borderRadius: 4,
+                                        marginRight: 12,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: 12,
+                                        background: selected ? '#6366f1' : 'transparent',
+                                        color: selected ? '#fff' : 'transparent'
+                                    }}>
+                                        {selected && <CheckOutlined />}
+                                    </span>
+                                )}
+                                <span style={{
+                                    color: selected ? '#6366f1' : '#333',
+                                    fontWeight: selected ? 500 : 400
+                                }}>
+                                    {option.label}
+                                </span>
+                            </button>
+                        );
+                    })}
+                    {filteredOptions.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: 20, color: '#999' }}>
+                            Ничего не найдено
+                        </div>
+                    )}
+                </div>
+            </Drawer>
         </div>
     );
 };
