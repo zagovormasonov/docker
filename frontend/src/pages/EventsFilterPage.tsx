@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
     Button, Space, Typography, Checkbox, Input, Select, DatePicker, Divider
@@ -29,6 +29,7 @@ interface MobileSelectOption {
 
 const EventsFilterPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [cities, setCities] = useState<City[]>([]);
     const [selectedOnline, setSelectedOnline] = useState<boolean[]>([true, false]);
     const [selectedCity, setSelectedCity] = useState<number | null>(null);
@@ -53,7 +54,6 @@ const EventsFilterPage = () => {
         fetchCities();
 
         // Read initial filters from search params
-        const searchParams = new URLSearchParams(window.location.search);
         const online = searchParams.get('online');
         const offline = searchParams.get('offline');
         const city = searchParams.get('cityId');
@@ -81,7 +81,14 @@ const EventsFilterPage = () => {
         };
     }, []);
 
-    const openMobileSelect = (type: MobileSelectType) => {
+    const lastOpenTime = useRef<number>(0);
+
+    const openMobileSelect = (type: MobileSelectType, e?: React.MouseEvent) => {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        lastOpenTime.current = Date.now();
         setMobileSelectClosing(false);
         setMobileSelectType(type);
         setMobileSelectSearch('');
@@ -89,6 +96,11 @@ const EventsFilterPage = () => {
     };
 
     const closeMobileSelect = () => {
+        if (!mobileSelectType || mobileSelectClosing) return;
+
+        // Prevent immediate close (debouncing touch event)
+        if (Date.now() - lastOpenTime.current < 300) return;
+
         setMobileSelectClosing(true);
         setTimeout(() => {
             setMobileSelectType(null);
@@ -257,29 +269,31 @@ const EventsFilterPage = () => {
                 {selectedOnline.includes(false) && (
                     <div>
                         <Text strong>Город:</Text>
-                        <Input
-                            size="large"
-                            prefix={<EnvironmentOutlined />}
-                            placeholder="Выберите город"
-                            value={selectedCityName}
-                            readOnly
-                            onClick={() => openMobileSelect('city')}
-                            style={{ marginTop: 8 }}
-                        />
+                        <div onClick={(e) => openMobileSelect('city', e)}>
+                            <Input
+                                size="large"
+                                prefix={<EnvironmentOutlined />}
+                                placeholder="Выберите город"
+                                value={selectedCityName}
+                                readOnly
+                                style={{ marginTop: 8, pointerEvents: 'none' }}
+                            />
+                        </div>
                     </div>
                 )}
 
                 <div>
                     <Text strong>Тип мероприятия:</Text>
-                    <Input
-                        size="large"
-                        prefix={<FilterOutlined />}
-                        placeholder="Выберите типы"
-                        value={selectedTypesLabel}
-                        readOnly
-                        onClick={() => openMobileSelect('types')}
-                        style={{ marginTop: 8 }}
-                    />
+                    <div onClick={(e) => openMobileSelect('types', e)}>
+                        <Input
+                            size="large"
+                            prefix={<FilterOutlined />}
+                            placeholder="Выберите типы"
+                            value={selectedTypesLabel}
+                            readOnly
+                            style={{ marginTop: 8, pointerEvents: 'none' }}
+                        />
+                    </div>
                 </div>
 
                 <div>
