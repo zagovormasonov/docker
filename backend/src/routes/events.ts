@@ -116,10 +116,18 @@ router.get('/', async (req: AuthRequest, res) => {
 
     // Фильтр по типам событий
     if (eventTypes) {
-      const types = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
-      paramCount++;
-      queryText += ` AND e.event_type = ANY($${paramCount})`;
-      params.push(types);
+      let types: string[] = [];
+      if (Array.isArray(eventTypes)) {
+        types = eventTypes as string[];
+      } else {
+        types = String(eventTypes).split(',').map(s => s.trim()).filter(s => s !== '');
+      }
+
+      if (types.length > 0) {
+        paramCount++;
+        queryText += ` AND e.event_type = ANY($${paramCount})`;
+        params.push(types);
+      }
     }
 
     // Фильтр по дате от

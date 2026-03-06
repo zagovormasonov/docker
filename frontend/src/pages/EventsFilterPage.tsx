@@ -44,7 +44,9 @@ const EventsFilterPage = () => {
             }
         };
         fetchCities();
+    }, []);
 
+    useEffect(() => {
         // Read initial filters from search params
         const online = searchParams.get('online');
         const offline = searchParams.get('offline');
@@ -58,16 +60,26 @@ const EventsFilterPage = () => {
             if (online === 'true') newOnline.push(true);
             if (offline === 'true') newOnline.push(false);
             setSelectedOnline(newOnline);
+        } else {
+            // Default if no format specified
+            setSelectedOnline([true, false]);
         }
+
         if (city) setSelectedCity(Number(city));
+        else setSelectedCity(null);
+
         if (types) setSelectedEventTypes(types.split(','));
+        else setSelectedEventTypes([]);
+
         if (from || to) {
             setDateRange([
                 from ? dayjs(from) : null,
                 to ? dayjs(to) : null
             ]);
+        } else {
+            setDateRange([null, null]);
         }
-    }, []);
+    }, [searchParams]);
 
     const openDrawer = (type: MobileSelectType) => {
         setDrawerSearch('');

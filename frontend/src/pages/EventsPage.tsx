@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Card, List, Tag, Button, Space, Typography, Empty, Spin, Modal, Checkbox, Select, DatePicker, Divider
 } from 'antd';
@@ -56,6 +56,7 @@ interface City {
 
 const EventsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
@@ -105,7 +106,7 @@ const EventsPage = () => {
 
       // Фильтр по типам
       if (selectedEventTypes.length > 0) {
-        params.eventTypes = selectedEventTypes;
+        params.eventTypes = selectedEventTypes.join(',');
       }
 
       // Фильтр по датам
@@ -274,7 +275,7 @@ const EventsPage = () => {
             icon={<FilterOutlined />}
             onClick={() => {
               if (isMobile) {
-                navigate('/events/filters');
+                navigate(`/events/filters${location.search}`);
               } else {
                 setFilterModalVisible(true);
               }
