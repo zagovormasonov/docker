@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Card, List, Tag, Button, Space, Typography, Empty, Spin, Modal, Checkbox, Select, DatePicker, Divider
 } from 'antd';
@@ -56,12 +56,20 @@ interface City {
 
 const EventsPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [favoriteStatus, setFavoriteStatus] = useState<Record<number, boolean>>({});
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Фильтры
   const [selectedOnline, setSelectedOnline] = useState<boolean[]>([true, false]); // По умолчанию оба
@@ -144,6 +152,47 @@ const EventsPage = () => {
     fetchEvents();
   }, [fetchEvents]);
 
+  // Read filters from search params on mount and when searchParams change
+  useEffect(() => {
+    const online = searchParams.get('online');
+    const offline = searchParams.get('offline');
+    const city = searchParams.get('cityId');
+    const types = searchParams.get('types');
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+
+    if (online || offline) {
+      const newOnline: boolean[] = [];
+      if (online === 'true') newOnline.push(true);
+      if (offline === 'true') newOnline.push(false);
+      setSelectedOnline(newOnline);
+    } else {
+      // If no params, default to both online and offline
+      setSelectedOnline([true, false]);
+    }
+
+    if (city) {
+      setSelectedCity(Number(city));
+    } else {
+      setSelectedCity(null);
+    }
+
+    if (types) {
+      setSelectedEventTypes(types.split(','));
+    } else {
+      setSelectedEventTypes([]);
+    }
+
+    if (from || to) {
+      setDateRange([
+        from ? dayjs(from) : null,
+        to ? dayjs(to) : null
+      ]);
+    } else {
+      setDateRange([null, null]);
+    }
+  }, [searchParams]);
+
   // Мемоизированная функция переключения избранного
   const toggleFavorite = useCallback(async (eventId: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -223,7 +272,13 @@ const EventsPage = () => {
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Button
             icon={<FilterOutlined />}
-            onClick={() => setFilterModalVisible(true)}
+            onClick={() => {
+              if (isMobile) {
+                navigate('/events/filters');
+              } else {
+                setFilterModalVisible(true);
+              }
+            }}
             style={{ width: '100%' }}
           >
             Фильтры

@@ -23,6 +23,7 @@ import FavoritesPage from './pages/FavoritesPage';
 import EventsPage from './pages/EventsPage';
 import EventPage from './pages/EventPage';
 import CreateEventPage from './pages/CreateEventPage';
+import EventsFilterPage from './pages/EventsFilterPage';
 import ModerationPage from './pages/ModerationPage';
 import AdminPanel from './pages/AdminPanel';
 import AdminLogsPage from './pages/AdminLogsPage';
@@ -77,6 +78,7 @@ function App() {
                 <Route path="articles/:id" element={<ArticlePage />} />
 
                 <Route path="events" element={<EventsPage />} />
+                <Route path="events/filters" element={<EventsFilterPage />} />
                 <Route path="events/:id" element={<EventPage />} />
                 <Route path="events/create" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
                 <Route path="events/edit/:id" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />

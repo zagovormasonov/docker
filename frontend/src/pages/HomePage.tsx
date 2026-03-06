@@ -154,17 +154,11 @@ const HomePage = () => {
   };
 
   const handleCloseModal = () => {
-    if (isMobile) {
-      setModalClosing(true);
-      setTimeout(() => {
-        setIsModalOpen(false);
-        setModalClosing(false);
-        setTimeout(() => setSelectedArticleId(null), 300);
-      }, 300);
-    } else {
-      setIsModalOpen(false);
-      setTimeout(() => setSelectedArticleId(null), 300);
-    }
+    setIsModalOpen(false);
+    setTimeout(() => {
+      setSelectedArticleId(null);
+      setModalClosing(false);
+    }, 300);
   };
 
   const currentArticleIndex = useMemo(() => {
@@ -564,47 +558,30 @@ const HomePage = () => {
         )}
       </div>
 
-      {/* Article Modal / Bottom Sheet */}
+      {/* Article Modal */}
       <Modal
         title={null}
         footer={null}
         closable={false}
         onCancel={handleCloseModal}
         open={isModalOpen}
-        width={isMobile ? "100%" : "100%"}
-        centered={!isMobile}
+        width="100%"
+        centered
         destroyOnClose
         maskStyle={{
-          backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.8)',
+          backgroundColor: isMobile ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: isMobile ? 'none' : 'blur(8px)',
           opacity: 1
         }}
         bodyStyle={{
           padding: 0,
-          height: isMobile ? '85vh' : '100vh',
+          height: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          background: isMobile ? '#fff' : 'transparent',
-          boxShadow: isMobile ? '0 -8px 24px rgba(0, 0, 0, 0.1)' : 'none',
-          borderRadius: isMobile ? '20px 20px 0 0' : 0,
-          overflow: 'hidden'
+          background: 'transparent',
+          boxShadow: 'none'
         }}
-        style={isMobile ? {
-          padding: 0,
-          maxWidth: '100%',
-          top: 'auto',
-          bottom: 0,
-          margin: 0,
-          paddingBottom: 0,
-          animation: modalClosing
-            ? 'mobile-panel-out-bottom 0.3s ease forwards'
-            : 'mobile-panel-in-bottom 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards'
-        } : {
-          padding: 0,
-          maxWidth: '100%',
-          top: 0
-        }}
-        wrapClassName={isMobile ? 'mobile-bottom-sheet-wrap' : ''}
+        style={{ padding: 0, maxWidth: '100%', top: 0 }}
       >
         <style>
           {`
@@ -620,70 +597,30 @@ const HomePage = () => {
               background: transparent !important;
               border: none !important;
             }
-            .mobile-bottom-sheet-wrap {
-              overflow: hidden !important;
-            }
-            .mobile-bottom-sheet-wrap .ant-modal {
-              position: absolute;
-              bottom: 0;
-            }
-            @keyframes mobile-panel-in-bottom {
-              from { transform: translateY(100%); }
-              to { transform: translateY(0); }
-            }
-            @keyframes mobile-panel-out-bottom {
-              from { transform: translateY(0); }
-              to { transform: translateY(100%); }
-            }
           `}
         </style>
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
-          {/* Mobile Handle Bar */}
-          {isMobile && (
-            <div
-              onClick={handleCloseModal}
-              style={{
-                width: '100%',
-                height: 32,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                cursor: 'pointer',
-                flexShrink: 0
-              }}
-            >
-              <div style={{
-                width: 40,
-                height: 4,
-                backgroundColor: '#ddd',
-                borderRadius: 2
-              }} />
-            </div>
-          )}
-
-          {/* Top Right Close Button (Desktop Only) */}
-          {!isMobile && (
-            <Button
-              type="text"
-              icon={<CloseOutlined style={{ fontSize: 24, color: '#000' }} />}
-              onClick={handleCloseModal}
-              style={{
-                position: 'fixed',
-                top: 40,
-                right: 40,
-                zIndex: 2000,
-                width: 44,
-                height: 44,
-                display: isModalOpen ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'transparent',
-                borderRadius: '50%',
-                boxShadow: 'none',
-                transition: 'all 0.3s'
-              }}
-            />
-          )}
+          {/* Top Right Close Button */}
+          <Button
+            type="text"
+            icon={<CloseOutlined style={{ fontSize: 24, color: '#000' }} />}
+            onClick={handleCloseModal}
+            style={{
+              position: 'fixed',
+              top: isMobile ? 12 : 40,
+              right: isMobile ? 12 : 40,
+              zIndex: 2000,
+              width: 44,
+              height: 44,
+              display: isModalOpen ? 'flex' : 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: isMobile ? 'rgba(255,255,255,0.8)' : 'transparent',
+              borderRadius: '50%',
+              boxShadow: isMobile ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.3s'
+            }}
+          />
 
           {/* Bottom Navigation Bar - Universal for all devices */}
           <div style={{
@@ -691,7 +628,7 @@ const HomePage = () => {
             bottom: 0,
             left: 0,
             right: 0,
-            height: isMobile ? 50 : 60,
+            height: 60,
             background: 'rgba(255,255,255,0.9)',
             backdropFilter: 'blur(10px)',
             borderTop: '1px solid #eee',
@@ -705,7 +642,7 @@ const HomePage = () => {
               icon={<LeftOutlined />}
               disabled={currentArticleIndex <= 0}
               onClick={handlePrevArticle}
-              style={{ flex: 1, height: '100%', fontSize: isMobile ? 12 : 15 }}
+              style={{ flex: 1, height: '100%', fontSize: 15 }}
             >
               Назад
             </Button>
@@ -715,7 +652,7 @@ const HomePage = () => {
               icon={<RightOutlined />}
               disabled={currentArticleIndex >= filteredArticles.length - 1}
               onClick={handleNextArticle}
-              style={{ flex: 1, height: '100%', flexDirection: 'row-reverse', fontSize: isMobile ? 12 : 15 }}
+              style={{ flex: 1, height: '100%', flexDirection: 'row-reverse', fontSize: 15 }}
             >
               Вперед
             </Button>
@@ -724,28 +661,20 @@ const HomePage = () => {
           <div
             ref={scrollContainerRef}
             className="hide-scrollbar article-content-container"
-            onClick={!isMobile ? handleCloseModal : undefined}
+            onClick={handleCloseModal}
             style={{
               overflowY: 'auto',
               flex: 1,
               paddingTop: 0,
-              paddingBottom: isMobile ? 50 : 80, // Always leave space for the bottom nav
+              paddingBottom: 80, // Always leave space for the bottom nav
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               width: '100%',
-              cursor: !isMobile ? 'pointer' : 'default'
+              cursor: 'pointer'
             }}
           >
-            <div
-              style={{
-                width: '100%',
-                maxWidth: 900,
-                cursor: 'default',
-                padding: isMobile ? '0 16px' : 0
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div style={{ width: '100%', maxWidth: 900, cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
               {selectedArticleId && (
                 <ArticleContentWrapper articleId={selectedArticleId} />
               )}
