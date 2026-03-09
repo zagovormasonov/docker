@@ -62,6 +62,25 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
       user.topics = []; // Если таблица не существует, возвращаем пустой массив
     }
 
+    // Получаем количество рефералов для расчета процента вознаграждения
+    let referralRewardPercent = 10;
+    try {
+      const referralCountResult = await query(
+        'SELECT COUNT(*) FROM users WHERE referred_by_id = $1',
+        [req.userId]
+      );
+      const referralCount = parseInt(referralCountResult.rows[0].count || '0');
+
+      if (referralCount >= 30) {
+        referralRewardPercent = 30;
+      } else if (referralCount >= 10) {
+        referralRewardPercent = 20;
+      }
+    } catch (refError) {
+      console.error('Ошибка подсчета рефералов:', refError);
+    }
+    user.referralRewardPercent = referralRewardPercent;
+
     res.json(user);
   } catch (error) {
     console.error('Ошибка получения пользователя:', error);

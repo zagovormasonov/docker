@@ -26,6 +26,7 @@ interface User {
   subscriptionPlan?: string;
   subscriptionExpiresAt?: string;
   lastPaymentDate?: string;
+  referralRewardPercent?: number;
 }
 
 interface AuthContextType {
