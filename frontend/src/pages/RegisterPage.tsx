@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Typography, Modal, Checkbox } from 'antd';
+import { Form, Input, Button, Card, message, Typography, Modal, Checkbox, Space } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import emailjs from '@emailjs/browser';
@@ -9,7 +9,9 @@ const { Title, Text } = Typography;
 
 const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
-  const [consentChecked, setConsentChecked] = useState(false);
+  const [termsChecked, setTermsChecked] = useState(false);
+  const [privacyChecked, setPrivacyChecked] = useState(false);
+  const [newsletterChecked, setNewsletterChecked] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -185,21 +187,40 @@ const RegisterPage = () => {
 
 
 
-          <Form.Item>
+          <Form.Item style={{ marginBottom: 8 }}>
             <Checkbox
-              checked={consentChecked}
-              onChange={(e) => setConsentChecked(e.target.checked)}
+              checked={termsChecked}
+              onChange={(e) => setTermsChecked(e.target.checked)}
             >
               <Text>
-                Регистрируясь я соглашаюсь с{' '}
-                <Link to="/offer" target="_blank" style={{ color: '#6366f1' }}>
-                  публичной офертой
-                </Link>
-                {' '}и{' '}
-                <Link to="/user-agreement" target="_blank" style={{ color: '#6366f1' }}>
-                  пользовательским соглашением
+                Я принимаю условия{' '}
+                <Link to="/terms" target="_blank" style={{ color: '#6366f1' }}>
+                  Пользовательского соглашения
                 </Link>
               </Text>
+            </Checkbox>
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 8 }}>
+            <Checkbox
+              checked={privacyChecked}
+              onChange={(e) => setPrivacyChecked(e.target.checked)}
+            >
+              <Text>
+                Я ознакомлен с{' '}
+                <Link to="/privacy" target="_blank" style={{ color: '#6366f1' }}>
+                  Политикой конфиденциальности
+                </Link>
+              </Text>
+            </Checkbox>
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 16 }}>
+            <Checkbox
+              checked={newsletterChecked}
+              onChange={(e) => setNewsletterChecked(e.target.checked)}
+            >
+              <Text>Согласен на получение информационных рассылок</Text>
             </Checkbox>
           </Form.Item>
 
@@ -208,7 +229,7 @@ const RegisterPage = () => {
               type="primary"
               htmlType="submit"
               loading={loading}
-              disabled={!consentChecked}
+              disabled={!termsChecked || !privacyChecked}
               block
               style={{ height: 48 }}
             >

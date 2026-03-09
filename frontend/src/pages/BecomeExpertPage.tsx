@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Button, Typography, Space, Radio, message, Modal } from 'antd';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Card, Button, Typography, Space, Radio, message, Modal, Checkbox } from 'antd';
 import { ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import ExpertBenefitsCard from '../components/ExpertBenefitsCard';
@@ -24,6 +24,7 @@ const BecomeExpertPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [registrationData, setRegistrationData] = useState<any>(null);
   const [useBonuses, setUseBonuses] = useState(false);
+  const [ofertaAccepted, setOfertaAccepted] = useState(false);
 
   const fromRegistration = searchParams.get('from') === 'registration';
 
@@ -392,12 +393,30 @@ const BecomeExpertPage: React.FC = () => {
             </div>
           ) : null}
 
+          {selectedPlan !== 'free' && (
+            <div style={{ marginTop: 24, padding: '16px', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 8 }}>
+              <Checkbox
+                checked={ofertaAccepted}
+                onChange={(e) => setOfertaAccepted(e.target.checked)}
+              >
+                <Text>
+                  Я ознакомился с условиями и принимаю{' '}
+                  <Link to="/offer" target="_blank" style={{ color: '#6366f1' }}>
+                    Публичную оферту
+                  </Link>
+                  {' '}на предоставление доступа к сервису
+                </Text>
+              </Checkbox>
+            </div>
+          )}
+
           <div style={{ textAlign: 'center', marginTop: 32 }}>
             <Button
               type="primary"
               size="large"
               loading={loading}
               onClick={handlePayment}
+              disabled={selectedPlan !== 'free' && !ofertaAccepted}
               style={{
                 height: 48,
                 fontSize: 16,
