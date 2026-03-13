@@ -35,6 +35,7 @@ import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import ExpertLandingPage from './pages/ExpertLandingPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import ExpertDashboardPage from './pages/ExpertDashboardPage';
+import LoyaltyPage from './pages/LoyaltyPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -102,6 +103,7 @@ function App() {
                 <Route path="user-agreement" element={<UserAgreementPage />} />
                 <Route path="terms" element={<UserAgreementPage />} />
                 <Route path="become-expert" element={<BecomeExpertPage />} />
+                <Route path="loyalty" element={<LoyaltyPage />} />
                 <Route path="payment-success" element={<PaymentSuccessPage />} />
               </Route>
             </Routes>

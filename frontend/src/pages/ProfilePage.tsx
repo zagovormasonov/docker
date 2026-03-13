@@ -962,7 +962,13 @@ const ProfilePage = () => {
                       </Button>
                     </div>
                     <Text style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 12, display: 'block', marginTop: 8 }}>
-                      Друзья получат скидку от 10% на подписку эксперта, а вам начисляются бонусные рубли на баланс. Ваш текущий размер вознаграждения {user?.referralRewardPercent || 10}%
+                      Друзья получат скидку от 10% на подписку эксперта, а вам начисляются бонусные рубли на баланс. Ваш текущий размер вознаграждения — <strong style={{ color: 'white' }}>{user?.referralRewardPercent || 10}%</strong>{' '}
+                      <span 
+                        onClick={() => navigate('/loyalty')} 
+                        style={{ cursor: 'pointer', textDecoration: 'underline', color: 'white', fontWeight: 500 }}
+                      >
+                        Подробнее
+                      </span>
                     </Text>
                   </div>
                 </Card>
