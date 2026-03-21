@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, Row, Col, Tabs, Typography, Space, Tag, Spin, Button, Input, Modal } from 'antd';
-import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined, LeftOutlined, RightOutlined, CalendarOutlined, EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Gem, ClockPlus } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,6 +30,18 @@ interface Article {
   created_at: string;
 }
 
+interface EventPreview {
+  id: number;
+  title: string;
+  description: string;
+  cover_image?: string;
+  event_type: string;
+  is_online: boolean;
+  city_name?: string;
+  event_date: string;
+  location?: string;
+}
+
 // Оптимизированная функция для удаления HTML тегов
 const stripHtml = (html: string): string => {
   const tmp = document.createElement('div');
@@ -55,6 +67,8 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [sortType, setSortType] = useState<'new' | 'popular'>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
+  const [eventsPreview, setEventsPreview] = useState<EventPreview[]>([]);
+  const [showcaseTab, setShowcaseTab] = useState<'experts' | 'events'>('experts');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>(searchQuery);
   const searchTimeoutRef = useRef<number | null>(null);
   const { user } = useAuth();
@@ -94,10 +108,28 @@ const HomePage = () => {
     }
   }, []);
 
+  const fetchEventsPreview = useCallback(async () => {
+    try {
+      const response = await api.get('/events');
+      const now = dayjs();
+      const eventsData = Array.isArray(response.data) ? response.data : [];
+      const upcomingEvents = eventsData
+        .filter((event: EventPreview) => dayjs(event.event_date).isAfter(now.subtract(1, 'day')))
+        .sort((a: EventPreview, b: EventPreview) => dayjs(a.event_date).valueOf() - dayjs(b.event_date).valueOf())
+        .slice(0, 3);
+
+      setEventsPreview(upcomingEvents);
+    } catch (error) {
+      console.error('Ошибка загрузки событий для витрины:', error);
+      setEventsPreview([]);
+    }
+  }, []);
+
   useEffect(() => {
     fetchArticles();
     fetchExpertsCount();
-  }, [fetchArticles, fetchExpertsCount]);
+    fetchEventsPreview();
+  }, [fetchArticles, fetchExpertsCount, fetchEventsPreview]);
 
   // Debounce для поискового запроса (500ms)
   useEffect(() => {
@@ -128,6 +160,74 @@ const HomePage = () => {
         (article.content && article.content.toLowerCase().includes(searchLower));
     });
   }, [debouncedSearchQuery, articles]);
+
+  const nextEvent = useMemo(() => eventsPreview[0] || null, [eventsPreview]);
+
+  const expertHighlights = useMemo(() => ([
+    {
+      eyebrow: 'Каталог',
+      title: `${expertsCount}+ экспертов`,
+      description: 'Психологи, проводники, наставники и практики, к которым можно перейти уже сейчас.',
+      action: 'Перейти к экспертам',
+      onClick: () => navigate('/experts'),
+      accent: 'linear-gradient(135deg, rgba(99,102,241,0.95) 0%, rgba(129,140,248,0.88) 100%)',
+      color: '#ffffff'
+    },
+    {
+      eyebrow: 'Форматы',
+      title: 'Личные и онлайн-сессии',
+      description: 'Подберите удобный формат взаимодействия под свой ритм и запрос.',
+      action: 'Найти формат',
+      onClick: () => navigate('/experts'),
+      accent: 'linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(238,242,255,0.98) 100%)',
+      color: '#312e81'
+    },
+    {
+      eyebrow: 'Навигация',
+      title: 'Поиск по подходу и энергии',
+      description: 'Ищите не только по профессии, но и по ощущению совпадения с человеком.',
+      action: 'Смотреть профили',
+      onClick: () => navigate('/experts'),
+      accent: 'linear-gradient(145deg, rgba(224,231,255,0.92) 0%, rgba(255,255,255,0.98) 100%)',
+      color: '#312e81'
+    }
+  ]), [expertsCount, navigate]);
+
+  const eventHighlights = useMemo(() => ([
+    {
+      eyebrow: nextEvent ? 'Ближайшее событие' : 'Афиша',
+      title: nextEvent ? nextEvent.title : 'Собирайте свой календарь встреч',
+      description: nextEvent
+        ? `${dayjs(nextEvent.event_date).format('DD MMMM')} • ${nextEvent.is_online ? 'Онлайн' : (nextEvent.city_name || 'Оффлайн')}`
+        : 'Ретриты, мастер-классы, практики и встречи, которые помогают быть в живом потоке.',
+      action: 'Перейти к событиям',
+      onClick: () => navigate('/events'),
+      accent: 'linear-gradient(135deg, rgba(79,70,229,0.95) 0%, rgba(14,165,233,0.82) 100%)',
+      color: '#ffffff'
+    },
+    {
+      eyebrow: 'Форматы',
+      title: 'Онлайн и офлайн',
+      description: 'От камерных встреч в городе до дистанционных эфиров и групповых практик.',
+      action: 'Открыть афишу',
+      onClick: () => navigate('/events'),
+      accent: 'linear-gradient(145deg, rgba(236,254,255,0.98) 0%, rgba(224,231,255,0.92) 100%)',
+      color: '#164e63'
+    },
+    {
+      eyebrow: 'Подборка',
+      title: `${eventsPreview.length || 0} ближайших событий`,
+      description: nextEvent?.event_type
+        ? `Сейчас в фокусе: ${nextEvent.event_type.toLowerCase()}.`
+        : 'Соберите маршрут по темам, датам и ощущениям.',
+      action: 'Смотреть события',
+      onClick: () => navigate('/events'),
+      accent: 'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(224,242,254,0.98) 100%)',
+      color: '#0f172a'
+    }
+  ]), [eventsPreview, nextEvent, navigate]);
+
+  const activeHighlights = showcaseTab === 'experts' ? expertHighlights : eventHighlights;
 
   // Мемоизированный обработчик изменения поиска
   const handleSearchChange = useCallback((value: string) => {
@@ -322,6 +422,302 @@ const HomePage = () => {
       </div>
 
       <div className="container" style={{ marginTop: -40, position: 'relative', zIndex: 2, paddingBottom: 60 }}>
+        <div style={{
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.98) 100%)',
+          borderRadius: 32,
+          padding: isMobile ? 20 : 28,
+          marginBottom: 32,
+          border: '1px solid rgba(224, 231, 255, 0.95)',
+          boxShadow: '0 24px 60px rgba(99, 102, 241, 0.08)'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: -80,
+            right: -60,
+            width: 220,
+            height: 220,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(129,140,248,0.18) 0%, rgba(129,140,248,0) 72%)'
+          }} />
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            gap: 16,
+            flexDirection: isMobile ? 'column' : 'row',
+            marginBottom: 24,
+            position: 'relative',
+            zIndex: 1
+          }}>
+            <div style={{ maxWidth: 620 }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '6px 12px',
+                borderRadius: 999,
+                background: 'rgba(99, 102, 241, 0.08)',
+                color: '#4f46e5',
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                marginBottom: 14
+              }}>
+                Soul synergy
+              </div>
+              <Title level={2} style={{ margin: 0, fontSize: isMobile ? 28 : 36, lineHeight: 1.08, color: '#0f172a' }}>
+                Переключайтесь между людьми и живыми событиями в одном ритме
+              </Title>
+              <Paragraph style={{ margin: '12px 0 0', fontSize: 16, color: '#64748b', maxWidth: 560 }}>
+                Бенто-витрина помогает быстро выбрать, куда идти дальше: к экспертам за личной работой или в события за общим опытом и новыми знакомствами.
+              </Paragraph>
+            </div>
+
+            <div style={{
+              display: 'inline-flex',
+              gap: 8,
+              padding: 6,
+              borderRadius: 999,
+              background: 'rgba(15, 23, 42, 0.04)',
+              border: '1px solid rgba(148, 163, 184, 0.14)'
+            }}>
+              {[
+                { key: 'experts' as const, label: 'Эксперты' },
+                { key: 'events' as const, label: 'События' }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setShowcaseTab(tab.key)}
+                  style={{
+                    border: 'none',
+                    cursor: 'pointer',
+                    borderRadius: 999,
+                    padding: isMobile ? '10px 14px' : '10px 18px',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    background: showcaseTab === tab.key ? '#ffffff' : 'transparent',
+                    color: showcaseTab === tab.key ? '#312e81' : '#64748b',
+                    boxShadow: showcaseTab === tab.key ? '0 10px 24px rgba(99, 102, 241, 0.12)' : 'none',
+                    transition: 'all 0.25s ease'
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1.35fr 0.85fr',
+            gap: 18,
+            position: 'relative',
+            zIndex: 1
+          }}>
+            <div
+              onClick={activeHighlights[0].onClick}
+              style={{
+                minHeight: isMobile ? 260 : 340,
+                borderRadius: 28,
+                padding: isMobile ? 20 : 28,
+                background: activeHighlights[0].accent,
+                color: activeHighlights[0].color,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                boxShadow: '0 20px 40px rgba(79, 70, 229, 0.16)'
+              }}
+            >
+              <div>
+                <Text style={{ color: 'inherit', opacity: 0.76, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {activeHighlights[0].eyebrow}
+                </Text>
+                <h3 style={{ margin: '14px 0 12px', fontSize: isMobile ? 28 : 38, lineHeight: 1.02, fontWeight: 500, color: 'inherit' }}>
+                  {activeHighlights[0].title}
+                </h3>
+                <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65, color: 'inherit', opacity: 0.92, maxWidth: 460 }}>
+                  {activeHighlights[0].description}
+                </p>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+                gap: 16,
+                flexWrap: 'wrap'
+              }}>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {showcaseTab === 'experts' ? (
+                    <>
+                      <span style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}>
+                        Личный подбор
+                      </span>
+                      <span style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}>
+                        Проверенные профили
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}>
+                        Ближайшие даты
+                      </span>
+                      <span style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}>
+                        Онлайн и офлайн
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600 }}>
+                  {activeHighlights[0].action}
+                  <ArrowRightOutlined />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gap: 18 }}>
+              {activeHighlights.slice(1).map((item) => (
+                <div
+                  key={item.title}
+                  onClick={item.onClick}
+                  style={{
+                    borderRadius: 24,
+                    padding: 22,
+                    minHeight: 160,
+                    background: item.accent,
+                    color: item.color,
+                    cursor: 'pointer',
+                    border: '1px solid rgba(226, 232, 240, 0.8)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <div>
+                    <Text style={{ color: 'inherit', opacity: 0.68, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      {item.eyebrow}
+                    </Text>
+                    <h4 style={{ margin: '10px 0 8px', fontSize: 24, lineHeight: 1.15, color: 'inherit', fontWeight: 500 }}>
+                      {item.title}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'inherit', opacity: 0.9 }}>
+                      {item.description}
+                    </p>
+                  </div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600 }}>
+                    {item.action}
+                    <ArrowRightOutlined />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {showcaseTab === 'events' && nextEvent && (
+            <div style={{
+              marginTop: 18,
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
+              gap: 18,
+              position: 'relative',
+              zIndex: 1
+            }}>
+              <div style={{
+                borderRadius: 24,
+                overflow: 'hidden',
+                minHeight: isMobile ? 220 : 240,
+                position: 'relative',
+                background: '#cbd5e1'
+              }}>
+                <LazyImage
+                  src={nextEvent.cover_image || '/eve.jpg'}
+                  alt={nextEvent.title}
+                  height="100%"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(180deg, rgba(15,23,42,0.04) 0%, rgba(15,23,42,0.72) 100%)'
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  left: 20,
+                  right: 20,
+                  bottom: 20,
+                  color: '#fff'
+                }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                    <span style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
+                      {nextEvent.event_type}
+                    </span>
+                    <span style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
+                      {nextEvent.is_online ? 'Онлайн' : 'Оффлайн'}
+                    </span>
+                  </div>
+                  <h4 style={{ margin: 0, fontSize: isMobile ? 22 : 28, lineHeight: 1.15, color: '#fff' }}>
+                    {nextEvent.title}
+                  </h4>
+                </div>
+              </div>
+
+              <div style={{
+                borderRadius: 24,
+                padding: isMobile ? 20 : 24,
+                background: '#ffffff',
+                border: '1px solid rgba(226, 232, 240, 0.9)',
+                boxShadow: '0 14px 32px rgba(15, 23, 42, 0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <Text style={{ color: '#4f46e5', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                    В фокусе недели
+                  </Text>
+                  <h4 style={{ margin: '10px 0 16px', fontSize: 26, lineHeight: 1.15, color: '#0f172a', fontWeight: 500 }}>
+                    {nextEvent.title}
+                  </h4>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 15 }}>
+                      <CalendarOutlined style={{ color: '#6366f1' }} />
+                      {dayjs(nextEvent.event_date).format('DD MMMM YYYY')}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 15 }}>
+                      <EnvironmentOutlined style={{ color: '#6366f1' }} />
+                      {nextEvent.is_online ? 'Онлайн-подключение' : (nextEvent.location || nextEvent.city_name || 'Локация уточняется')}
+                    </div>
+                  </div>
+                  <p style={{ margin: '16px 0 0', color: '#64748b', fontSize: 14, lineHeight: 1.65 }}>
+                    {stripHtml(nextEvent.description).slice(0, 160)}{stripHtml(nextEvent.description).length > 160 ? '...' : ''}
+                  </p>
+                </div>
+
+                <Button
+                  type="primary"
+                  onClick={() => navigate(`/events/${nextEvent.id}`)}
+                  style={{
+                    marginTop: 20,
+                    height: 46,
+                    borderRadius: 14,
+                    alignSelf: 'flex-start',
+                    paddingInline: 18
+                  }}
+                >
+                  Открыть событие
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Unified Toolbar */}
         <div style={{
           background: 'white',
