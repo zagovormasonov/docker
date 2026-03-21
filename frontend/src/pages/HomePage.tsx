@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+﻿import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, Row, Col, Tabs, Typography, Space, Tag, Spin, Button, Input, Modal } from 'antd';
 import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined, LeftOutlined, RightOutlined, CalendarOutlined, EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Gem, ClockPlus } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import AnimatedText from '../components/AnimatedText';
 import LazyImage from '../components/LazyImage';
 import LazyAvatar from '../components/LazyAvatar';
 import dayjs from 'dayjs';
@@ -48,17 +47,6 @@ const stripHtml = (html: string): string => {
   tmp.innerHTML = html;
   return tmp.textContent || tmp.innerText || '';
 };
-
-// Массив надписей для анимации (вынесен из компонента)
-const animatedTexts = [
-  "Развивайся. Соединяйся. Сияй.",
-  "Ваша духовная эволюция",
-  "Ваш личный источник Света",
-  "Эволюция души",
-  "Ваша духовная трансформация",
-  "Синергия в единстве",
-  "Путь к себе"
-];
 
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -341,44 +329,6 @@ const HomePage = () => {
         }} />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <div style={{ marginBottom: 16 }}>
-            <h1 style={{
-              fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
-              fontWeight: 400,
-              lineHeight: 1,
-              margin: 0,
-              color: 'rgb(99, 102, 241)',
-              letterSpacing: '-0.03em'
-            }}>
-              SoulSynergy
-            </h1>
-            <div style={{
-              fontSize: 'clamp(1rem, 3vw, 1.5rem)',
-              fontWeight: 300,
-              color: 'rgb(99, 102, 241)',
-              opacity: 0.7,
-              textTransform: 'lowercase',
-              marginTop: 8,
-              letterSpacing: '2px'
-            }}>
-              синергия душ
-            </div>
-          </div>
-
-
-
-          <div style={{ height: 32, marginBottom: 48, display: 'flex', justifyContent: 'center' }}>
-            <AnimatedText
-              texts={animatedTexts}
-              interval={4000}
-              style={{
-                fontSize: '1.25rem',
-                color: 'rgb(30, 27, 75)',
-                fontWeight: 400
-              }}
-            />
-          </div>
-
           <div style={{
             position: 'relative',
             background: 'rgba(255, 255, 255, 0.8)',
