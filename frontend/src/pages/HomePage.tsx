@@ -589,22 +589,28 @@ const HomePage = () => {
               display: 'grid',
               gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
               gap: 18,
+              alignItems: 'stretch',
               position: 'relative',
               zIndex: 1
               }}>
                 <div style={{
                 borderRadius: 24,
                 overflow: 'hidden',
-                minHeight: isMobile ? 220 : 240,
+                minHeight: isMobile ? 320 : 420,
+                height: '100%',
                 position: 'relative',
-                background: '#cbd5e1'
+                background: '#0f172a'
                 }}>
-                  <LazyImage
-                    src={nextEvent.cover_image || '/eve.jpg'}
-                    alt={nextEvent.title}
-                    height="100%"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                  <div style={{ position: 'absolute', inset: 0 }}>
+                    <LazyImage
+                      src={nextEvent.cover_image || '/eve.jpg'}
+                      alt={nextEvent.title}
+                      height="100%"
+                      style={{ width: '100%', height: '100%' }}
+                      imgStyle={{ objectFit: 'contain', objectPosition: 'center center' }}
+                      placeholderColor="#0f172a"
+                    />
+                  </div>
                   <div style={{
                   position: 'absolute',
                   inset: 0,
@@ -639,7 +645,9 @@ const HomePage = () => {
                 boxShadow: '0 14px 32px rgba(15, 23, 42, 0.05)',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                minHeight: isMobile ? undefined : 420,
+                height: '100%'
                 }}>
                   <div>
                     <Text style={{ color: '#4f46e5', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>

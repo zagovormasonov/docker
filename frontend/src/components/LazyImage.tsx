@@ -8,6 +8,7 @@ interface LazyImageProps {
   height?: number | string;
   className?: string;
   style?: React.CSSProperties;
+  imgStyle?: React.CSSProperties;
   placeholderColor?: string;
 }
 
@@ -18,6 +19,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
   height, 
   className, 
   style,
+  imgStyle,
   placeholderColor = '#f0f0f0'
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -79,6 +81,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
             objectFit: 'cover',
             opacity: isLoaded ? 1 : 0,
             transition: 'opacity 0.3s ease-in-out',
+            ...imgStyle,
           }}
         />
       )}
