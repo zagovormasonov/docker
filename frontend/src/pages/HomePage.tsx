@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Row, Col, Tabs, Typography, Space, Tag, Spin, Button, Input, Modal } from 'antd';
-import { EyeOutlined, ClockCircleOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined, LeftOutlined, RightOutlined, CalendarOutlined, EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Row, Col, Tabs, Typography, Spin, Button, Modal } from 'antd';
+import { EyeOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined, LeftOutlined, RightOutlined, CalendarOutlined, EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Gem, ClockPlus } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,7 +14,9 @@ import ArticlePage from './ArticlePage';
 dayjs.locale('ru');
 
 const { Title, Paragraph, Text } = Typography;
-const { Meta } = Card;
+
+type SortType = 'new' | 'popular';
+type ShowcaseTab = 'experts' | 'events';
 
 interface Article {
   id: number;
@@ -41,6 +43,43 @@ interface EventPreview {
   location?: string;
 }
 
+interface ShowcaseHighlight {
+  eyebrow: string;
+  title: string;
+  description: string;
+  action: string;
+  onClick: () => void;
+  accent: string;
+  color: string;
+}
+
+interface HighlightCardProps {
+  item: ShowcaseHighlight;
+  compact?: boolean;
+  isMobile: boolean;
+  badges?: string[];
+}
+
+interface EventSpotlightProps {
+  event: EventPreview;
+  isMobile: boolean;
+  description: string;
+  onOpen: () => void;
+}
+
+interface ArticleCardProps {
+  article: Article;
+  onOpen: (articleId: number) => void;
+  onOpenAuthor: (authorId: number) => void;
+}
+
+interface ArticleModalNavigationProps {
+  currentIndex: number;
+  total: number;
+  onPrev: () => void;
+  onNext: () => void;
+}
+
 // Оптимизированная функция для удаления HTML тегов
 const stripHtml = (html: string): string => {
   const tmp = document.createElement('div');
@@ -48,15 +87,390 @@ const stripHtml = (html: string): string => {
   return tmp.textContent || tmp.innerText || '';
 };
 
+const SHOWCASE_TABS: Array<{ key: ShowcaseTab; label: string }> = [
+  { key: 'experts', label: 'Эксперты' },
+  { key: 'events', label: 'События' }
+];
+
+const ShowcaseHighlightCard = ({ item, compact = false, isMobile, badges = [] }: HighlightCardProps) => (
+  <div
+    onClick={item.onClick}
+    style={{
+      minHeight: compact ? 160 : isMobile ? 260 : 340,
+      borderRadius: compact ? 24 : 28,
+      padding: compact ? 22 : isMobile ? 20 : 28,
+      background: item.accent,
+      color: item.color,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      cursor: 'pointer',
+      border: compact ? '1px solid rgba(226, 232, 240, 0.8)' : 'none',
+      boxShadow: compact ? 'none' : '0 20px 40px rgba(79, 70, 229, 0.16)'
+    }}
+  >
+    <div>
+      <Text style={{ color: 'inherit', opacity: compact ? 0.68 : 0.76, fontSize: compact ? 12 : 13, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        {item.eyebrow}
+      </Text>
+      <h3
+        style={{
+          margin: compact ? '10px 0 8px' : '14px 0 12px',
+          fontSize: compact ? 24 : isMobile ? 28 : 38,
+          lineHeight: compact ? 1.15 : 1.02,
+          fontWeight: 500,
+          color: 'inherit'
+        }}
+      >
+        {item.title}
+      </h3>
+      <p
+        style={{
+          margin: 0,
+          fontSize: compact ? 14 : 16,
+          lineHeight: compact ? 1.6 : 1.65,
+          color: 'inherit',
+          opacity: compact ? 0.9 : 0.92,
+          maxWidth: compact ? undefined : 460
+        }}
+      >
+        {item.description}
+      </p>
+    </div>
+
+    {compact ? (
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600 }}>
+        {item.action}
+        <ArrowRightOutlined />
+      </div>
+    ) : (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          gap: 16,
+          flexWrap: 'wrap'
+        }}
+      >
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {badges.map((badge) => (
+            <span
+              key={badge}
+              style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}
+            >
+              {badge}
+            </span>
+          ))}
+        </div>
+
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600 }}>
+          {item.action}
+          <ArrowRightOutlined />
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+const EventSpotlightSection = ({ event, isMobile, description, onOpen }: EventSpotlightProps) => (
+  <div
+    style={{
+      marginTop: 18,
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
+      gap: 18,
+      alignItems: 'stretch',
+      position: 'relative',
+      zIndex: 1
+    }}
+  >
+    <div
+      style={{
+        borderRadius: 24,
+        overflow: 'hidden',
+        minHeight: isMobile ? 320 : 420,
+        height: '100%',
+        position: 'relative',
+        background: '#0f172a'
+      }}
+    >
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <LazyImage
+          src={event.cover_image || '/eve.jpg'}
+          alt={event.title}
+          height="100%"
+          style={{ width: '100%', height: '100%' }}
+          imgStyle={{ objectFit: 'contain', objectPosition: 'center center' }}
+          placeholderColor="#0f172a"
+        />
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(15,23,42,0.04) 0%, rgba(15,23,42,0.72) 100%)'
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          left: 20,
+          right: 20,
+          bottom: 20,
+          color: '#fff'
+        }}
+      >
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+          <span style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
+            {event.event_type}
+          </span>
+          <span style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
+            {event.is_online ? 'Онлайн' : 'Оффлайн'}
+          </span>
+        </div>
+        <h4 style={{ margin: 0, fontSize: isMobile ? 22 : 28, lineHeight: 1.15, color: '#fff' }}>
+          {event.title}
+        </h4>
+      </div>
+    </div>
+
+    <div
+      style={{
+        borderRadius: 24,
+        padding: isMobile ? 20 : 24,
+        background: '#ffffff',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        boxShadow: '0 14px 32px rgba(15, 23, 42, 0.05)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        minHeight: isMobile ? undefined : 420,
+        height: '100%'
+      }}
+    >
+      <div>
+        <Text style={{ color: '#4f46e5', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+          В фокусе недели
+        </Text>
+        <h4 style={{ margin: '10px 0 16px', fontSize: 26, lineHeight: 1.15, color: '#0f172a', fontWeight: 500 }}>
+          {event.title}
+        </h4>
+        <div style={{ display: 'grid', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 15 }}>
+            <CalendarOutlined style={{ color: '#6366f1' }} />
+            {dayjs(event.event_date).format('DD MMMM YYYY')}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 15 }}>
+            <EnvironmentOutlined style={{ color: '#6366f1' }} />
+            {event.is_online ? 'Онлайн-подключение' : (event.location || event.city_name || 'Локация уточняется')}
+          </div>
+        </div>
+        <p style={{ margin: '16px 0 0', color: '#64748b', fontSize: 14, lineHeight: 1.65 }}>
+          {description}
+        </p>
+      </div>
+
+      <Button
+        type="primary"
+        onClick={onOpen}
+        style={{
+          marginTop: 20,
+          height: 46,
+          borderRadius: 14,
+          alignSelf: 'flex-start',
+          paddingInline: 18
+        }}
+      >
+        Открыть событие
+      </Button>
+    </div>
+  </div>
+);
+
+const ArticleCard = memo(({ article, onOpen, onOpenAuthor }: ArticleCardProps) => (
+  <div
+    style={{
+      height: '100%',
+      background: 'white',
+      borderRadius: 24,
+      overflow: 'hidden',
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      cursor: 'pointer',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-8px)';
+      e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)';
+    }}
+    onClick={() => onOpen(article.id)}
+  >
+    <div style={{ height: 220, position: 'relative', overflow: 'hidden' }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          transition: 'transform 0.5s ease'
+        }}
+        className="card-image-wrapper"
+      >
+        <LazyImage
+          src={article.cover_image || '/art.jpg'}
+          alt={article.title}
+          height="100%"
+          style={{ width: '100%', objectFit: 'cover' }}
+        />
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          background: 'rgba(255, 255, 255, 0.9)',
+          padding: '4px 12px',
+          borderRadius: 20,
+          fontSize: 12,
+          fontWeight: 600,
+          color: '#4b5563',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}
+      >
+        {dayjs(article.created_at).format('DD MMM')}
+      </div>
+    </div>
+
+    <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <h3
+        style={{
+          fontSize: 18,
+          fontWeight: 500,
+          marginBottom: 12,
+          lineHeight: 1.4,
+          color: '#1f2937',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden'
+        }}
+      >
+        {article.title}
+      </h3>
+
+      <p
+        style={{
+          color: '#6b7280',
+          fontSize: 14,
+          lineHeight: 1.6,
+          marginBottom: 20,
+          flex: 1,
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden'
+        }}
+      >
+        {stripHtml(article.content)}
+      </p>
+
+      <div
+        style={{
+          paddingTop: 16,
+          marginTop: 'auto',
+          borderTop: '1px solid #f3f4f6',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenAuthor(article.author_id);
+          }}
+        >
+          <LazyAvatar
+            size={32}
+            src={article.author_avatar}
+            defaultSrc="/emp.jpg"
+            icon={<UserOutlined />}
+          />
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#4b5563' }}>
+            {article.author_name}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, color: '#9ca3af', fontSize: 13 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <HeartOutlined /> {article.likes_count || 0}
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <EyeOutlined /> {article.views}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
+const ArticleModalNavigation = ({ currentIndex, total, onPrev, onNext }: ArticleModalNavigationProps) => (
+  <div
+    style={{
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 60,
+      background: 'rgba(255,255,255,0.9)',
+      backdropFilter: 'blur(10px)',
+      borderTop: '1px solid #eee',
+      display: 'flex',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      zIndex: 2000
+    }}
+  >
+    <Button
+      type="text"
+      icon={<LeftOutlined />}
+      disabled={currentIndex <= 0}
+      onClick={onPrev}
+      style={{ flex: 1, height: '100%', fontSize: 15 }}
+    >
+      Назад
+    </Button>
+    <div style={{ width: 1, height: 24, background: '#eee' }} />
+    <Button
+      type="text"
+      icon={<RightOutlined />}
+      disabled={currentIndex >= total - 1}
+      onClick={onNext}
+      style={{ flex: 1, height: '100%', flexDirection: 'row-reverse', fontSize: 15 }}
+    >
+      Вперед
+    </Button>
+  </div>
+);
+
 const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortType, setSortType] = useState<'new' | 'popular'>('new');
+  const [sortType, setSortType] = useState<SortType>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
   const [eventsPreview, setEventsPreview] = useState<EventPreview[]>([]);
-  const [showcaseTab, setShowcaseTab] = useState<'experts' | 'events'>('experts');
+  const [showcaseTab, setShowcaseTab] = useState<ShowcaseTab>('experts');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>(searchQuery);
   const searchTimeoutRef = useRef<number | null>(null);
   const { user } = useAuth();
@@ -151,7 +565,7 @@ const HomePage = () => {
 
   const nextEvent = useMemo(() => eventsPreview[0] || null, [eventsPreview]);
 
-  const expertHighlights = useMemo(() => ([
+  const expertHighlights = useMemo<ShowcaseHighlight[]>(() => ([
     {
       eyebrow: 'Каталог',
       title: `${expertsCount}+ экспертов`,
@@ -181,7 +595,7 @@ const HomePage = () => {
     }
   ]), [expertsCount, navigate]);
 
-  const eventHighlights = useMemo(() => ([
+  const eventHighlights = useMemo<ShowcaseHighlight[]>(() => ([
     {
       eyebrow: nextEvent ? 'Ближайшее событие' : 'Афиша',
       title: nextEvent ? nextEvent.title : 'Собирайте свой календарь встреч',
@@ -217,6 +631,14 @@ const HomePage = () => {
 
   const activeHighlights = showcaseTab === 'experts' ? expertHighlights : eventHighlights;
   const hasSearchValue = searchQuery.trim().length > 0;
+  const showcaseBadges = showcaseTab === 'experts'
+    ? ['Личный подбор', 'Проверенные профили']
+    : ['Ближайшие даты', 'Онлайн и офлайн'];
+  const nextEventDescription = useMemo(() => {
+    if (!nextEvent) return '';
+    const plainDescription = stripHtml(nextEvent.description);
+    return plainDescription.length > 160 ? `${plainDescription.slice(0, 160)}...` : plainDescription;
+  }, [nextEvent]);
 
   // Мемоизированный обработчик изменения поиска
   const handleSearchChange = useCallback((value: string) => {
@@ -448,10 +870,7 @@ const HomePage = () => {
               background: 'rgba(15, 23, 42, 0.04)',
               border: '1px solid rgba(148, 163, 184, 0.14)'
               }}>
-                {[
-                  { key: 'experts' as const, label: 'Эксперты' },
-                  { key: 'events' as const, label: 'События' }
-                ].map((tab) => (
+                {SHOWCASE_TABS.map((tab) => (
                   <button
                     key={tab.key}
                     type="button"
@@ -482,210 +901,31 @@ const HomePage = () => {
             position: 'relative',
             zIndex: 1
             }}>
-              <div
-                onClick={activeHighlights[0].onClick}
-                style={{
-                  minHeight: isMobile ? 260 : 340,
-                  borderRadius: 28,
-                  padding: isMobile ? 20 : 28,
-                  background: activeHighlights[0].accent,
-                  color: activeHighlights[0].color,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  cursor: 'pointer',
-                  boxShadow: '0 20px 40px rgba(79, 70, 229, 0.16)'
-                }}
-              >
-                <div>
-                  <Text style={{ color: 'inherit', opacity: 0.76, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    {activeHighlights[0].eyebrow}
-                  </Text>
-                  <h3 style={{ margin: '14px 0 12px', fontSize: isMobile ? 28 : 38, lineHeight: 1.02, fontWeight: 500, color: 'inherit' }}>
-                    {activeHighlights[0].title}
-                  </h3>
-                  <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65, color: 'inherit', opacity: 0.92, maxWidth: 460 }}>
-                    {activeHighlights[0].description}
-                  </p>
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-end',
-                  gap: 16,
-                  flexWrap: 'wrap'
-                }}>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    {showcaseTab === 'experts' ? (
-                      <>
-                        <span style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}>
-                          Личный подбор
-                        </span>
-                        <span style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}>
-                          Проверенные профили
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}>
-                          Ближайшие даты
-                        </span>
-                        <span style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}>
-                          Онлайн и офлайн
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600 }}>
-                    {activeHighlights[0].action}
-                    <ArrowRightOutlined />
-                  </div>
-                </div>
-              </div>
+              <ShowcaseHighlightCard
+                item={activeHighlights[0]}
+                isMobile={isMobile}
+                badges={showcaseBadges}
+              />
 
               <div style={{ display: 'grid', gap: 18 }}>
                 {activeHighlights.slice(1).map((item) => (
-                  <div
+                  <ShowcaseHighlightCard
                     key={item.title}
-                    onClick={item.onClick}
-                    style={{
-                      borderRadius: 24,
-                      padding: 22,
-                      minHeight: 160,
-                      background: item.accent,
-                      color: item.color,
-                      cursor: 'pointer',
-                      border: '1px solid rgba(226, 232, 240, 0.8)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <div>
-                      <Text style={{ color: 'inherit', opacity: 0.68, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                        {item.eyebrow}
-                      </Text>
-                      <h4 style={{ margin: '10px 0 8px', fontSize: 24, lineHeight: 1.15, color: 'inherit', fontWeight: 500 }}>
-                        {item.title}
-                      </h4>
-                      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'inherit', opacity: 0.9 }}>
-                        {item.description}
-                      </p>
-                    </div>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600 }}>
-                      {item.action}
-                      <ArrowRightOutlined />
-                    </div>
-                  </div>
+                    item={item}
+                    compact
+                    isMobile={isMobile}
+                  />
                 ))}
               </div>
             </div>
 
             {showcaseTab === 'events' && nextEvent && (
-              <div style={{
-              marginTop: 18,
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
-              gap: 18,
-              alignItems: 'stretch',
-              position: 'relative',
-              zIndex: 1
-              }}>
-                <div style={{
-                borderRadius: 24,
-                overflow: 'hidden',
-                minHeight: isMobile ? 320 : 420,
-                height: '100%',
-                position: 'relative',
-                background: '#0f172a'
-                }}>
-                  <div style={{ position: 'absolute', inset: 0 }}>
-                    <LazyImage
-                      src={nextEvent.cover_image || '/eve.jpg'}
-                      alt={nextEvent.title}
-                      height="100%"
-                      style={{ width: '100%', height: '100%' }}
-                      imgStyle={{ objectFit: 'contain', objectPosition: 'center center' }}
-                      placeholderColor="#0f172a"
-                    />
-                  </div>
-                  <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(180deg, rgba(15,23,42,0.04) 0%, rgba(15,23,42,0.72) 100%)'
-                  }} />
-                  <div style={{
-                  position: 'absolute',
-                  left: 20,
-                  right: 20,
-                  bottom: 20,
-                  color: '#fff'
-                  }}>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-                      <span style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
-                        {nextEvent.event_type}
-                      </span>
-                      <span style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
-                        {nextEvent.is_online ? 'Онлайн' : 'Оффлайн'}
-                      </span>
-                    </div>
-                    <h4 style={{ margin: 0, fontSize: isMobile ? 22 : 28, lineHeight: 1.15, color: '#fff' }}>
-                      {nextEvent.title}
-                    </h4>
-                  </div>
-                </div>
-
-                <div style={{
-                borderRadius: 24,
-                padding: isMobile ? 20 : 24,
-                background: '#ffffff',
-                border: '1px solid rgba(226, 232, 240, 0.9)',
-                boxShadow: '0 14px 32px rgba(15, 23, 42, 0.05)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                minHeight: isMobile ? undefined : 420,
-                height: '100%'
-                }}>
-                  <div>
-                    <Text style={{ color: '#4f46e5', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-                      В фокусе недели
-                    </Text>
-                    <h4 style={{ margin: '10px 0 16px', fontSize: 26, lineHeight: 1.15, color: '#0f172a', fontWeight: 500 }}>
-                      {nextEvent.title}
-                    </h4>
-                    <div style={{ display: 'grid', gap: 10 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 15 }}>
-                        <CalendarOutlined style={{ color: '#6366f1' }} />
-                        {dayjs(nextEvent.event_date).format('DD MMMM YYYY')}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 15 }}>
-                        <EnvironmentOutlined style={{ color: '#6366f1' }} />
-                        {nextEvent.is_online ? 'Онлайн-подключение' : (nextEvent.location || nextEvent.city_name || 'Локация уточняется')}
-                      </div>
-                    </div>
-                    <p style={{ margin: '16px 0 0', color: '#64748b', fontSize: 14, lineHeight: 1.65 }}>
-                      {stripHtml(nextEvent.description).slice(0, 160)}{stripHtml(nextEvent.description).length > 160 ? '...' : ''}
-                    </p>
-                  </div>
-
-                  <Button
-                    type="primary"
-                    onClick={() => navigate(`/events/${nextEvent.id}`)}
-                    style={{
-                      marginTop: 20,
-                      height: 46,
-                      borderRadius: 14,
-                      alignSelf: 'flex-start',
-                      paddingInline: 18
-                    }}
-                  >
-                    Открыть событие
-                  </Button>
-                </div>
-              </div>
+              <EventSpotlightSection
+                event={nextEvent}
+                isMobile={isMobile}
+                description={nextEventDescription}
+                onOpen={() => navigate(`/events/${nextEvent.id}`)}
+              />
             )}
           </div>
         </div>
@@ -797,129 +1037,11 @@ const HomePage = () => {
           <Row gutter={[24, 24]}>
             {filteredArticles.map((article) => (
               <Col xs={24} sm={12} lg={8} key={article.id}>
-                <div
-                  style={{
-                    height: '100%',
-                    background: 'white',
-                    borderRadius: 24,
-                    overflow: 'hidden',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    position: 'relative'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)';
-                  }}
-                  onClick={() => handleArticleClick(article.id)}
-                >
-                  <div style={{ height: 220, position: 'relative', overflow: 'hidden' }}>
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      transition: 'transform 0.5s ease'
-                    }}
-                      className="card-image-wrapper"
-                    >
-                      <LazyImage
-                        src={article.cover_image || '/art.jpg'}
-                        alt={article.title}
-                        height="100%"
-                        style={{ width: '100%', objectFit: 'cover' }}
-                      />
-                    </div>
-                    <div style={{
-                      position: 'absolute',
-                      top: 16,
-                      right: 16,
-                      background: 'rgba(255, 255, 255, 0.9)',
-                      padding: '4px 12px',
-                      borderRadius: 20,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: '#4b5563',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}>
-                      {dayjs(article.created_at).format('DD MMM')}
-                    </div>
-                  </div>
-
-                  <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{
-                      fontSize: 18,
-                      fontWeight: 500,
-                      marginBottom: 12,
-                      lineHeight: 1.4,
-                      color: '#1f2937',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {article.title}
-                    </h3>
-
-                    <p style={{
-                      color: '#6b7280',
-                      fontSize: 14,
-                      lineHeight: 1.6,
-                      marginBottom: 20,
-                      flex: 1,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {stripHtml(article.content)}
-                    </p>
-
-                    <div style={{
-                      paddingTop: 16,
-                      marginTop: 'auto',
-                      borderTop: '1px solid #f3f4f6',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <div
-                        style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/experts/${article.author_id}`);
-                        }}
-                      >
-                        <LazyAvatar
-                          size={32}
-                          src={article.author_avatar}
-                          defaultSrc="/emp.jpg"
-                          icon={<UserOutlined />}
-                        />
-                        <span style={{ fontSize: 13, fontWeight: 500, color: '#4b5563' }}>
-                          {article.author_name}
-                        </span>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: 12, color: '#9ca3af', fontSize: 13 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <HeartOutlined /> {article.likes_count || 0}
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <EyeOutlined /> {article.views}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ArticleCard
+                  article={article}
+                  onOpen={handleArticleClick}
+                  onOpenAuthor={(authorId) => navigate(`/experts/${authorId}`)}
+                />
               </Col>
             ))}
           </Row>
@@ -991,40 +1113,12 @@ const HomePage = () => {
           />
 
           {/* Bottom Navigation Bar - Universal for all devices */}
-          <div style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 60,
-            background: 'rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(10px)',
-            borderTop: '1px solid #eee',
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            zIndex: 2000
-          }}>
-            <Button
-              type="text"
-              icon={<LeftOutlined />}
-              disabled={currentArticleIndex <= 0}
-              onClick={handlePrevArticle}
-              style={{ flex: 1, height: '100%', fontSize: 15 }}
-            >
-              Назад
-            </Button>
-            <div style={{ width: 1, height: 24, background: '#eee' }} />
-            <Button
-              type="text"
-              icon={<RightOutlined />}
-              disabled={currentArticleIndex >= filteredArticles.length - 1}
-              onClick={handleNextArticle}
-              style={{ flex: 1, height: '100%', flexDirection: 'row-reverse', fontSize: 15 }}
-            >
-              Вперед
-            </Button>
-          </div>
+          <ArticleModalNavigation
+            currentIndex={currentArticleIndex}
+            total={filteredArticles.length}
+            onPrev={handlePrevArticle}
+            onNext={handleNextArticle}
+          />
 
           <div
             ref={scrollContainerRef}
