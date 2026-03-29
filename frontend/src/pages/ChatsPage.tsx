@@ -348,77 +348,79 @@ const ChatsPage = () => {
   // Мобильная версия - активный чат
   if (isMobile && !showChatList && selectedChat) {
     return (
-      <div className="chats-panel">
-        <div className="active-chat-header">
-          <Button 
-            icon={<ArrowLeftOutlined />} 
-            onClick={handleBackToChatList}
-            type="text"
-          />
-          <Badge dot={selectedChatObj?.other_user_online} color="green" offset={[-2, 32]}>
-            <Avatar 
-              src={selectedChatObj?.other_user_avatar} 
-              icon={<UserOutlined />} 
-              size={40} 
+      <div className="chats-page">
+        <div className="chats-panel">
+          <div className="active-chat-header">
+            <Button 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleBackToChatList}
+              type="text"
             />
-          </Badge>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <Text strong style={{ fontSize: '16px' }}>{selectedChatObj?.other_user_name || 'Чат'}</Text>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              {selectedChatObj?.other_user_online ? 'В сети' : 'Был недавно'}
-            </Text>
+            <Badge dot={selectedChatObj?.other_user_online} color="green" offset={[-2, 32]}>
+              <Avatar 
+                src={selectedChatObj?.other_user_avatar} 
+                icon={<UserOutlined />} 
+                size={40} 
+              />
+            </Badge>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <Text strong style={{ fontSize: '16px' }}>{selectedChatObj?.other_user_name || 'Чат'}</Text>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                {selectedChatObj?.other_user_online ? 'В сети' : 'Был недавно'}
+              </Text>
+            </div>
           </div>
-        </div>
-        
-        <div className="messages-container">
-          {messages.map((message) => {
-            const isMe = message.sender_id === user?.id;
-            return (
-              <div
-                key={message.id}
-                className="message-row"
-                style={{
-                  display: 'flex',
-                  justifyContent: isMe ? 'flex-end' : 'flex-start'
-                }}
-              >
+          
+          <div className="messages-container">
+            {messages.map((message) => {
+              const isMe = message.sender_id === user?.id;
+              return (
                 <div
-                  className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}
+                  key={message.id}
+                  className="message-row"
+                  style={{
+                    display: 'flex',
+                    justifyContent: isMe ? 'flex-end' : 'flex-start'
+                  }}
                 >
-                  {message.content.includes('<div style=') ? (
-                    <div dangerouslySetInnerHTML={{ __html: message.content }} />
-                  ) : (
-                    message.content
-                  )}
-                  <div className="message-footer">
-                    <span className="message-time">
-                      {dayjs(message.created_at).format('HH:mm')}
-                    </span>
+                  <div
+                    className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}
+                  >
+                    {message.content.includes('<div style=') ? (
+                      <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                    ) : (
+                      message.content
+                    )}
+                    <div className="message-footer">
+                      <span className="message-time">
+                        {dayjs(message.created_at).format('HH:mm')}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-          <div ref={messagesEndRef} />
-        </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
 
-        <div className="chat-input-wrapper">
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <Input
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onPressEnter={sendMessage}
-              placeholder="Введите сообщение..."
-              size="large"
-              className="chat-input-field"
-              autoComplete="off"
-            />
-            <Button
-              type="primary"
-              icon={<SendOutlined />}
-              onClick={sendMessage}
-              className="send-button"
-            />
+          <div className="chat-input-wrapper">
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <Input
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onPressEnter={sendMessage}
+                placeholder="Введите сообщение..."
+                size="large"
+                className="chat-input-field"
+                autoComplete="off"
+              />
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                onClick={sendMessage}
+                className="send-button"
+              />
+            </div>
           </div>
         </div>
       </div>
