@@ -626,14 +626,21 @@ const Header = () => {
         placement="bottom"
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        height="auto"
+        height="85vh"
         closable={false}
-        bodyStyle={{ 
-          padding: '0 0 32px 0',
-          borderRadius: '24px 24px 0 0'
-        }}
-        headerStyle={{
-          display: 'none'
+        styles={{ 
+          body: { padding: 0, display: 'flex', flexDirection: 'column' },
+          content: { 
+            borderRadius: '32px 32px 0 0', 
+            overflow: 'hidden',
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+          },
+          mask: {
+            backdropFilter: 'blur(4px)',
+            background: 'rgba(0, 0, 0, 0.3)'
+          }
         }}
         style={{ zIndex: 1000 }}
         className="mobile-bottom-sheet"
@@ -641,69 +648,46 @@ const Header = () => {
         <div className="bottom-sheet-handle" style={{
           width: '40px',
           height: '4px',
-          background: '#e5e7eb',
+          background: 'rgba(0, 0, 0, 0.1)',
           borderRadius: '2px',
-          margin: '12px auto 8px'
+          margin: '12px auto 4px',
+          flexShrink: 0
         }} />
         
-        <div style={{ padding: '16px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img
-                src="/logo.png"
-                alt="SoulSynergy Logo"
-                style={{
-                  height: '48px',
-                  width: '48px',
-                  objectFit: 'contain'
-                }}
-              />
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-                <span style={{
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: 'rgb(99, 102, 241)'
-                }}>
-                  SoulSynergy
-                </span>
-                <span style={{
-                  fontSize: '9px',
-                  fontWeight: 400,
-                  color: 'rgb(99, 102, 241)',
-                  opacity: 0.8,
-                  textTransform: 'lowercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  синергия душ
-                </span>
-              </div>
-            </div>
-            <Button
-              type="text"
-              icon={<CloseOutlined />}
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ 
-                background: '#f3f4f6', 
-                borderRadius: '50%', 
-                width: '32px', 
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            />
-          </div>
+        <div style={{ 
+          padding: '16px 24px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+          background: 'transparent'
+        }}>
+          <span style={{ fontSize: '18px', fontWeight: 700, color: '#1d1d1f' }}>Меню</span>
+          <Button 
+            type="link" 
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ 
+              color: 'rgb(99, 102, 241)', 
+              fontWeight: 600, 
+              fontSize: '16px',
+              padding: '0 4px'
+            }}
+          >
+            Готово
+          </Button>
         </div>
 
-        <Menu
-          mode="vertical"
-          items={mobileMenuItems}
-          style={{
-            border: 'none',
-            background: 'transparent',
-          }}
-          className="mobile-bottom-menu"
-        />
+        <div style={{ overflowY: 'auto', flex: 1, padding: '8px 0 32px' }}>
+          <Menu
+            mode="vertical"
+            items={mobileMenuItems}
+            style={{
+              border: 'none',
+              background: 'transparent',
+            }}
+            className="mobile-bottom-menu"
+          />
+        </div>
       </Drawer>
 
       {/* Модальное окно поддержки */}

@@ -249,44 +249,64 @@ body {
 
 /* Стили для мобильного меню (Bottom Sheet) */
 .mobile-bottom-sheet .ant-drawer-content {
-  border-radius: 28px 28px 0 0 !important;
+  border-radius: 32px 32px 0 0 !important;
   overflow: hidden;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1) !important;
-  max-height: 85vh !important;
+  box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.1) !important;
 }
 
 .mobile-bottom-sheet .ant-drawer-mask {
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
   background: rgba(0, 0, 0, 0.2) !important;
 }
 
 .mobile-bottom-menu .ant-menu-item {
-  height: 52px !important;
-  line-height: 52px !important;
-  margin: 4px 16px !important;
-  padding: 0 16px !important;
+  height: 56px !important;
+  line-height: 56px !important;
+  margin: 4px 12px !important;
+  padding: 0 20px !important;
   font-size: 16px !important;
   font-weight: 500 !important;
-  border-radius: 12px !important;
-  transition: all 0.2s ease !important;
+  border-radius: 16px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: transparent !important;
+  color: #1d1d1f !important;
 }
 
 .mobile-bottom-menu .ant-menu-item:active {
-  background-color: rgba(99, 102, 241, 0.1) !important;
-  transform: scale(0.98);
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  transform: scale(0.97);
+}
+
+.mobile-bottom-menu .ant-menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
 }
 
 .mobile-bottom-menu .ant-menu-item-selected {
   background-color: rgba(99, 102, 241, 0.1) !important;
   color: #6366f1 !important;
+  font-weight: 600 !important;
 }
 
 .mobile-bottom-menu .ant-menu-item .ant-menu-item-icon {
-  font-size: 18px !important;
+  font-size: 20px !important;
+  margin-right: 12px !important;
+  color: #86868b;
+}
+
+.mobile-bottom-menu .ant-menu-item-selected .ant-menu-item-icon {
+  color: #6366f1;
+}
+
+.mobile-bottom-menu .ant-menu-item-danger {
+  color: #ff4d4f !important;
+}
+
+.mobile-bottom-menu .ant-menu-item-danger .ant-menu-item-icon {
+  color: #ff4d4f !important;
 }
 
 .ant-drawer-header {
-  border-bottom: 1px solid #f0f0f0 !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 
 .ant-drawer-body {
