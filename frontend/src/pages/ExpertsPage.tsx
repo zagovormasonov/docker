@@ -290,7 +290,6 @@ const ExpertsPage = () => {
     setDisplayLimit(12); // Сбрасываем лимит при новом поиске
   }, [fetchExperts]);
 
-  // Мемоизированная функция рендера карточки эксперта
   const renderExpertCard = useCallback((expert: Expert, isFavorited: boolean) => (
     <Card
       hoverable
@@ -304,6 +303,7 @@ const ExpertsPage = () => {
       }}
       style={{ 
         height: '100%',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
@@ -370,14 +370,16 @@ const ExpertsPage = () => {
       
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-          <LazyAvatar
-            size={64}
-            src={expert.avatar_url}
-            defaultSrc="/emp.jpg"
-            icon={<UserOutlined />}
-            style={{ backgroundColor: '#f5f5f7', minWidth: 64 }}
-          />
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ flexShrink: 0, width: 64, height: 64 }}>
+            <LazyAvatar
+              size={64}
+              src={expert.avatar_url}
+              defaultSrc="/emp.jpg"
+              icon={<UserOutlined />}
+              style={{ backgroundColor: '#f5f5f7', width: 64, height: 64 }}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 0, paddingRight: 72 }}>
             <Title level={4} style={{ margin: '0 0 4px 0', fontSize: 18, color: '#1d1d1f' }} ellipsis>{expert.name}</Title>
             {expert.city && (
               <Text type="secondary" style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>

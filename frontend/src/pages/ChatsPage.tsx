@@ -197,21 +197,6 @@ const ChatsPage = () => {
 
   const fetchMessages = async (id: number) => {
     try {
-      // Пытаемся подгрузить недостающую информацию о чате, если его нет в списке
-      if (!chats.find(c => c.id === id)) {
-        try {
-          const chatResponse = await api.get(`/chats/${id}`);
-          if (chatResponse.data) {
-            setChats(prev => {
-              if (prev.find(c => c.id === id)) return prev;
-              return [chatResponse.data, ...prev];
-            });
-          }
-        } catch (err) {
-          console.error('Ошибка загрузки деталей чата:', err);
-        }
-      }
-
       const response = await api.get(`/chats/${id}/messages`);
       setMessages(response.data);
     } catch (error) {

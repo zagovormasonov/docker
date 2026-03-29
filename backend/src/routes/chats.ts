@@ -33,7 +33,6 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
        JOIN users u1 ON c.user1_id = u1.id
        JOIN users u2 ON c.user2_id = u2.id
        WHERE (c.user1_id = $1 OR c.user2_id = $1)
-       AND EXISTS (SELECT 1 FROM messages WHERE chat_id = c.id)
        ORDER BY last_message_time DESC NULLS LAST`,
       [req.userId]
     );
