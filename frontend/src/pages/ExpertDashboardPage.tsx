@@ -610,17 +610,22 @@ const ExpertDashboardPage: React.FC = () => {
                         </>
                       )}
                     </div>
-                    <Button 
-                      type="primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/chats`);
-                      }}
-                      block={isMobile}
-                      style={{ width: isMobile ? '100%' : 'auto' }}
-                    >
-                      Написать
-                    </Button>
+                      <Button 
+                        type="primary"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const response = await api.post('/chats/create', { otherUserId: client.id });
+                            navigate(`/chats/${response.data.id}`);
+                          } catch (error) {
+                            console.error('Ошибка создания чата:', error);
+                          }
+                        }}
+                        block={isMobile}
+                        style={{ width: isMobile ? '100%' : 'auto' }}
+                      >
+                        Написать
+                      </Button>
                   </div>
                 </Card>
               ))}

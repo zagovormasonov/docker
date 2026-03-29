@@ -391,6 +391,23 @@ const ExpertsPage = () => {
                   )}
                 </div>
               )}
+              <Button 
+                type="primary" 
+                style={{ marginTop: 16, borderRadius: 20 }} 
+                block
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (!user) { navigate('/login'); return; }
+                  try {
+                    const response = await api.post('/chats/create', { otherUserId: expert.id });
+                    navigate(`/chats/${response.data.id}`);
+                  } catch (error) {
+                    console.error('Ошибка создания чата:', error);
+                  }
+                }}
+              >
+                Написать
+              </Button>
             </Space>
           }
         />
