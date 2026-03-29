@@ -623,28 +623,51 @@ const Header = () => {
 
       {/* Мобильное меню */}
       <Drawer
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        placement="bottom"
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        height="auto"
+        closable={false}
+        bodyStyle={{ 
+          padding: '0 0 32px 0',
+          borderRadius: '24px 24px 0 0'
+        }}
+        headerStyle={{
+          display: 'none'
+        }}
+        style={{ zIndex: 1000 }}
+        className="mobile-bottom-sheet"
+      >
+        <div className="bottom-sheet-handle" style={{
+          width: '40px',
+          height: '4px',
+          background: '#e5e7eb',
+          borderRadius: '2px',
+          margin: '12px auto 8px'
+        }} />
+        
+        <div style={{ padding: '16px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <img
                 src="/logo.png"
-                alt="SoulSynergy — Синергия душ Logo"
+                alt="SoulSynergy Logo"
                 style={{
-                  height: '58px',
-                  width: '58px',
+                  height: '48px',
+                  width: '48px',
                   objectFit: 'contain'
                 }}
               />
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
                 <span style={{
-                  fontSize: '20px',
+                  fontSize: '18px',
                   fontWeight: 700,
                   color: 'rgb(99, 102, 241)'
                 }}>
                   SoulSynergy
                 </span>
                 <span style={{
-                  fontSize: '10px',
+                  fontSize: '9px',
                   fontWeight: 400,
                   color: 'rgb(99, 102, 241)',
                   opacity: 0.8,
@@ -659,30 +682,27 @@ const Header = () => {
               type="text"
               icon={<CloseOutlined />}
               onClick={() => setMobileMenuOpen(false)}
-              style={{ border: 'none', boxShadow: 'none' }}
+              style={{ 
+                background: '#f3f4f6', 
+                borderRadius: '50%', 
+                width: '32px', 
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
             />
           </div>
-        }
-        placement="top"
-        open={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-        height="100vh"
-        bodyStyle={{ padding: 0 }}
-        headerStyle={{
-          background: '#fff',
-          borderBottom: '1px solid #f0f0f0',
-          padding: '16px 24px'
-        }}
-        style={{ zIndex: 1000 }}
-      >
+        </div>
+
         <Menu
           mode="vertical"
           items={mobileMenuItems}
           style={{
             border: 'none',
-            background: '#fff',
-            padding: '16px 0'
+            background: 'transparent',
           }}
+          className="mobile-bottom-menu"
         />
       </Drawer>
 
