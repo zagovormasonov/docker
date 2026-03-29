@@ -359,8 +359,10 @@ const ChatsPage = () => {
                   ) : (
                     message.content
                   )}
-                  <div className="message-time" style={{ textAlign: isMe ? 'right' : 'left' }}>
-                    {dayjs(message.created_at).format('HH:mm')}
+                  <div className="message-footer">
+                    <span className="message-time">
+                      {dayjs(message.created_at).format('HH:mm')}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -486,8 +488,10 @@ const ChatsPage = () => {
                             ) : (
                               message.content
                             )}
-                            <div className="message-time">
-                              {dayjs(message.created_at).format('HH:mm')}
+                            <div className="message-footer">
+                              <span className="message-time">
+                                {dayjs(message.created_at).format('HH:mm')}
+                              </span>
                             </div>
                           </div>
                         </div>
