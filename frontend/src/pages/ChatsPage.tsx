@@ -61,6 +61,24 @@ const ChatsPage = () => {
   const [showChatList, setShowChatList] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Синхронизация URL с состоянием чата
+  useEffect(() => {
+    if (chatId) {
+      const id = parseInt(chatId);
+      if (id !== selectedChat) {
+        setSelectedChat(id);
+      }
+      if (isMobile) {
+        setShowChatList(false);
+      }
+    } else {
+      setSelectedChat(null);
+      if (isMobile) {
+        setShowChatList(true);
+      }
+    }
+  }, [chatId, isMobile]);
+
   useEffect(() => {
     fetchChats();
     // НЕ сбрасываем счетчик непрочитанных сообщений при входе в чаты
@@ -212,18 +230,18 @@ const ChatsPage = () => {
     }
   };
 
-  const handleChatSelect = (chatId: number) => {
-    setSelectedChat(chatId);
+  const handleChatSelect = (id: number) => {
+    navigate(`/chats/${id}`);
     if (isMobile) {
       setShowChatList(false);
     }
-    // НЕ обновляем список чатов при выборе чата
   };
 
   const handleBackToChatList = () => {
-    setShowChatList(true);
-    setSelectedChat(null);
-    // НЕ обновляем список чатов при возврате к списку
+    navigate('/chats');
+    if (isMobile) {
+      setShowChatList(true);
+    }
   };
 
   const selectedChatObj = selectedChat ? chats.find(c => c.id === selectedChat) : null;
