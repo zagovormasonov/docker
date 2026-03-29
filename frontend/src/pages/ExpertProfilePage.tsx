@@ -451,6 +451,8 @@ const ExpertProfilePage = () => {
         title={servicePreview.service?.title}
         open={servicePreview.visible}
         onCancel={() => setServicePreview({ visible: false, service: null })}
+        destroyOnClose={true}
+        afterClose={() => { document.body.style.overflow = 'auto'; }}
         footer={[
           <Button key="close" onClick={() => setServicePreview({ visible: false, service: null })}>Закрыть</Button>,
           <Button key="buy" type="primary" onClick={() => { if (servicePreview.service) { handleBuyService(servicePreview.service); setServicePreview({ visible: false, service: null }); } }}>Заказать</Button>

@@ -128,7 +128,6 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
 
   return (
     <div className="client-booking-calendar">
-      <h2>📅 Запись к эксперту {expertName}</h2>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
@@ -137,7 +136,7 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
 
       {!loading && sortedDates.length === 0 ? (
         <div className="empty-state">
-          <p>😔 К сожалению, у эксперта пока нет доступных слотов для записи.</p>
+          <p>К сожалению, у эксперта пока нет доступных слотов для записи.</p>
           <p>Попробуйте проверить позже или свяжитесь с экспертом напрямую.</p>
         </div>
       ) : (
@@ -155,12 +154,11 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
                       onClick={() => handleSlotSelect(slot)}
                       disabled={slot.is_booked}
                     >
-                      <span className="slot-time">🕐 {slot.time_slot}</span>
+                      <span className="slot-time">{slot.time_slot}</span>
                       {slot.duration && (
-                        <span className="slot-duration">⏱️ {formatDuration(slot.duration)}</span>
+                        <span className="slot-duration">{formatDuration(slot.duration)}</span>
                       )}
                       <span className="slot-status">
-                        <img src="/acceptLogo.svg" alt="" aria-hidden="true" />
                         Доступно
                       </span>
                     </button>
@@ -228,7 +226,7 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
             </div>
 
             <div className="info-note">
-              ℹ️ После создания записи эксперт получит уведомление и сможет подтвердить или отклонить вашу заявку.
+              После создания записи эксперт получит уведомление и сможет подтвердить или отклонить вашу заявку.
             </div>
           </div>
         </div>,

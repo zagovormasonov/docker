@@ -1,87 +1,76 @@
-.client-booking-calendar {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
+/* Premium Minimalist ClientBookingCalendar */
 
-.client-booking-calendar h2 {
-  font-size: 26px;
-  margin-bottom: 20px;
-  color: var(--text-primary);
-  text-align: center;
+.client-booking-calendar {
+  padding: 0;
+  max-width: 100%;
 }
 
 .alert {
   padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
   font-weight: 500;
+  font-size: 14px;
 }
 
 .alert-error {
-  background-color: #fee;
-  color: #c33;
-  border: 1px solid #fcc;
+  background-color: #fff1f0;
+  color: #ff4d4f;
+  border: none;
 }
 
 .alert-success {
-  background-color: #efe;
-  color: #3a3;
-  border: 1px solid #cfc;
+  background-color: #f6ffed;
+  color: #52c41a;
+  border: none;
 }
 
 .loading {
   text-align: center;
   padding: 40px;
-  font-size: 18px;
-  color: var(--text-secondary);
+  font-size: 16px;
+  color: #86868b;
 }
 
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
-  background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 40px 20px;
+  background: #f5f5f7;
+  border-radius: 20px;
 }
 
 .empty-state p {
-  font-size: 16px;
-  color: var(--text-secondary);
-  margin: 10px 0;
+  font-size: 15px;
+  color: #86868b;
+  margin: 8px 0;
 }
 
 .calendar-view {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 24px;
 }
 
 .date-section {
-  background: var(--card-bg);
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.date-section:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .date-header {
-  font-size: 20px;
+  font-size: 18px;
   margin-bottom: 16px;
-  color: var(--primary-color);
+  color: #1d1d1f;
   font-weight: 600;
   text-transform: capitalize;
-  border-bottom: 2px solid var(--border-color);
-  padding-bottom: 8px;
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .slots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 12px;
 }
 
@@ -89,57 +78,54 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px;
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
+  gap: 6px;
+  padding: 16px 12px;
+  background: #f5f5f7;
+  border: 1px solid transparent;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: #1f2937;
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  color: #1d1d1f;
+  box-shadow: none;
 }
 
 .slot-button:hover:not(:disabled) {
-  border-color: #9333ea;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  background: #ebebf0;
+  transform: scale(1.02);
 }
 
 .slot-button:disabled {
-  background: #f3f4f6;
-  border-color: #e5e7eb;
-  color: #9ca3af;
+  background: #fafafa;
+  border-color: #f0f0f0;
+  color: #bfbfbf;
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 .slot-time {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: #1f2937;
+  color: #1d1d1f;
 }
 
 .slot-duration {
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 12px;
+  color: #86868b;
   font-weight: 500;
 }
 
 .slot-status {
-  font-size: 14px;
-  color: #10b981;
+  font-size: 13px;
+  color: #34c759;
   font-weight: 500;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  margin-top: 4px;
 }
 
 .slot-status img {
-  width: 18px;
-  height: 18px;
-  display: block;
+  display: none;
 }
 
 /* Модальное окно */
@@ -149,49 +135,39 @@
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   z-index: 99999 !important;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(10px);
   animation: fadeIn 0.3s ease;
   padding: 20px;
   margin: 0 !important;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
   background: #ffffff;
-  padding: 28px;
-  border-radius: 20px;
-  max-width: 520px;
+  padding: 32px;
+  border-radius: 24px;
+  max-width: 480px;
   width: 100%;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 70px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
   position: relative !important;
-  animation: slideUp 0.3s ease forwards;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   margin: 0 !important;
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
@@ -199,276 +175,166 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .modal-eyebrow {
-  font-size: 13px;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #9ca3af;
+  letter-spacing: 0.1em;
+  color: #86868b;
   margin: 0;
+  font-weight: 600;
 }
 
 .modal-content h3 {
   font-size: 24px;
   margin: 4px 0 0;
-  color: #111827;
+  color: #1d1d1f;
   text-align: left;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .modal-close {
-  background: #fee2e2;
-  color: #ef4444;
+  background: #f5f5f7;
+  color: #86868b;
   border: none;
-  border-radius: 12px;
-  width: 40px;
-  height: 40px;
-  font-size: 18px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-  background: #fecaca;
-  transform: translateY(-1px);
+  background: #e8e8ed;
+  color: #1d1d1f;
 }
 
 .booking-summary {
-  background: #f5f7ff;
-  padding: 16px;
-  border-radius: 14px;
-  margin-bottom: 20px;
-  border: 1px solid #e0e7ff;
-  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.05);
+  background: #f9f9fb;
+  padding: 16px 20px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  border: none;
 }
 
 .booking-summary p {
   margin: 8px 0;
   font-size: 15px;
-  color: #0f172a;
+  color: #1d1d1f;
+  display: flex;
+  justify-content: space-between;
 }
 
 .booking-summary strong {
-  color: #6366f1;
-  margin-right: 8px;
+  color: #86868b;
   font-weight: 500;
 }
 
 .message-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .message-section label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 500;
-  color: #1f2937;
+  font-weight: 600;
+  color: #1d1d1f;
+  font-size: 14px;
 }
 
 .message-section textarea {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 16px;
+  border: none;
+  background: #f5f5f7;
+  border-radius: 16px;
+  font-size: 15px;
   font-family: inherit;
   resize: vertical;
-  transition: border-color 0.3s ease;
-  background: white;
-  color: #1f2937;
+  transition: all 0.2s ease;
+  color: #1d1d1f;
 }
 
 .message-section textarea:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  background: #fff;
+  box-shadow: 0 0 0 2px #6366f1;
 }
 
 .char-counter {
   text-align: right;
   font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
+  color: #86868b;
+  margin-top: 6px;
 }
 
 .modal-actions {
   display: flex;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .btn {
   flex: 1;
-  padding: 12px 24px;
+  padding: 14px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 100px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-primary {
   background: #6366f1;
   color: white;
-  box-shadow: 0 15px 30px rgba(99, 102, 241, 0.35);
-  font-weight: 600;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #4f46e5;
+  background: #5a5ce6;
   transform: translateY(-1px);
 }
 
 .btn-primary:disabled {
-  background: #ccc;
+  background: #e5e5ea;
+  color: #aeaeb2;
   cursor: not-allowed;
-  opacity: 0.6;
-  box-shadow: none;
 }
 
 .btn-secondary {
-  background: #f9fafb;
-  color: #1f2937;
-  border: 1px solid #e5e7eb;
-  font-weight: 500;
+  background: #f5f5f7;
+  color: #1d1d1f;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f3f4f6;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  background: #e8e8ed;
 }
 
 .info-note {
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 14px;
-  color: #3730a3;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: #86868b;
   line-height: 1.5;
+  text-align: center;
 }
 
-/* Темная тема */
-.dark-theme .empty-state,
-.dark-theme .date-section {
-  background: #2a2a2a;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.dark-theme .slot-button {
-  background: #374151;
-  border-color: #4b5563;
-  color: #e5e7eb;
-}
-
-.dark-theme .slot-button:hover:not(:disabled) {
-  border-color: #a855f7;
-  box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3);
-}
-
-.dark-theme .slot-button:disabled {
-  background: #1f2937;
-  border-color: #374151;
-  color: #6b7280;
-}
-
-.dark-theme .slot-time {
-  color: #e5e7eb;
-}
-
-.dark-theme .slot-duration {
-  color: #9ca3af;
-}
-
-.dark-theme .slot-status {
-  color: #34d399;
-}
-
-.dark-theme .modal-content {
-  background: #2a2a2a;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-}
-
-.dark-theme .booking-summary {
-  background: #1a1a1a;
-}
-
-.dark-theme .message-section textarea {
-  background: #1a1a1a;
-  border-color: #444;
-  color: #e0e0e0;
-}
-
-.dark-theme .info-note {
-  background: #1a3a52;
-  border-color: #2a5a7a;
-  color: #a0c4e0;
-}
-
-.dark-theme .alert-error {
-  background-color: #4a1f1f;
-  color: #ff6b6b;
-  border-color: #6b2929;
-}
-
-.dark-theme .alert-success {
-  background-color: #1f4a1f;
-  color: #6bff6b;
-  border-color: #296b29;
-}
-
-/* Адаптивность */
 @media (max-width: 768px) {
-  .client-booking-calendar {
-    padding: 16px;
-  }
-
-  .client-booking-calendar h2 {
-    font-size: 22px;
-  }
-
   .slots-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
   }
-
-  .slot-button {
-    padding: 12px;
-  }
-
-  .slot-time {
-    font-size: 16px;
-  }
-
   .modal-content {
-    padding: 20px;
-    width: 95%;
+    padding: 24px;
   }
-
   .modal-actions {
     flex-direction: column;
   }
-
-  .btn {
-    width: 100%;
-  }
 }
-
-@media (max-width: 480px) {
-  .date-header {
-    font-size: 18px;
-  }
-
-  .slots-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
