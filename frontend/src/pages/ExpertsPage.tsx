@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Input, Select, Typography, Tag, Space, Spin, Empty, Button } from 'antd';
-import { UserOutlined, EnvironmentOutlined, SearchOutlined, StarOutlined, StarFilled, CloseOutlined, CheckOutlined } from '@ant-design/icons';
+import { UserOutlined, EnvironmentOutlined, SearchOutlined, MessageOutlined, StarOutlined, StarFilled, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import LazyAvatar from '../components/LazyAvatar';
@@ -298,7 +298,6 @@ const ExpertsPage = () => {
         if (user && user.id === expert.id) {
           navigate('/profile');
         } else {
-          // Используем slug, если доступен, иначе ID
           const identifier = expert.slug || expert.id;
           navigate(`/experts/${identifier}`);
         }
@@ -307,110 +306,134 @@ const ExpertsPage = () => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative'
+        position: 'relative',
+        borderRadius: 24,
+        overflow: 'hidden'
       }}
       bodyStyle={{ 
         flex: 1,
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        padding: '24px'
       }}
     >
-      <Button
-        type="text"
-        icon={isFavorited ? <StarFilled /> : <StarOutlined />}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleFavorite(expert.id, e);
-        }}
-        style={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          zIndex: 10,
-          color: isFavorited ? '#faad14' : '#8c8c8c',
-          border: 'none',
-          background: 'rgba(255, 255, 255, 0.9)',
-          borderRadius: '50%',
-          width: 32,
-          height: 32,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}
-      />
+      <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, display: 'flex', gap: 8 }}>
+        <Button
+          type="text"
+          icon={<MessageOutlined />}
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!user) { navigate('/login'); return; }
+            try {
+              const response = await api.post('/chats/create', { otherUserId: expert.id });
+              navigate(`/chats/${response.data.id}`);
+            } catch (error) {
+              console.error('Ошибка создания чата:', error);
+            }
+          }}
+          style={{
+            color: '#6366f1',
+            background: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: '50%',
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+            border: 'none'
+          }}
+        />
+        <Button
+          type="text"
+          icon={isFavorited ? <StarFilled /> : <StarOutlined />}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleFavorite(expert.id, e);
+          }}
+          style={{
+            color: isFavorited ? '#faad14' : '#8c8c8c',
+            background: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: '50%',
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+            border: 'none'
+          }}
+        />
+      </div>
       
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Meta
-          avatar={
-            <LazyAvatar
-              size={64}
-              src={expert.avatar_url}
-              defaultSrc="/emp.jpg"
-              icon={<UserOutlined />}
-              style={{ backgroundColor: '#6366f1' }}
-            />
-          }
-          title={
-            <Space direction="vertical" size={4}>
-              <Title level={4} style={{ margin: 0 }}>{expert.name}</Title>
-              {expert.city && (
-                <Text type="secondary">
-                  <EnvironmentOutlined /> {expert.city}
-                </Text>
-              )}
-            </Space>
-          }
-          description={
-            <Space direction="vertical" size={12} style={{ width: '100%', marginTop: 12, flex: 1 }}>
-              {expert.bio && (
-                <Text 
-                  type="secondary" 
-                  style={{ 
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    lineHeight: '1.4',
-                    height: '2.8em'
-                  }}
-                  title={expert.bio}
-                >
-                  {expert.bio}
-                </Text>
-              )}
-              
-              {expert.topics && expert.topics.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 'auto' }}>
-                  {expert.topics.slice(0, 2).map((topic, index) => (
-                    <Tag key={index} color="purple">{topic}</Tag>
-                  ))}
-                  {expert.topics.length > 2 && (
-                    <Tag>+{expert.topics.length - 2}</Tag>
-                  )}
-                </div>
-              )}
-              <Button 
-                type="primary" 
-                style={{ marginTop: 16, borderRadius: 20 }} 
-                block
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  if (!user) { navigate('/login'); return; }
-                  try {
-                    const response = await api.post('/chats/create', { otherUserId: expert.id });
-                    navigate(`/chats/${response.data.id}`);
-                  } catch (error) {
-                    console.error('Ошибка создания чата:', error);
-                  }
-                }}
-              >
-                Написать
-              </Button>
-            </Space>
-          }
-        />
+        <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+          <LazyAvatar
+            size={64}
+            src={expert.avatar_url}
+            defaultSrc="/emp.jpg"
+            icon={<UserOutlined />}
+            style={{ backgroundColor: '#f5f5f7', minWidth: 64 }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Title level={4} style={{ margin: '0 0 4px 0', fontSize: 18, color: '#1d1d1f' }} ellipsis>{expert.name}</Title>
+            {expert.city && (
+              <Text type="secondary" style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <EnvironmentOutlined /> {expert.city}
+              </Text>
+            )}
+          </div>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          {expert.bio && (
+            <Text 
+              type="secondary" 
+              style={{ 
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                lineHeight: '1.5',
+                height: '4.5em',
+                fontSize: 14,
+                marginBottom: 16,
+                color: '#6e6e73'
+              }}
+            >
+              {expert.bio}
+            </Text>
+          )}
+        </div>
+        
+        {expert.topics && expert.topics.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 'auto' }}>
+            {expert.topics.slice(0, 3).map((topic, index) => (
+              <Tag key={index} style={{ 
+                borderRadius: 12, 
+                border: 'none', 
+                background: '#f5f5f7', 
+                color: '#1d1d1f', 
+                fontSize: 11,
+                padding: '2px 10px',
+                margin: 0
+              }}>{topic}</Tag>
+            ))}
+            {expert.topics.length > 3 && (
+              <Tag style={{ 
+                borderRadius: 12, 
+                border: 'none', 
+                background: '#f5f5f7', 
+                color: '#86868b', 
+                fontSize: 11,
+                padding: '2px 10px',
+                margin: 0
+              }}>+{expert.topics.length - 3}</Tag>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   ), [user, navigate, toggleFavorite]);
@@ -661,7 +684,7 @@ const ExpertsPage = () => {
               <Title level={3} style={{ marginBottom: 24 }}>Новые эксперты</Title>
               <Row gutter={[24, 24]}>
                 {newExperts.map((expert) => (
-                  <Col xs={24} sm={12} lg={8} key={expert.id}>
+                  <Col xs={24} sm={12} lg={8} key={expert.id} style={{ display: 'flex' }}>
                     {renderExpertCard(expert, newExpertsFavoriteStatus[expert.id])}
                   </Col>
                 ))}
@@ -699,7 +722,7 @@ const ExpertsPage = () => {
                 <>
                   <Row gutter={[24, 24]}>
                     {experts.slice(0, displayLimit).map((expert) => (
-                      <Col xs={24} sm={12} lg={8} key={expert.id}>
+                      <Col xs={24} sm={12} lg={8} key={expert.id} style={{ display: 'flex' }}>
                         {renderExpertCard(expert, favoriteStatus[expert.id])}
                       </Col>
                     ))}
