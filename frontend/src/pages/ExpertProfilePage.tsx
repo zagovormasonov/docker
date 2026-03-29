@@ -381,17 +381,34 @@ const ExpertProfilePage = () => {
           {articles.length > 0 && (
             <div className="section-card">
               <h2 className="section-title"><BookOpen size={20} /> Статьи</h2>
-              <List
-                grid={{ gutter: 16, xs: 1, sm: 2 }}
-                dataSource={articles}
-                renderItem={(article) => (
-                  <List.Item>
-                    <Card hoverable cover={article.cover_image && <img alt={article.title} src={article.cover_image} style={{ height: 160, objectFit: 'cover' }} />} onClick={() => navigate(`/articles/${article.id}`)} className="premium-item-card">
-                      <Card.Meta title={article.title} description={dayjs(article.created_at).format('D MMMM YYYY')} />
-                    </Card>
-                  </List.Item>
-                )}
-              />
+              <div className="premium-grid">
+                {articles.map((article) => (
+                  <div 
+                    key={article.id} 
+                    className="premium-item-card" 
+                    onClick={() => navigate(`/articles/${article.id}`)} 
+                    style={{ cursor: 'pointer', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                  >
+                    {article.cover_image && (
+                      <div style={{ width: '100%', height: 180, overflow: 'hidden' }}>
+                        <img 
+                          alt={article.title} 
+                          src={article.cover_image} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                        />
+                      </div>
+                    )}
+                    <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', marginBottom: 8, lineHeight: 1.4 }}>
+                        {article.title}
+                      </h3>
+                      <div style={{ marginTop: 'auto', fontSize: 13, color: '#86868b' }}>
+                        {dayjs(article.created_at).format('D MMMM YYYY')}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
