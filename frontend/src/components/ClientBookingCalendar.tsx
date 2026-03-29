@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { CloseOutlined } from '@ant-design/icons';
+import { CloseOutlined, UserOutlined, CalendarOutlined, ClockCircleOutlined, InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import './ClientBookingCalendar.css';
 
@@ -183,23 +183,50 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
               </button>
             </div>
             
-            <div className="booking-summary">
-              <p><strong>Эксперт:</strong> {expertName}</p>
-              <p><strong>Дата:</strong> {formatDate(selectedSlot.date)}</p>
-              <p><strong>Время:</strong> {selectedSlot.time_slot}</p>
+            <div className="booking-summary" style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#f5f5f7', padding: '24px', borderRadius: '20px', border: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+                  <UserOutlined style={{ fontSize: 18 }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginBottom: 2 }}>Эксперт</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{expertName}</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+                  <CalendarOutlined style={{ fontSize: 18 }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginBottom: 2 }}>Дата</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{formatDate(selectedSlot.date)}</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+                  <ClockCircleOutlined style={{ fontSize: 18 }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginBottom: 2 }}>Время</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{selectedSlot.time_slot} {selectedSlot.duration ? `(${formatDuration(selectedSlot.duration)})` : ''}</div>
+                </div>
+              </div>
             </div>
 
             <div className="message-section">
               <label htmlFor="client-message">
-                Сообщение для эксперта (необязательно)
+                Добавить комментарий (сообщите тему разговора)
               </label>
               <textarea
                 id="client-message"
                 value={clientMessage}
                 onChange={(e) => setClientMessage(e.target.value)}
-                placeholder="Укажите тему консультации или дополнительную информацию..."
-                rows={4}
+                placeholder="Необязательно"
+                rows={3}
                 maxLength={500}
+                style={{ background: '#f5f5f7', border: 'none', borderRadius: 16, padding: 16 }}
               />
               <div className="char-counter">
                 {clientMessage.length}/500
@@ -208,14 +235,7 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
 
             {error && <div className="alert alert-error">{error}</div>}
 
-            <div className="modal-actions">
-              <button
-                className="btn btn-primary"
-                onClick={handleBooking}
-                disabled={loading}
-              >
-                {loading ? 'Создание записи...' : 'Подтвердить запись'}
-              </button>
+            <div className="modal-actions" style={{ marginTop: 32 }}>
               <button
                 className="btn btn-secondary"
                 onClick={() => setShowModal(false)}
@@ -223,10 +243,21 @@ const ClientBookingCalendar: React.FC<ClientBookingCalendarProps> = ({
               >
                 Отмена
               </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleBooking}
+                disabled={loading}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              >
+                {loading ? <><LoadingOutlined /> Создание записи...</> : 'Подтвердить запись'}
+              </button>
             </div>
 
-            <div className="info-note">
-              После создания записи эксперт получит уведомление и сможет подтвердить или отклонить вашу заявку.
+            <div className="info-note" style={{ display: 'flex', gap: 8, textAlign: 'left', marginTop: 16 }}>
+              <InfoCircleOutlined style={{ color: '#86868b', fontSize: 16, marginTop: 2 }} />
+              <div>
+                После подтверждения эксперт получит уведомление и сможет одобрить вашу заявку.
+              </div>
             </div>
           </div>
         </div>,
