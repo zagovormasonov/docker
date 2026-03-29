@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Row, Col, Tabs, Typography, Spin, Button, Modal } from 'antd';
 import { EyeOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined, LeftOutlined, RightOutlined, CalendarOutlined, EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
@@ -722,7 +722,7 @@ const HomePage = () => {
         background: 'linear-gradient(-45deg, #e0e7ff, #f3e8ff, #eef2ff, #f5f3ff)',
         backgroundSize: '400% 400%',
         animation: 'gradient-flow 15s ease infinite',
-        padding: isMobile ? '60px 16px 80px' : '100px 24px 120px',
+        padding: isMobile ? '40px 16px 60px' : '60px 24px 80px',
         borderRadius: '0 0 48px 48px',
         textAlign: 'center',
         overflow: 'hidden'
@@ -752,60 +752,20 @@ const HomePage = () => {
         }} />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <div style={{
-            position: 'relative',
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(12px)',
-            borderRadius: 24,
-            padding: '8px 8px 8px 24px',
-            boxShadow: '0 20px 40px -10px rgba(99, 102, 241, 0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            maxWidth: 600,
-            margin: '0 auto',
-            border: '1px solid rgba(255, 255, 255, 0.5)',
-            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-          }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(99, 102, 241, 0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 20px 40px -10px rgba(99, 102, 241, 0.15)';
-            }}
-          >
-            <SearchOutlined style={{ fontSize: 22, color: '#818cf8' }} />
-            <input
-              placeholder="Найти статьи, авторов, вдохновение..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                width: '100%',
-                padding: '12px 16px',
-                fontSize: 16,
-                outline: 'none',
-                color: '#1f2937'
-              }}
-            />
-          </div>
+          <Title level={1} style={{ fontSize: isMobile ? 32 : 48, color: '#1e1b4b', marginBottom: 16 }}>
+            Soul Synergy
+          </Title>
+          <Paragraph style={{ fontSize: 18, color: '#4338ca', maxWidth: 600, margin: '0 auto' }}>
+            Пространство для поиска смыслов, экспертов и живых событий.
+          </Paragraph>
         </div>
       </div>
 
       <div className="container" style={{ marginTop: -40, position: 'relative', zIndex: 2, paddingBottom: 60 }}>
         <div
-          aria-hidden={hasSearchValue}
           style={{
-            maxHeight: hasSearchValue ? 0 : 1400,
-            opacity: hasSearchValue ? 0 : 1,
-            transform: hasSearchValue ? 'translateY(-18px) scale(0.98)' : 'translateY(0) scale(1)',
-            transformOrigin: 'top center',
-            overflow: 'hidden',
-            pointerEvents: hasSearchValue ? 'none' : 'auto',
-            marginBottom: hasSearchValue ? 0 : 32,
-            transition: 'max-height 0.45s ease, opacity 0.3s ease, transform 0.35s ease, margin-bottom 0.35s ease'
+            marginBottom: 32,
+            transition: 'all 0.35s ease'
           }}
         >
           <div style={{
@@ -927,6 +887,48 @@ const HomePage = () => {
                 onOpen={() => navigate(`/events/${nextEvent.id}`)}
               />
             )}
+          </div>
+        </div>
+
+        {/* Moved Search Bar */}
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto 32px' }}>
+          <div style={{
+            position: 'relative',
+            background: 'white',
+            borderRadius: 24,
+            padding: '4px 8px 4px 24px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
+            display: 'flex',
+            alignItems: 'center',
+            maxWidth: 600,
+            margin: '0 auto',
+            border: '1px solid rgba(226, 232, 240, 0.8)',
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+          }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 15px 30px -10px rgba(0, 0, 0, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.05)';
+            }}
+          >
+            <SearchOutlined style={{ fontSize: 20, color: '#818cf8' }} />
+            <input
+              placeholder="Найти статьи, авторов, вдохновение..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                width: '100%',
+                padding: '10px 16px',
+                fontSize: 16,
+                outline: 'none',
+                color: '#1f2937'
+              }}
+            />
           </div>
         </div>
 
