@@ -311,10 +311,20 @@ const EventsPage = () => {
             <List.Item style={{ height: '100%', display: 'flex' }}>
               <Card
                 hoverable
-                style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', borderRadius: 24, overflow: 'hidden' }}
-                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px' }}
+                style={{ 
+                  height: '100%', 
+                  width: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  borderRadius: 32, 
+                  border: 'none',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
+                  overflow: 'hidden',
+                  background: '#ffffff'
+                }}
+                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px 28px' }}
                 cover={
-                  <div style={{ height: 200, position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ paddingBottom: '100%', position: 'relative', overflow: 'hidden' }}>
                     <img
                       src={event.cover_image || '/eve.jpg'}
                       alt={event.title}
@@ -327,7 +337,7 @@ const EventsPage = () => {
                         objectFit: 'cover'
                       }}
                     />
-                    <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, display: 'flex', gap: 8 }}>
+                    <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
                       <Button
                         type="text"
                         icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
@@ -339,10 +349,11 @@ const EventsPage = () => {
                         style={{
                           color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
                           border: 'none',
-                          background: 'rgba(255, 255, 255, 0.9)',
+                          background: 'rgba(255, 255, 255, 0.8)',
+                          backdropFilter: 'blur(8px)',
                           borderRadius: '50%',
-                          width: 36,
-                          height: 36,
+                          width: 40,
+                          height: 40,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -354,103 +365,106 @@ const EventsPage = () => {
                 }
                 onClick={() => navigate(`/events/${event.id}`)}
               >
-                <Space direction="vertical" size={12} style={{ width: '100%', flex: 1 }}>
+                <Space direction="vertical" size={14} style={{ width: '100%', flex: 1 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     <Tag style={{ 
-                      borderRadius: 12, 
+                      borderRadius: 16, 
                       border: 'none', 
-                      background: '#f5f5f7', 
+                      background: '#f4f5f9', 
                       color: '#6366f1', 
-                      fontSize: 11,
-                      padding: '2px 10px',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      padding: '4px 12px',
                       margin: 0
                     }}>
                       {event.event_type}
                     </Tag>
                     {isEventToday(event.event_date) && (
                       <Tag style={{ 
-                        borderRadius: 12, 
+                        borderRadius: 16, 
                         border: 'none', 
                         background: '#fff1f0', 
                         color: '#ff4d4f', 
-                        fontSize: 11,
-                        padding: '2px 10px',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        padding: '4px 12px',
                         margin: 0
                       }}>Сегодня</Tag>
                     )}
                     {isEventTomorrow(event.event_date) && (
                       <Tag style={{ 
-                        borderRadius: 12, 
+                        borderRadius: 16, 
                         border: 'none', 
                         background: '#fff7e6', 
                         color: '#fa8c16', 
-                        fontSize: 11,
-                        padding: '2px 10px',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        padding: '4px 12px',
                         margin: 0
                       }}>Завтра</Tag>
                     )}
                   </div>
 
-                  <Title level={4} style={{ margin: '0 0 4px 0', fontSize: 18, color: '#1d1d1f' }} ellipsis={{ rows: 2 }}>
+                  <Title level={4} style={{ margin: '0', fontSize: 20, fontWeight: 700, color: '#1d1d1f', lineHeight: 1.3 }} ellipsis={{ rows: 2 }}>
                     {event.title}
                   </Title>
 
-                  <Space direction="vertical" size={6} style={{ width: '100%' }}>
-                    <Space size={6}>
-                      <CalendarOutlined style={{ color: '#86868b' }} />
-                      <Text strong style={{ color: '#4b5563', fontSize: 13 }}>
-                        {dayjs(event.event_date).format('DD MMMM YYYY, HH:mm')}
+                  <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                    <Space size={8}>
+                      <CalendarOutlined style={{ color: '#a1a1aa' }} />
+                      <Text style={{ color: '#52525b', fontSize: 14 }}>
+                        {dayjs(event.event_date).format('DD MMM YYYY, HH:mm')}
                       </Text>
                     </Space>
 
-                    <Space size={6}>
+                    <Space size={8}>
                       {event.is_online ? (
                         <>
-                          <GlobalOutlined style={{ color: '#52c41a' }} />
-                          <Text type="secondary" style={{ fontSize: 13 }}>Онлайн</Text>
+                          <GlobalOutlined style={{ color: '#10b981' }} />
+                          <Text style={{ color: '#52525b', fontSize: 14 }}>Открытый онлайн</Text>
                         </>
                       ) : (
                         <>
-                          <EnvironmentOutlined style={{ color: '#1890ff' }} />
-                          <Text type="secondary" style={{ fontSize: 13 }}>{event.city_name}</Text>
+                          <EnvironmentOutlined style={{ color: '#3b82f6' }} />
+                          <Text style={{ color: '#52525b', fontSize: 14 }}>{event.city_name}</Text>
                         </>
                       )}
                     </Space>
 
                     {event.price && (
-                      <Text strong style={{ color: '#1d1d1f', fontSize: 15, marginTop: 4, display: 'block' }}>
+                      <Text strong style={{ color: '#1d1d1f', fontSize: 16, marginTop: 4, display: 'block' }}>
                         {event.price}
                       </Text>
                     )}
                   </Space>
 
-                  <div style={{ marginTop: 'auto', paddingTop: 16 }}>
-                    <Space size={10} align="center">
+                  <div style={{ marginTop: 'auto', paddingTop: 20 }}>
+                    <Space size={12} align="center">
                       <div style={{ flexShrink: 0 }}>
                         {event.organizer_avatar ? (
                           <img
                             src={event.organizer_avatar}
                             alt={event.organizer_name}
-                            style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
+                            style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }}
                           />
                         ) : (
                           <div style={{
-                            width: 28,
-                            height: 28,
+                            width: 32,
+                            height: 32,
                             borderRadius: '50%',
-                            background: '#f5f5f7',
+                            background: '#f4f5f9',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#6366f1',
-                            fontSize: 12,
-                            fontWeight: 'bold'
+                            fontSize: 13,
+                            fontWeight: 600
                           }}>
                             {event.organizer_name[0]}
                           </div>
                         )}
                       </div>
-                      <Text type="secondary" style={{ fontSize: 13, color: '#86868b' }} ellipsis>
+                      <Text style={{ fontSize: 14, color: '#71717a', fontWeight: 500 }} ellipsis>
                         {event.organizer_name}
                       </Text>
                     </Space>
