@@ -12,7 +12,8 @@ import {
   Spin,
   message,
   Empty,
-  Modal
+  Modal,
+  Tabs
 } from 'antd';
 import {
   UserOutlined,
@@ -28,22 +29,29 @@ import {
   StarOutlined,
   StarFilled,
   PlusOutlined,
-  ShareAltOutlined,
-  RadiusBottomrightOutlined
+  ShareAltOutlined
 } from '@ant-design/icons';
+import {
+  MapPin,
+  MessageSquare,
+  Star,
+  Share2,
+  ExternalLink,
+  Users,
+  Image as ImageIcon,
+  BookOpen,
+  RussianRuble
+} from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileGallery from '../components/ProfileGallery';
 import ArtworkGallery from '../components/ArtworkGallery';
 import ProductModal from '../components/ProductModal';
-import { Tabs } from 'antd';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import ClientBookingCalendar from '../components/ClientBookingCalendar';
 import ShareProfileModal from '../components/ShareProfileModal';
-import '../components/ServiceDescription.css';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
-import { LucideBadgeRussianRuble, RussianRuble, RussianRubleIcon } from 'lucide-react';
+import '../styles/Profile.css';
 
 dayjs.locale('ru');
 
@@ -94,6 +102,7 @@ interface ExpertProfile {
   services: Service[];
   products: Product[];
   created_at: string;
+  tabs_order?: string;
 }
 
 const ExpertProfilePage = () => {
@@ -112,63 +121,25 @@ const ExpertProfilePage = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [activeTab, setActiveTab] = useState('photos');
   const [tabsOrder, setTabsOrder] = useState<string[]>(['photos', 'gallery']);
+  const [servicePreview, setServicePreview] = useState<{ visible: boolean; service: Service | null }>({ visible: false, service: null });
 
   const isOwner = user && expert && String(user.id) === String(expert.id);
 
-  /* State for item counts */
   const [photosCount, setPhotosCount] = useState<number>(0);
   const [artworksCount, setArtworksCount] = useState<number>(0);
 
   useEffect(() => {
-    // Ждём пока AuthContext загрузит пользователя
     if (authLoading) return;
-
-    // Проверяем авторизацию пользователя
     if (!user) {
       setShowAuthModal(true);
       setLoading(false);
       return;
     }
-
     fetchExpert();
     fetchArticles();
     fetchFavoriteStatus();
     fetchCustomSocials();
   }, [id, user, authLoading]);
-
-  // Обработка hash для перехода на конкретную картину
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash && hash.startsWith('#artwork-')) {
-        setActiveTab('gallery');
-        // Прокручиваем к картине после загрузки
-        setTimeout(() => {
-          const artworkId = hash.replace('#artwork-', '');
-          const artworkElement = document.getElementById(`artwork-${artworkId}`);
-          if (artworkElement) {
-            artworkElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Подсвечиваем карточку
-            artworkElement.style.transition = 'box-shadow 0.3s';
-            artworkElement.style.boxShadow = '0 0 0 3px rgba(24, 144, 255, 0.5)';
-            setTimeout(() => {
-              artworkElement.style.boxShadow = '';
-            }, 2000);
-          }
-        }, 500);
-      }
-    };
-
-    // Проверяем hash при загрузке
-    handleHashChange();
-
-    // Слушаем изменения hash
-    window.addEventListener('hashchange', handleHashChange);
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, [expert]);
 
   const fetchFavoriteStatus = async () => {
     if (!id) return;
@@ -184,37 +155,12 @@ const ExpertProfilePage = () => {
     try {
       const response = await api.get(`/experts/${id}`);
       setExpert(response.data);
-
-      // DEBUG: Проверяем типы и значения ID
-      console.log('🔍 DEBUG ExpertProfilePage:', {
-        currentUserId: user?.id,
-        expertId: response.data.id,
-        userIdType: typeof user?.id,
-        expertIdType: typeof response.data.id,
-        areEqual: user?.id === response.data.id,
-        userIdString: String(user?.id),
-        expertIdString: String(response.data.id),
-        areEqualAsStrings: String(user?.id) === String(response.data.id)
-      });
-
-      // Устанавливаем счетчики из ответа API
-      if (response.data.galleryCount !== undefined) {
-        setPhotosCount(response.data.galleryCount);
-      }
-      if (response.data.artworksCount !== undefined) {
-        setArtworksCount(response.data.artworksCount);
-      }
-
-      // Устанавливаем порядок табов из профиля (для всех посетителей)
+      if (response.data.galleryCount !== undefined) setPhotosCount(response.data.galleryCount);
+      if (response.data.artworksCount !== undefined) setArtworksCount(response.data.artworksCount);
       if (response.data.tabs_order) {
         try {
-          const order = typeof response.data.tabs_order === 'string'
-            ? JSON.parse(response.data.tabs_order)
-            : response.data.tabs_order;
-
-          if (Array.isArray(order) && order.length > 0) {
-            setTabsOrder(order);
-          }
+          const order = typeof response.data.tabs_order === 'string' ? JSON.parse(response.data.tabs_order) : response.data.tabs_order;
+          if (Array.isArray(order) && order.length > 0) setTabsOrder(order);
         } catch (e) {
           console.error('Ошибка парсинга tabs_order:', e);
         }
@@ -243,7 +189,6 @@ const ExpertProfilePage = () => {
     if (!id) return;
     try {
       const response = await api.get(`/users/custom-socials/${id}`);
-      console.log('Custom socials loaded:', response.data);
       setCustomSocials(response.data);
     } catch (error) {
       console.error('Ошибка загрузки кастомных соцсетей:', error);
@@ -257,54 +202,27 @@ const ExpertProfilePage = () => {
     return tmp.textContent || tmp.innerText || '';
   };
 
-  const [servicePreview, setServicePreview] = useState<{ visible: boolean; service: Service | null }>({ visible: false, service: null });
-
   const handleContactExpert = async () => {
-    if (!user) {
-      message.warning('Необходимо войти в систему');
-      navigate('/login');
-      return;
-    }
-
-    // Проверяем, что пользователь не пытается создать чат с самим собой
-    if (isOwner) {
-      message.warning('Нельзя создать чат с самим собой');
-      return;
-    }
-
+    if (!user) { navigate('/login'); return; }
+    if (isOwner) { message.warning('Нельзя создать чат с самим собой'); return; }
     try {
       const response = await api.post('/chats/create', { otherUserId: expert?.id });
       navigate(`/chats/${response.data.id}`);
     } catch (error) {
-      console.error('Ошибка создания чата:', error);
       message.error('Ошибка создания чата');
     }
   };
 
   const handleBuyService = async (service: Service) => {
-    if (!user) {
-      message.warning('Необходимо войти в систему');
-      navigate('/login');
-      return;
-    }
-
+    if (!user) { navigate('/login'); return; }
     try {
-      // Создаем или находим чат с экспертом
       const response = await api.post('/chats/create', { otherUserId: expert?.id });
       const chatId = response.data.id;
-
-      // Отправляем сообщение об услуге
-      const serviceMessage = `🛒 Хочу заказать услугу: "${service.title}"${service.price ? ` (${service.price} ₽)` : ''}${service.duration ? `, длительность: ${service.duration} мин` : ''}. ${service.description}`;
-
-      await api.post(`/chats/${chatId}/messages`, {
-        content: serviceMessage
-      });
-
-      // Переходим в чат
+      const serviceMessage = `🛒 Хочу заказать услугу: "${service.title}"${service.price ? ` (${service.price} ₽)` : ''}.`;
+      await api.post(`/chats/${chatId}/messages`, { content: serviceMessage });
       navigate(`/chats/${chatId}`);
-      message.success('Сообщение об услуге отправлено в чат!');
+      message.success('Сообщение отправлено!');
     } catch (error) {
-      console.error('Ошибка заказа услуги:', error);
       message.error('Ошибка заказа услуги');
     }
   };
@@ -320,776 +238,211 @@ const ExpertProfilePage = () => {
   };
 
   const handleBuyProduct = async (product: Product) => {
-    if (!user) {
-      message.warning('Необходимо войти в систему');
-      navigate('/login');
-      return;
-    }
-
+    if (!user) { navigate('/login'); return; }
     try {
-      // Создаем или находим чат с экспертом
       const response = await api.post('/chats/create', { otherUserId: expert?.id });
       const chatId = response.data.id;
-
-      // Отправляем сообщение о продукте
-      const productMessage = `🛍️ Хочу купить продукт: "${product.title}"${product.price ? ` (${product.price} ₽)` : ''}. ${product.description}`;
-
-      await api.post(`/chats/${chatId}/messages`, {
-        content: productMessage
-      });
-
-      // Переходим в чат
+      const productMessage = `🛍️ Хочу купить продукт: "${product.title}"${product.price ? ` (${product.price} ₽)` : ''}.`;
+      await api.post(`/chats/${chatId}/messages`, { content: productMessage });
       navigate(`/chats/${chatId}`);
-      message.success('Сообщение о продукте отправлено в чат!');
+      message.success('Сообщение отправлено!');
     } catch (error) {
-      console.error('Ошибка покупки продукта:', error);
       message.error('Ошибка покупки продукта');
     }
   };
 
   const toggleFavorite = async () => {
-    if (!user) {
-      message.warning('Необходимо войти в систему');
-      navigate('/login');
-      return;
-    }
-
+    if (!user) { navigate('/login'); return; }
     if (!id) return;
-
     try {
       const response = await api.post(`/expert-interactions/${id}/favorite`);
       setIsFavorited(response.data.favorited);
-      message.success(response.data.favorited ? 'Эксперт добавлен в избранное' : 'Эксперт удален из избранного');
+      message.success(response.data.favorited ? 'Добавлено в избранное' : 'Удалено из избранного');
     } catch (error) {
-      console.error('Ошибка изменения избранного:', error);
       message.error('Ошибка изменения избранного');
     }
   };
 
-  const handleShare = () => {
-    console.log('Opening share modal with customSocials:', customSocials);
-    setShareModalVisible(true);
-  };
+  const handleShare = () => setShareModalVisible(true);
 
-  const handleTabsReorder = async (newOrder: string[]) => {
-    setTabsOrder(newOrder);
-
-    // Сохраняем порядок только если это владелец профиля
-    if (isOwner) {
-      try {
-        await api.put('/users/profile', { tabsOrder: newOrder });
-        message.success('Порядок вкладок сохранен');
-      } catch (error) {
-        console.error('Ошибка сохранения порядка табов:', error);
-        message.error('Ошибка при сохранении порядка');
-      }
-    }
-  };
-
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) {
-      return;
-    }
-
-    const items = Array.from(tabsOrder);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    handleTabsReorder(items);
-  };
-
-  // Модальное окно для незарегистрированных пользователей
   if (showAuthModal) {
     return (
       <div className="container" style={{ padding: '50px 24px' }}>
-        <Card style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
+        <Card style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', borderRadius: 24 }}>
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <div style={{ fontSize: 48 }}>🔒</div>
             <Title level={3}>Требуется авторизация</Title>
-            <Text style={{ fontSize: 16, color: '#666' }}>
-              Зарегистрируйтесь, чтобы иметь возможность пользоваться базовым функционалом,
-              просматривать профили экспертов и записываться на консультации
-            </Text>
+            <Text style={{ fontSize: 16, color: '#666' }}>Зарегистрируйтесь, чтобы просматривать профили экспертов</Text>
             <Space size="middle">
-              <Button
-                type="primary"
-                size="large"
-                onClick={() => navigate('/register')}
-              >
-                Зарегистрироваться
-              </Button>
-              <Button
-                size="large"
-                onClick={() => navigate('/login')}
-              >
-                Войти
-              </Button>
+              <Button type="primary" size="large" onClick={() => navigate('/register')} shape="round">Регистрация</Button>
+              <Button size="large" onClick={() => navigate('/login')} shape="round">Войти</Button>
             </Space>
-            <Button
-              type="text"
-              onClick={() => navigate('/experts')}
-            >
-              Вернуться к списку экспертов
-            </Button>
           </Space>
         </Card>
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: 'center', padding: 100 }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  if (!expert) {
-    return <div className="container" style={{ textAlign: 'center', padding: 50 }}>Эксперт не найден</div>;
-  }
+  if (loading) return <div style={{ textAlign: 'center', padding: 100 }}><Spin size="large" /></div>;
+  if (!expert) return <div className="container" style={{ textAlign: 'center', padding: 50 }}>Эксперт не найден</div>;
 
   return (
     <>
-      <div className="container">
-        <Card>
-          {/* Кнопка поделиться в правом верхнем углу */}
-          <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
-            <Button
-              type="text"
-              icon={<ShareAltOutlined />}
-              onClick={handleShare}
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                border: '1px solid #d9d9d9',
-                borderRadius: '50%',
-                width: 40,
-                height: 40,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}
-              title="Поделиться профилем"
+      <div className="profile-container">
+        <div className="profile-header-card">
+          <button
+            className="share-btn-top"
+            style={{
+              position: 'absolute', top: 24, right: 24, padding: 10,
+              background: 'rgba(0,0,0,0.03)', borderRadius: '50%', border: 'none', cursor: 'pointer'
+            }}
+            onClick={handleShare}
+          >
+            <Share2 size={20} color="#86868b" />
+          </button>
+
+          <div className="profile-avatar-wrapper">
+            <Avatar size={140} src={expert.avatar_url || '/emp.jpg'} icon={!expert.avatar_url && <UserOutlined />} className="profile-avatar" />
+          </div>
+
+          <h1 className="profile-name">{expert.name}</h1>
+
+          {expert.city && (
+            <div className="profile-location">
+              <MapPin size={16} />
+              <span>{expert.city}</span>
+            </div>
+          )}
+
+          {expert.bio && <div className="profile-bio">{expert.bio}</div>}
+
+          <div className="profile-stats">
+            <div className="stat-item"><span className="stat-value">{photosCount}</span><span className="stat-label">Фото</span></div>
+            <div className="stat-item"><span className="stat-value">{artworksCount}</span><span className="stat-label">Картины</span></div>
+            <div className="stat-item"><span className="stat-value">{articles.length}</span><span className="stat-label">Статьи</span></div>
+          </div>
+
+          {!isOwner && (
+            <div className="profile-actions">
+              <Button type="primary" className="btn-premium btn-primary-premium" icon={<MessageSquare size={20} />} onClick={handleContactExpert}>Написать</Button>
+              <Button className="btn-premium btn-secondary-premium" icon={isFavorited ? <Star size={20} fill="#FFD700" color="#FFD700" /> : <Star size={20} />} onClick={toggleFavorite}>
+                {isFavorited ? 'В избранном' : 'В избранное'}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="profile-tabs-wrapper">
+          {(expert.vk_url || expert.telegram_url || expert.whatsapp || customSocials.length > 0 || (expert.topics && expert.topics.length > 0)) && (
+            <div className="section-card">
+              <h2 className="section-title"><ExternalLink size={20} /> Информация</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                {expert.vk_url && <a href={expert.vk_url.startsWith('http') ? expert.vk_url : `https://${expert.vk_url}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>ВКонтакте</span></a>}
+                {expert.telegram_url && <a href={expert.telegram_url.startsWith('http') ? expert.telegram_url : `https://t.me/${expert.telegram_url.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>Telegram</span></a>}
+                {expert.whatsapp && <a href={`https://wa.me/${expert.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>WhatsApp</span></a>}
+                {customSocials.map((social, index) => <a key={index} href={social.url.startsWith('http') ? social.url : `https://${social.url}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>{social.name}</span></a>)}
+              </div>
+
+              {expert.topics && expert.topics.length > 0 && (
+                <div style={{ marginTop: 24 }}>
+                  <Space wrap>
+                    {expert.topics.filter((topic, index, self) => self.findIndex(t => t.id === topic.id) === index).map((topic) => (
+                      <Tag key={topic.id} style={{ borderRadius: 20, padding: '4px 12px', border: 'none', background: '#f5f5f7', color: '#1d1d1f', fontSize: 13 }}>{topic.name}</Tag>
+                    ))}
+                  </Space>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="section-card" style={{ padding: '24px' }}>
+            <Tabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              className="custom-tabs"
+              items={tabsOrder.map(key => {
+                if (key === 'photos') {
+                  return {
+                    key: 'photos',
+                    label: <span><ImageIcon size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Фото ({photosCount})</span>,
+                    children: <ProfileGallery userId={expert.id} isOwner={isOwner} onItemsCountChange={setPhotosCount} />
+                  };
+                } else {
+                  return {
+                    key: 'gallery',
+                    label: <span><ImageIcon size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Галерея ({artworksCount})</span>,
+                    children: <ArtworkGallery userId={expert.id} isOwner={isOwner} onItemsCountChange={setArtworksCount} />
+                  };
+                }
+              })}
             />
           </div>
 
-          <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            {/* Аватар и основная информация */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-              <Avatar
-                size={120}
-                src={expert.avatar_url || '/emp.jpg'}
-                icon={!expert.avatar_url && <UserOutlined />}
-                style={{
-                  backgroundColor: '#6366f1',
-                  border: '4px solid #6366f1',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
-                }}
-              />
-
-              <div style={{ textAlign: 'center', width: '100%' }}>
-                <Title level={2} style={{ marginBottom: 8 }}>{expert.name}</Title>
-
-                {expert.city && (
-                  <Space style={{ marginBottom: 16 }}>
-                    <EnvironmentOutlined />
-                    <Text type="secondary">{expert.city}</Text>
-                  </Space>
+          {articles.length > 0 && (
+            <div className="section-card">
+              <h2 className="section-title"><BookOpen size={20} /> Статьи</h2>
+              <List
+                grid={{ gutter: 16, xs: 1, sm: 2 }}
+                dataSource={articles}
+                renderItem={(article) => (
+                  <List.Item>
+                    <Card hoverable cover={article.cover_image && <img alt={article.title} src={article.cover_image} style={{ height: 160, objectFit: 'cover' }} />} onClick={() => navigate(`/articles/${article.id}`)} className="premium-item-card">
+                      <Card.Meta title={article.title} description={dayjs(article.created_at).format('D MMMM YYYY')} />
+                    </Card>
+                  </List.Item>
                 )}
+              />
+            </div>
+          )}
+
+          {expert.services && expert.services.length > 0 && (
+            <div className="section-card">
+              <h2 className="section-title"><RussianRuble size={20} /> Услуги</h2>
+              <div className="premium-grid">
+                {expert.services.map((service) => (
+                  <div key={service.id} className="premium-item-card" onClick={() => setServicePreview({ visible: true, service })} style={{ cursor: 'pointer' }}>
+                    <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8 }}>{service.title}</h3>
+                    <div style={{ color: '#86868b', fontSize: 14, marginBottom: 12, height: '3.2em', overflow: 'hidden' }}>{stripHtml(service.description)}</div>
+                    <div style={{ fontWeight: 700, fontSize: 16 }}>{service.price ? `${service.price} ₽` : 'По запросу'}</div>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            {/* Описание эксперта */}
-            {expert.bio && (
-              <div style={{ width: '100%' }}>
-                <Paragraph style={{ fontSize: 16, color: '#86868b', marginBottom: 16, textAlign: 'center' }}>
-                  {expert.bio}
-                </Paragraph>
-              </div>
-            )}
-
-            {/* Кнопки действий */}
-            {!isOwner && (
-              <div style={{ width: '100%' }}>
-                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                  <Button
-                    type="primary"
-                    size="large"
-                    icon={<MessageOutlined />}
-                    onClick={handleContactExpert}
-                    style={{ width: '100%' }}
-                  >
-                    Связаться с экспертом
-                  </Button>
-                  <Button
-                    size="large"
-                    icon={isFavorited ? <StarFilled /> : <StarOutlined />}
-                    onClick={toggleFavorite}
-                    style={{
-                      color: isFavorited ? '#faad14' : '#8c8c8c',
-                      borderColor: isFavorited ? '#faad14' : '#d9d9d9',
-                      width: '100%'
-                    }}
-                  >
-                    {isFavorited ? 'В избранном' : 'Добавить в избранное'}
-                  </Button>
-                </Space>
-              </div>
-            )}
-
-            {/* Типы консультаций */}
-            {expert.consultation_types && (() => {
-              try {
-                const types = JSON.parse(expert.consultation_types);
-                if (types.length > 0) {
-                  return (
-                    <>
-                      <Divider />
-                      <div>
-                        <Title level={4}><InfoCircleOutlined /> Типы консультаций</Title>
-                        <Space wrap>
-                          {types.map((type: string, idx: number) => (
-                            <Tag key={idx} color="blue" style={{ fontSize: 14, padding: '4px 12px' }}>
-                              {type}
-                            </Tag>
-                          ))}
-                        </Space>
-                      </div>
-                    </>
-                  );
-                }
-              } catch (e) {
-                return null;
-              }
-              return null;
-            })()}
-
-            {/* Социальные сети */}
-            {(expert.vk_url || expert.telegram_url || expert.whatsapp || customSocials.length > 0) && (
-              <>
-                <Divider />
-                <div>
-                  <Title level={4} style={{ marginBottom: 16 }}><LinkOutlined /> Контакты и социальные сети</Title>
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    {expert.vk_url && (
-                      <a href={expert.vk_url.startsWith('http') ? expert.vk_url : `https://${expert.vk_url}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <img src="/vk.png" alt="VK" style={{ width: 24, height: 24 }} onError={(e) => (e.currentTarget.style.display = 'none')} />
-                        <Text style={{ color: '#6366f1', fontSize: 16 }}>VK: {expert.vk_url}</Text>
-                      </a>
-                    )}
-                    {expert.telegram_url && (
-                      <a href={expert.telegram_url.startsWith('http') ? expert.telegram_url : `https://t.me/${expert.telegram_url.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <img src="/tg.png" alt="Telegram" style={{ width: 24, height: 24 }} />
-                        <Text style={{ color: '#6366f1', fontSize: 16 }}>Telegram: {expert.telegram_url}</Text>
-                      </a>
-                    )}
-                    {expert.whatsapp && (
-                      <a href={`https://wa.me/${expert.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <img src="/wp.png" alt="WhatsApp" style={{ width: 24, height: 24 }} />
-                        <Text style={{ color: '#6366f1', fontSize: 16 }}>WhatsApp: {expert.whatsapp}</Text>
-                      </a>
-                    )}
-
-                    {/* Отображение кастомных соцсетей */}
-                    {customSocials.map((social, index) => (
-                      <div key={index} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '10px 16px',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: 12,
-                        border: '1px solid #edf2f7',
-                        marginTop: 4
-                      }}>
-                        <Text style={{ fontSize: 16, fontWeight: 600, color: '#4a5568', minWidth: 60 }}>{social.name}:</Text>
-                        <a href={social.url.startsWith('http') ? social.url : `https://${social.url}`} target="_blank" rel="noopener noreferrer" style={{
-                          color: '#6366f1',
-                          fontSize: 15,
-                          wordBreak: 'break-all',
-                          flex: 1
-                        }}>
-                          {social.url}
-                        </a>
-                      </div>
-                    ))}
-                    {/* Кнопка добавления новой соцсети - только для владельца профиля */}
-                    {isOwner && (
-                      <Button
-                        type="dashed"
-                        icon={<PlusOutlined />}
-                        style={{
-                          marginTop: 8,
-                          borderStyle: 'dashed',
-                          borderColor: '#d9d9d9',
-                          color: '#8c8c8c'
-                        }}
-                        onClick={() => {
-                          // Здесь можно добавить модальное окно для добавления новой соцсети
-                          message.info('Функция добавления соцсетей в разработке');
-                        }}
-                      >
-                        Добавить соцсеть
-                      </Button>
-                    )}
-                  </Space>
-                </div>
-              </>
-            )}
-
-            {expert.topics && expert.topics.length > 0 && (
-              <>
-                <Divider />
-                <div>
-                  <Title level={4}>Тематики</Title>
-                  <Space wrap>
-                    {expert.topics
-                      .filter((topic, index, self) =>
-                        self.findIndex(t => t.id === topic.id) === index
-                      )
-                      .map((topic) => (
-                        <Tag key={topic.id} color="purple" style={{ fontSize: 14, padding: '4px 12px' }}>
-                          {topic.name}
-                        </Tag>
-                      ))}
-                  </Space>
-                </div>
-              </>
-            )}
-
-            {/* Галерея фотографий и картин */}
-            <Divider />
-            {/* Секция табов (Фото и Галерея) */}
-            {isOwner ? (
-              <>
-                <div style={{
-                  marginBottom: 16,
-                  padding: '10px 16px',
-                  background: 'linear-gradient(90deg, #f0f5ff 0%, #ffffff 100%)',
-                  borderRadius: 12,
-                  fontSize: 14,
-                  color: '#1890ff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  borderLeft: '4px solid #1890ff'
-                }}>
-                  <InfoCircleOutlined />
-                  <span><b>Режим настройки:</b> Перетащите вкладки мышью, чтобы изменить их порядок для посетителей</span>
-                </div>
-
-                {(() => {
-                  const allTabsMap = {
-                    photos: {
-                      key: 'photos',
-                      label: `Фото (${photosCount})`,
-                      icon: '📷',
-                      children: <ProfileGallery
-                        userId={expert.id}
-                        isOwner={true}
-                        onItemsCountChange={(count) => setPhotosCount(count)}
-                      />
-                    },
-                    gallery: {
-                      key: 'gallery',
-                      label: `Галерея (${artworksCount})`,
-                      icon: '🖼️',
-                      children: <ArtworkGallery
-                        userId={expert.id}
-                        isOwner={true}
-                        onItemsCountChange={(count) => setArtworksCount(count)}
-                      />
-                    }
-                  };
-
-                  const orderedTabs = tabsOrder.map(key => allTabsMap[key as keyof typeof allTabsMap]).filter(Boolean);
-
-                  return (
-                    <DragDropContext onDragEnd={onDragEnd}>
-                      <Droppable droppableId="tabs" direction="horizontal">
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            style={{
-                              borderRadius: 12,
-                              transition: 'all 0.3s'
-                            }}
-                          >
-                            <div style={{
-                              display: 'flex',
-                              gap: 12,
-                              borderBottom: '1px solid #f0f0f0',
-                              paddingBottom: 12,
-                              marginBottom: 20,
-                              overflowX: 'auto'
-                            }}>
-                              {orderedTabs.map((tab, index) => (
-                                <Draggable
-                                  key={tab.key}
-                                  draggableId={tab.key}
-                                  index={index}
-                                >
-                                  {(provided, snapshot) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      onClick={() => setActiveTab(tab.key)}
-                                      style={{
-                                        padding: '10px 20px',
-                                        borderRadius: 10,
-                                        cursor: snapshot.isDragging ? 'grabbing' : 'grab',
-                                        background: activeTab === tab.key ? '#6366f1' : '#fff',
-                                        color: activeTab === tab.key ? '#fff' : '#4b5563',
-                                        fontWeight: 600,
-                                        border: `1px solid ${activeTab === tab.key ? '#6366f1' : '#e5e7eb'}`,
-                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        userSelect: 'none',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 8,
-                                        boxShadow: snapshot.isDragging
-                                          ? '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
-                                          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                                        transform: snapshot.isDragging ? 'scale(1.05) rotate(1deg)' : 'none',
-                                        zIndex: snapshot.isDragging ? 100 : 1,
-                                        ...provided.draggableProps.style
-                                      }}
-                                    >
-                                      <span style={{ opacity: 0.4, fontSize: 18, marginRight: 4 }}>⋮⋮</span>
-                                      <span style={{ fontSize: 18 }}>{tab.icon}</span>
-                                      <span>{tab.label}</span>
-                                    </div>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                            </div>
-
-                            <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                              {orderedTabs.find(tab => tab.key === activeTab)?.children}
-                            </div>
-                          </div>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
-                  );
-                })()}
-              </>
-            ) : (
-              /* Версия для посетителей - уважаем порядок, установленный владельцем */
-              <Tabs
-                activeKey={activeTab}
-                onChange={setActiveTab}
-                items={tabsOrder.map(key => {
-                  if (key === 'photos') {
-                    return {
-                      key: 'photos',
-                      label: <span><span style={{ marginRight: 8 }}>📷</span>Фото ({photosCount})</span>,
-                      children: <ProfileGallery
-                        userId={expert.id}
-                        isOwner={false}
-                        onItemsCountChange={(count) => setPhotosCount(count)}
-                      />
-                    };
-                  } else {
-                    return {
-                      key: 'gallery',
-                      label: <span><span style={{ marginRight: 8 }}>🖼️</span>Галерея ({artworksCount})</span>,
-                      children: <ArtworkGallery
-                        userId={expert.id}
-                        isOwner={false}
-                        onItemsCountChange={(count) => setArtworksCount(count)}
-                      />
-                    };
-                  }
-                })}
-              />
-            )}
-
-            {expert.services && expert.services.length > 0 && (
-              <>
-                <Divider />
-                <div>
-                  <Title level={4}>Услуги</Title>
-                  <List
-                    dataSource={expert.services}
-                    renderItem={(service) => (
-                      <List.Item>
-                        <Card style={{ width: '100%', cursor: 'pointer' }} size="small" hoverable onClick={() => setServicePreview({ visible: true, service })}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div style={{ flex: 1 }}>
-                              <Title level={5}>{service.title}</Title>
-                              <div className="service-description" style={{ color: '#595959' }}>
-                                {(() => {
-                                  const text = stripHtml(service.description);
-                                  return text.length > 100 ? `${text.slice(0, 100)}…` : text;
-                                })()}
-                              </div>
-
-                              <div>
-                                {service.price && (
-                                  <div style={{ marginBottom: 8 }}>
-                                    <Space>
-                                      <LucideBadgeRussianRuble />
-                                      <Text>{service.price} ₽</Text>
-                                    </Space>
-                                  </div>
-                                )}
-                                {service.duration && (
-                                  <div style={{ marginBottom: 8 }}>
-                                    <Space>
-                                      <ClockCircleOutlined />
-                                      <Text>{service.duration} мин</Text>
-                                    </Space>
-                                  </div>
-                                )}
-                                <div>
-                                  <Tag color={
-                                    service.service_type === 'online' ? 'blue' :
-                                      service.service_type === 'offline' ? 'green' : 'purple'
-                                  }>
-                                    {service.service_type === 'online' ? 'Онлайн' :
-                                      service.service_type === 'offline' ? 'Офлайн' : 'Онлайн/Офлайн'}
-                                  </Tag>
-                                </div>
-                              </div>
-                            </div>
-
-                            <Button
-                              type="primary"
-                              size="small"
-                              onClick={() => handleBuyService(service)}
-                              style={{ marginLeft: 16, minWidth: 80 }}
-                            >
-                              Купить
-                            </Button>
-                          </div>
-                        </Card>
-                      </List.Item>
-                    )}
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Модалка полного описания услуги */}
-            <Modal
-              title={servicePreview.service?.title}
-              open={servicePreview.visible}
-              onCancel={() => setServicePreview({ visible: false, service: null })}
-              afterClose={() => {
-                // Возвращаем фокус на страницу после закрытия модального окна
-                document.body.style.overflow = 'auto';
-              }}
-              destroyOnClose={true}
-              footer={null}
-              width={800}
-              centered
-              maskClosable={true}
-            >
-              <div
-                className="service-description"
-                dangerouslySetInnerHTML={{ __html: servicePreview.service?.description || '' }}
-              />
-            </Modal>
-
-            {expert.products && expert.products.length > 0 && (
-              <>
-                <Divider />
-                <div>
-                  <Title level={4}>Готовые продукты</Title>
-                  <List
-                    dataSource={expert.products}
-                    renderItem={(product) => (
-                      <List.Item>
-                        <Card
-                          style={{ width: '100%', cursor: 'pointer' }}
-                          size="small"
-                          hoverable
-                          onClick={() => handleProductClick(product)}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div style={{ flex: 1 }}>
-                              <Title level={5}>{product.title}</Title>
-                              <Paragraph
-                                type="secondary"
-                                ellipsis={{
-                                  rows: 4,
-                                  expandable: false,
-                                  symbol: '...'
-                                }}
-                                style={{
-                                  marginBottom: 8,
-                                  whiteSpace: 'pre-wrap'
-                                }}
-                              >
-                                {product.description}
-                              </Paragraph>
-
-                              <div>
-                                {product.price && (
-                                  <div style={{ marginBottom: 8 }}>
-                                    <Space>
-                                      <LucideBadgeRussianRuble />
-                                      <Text>{product.price} ₽</Text>
-                                    </Space>
-                                  </div>
-                                )}
-                                <div style={{ marginBottom: 8 }}>
-                                  <Tag color={
-                                    product.product_type === 'digital' ? 'blue' :
-                                      product.product_type === 'physical' ? 'green' : 'purple'
-                                  }>
-                                    {product.product_type === 'digital' ? 'Цифровой' :
-                                      product.product_type === 'physical' ? 'Физический' : 'Услуга'}
-                                  </Tag>
-                                </div>
-                              </div>
-
-                              {product.image_url && (
-                                <div style={{ marginTop: 8 }}>
-                                  <img
-                                    src={product.image_url}
-                                    alt={product.title}
-                                    style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 4 }}
-                                  />
-                                </div>
-                              )}
-                            </div>
-
-                            <Button
-                              type="primary"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleBuyProduct(product);
-                              }}
-                              style={{ marginLeft: 16, minWidth: 80 }}
-                            >
-                              Купить
-                            </Button>
-                          </div>
-                        </Card>
-                      </List.Item>
-                    )}
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Календарь записей */}
-            {user && !isOwner && (
-              <>
-                <Divider />
-                <div>
-                  <ClientBookingCalendar
-                    expertId={expert.id}
-                    expertName={expert.name}
-                    onBookingComplete={() => {
-                      message.success('Запись создана! Эксперт получит уведомление.');
-                    }}
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Статьи эксперта */}
-            <Divider />
-            <div>
-              <Title level={4}><FileTextOutlined /> Статьи эксперта</Title>
-              {loadingArticles ? (
-                <div style={{ textAlign: 'center', padding: 40 }}>
-                  <Spin />
-                </div>
-              ) : articles.length === 0 ? (
-                <Empty description="Эксперт пока не опубликовал ни одной статьи" />
-              ) : (
-                <List
-                  grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 3 }}
-                  dataSource={articles}
-                  renderItem={(article) => (
-                    <List.Item>
-                      <Card
-                        hoverable
-                        onClick={() => navigate(`/articles/${article.id}`)}
-                        cover={
-                          <div style={{ height: 200, overflow: 'hidden' }}>
-                            <img
-                              src={article.cover_image || '/art.jpg'}
-                              alt={article.title}
-                              style={{ width: '100%', height: 200, objectFit: 'cover' }}
-                            />
-                          </div>
-                        }
-                      >
-                        <Card.Meta
-                          title={
-                            <div
-                              style={{
-                                fontSize: 16,
-                                fontWeight: 600,
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}
-                            >
-                              {article.title}
-                            </div>
-                          }
-                          description={
-                            <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                              <Text type="secondary" ellipsis>
-                                {stripHtml(article.content).substring(0, 100)}...
-                              </Text>
-                              <Space split="•">
-                                <Space size={4}>
-                                  <HeartOutlined />
-                                  <Text type="secondary">{article.likes_count || 0}</Text>
-                                </Space>
-                                <Space size={4}>
-                                  <EyeOutlined />
-                                  <Text type="secondary">{article.views}</Text>
-                                </Space>
-                                <Text type="secondary">
-                                  {dayjs(article.created_at).format('DD MMM YYYY')}
-                                </Text>
-                              </Space>
-                            </Space>
-                          }
-                        />
-                      </Card>
-                    </List.Item>
-                  )}
-                />
-              )}
+          {user && !isOwner && (
+            <div className="section-card">
+              <h2 className="section-title"><ClockCircleOutlined /> Запись на консультацию</h2>
+              <ClientBookingCalendar expertId={expert.id} expertName={expert.name} onBookingComplete={() => message.success('Запись создана!')} />
             </div>
-          </Space>
-        </Card>
-      </div >
+          )}
+        </div>
+      </div>
 
-      <ProductModal
-        product={selectedProduct}
-        visible={productModalVisible}
-        onClose={handleProductModalClose}
-        onBuy={handleBuyProduct}
-      />
+      {expert && (
+        <ShareProfileModal
+          visible={shareModalVisible}
+          onClose={() => setShareModalVisible(false)}
+          expert={{
+            ...expert,
+            customSocials: customSocials
+          }}
+        />
+      )}
 
-      {
-        expert && (
-          <ShareProfileModal
-            visible={shareModalVisible}
-            onClose={() => setShareModalVisible(false)}
-            expert={{
-              ...expert,
-              customSocials: customSocials
-            }}
-          />
-        )
-      }
+      <Modal
+        title={servicePreview.service?.title}
+        open={servicePreview.visible}
+        onCancel={() => setServicePreview({ visible: false, service: null })}
+        footer={[
+          <Button key="close" onClick={() => setServicePreview({ visible: false, service: null })}>Закрыть</Button>,
+          <Button key="buy" type="primary" onClick={() => { if (servicePreview.service) { handleBuyService(servicePreview.service); setServicePreview({ visible: false, service: null }); } }}>Заказать</Button>
+        ]}
+      >
+        {servicePreview.service && <div dangerouslySetInnerHTML={{ __html: servicePreview.service.description }} />}
+      </Modal>
+
+      <ProductModal visible={productModalVisible} onClose={handleProductModalClose} product={selectedProduct} onBuy={handleBuyProduct} />
     </>
   );
 };
