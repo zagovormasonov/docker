@@ -1,7 +1,8 @@
 .chats-page {
-  /* Header Ant Layout по умолчанию ~64px, footer в чате скрыт (см. Layout.tsx) */
-  height: calc(100dvh - 64px);
-  padding: 12px;
+  /* Header Ant Layout по умолчанию ~72px (после редизайна хедера) */
+  height: calc(100dvh - 72px);
+  padding: 24px;
+  background-color: #f8f9fa;
   overflow: hidden;
 }
 
@@ -14,11 +15,7 @@
   min-height: 0;
 }
 
-.chats-page .ant-card {
-  height: 100%;
-  min-height: 0;
-}
-
+/* Glass Panels */
 .chats-panel {
   height: 100%;
   display: flex;

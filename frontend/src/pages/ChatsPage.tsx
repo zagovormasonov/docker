@@ -21,7 +21,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import dayjs from 'dayjs';
 import './ChatsPage.css';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 interface Chat {
   id: number;
@@ -317,131 +317,77 @@ const ChatsPage = () => {
   // Мобильная версия - активный чат
   if (isMobile && !showChatList && selectedChat) {
     return (
-      <div className="chats-page">
-        <Card
-          className="chats-panel"
-          bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0 }}
-        >
-          <div className="chat-header">
-            <Button 
-              icon={<ArrowLeftOutlined />} 
-              onClick={handleBackToChatList}
-              type="text"
+      <div className="chats-panel">
+        <div className="active-chat-header">
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={handleBackToChatList}
+            type="text"
+          />
+          <Badge dot={selectedChatObj?.other_user_online} color="green" offset={[-2, 32]}>
+            <Avatar 
+              src={selectedChatObj?.other_user_avatar} 
+              icon={<UserOutlined />} 
+              size={40} 
             />
-            <Text strong>Чаты</Text>
+          </Badge>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Text strong style={{ fontSize: '16px' }}>{selectedChatObj?.other_user_name || 'Чат'}</Text>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              {selectedChatObj?.other_user_online ? 'В сети' : 'Был недавно'}
+            </Text>
           </div>
-          
-          <div
-            className="messages-container"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
-          >
-            {messages.map((message) => (
+        </div>
+        
+        <div className="messages-container">
+          {messages.map((message) => {
+            const isMe = message.sender_id === user?.id;
+            return (
               <div
                 key={message.id}
+                className="message-row"
                 style={{
                   display: 'flex',
-                  justifyContent: message.sender_id === user?.id ? 'flex-end' : 'flex-start'
+                  justifyContent: isMe ? 'flex-end' : 'flex-start'
                 }}
               >
                 <div
-                  style={{
-                    maxWidth: '85vw',
-                    display: 'flex',
-                    gap: 8,
-                    flexDirection: message.sender_id === user?.id ? 'row-reverse' : 'row',
-                    alignItems: 'flex-start'
-                  }}
+                  className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}
                 >
-                  <Avatar
-                    src={message.sender_avatar}
-                    icon={!message.sender_avatar && <UserOutlined />}
-                    size={32}
-                    style={{ 
-                      flexShrink: 0,
-                      width: 32,
-                      height: 32
-                    }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        background: message.sender_id === user?.id 
-                          ? 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)'
-                          : '#f0f0f0',
-                        color: 'black',
-                        padding: '12px 16px',
-                        borderRadius: 12,
-                        marginBottom: 4,
-                        wordWrap: 'break-word',
-                        wordBreak: 'break-word',
-                        overflowWrap: 'anywhere',
-                        whiteSpace: 'pre-wrap',
-                        maxWidth: '100%',
-                        textAlign: message.content.includes('<div style=') ? 'left' : (message.sender_id === user?.id ? 'right' : 'left')
-                      }}
-                    >
-                      {message.content.includes('<div style=') ? (
-                        <div style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: message.content }} />
-                      ) : (
-                        message.content
-                      )}
-                    </div>
-                    <div
-                      style={{
-                        textAlign: message.sender_id === user?.id ? 'right' : 'left'
-                      }}
-                    >
-                      <Text
-                        type="secondary"
-                        style={{
-                          fontSize: 11,
-                          display: 'block'
-                        }}
-                      >
-                        {dayjs(message.created_at).format('HH:mm')}
-                      </Text>
-                      <Text
-                        type="secondary"
-                        style={{
-                          fontSize: 10,
-                          display: 'block',
-                          marginTop: 2
-                        }}
-                      >
-                        {dayjs(message.created_at).format('DD.MM.YYYY')}
-                      </Text>
-                    </div>
+                  {message.content.includes('<div style=') ? (
+                    <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                  ) : (
+                    message.content
+                  )}
+                  <div className="message-time" style={{ textAlign: isMe ? 'right' : 'left' }}>
+                    {dayjs(message.created_at).format('HH:mm')}
                   </div>
                 </div>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </div>
 
-          <div className="chat-input">
-            <Space.Compact style={{ width: '100%' }}>
-              <Input
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onPressEnter={sendMessage}
-                placeholder="Введите сообщение..."
-                size="large"
-              />
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                onClick={sendMessage}
-                size="large"
-              >
-                {isMobile ? null : 'Отправить'}
-              </Button>
-            </Space.Compact>
+        <div className="chat-input-wrapper">
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Input
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onPressEnter={sendMessage}
+              placeholder="Введите сообщение..."
+              size="large"
+              className="chat-input-field"
+              autoComplete="off"
+            />
+            <Button
+              type="primary"
+              icon={<SendOutlined />}
+              onClick={sendMessage}
+              className="send-button"
+            />
           </div>
-        </Card>
+        </div>
       </div>
     );
   }
@@ -449,144 +395,127 @@ const ChatsPage = () => {
   // Десктопная версия
   return (
     <div className="chats-page">
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Card
-            title="Чаты"
-            className="chats-panel"
-            bodyStyle={{ flex: 1, padding: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}
-          >
-            {selectedChatObj && (
-              <div className="chat-selected-sticky">
-                <div className="chat-selected-title">Выбранный чат</div>
-                <List dataSource={[selectedChatObj]} renderItem={(chat) => renderChatRow(chat)} />
-              </div>
-            )}
-            <div className="chat-list-scroll" style={{ padding: 16 }}>
-              <List
-                dataSource={selectedChatObj ? chats.filter(c => c.id !== selectedChatObj.id) : chats}
-                renderItem={(chat) => renderChatRow(chat)}
-              />
+      <Row gutter={24} style={{ height: '100%' }}>
+        <Col span={8}>
+          <div className="chats-panel">
+            <div style={{ padding: '24px 24px 8px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+              <Title level={4} style={{ margin: 0 }}>Чаты</Title>
             </div>
-          </Card>
-        </Col>
-
-        <Col xs={24} md={16}>
-          <Card
-            className="chats-panel"
-            bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0 }}
-          >
-            {selectedChat ? (
-              <>
-                <div
-                  className="messages-container"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 16,
-                  }}
-                >
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: message.sender_id === user?.id ? 'flex-end' : 'flex-start'
-                      }}
+            
+            <div className="chat-list-container">
+              {chats.length === 0 ? (
+                <Empty description="Нет активных чатов" style={{ marginTop: 40 }} />
+              ) : (
+                <List
+                  dataSource={chats}
+                  renderItem={(chat) => (
+                    <div 
+                      className={`chat-item ${selectedChat === chat.id ? 'chat-item-active' : ''} ${chat.unread_count ? 'chat-item-unread' : ''}`}
+                      onClick={() => handleChatSelect(chat.id)}
                     >
-                      <div
-                        style={{
-                          maxWidth: '70%',
-                          display: 'flex',
-                          gap: 8,
-                          flexDirection: message.sender_id === user?.id ? 'row-reverse' : 'row',
-                          alignItems: 'flex-start'
-                        }}
-                      >
-                        <Avatar
-                          src={message.sender_avatar}
-                          icon={!message.sender_avatar && <UserOutlined />}
-                          size={32}
-                          style={{ 
-                            flexShrink: 0,
-                            width: 32,
-                            height: 32
-                          }}
-                        />
+                      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        <Badge count={chat.unread_count} overflowCount={9} offset={[-2, 38]}>
+                          <Avatar 
+                            src={chat.other_user_avatar} 
+                            icon={<UserOutlined />} 
+                            size={52} 
+                            style={{ border: '2px solid #fff', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}
+                          />
+                        </Badge>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div
-                            style={{
-                              background: message.sender_id === user?.id 
-                                ? 'linear-gradient(135deg, rgb(180, 194, 255) 0%, rgb(245, 236, 255) 100%)'
-                                : '#f0f0f0',
-                              color: 'black',
-                              padding: '12px 16px',
-                              borderRadius: 12,
-                              marginBottom: 4,
-                              wordWrap: 'break-word',
-                              wordBreak: 'break-word',
-                              overflowWrap: 'anywhere',
-                              whiteSpace: 'pre-wrap',
-                              maxWidth: '100%',
-                              textAlign: message.content.includes('<div style=') ? 'left' : (message.sender_id === user?.id ? 'right' : 'left')
-                            }}
-                          >
-                            {message.content.includes('<div style=') ? (
-                              <div style={{ textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: message.content }} />
-                            ) : (
-                              message.content
-                            )}
-                          </div>
-                          <div
-                            style={{
-                              textAlign: message.sender_id === user?.id ? 'right' : 'left'
-                            }}
-                          >
-                            <Text
-                              type="secondary"
-                              style={{
-                                fontSize: 11,
-                                display: 'block'
-                              }}
-                            >
-                              {dayjs(message.created_at).format('HH:mm')}
-                            </Text>
-                            <Text
-                              type="secondary"
-                              style={{
-                                fontSize: 10,
-                                display: 'block',
-                                marginTop: 2
-                              }}
-                            >
-                              {dayjs(message.created_at).format('DD.MM.YYYY')}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <Text strong style={{ fontSize: '15px' }} ellipsis>{chat.other_user_name}</Text>
+                            <Text type="secondary" style={{ fontSize: '11px' }}>
+                              {chat.last_message_time ? dayjs(chat.last_message_time).format('HH:mm') : ''}
                             </Text>
                           </div>
+                          <Text type="secondary" style={{ fontSize: '13px' }} ellipsis>
+                            {chat.last_message_sender_id === user?.id && <span style={{ color: '#6366f1' }}>Вы: </span>}
+                            {chat.last_message || 'Нет сообщений'}
+                          </Text>
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        </Col>
+
+        <Col span={16}>
+          <div className="chats-panel">
+            {selectedChat ? (
+              <>
+                <div className="active-chat-header">
+                  <Badge dot={selectedChatObj?.other_user_online} color="green" offset={[-2, 32]}>
+                    <Avatar 
+                      src={selectedChatObj?.other_user_avatar} 
+                      icon={<UserOutlined />} 
+                      size={44} 
+                    />
+                  </Badge>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text strong style={{ fontSize: '17px' }}>{selectedChatObj?.other_user_name || 'Чат'}</Text>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      {selectedChatObj?.other_user_online ? 'В сети' : 'Был недавно'}
+                    </Text>
+                  </div>
+                </div>
+
+                <div className="messages-container">
+                  {messages.length === 0 ? (
+                    <Empty description="История сообщений пуста" style={{ margin: 'auto' }} />
+                  ) : (
+                    messages.map((message) => {
+                      const isMe = message.sender_id === user?.id;
+                      return (
+                        <div
+                          key={message.id}
+                          className="message-row"
+                          style={{
+                            display: 'flex',
+                            justifyContent: isMe ? 'flex-end' : 'flex-start'
+                          }}
+                        >
+                          <div
+                            className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}
+                          >
+                            {message.content.includes('<div style=') ? (
+                              <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                            ) : (
+                              message.content
+                            )}
+                            <div className="message-time">
+                              {dayjs(message.created_at).format('HH:mm')}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="chat-input">
-                  <Space.Compact style={{ width: '100%' }}>
+                <div className="chat-input-wrapper">
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <Input
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onPressEnter={sendMessage}
-                      placeholder="Введите сообщение..."
+                      placeholder="Напишите сообщение..."
                       size="large"
+                      className="chat-input-field"
+                      autoComplete="off"
                     />
                     <Button
                       type="primary"
                       icon={<SendOutlined />}
                       onClick={sendMessage}
+                      className="send-button"
                       size="large"
-                    >
-                      Отправить
-                    </Button>
-                  </Space.Compact>
+                    />
+                  </div>
                 </div>
               </>
             ) : (
@@ -595,7 +524,7 @@ const ChatsPage = () => {
                 style={{ margin: 'auto' }}
               />
             )}
-          </Card>
+          </div>
         </Col>
       </Row>
     </div>
