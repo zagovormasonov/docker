@@ -75,23 +75,6 @@ const EventPage = () => {
     }
   };
 
-  const getEventTypeColor = (type: string) => {
-    const colors: { [key: string]: string } = {
-      'Ретрит': 'purple',
-      'Мастер-класс': 'blue',
-      'Тренинг': 'cyan',
-      'Семинар': 'green',
-      'Сатсанг': 'gold',
-      'Йога и медитация': 'magenta',
-      'Фестиваль': 'volcano',
-      'Конференция': 'orange',
-      'Выставка': 'geekblue',
-      'Концерт': 'red',
-      'Экскурсия': 'lime',
-      'Благотворительное мероприятие': 'pink'
-    };
-    return colors[type] || 'default';
-  };
 
   const isEventToday = (eventDate: string) => {
     return dayjs(eventDate).isSame(dayjs(), 'day');
@@ -146,16 +129,16 @@ const EventPage = () => {
   const canEdit = user?.id === event.organizer_id;
 
   return (
-    <div style={{ padding: '24px', maxWidth: 1000, margin: '0 auto' }}>
-      <Card>
+    <div className="container" style={{ padding: '24px 20px', maxWidth: 1000 }}>
+      <Card style={{ borderRadius: 24, overflow: 'hidden', border: 'none', boxShadow: '0 4px 24px rgba(0,0,0,0.04)' }} bodyStyle={{ padding: isMobile ? 24 : 40 }}>
         {/* Обложка */}
-        <div style={{ marginBottom: 24, borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ marginBottom: 32, borderRadius: 16, overflow: 'hidden' }}>
           <img
             src={event.cover_image || '/eve.jpg'}
             alt={event.title}
             style={{
               width: '100%',
-              height: 400,
+              height: isMobile ? 240 : 400,
               objectFit: 'cover',
               display: 'block'
             }}
@@ -167,44 +150,53 @@ const EventPage = () => {
           style={{
             display: 'flex',
             justifyContent: isMobile ? 'flex-start' : 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: 16,
+            alignItems: isMobile ? 'flex-start' : 'flex-end',
+            marginBottom: 24,
             flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? 12 : 0
+            gap: isMobile ? 16 : 0
           }}
         >
-          <div style={{ flex: 1 }}>
-            <Space wrap style={{ marginBottom: 8 }}>
-              <Tag color={getEventTypeColor(event.event_type)} style={{ fontSize: 14 }}>
+          <div style={{ flex: 1, paddingRight: isMobile ? 0 : 24 }}>
+            <Space wrap style={{ marginBottom: 12 }}>
+              <Tag style={{ 
+                borderRadius: 12, border: 'none', background: '#f5f5f7', color: '#6366f1', fontSize: 13, padding: '4px 12px' 
+              }}>
                 {event.event_type}
               </Tag>
               {isEventToday(event.event_date) && (
-                <Tag color="red" style={{ fontSize: 14 }}>Сегодня</Tag>
+                <Tag style={{ borderRadius: 12, border: 'none', background: '#fff1f0', color: '#ff4d4f', fontSize: 13, padding: '4px 12px' }}>Сегодня</Tag>
               )}
               {isEventTomorrow(event.event_date) && (
-                <Tag color="orange" style={{ fontSize: 14 }}>Завтра</Tag>
+                <Tag style={{ borderRadius: 12, border: 'none', background: '#fff7e6', color: '#fa8c16', fontSize: 13, padding: '4px 12px' }}>Завтра</Tag>
               )}
             </Space>
-            <Title level={2} style={{ marginBottom: 0 }}>{event.title}</Title>
+            <Title level={1} style={{ margin: 0, fontSize: isMobile ? 28 : 36, fontWeight: 700 }}>
+              {event.title}
+            </Title>
           </div>
-          <Space direction={isMobile ? 'vertical' : 'horizontal'} style={{ width: isMobile ? '100%' : 'auto' }}>
+          <Space direction={isMobile ? 'vertical' : 'horizontal'} style={{ width: isMobile ? '100%' : 'auto' }} size={12}>
             {!canEdit && (
               <Button
+                size="large"
                 icon={isFavorited ? <StarFilled /> : <StarOutlined />}
                 onClick={toggleFavorite}
                 style={{
-                  color: isFavorited ? '#faad14' : '#8c8c8c',
-                  borderColor: isFavorited ? '#faad14' : '#d9d9d9'
+                  borderRadius: 24,
+                  color: isFavorited ? '#faad14' : '#1d1d1f',
+                  background: isFavorited ? '#fffbe6' : '#f5f5f7',
+                  border: 'none',
+                  boxShadow: 'none'
                 }}
                 block={isMobile}
               >
-                {isFavorited ? 'В избранном' : 'Добавить в избранное'}
+                {isFavorited ? 'В избранном' : 'В избранное'}
               </Button>
             )}
             <Button
+              size="large"
               icon={<ShareAltOutlined />}
               onClick={handleShare}
-              style={{ borderRadius: 999, fontSize: isMobile ? 14 : undefined }}
+              style={{ borderRadius: 24, background: '#f5f5f7', border: 'none', color: '#1d1d1f' }}
               block={isMobile}
             >
               Поделиться
@@ -212,8 +204,10 @@ const EventPage = () => {
             {canEdit && (
               <Button
                 type="primary"
+                size="large"
                 icon={<EditOutlined />}
                 onClick={() => navigate(`/events/edit/${event.id}`)}
+                style={{ borderRadius: 24 }}
                 block={isMobile}
               >
                 Редактировать
@@ -222,7 +216,7 @@ const EventPage = () => {
           </Space>
         </div>
 
-        <Divider />
+        <Divider style={{ margin: '32px 0' }} />
 
         {/* Основная информация */}
         <Space direction="vertical" size={16} style={{ width: '100%' }}>
@@ -322,22 +316,23 @@ const EventPage = () => {
         )}
 
         {/* Организатор */}
-        <Title level={4}>Организатор</Title>
+        <Title level={4} style={{ marginBottom: 16 }}>Организатор</Title>
         <Card
           hoverable
           onClick={() => navigate(`/experts/${event.organizer_id}`)}
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: 'pointer', borderRadius: 20, background: '#f9f9f9', border: 'none' }}
+          bodyStyle={{ padding: 20 }}
         >
-          <Space size={16}>
+          <Space size={20} align="center">
             <Avatar
               size={64}
               src={event.organizer_avatar}
               icon={<UserOutlined />}
             />
             <div>
-              <Title level={5} style={{ margin: 0 }}>{event.organizer_name}</Title>
+              <Title level={5} style={{ margin: '0 0 4px 0', fontSize: 18 }}>{event.organizer_name}</Title>
               {event.organizer_bio && (
-                <Text type="secondary">{event.organizer_bio}</Text>
+                <Text type="secondary" style={{ fontSize: 14, color: '#86868b' }}>{event.organizer_bio}</Text>
               )}
             </div>
           </Space>

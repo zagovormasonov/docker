@@ -231,25 +231,6 @@ const EventsPage = () => {
     }
   }, []);
 
-  // Мемоизированная функция получения цвета для типа события
-  const getEventTypeColor = useCallback((type: string) => {
-    const colors: { [key: string]: string } = {
-      'Ретрит': 'purple',
-      'Мастер-класс': 'blue',
-      'Тренинг': 'cyan',
-      'Семинар': 'green',
-      'Сатсанг': 'gold',
-      'Йога и медитация': 'magenta',
-      'Фестиваль': 'volcano',
-      'Конференция': 'orange',
-      'Выставка': 'geekblue',
-      'Концерт': 'red',
-      'Экскурсия': 'lime',
-      'Благотворительное мероприятие': 'pink',
-      'Ярмарка': 'orange'
-    };
-    return colors[type] || 'default';
-  }, []);
 
   // Мемоизированная функция проверки, является ли событие сегодня
   const isEventToday = useCallback((eventDate: string) => {
@@ -262,16 +243,23 @@ const EventsPage = () => {
   }, []);
 
   return (
-    <div style={{ padding: '24px', maxWidth: 1400, margin: '0 auto' }}>
-      <div style={{
+    <>
+    <div className="container">
+      <div className="page-header" style={{
         display: 'flex',
-        flexDirection: 'column',
-        gap: 16,
-        marginBottom: 24
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between',
+        alignItems: isMobile ? 'flex-start' : 'flex-end',
+        gap: 16
       }}>
-        <Title level={2} style={{ margin: 0 }}>События</Title>
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <div>
+          <Title level={2} className="page-title">События</Title>
+          <Text className="page-subtitle">Найдите интересные мероприятия</Text>
+        </div>
+        
+        <Space direction={isMobile ? 'vertical' : 'horizontal'} size="middle" style={{ width: isMobile ? '100%' : 'auto' }}>
           <Button
+            size="large"
             icon={<FilterOutlined />}
             onClick={() => {
               if (isMobile) {
@@ -280,16 +268,17 @@ const EventsPage = () => {
                 setFilterModalVisible(true);
               }
             }}
-            style={{ width: '100%' }}
+            style={{ width: isMobile ? '100%' : 'auto', borderRadius: 20 }}
           >
             Фильтры
           </Button>
           {(user?.userType === 'expert' || user?.userType === 'admin') && (
             <Button
               type="primary"
+              size="large"
               icon={<PlusOutlined />}
               onClick={() => navigate('/events/create')}
-              style={{ width: '100%' }}
+              style={{ width: isMobile ? '100%' : 'auto', borderRadius: 20 }}
             >
               Создать событие
             </Button>
@@ -319,13 +308,13 @@ const EventsPage = () => {
           }}
           dataSource={events}
           renderItem={(event) => (
-            <List.Item style={{ height: '100%' }}>
+            <List.Item style={{ height: '100%', display: 'flex' }}>
               <Card
                 hoverable
-                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+                style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', borderRadius: 24, overflow: 'hidden' }}
+                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px' }}
                 cover={
-                  <div style={{ paddingBottom: '100%', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ height: 200, position: 'relative', overflow: 'hidden' }}>
                     <img
                       src={event.cover_image || '/eve.jpg'}
                       alt={event.title}
@@ -338,109 +327,134 @@ const EventsPage = () => {
                         objectFit: 'cover'
                       }}
                     />
-                    <Button
-                      type="text"
-                      icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleFavorite(event.id, e);
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        zIndex: 10,
-                        color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
-                        border: 'none',
-                        background: 'rgba(255, 255, 255, 0.9)',
-                        borderRadius: '50%',
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                      }}
-                    />
+                    <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, display: 'flex', gap: 8 }}>
+                      <Button
+                        type="text"
+                        icon={favoriteStatus[event.id] ? <StarFilled /> : <StarOutlined />}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleFavorite(event.id, e);
+                        }}
+                        style={{
+                          color: favoriteStatus[event.id] ? '#faad14' : '#8c8c8c',
+                          border: 'none',
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          borderRadius: '50%',
+                          width: 36,
+                          height: 36,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.06)'
+                        }}
+                      />
+                    </div>
                   </div>
                 }
                 onClick={() => navigate(`/events/${event.id}`)}
               >
-                <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                  <div>
-                    <Tag color={getEventTypeColor(event.event_type)}>
+                <Space direction="vertical" size={12} style={{ width: '100%', flex: 1 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <Tag style={{ 
+                      borderRadius: 12, 
+                      border: 'none', 
+                      background: '#f5f5f7', 
+                      color: '#6366f1', 
+                      fontSize: 11,
+                      padding: '2px 10px',
+                      margin: 0
+                    }}>
                       {event.event_type}
                     </Tag>
                     {isEventToday(event.event_date) && (
-                      <Tag color="red">Сегодня</Tag>
+                      <Tag style={{ 
+                        borderRadius: 12, 
+                        border: 'none', 
+                        background: '#fff1f0', 
+                        color: '#ff4d4f', 
+                        fontSize: 11,
+                        padding: '2px 10px',
+                        margin: 0
+                      }}>Сегодня</Tag>
                     )}
                     {isEventTomorrow(event.event_date) && (
-                      <Tag color="orange">Завтра</Tag>
+                      <Tag style={{ 
+                        borderRadius: 12, 
+                        border: 'none', 
+                        background: '#fff7e6', 
+                        color: '#fa8c16', 
+                        fontSize: 11,
+                        padding: '2px 10px',
+                        margin: 0
+                      }}>Завтра</Tag>
                     )}
                   </div>
 
-                  <Title level={4} style={{ margin: 0 }}>
+                  <Title level={4} style={{ margin: '0 0 4px 0', fontSize: 18, color: '#1d1d1f' }} ellipsis={{ rows: 2 }}>
                     {event.title}
                   </Title>
 
-                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                    <Space size={4}>
-                      <CalendarOutlined style={{ color: '#6366f1' }} />
-                      <Text strong>
+                  <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                    <Space size={6}>
+                      <CalendarOutlined style={{ color: '#86868b' }} />
+                      <Text strong style={{ color: '#4b5563', fontSize: 13 }}>
                         {dayjs(event.event_date).format('DD MMMM YYYY, HH:mm')}
                       </Text>
                     </Space>
 
-                    <Space size={4}>
+                    <Space size={6}>
                       {event.is_online ? (
                         <>
                           <GlobalOutlined style={{ color: '#52c41a' }} />
-                          <Text type="secondary">Онлайн</Text>
+                          <Text type="secondary" style={{ fontSize: 13 }}>Онлайн</Text>
                         </>
                       ) : (
                         <>
                           <EnvironmentOutlined style={{ color: '#1890ff' }} />
-                          <Text type="secondary">{event.city_name}</Text>
+                          <Text type="secondary" style={{ fontSize: 13 }}>{event.city_name}</Text>
                         </>
                       )}
                     </Space>
 
                     {event.price && (
-                      <Text strong style={{ color: '#6366f1' }}>
+                      <Text strong style={{ color: '#1d1d1f', fontSize: 15, marginTop: 4, display: 'block' }}>
                         {event.price}
                       </Text>
                     )}
                   </Space>
 
-                  <Divider style={{ margin: '8px 0' }} />
-
-                  <Space size={8}>
-                    {event.organizer_avatar ? (
-                      <img
-                        src={event.organizer_avatar}
-                        alt={event.organizer_name}
-                        style={{ width: 24, height: 24, borderRadius: '50%' }}
-                      />
-                    ) : (
-                      <div style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        background: '#6366f1',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontSize: 12
-                      }}>
-                        {event.organizer_name[0]}
+                  <div style={{ marginTop: 'auto', paddingTop: 16 }}>
+                    <Space size={10} align="center">
+                      <div style={{ flexShrink: 0 }}>
+                        {event.organizer_avatar ? (
+                          <img
+                            src={event.organizer_avatar}
+                            alt={event.organizer_name}
+                            style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            background: '#f5f5f7',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#6366f1',
+                            fontSize: 12,
+                            fontWeight: 'bold'
+                          }}>
+                            {event.organizer_name[0]}
+                          </div>
+                        )}
                       </div>
-                    )}
-                    <Text type="secondary" style={{ fontSize: 13 }}>
-                      {event.organizer_name}
-                    </Text>
-                  </Space>
+                      <Text type="secondary" style={{ fontSize: 13, color: '#86868b' }} ellipsis>
+                        {event.organizer_name}
+                      </Text>
+                    </Space>
+                  </div>
                 </Space>
               </Card>
             </List.Item>
@@ -547,6 +561,7 @@ const EventsPage = () => {
         </Space>
       </Modal>
     </div>
+    </>
   );
 };
 
