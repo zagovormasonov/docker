@@ -298,18 +298,49 @@ const ChatsPage = () => {
   if (isMobile && showChatList) {
     return (
       <div className="chats-page">
-        <Card
-          title="Чаты"
-          className="chats-panel"
-          bodyStyle={{ flex: 1, padding: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}
-        >
-          <div className="chat-list-scroll" style={{ padding: 16 }}>
-            <List
-              dataSource={chats}
-              renderItem={(chat) => renderChatRow(chat)}
-            />
+        <div className="chats-panel">
+          <div style={{ padding: '24px 24px 12px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fff' }}>
+            <Title level={4} style={{ margin: 0 }}>Чаты</Title>
           </div>
-        </Card>
+          
+          <div className="chat-list-container">
+            {chats.length === 0 ? (
+              <Empty description="Нет активных чатов" style={{ marginTop: 40 }} />
+            ) : (
+              <List
+                dataSource={chats}
+                renderItem={(chat) => (
+                  <div 
+                    className={`chat-item ${chat.unread_count ? 'chat-item-unread' : ''}`}
+                    onClick={() => handleChatSelect(chat.id)}
+                  >
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <Badge count={chat.unread_count} overflowCount={9} offset={[-2, 38]}>
+                        <Avatar 
+                          src={chat.other_user_avatar} 
+                          icon={<UserOutlined />} 
+                          size={52} 
+                        />
+                      </Badge>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <Text strong style={{ fontSize: '15px' }} ellipsis>{chat.other_user_name}</Text>
+                          <Text type="secondary" style={{ fontSize: '11px' }}>
+                            {chat.last_message_time ? dayjs(chat.last_message_time).format('HH:mm') : ''}
+                          </Text>
+                        </div>
+                        <Text type="secondary" style={{ fontSize: '13px' }} ellipsis>
+                          {chat.last_message_sender_id === user?.id && <span style={{ color: '#6366f1' }}>Вы: </span>}
+                          {chat.last_message || 'Нет сообщений'}
+                        </Text>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              />
+            )}
+          </div>
+        </div>
       </div>
     );
   }
