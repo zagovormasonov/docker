@@ -282,7 +282,7 @@ const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
   const [articles, setArticles] = useState<Article[]>([]);
-  /** Самая популярная незакреплённая статья для блока hero (отдельно от сортировки ленты) */
+  /** Самая новая незакреплённая статья для блока hero (отдельно от сортировки ленты) */
   const [heroSpotlightArticle, setHeroSpotlightArticle] = useState<Article | null>(null);
   const [heroSpotlightReady, setHeroSpotlightReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -356,11 +356,11 @@ const HomePage = () => {
     let cancelled = false;
     (async () => {
       try {
-        const response = await api.get('/articles?sort=popular');
+        const response = await api.get('/articles?sort=new');
         const rows: Article[] = Array.isArray(response.data) ? response.data : [];
         const unpinned = rows
           .filter((a) => !a.is_pinned)
-          .sort((a, b) => (b.views ?? 0) - (a.views ?? 0) || dayjs(b.created_at).valueOf() - dayjs(a.created_at).valueOf());
+          .sort((a, b) => dayjs(b.created_at).valueOf() - dayjs(a.created_at).valueOf());
         if (!cancelled) {
           setHeroSpotlightArticle(unpinned[0] ?? null);
         }
@@ -580,7 +580,7 @@ const HomePage = () => {
     ? (heroSpotlightArticle.cover_image || '/art.jpg')
     : HERO_WALL_SRC;
 
-  // Preload обложки популярной статьи или запасного wall после определения spotlight
+  // Preload обложки новой статьи или запасного wall после определения spotlight
   useEffect(() => {
     if (!heroSpotlightReady) return;
     const existing = document.getElementById(HERO_PRELOAD_LINK_ID);
@@ -681,7 +681,7 @@ const HomePage = () => {
                     />
                     <div className="home-db-hero__shot-scrim" aria-hidden />
                     <div className="home-db-hero__shot-caption">
-                      <span className="home-db-hero__shot-eyebrow">Популярное сейчас</span>
+                      <span className="home-db-hero__shot-eyebrow">Свежее</span>
                       <p className="home-db-hero__shot-title">{heroSpotlightArticle.title}</p>
                       <span className="home-db-hero__shot-meta">
                         <EyeOutlined aria-hidden /> {heroSpotlightArticle.views ?? 0}
