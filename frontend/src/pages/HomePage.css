@@ -76,6 +76,7 @@
 
 .home-vast-hero--cinema {
   min-height: min(100vh, 960px);
+  margin-bottom: clamp(40px, 6vw, 72px);
 }
 
 @supports (height: 100dvh) {
@@ -179,8 +180,18 @@
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: clamp(88px, 12vh, 120px) clamp(20px, 5vw, 64px) clamp(28px, 4vw, 48px);
+  padding: clamp(88px, 12vh, 120px) 0 clamp(28px, 4vw, 48px);
   box-sizing: border-box;
+}
+
+/* Та же ширина контента, что у .container на странице (max-width: 1200px + padding) */
+.home-vast-hero__inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 0;
+  width: 100%;
 }
 
 .home-vast-hero__main {
@@ -426,7 +437,6 @@
   position: relative;
   z-index: 2;
   padding-bottom: 80px;
-  margin-top: -32px;
 }
 
 .home-vast-panel {
