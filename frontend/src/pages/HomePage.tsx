@@ -530,7 +530,7 @@ const HomePage = () => {
 
   return (
     <div className="home-vast" style={{ paddingBottom: 24 }}>
-      <section className="home-vast-hero" aria-label="Главный экран">
+      <section className="home-vast-hero home-vast-hero--cinema" aria-label="Главный экран">
         <div className="home-vast-hero__bg" aria-hidden>
           <img
             className="home-vast-hero__photo"
@@ -544,40 +544,46 @@ const HomePage = () => {
             loading="eager"
           />
         </div>
+        <div className="home-vast-hero__aurora" aria-hidden />
         <div className="home-vast-hero__grid" aria-hidden />
-        <div className="home-vast-hero__stars" aria-hidden />
         <div className="home-vast-hero__noise" aria-hidden />
         <div className="home-vast-hero__content">
-          <p className="home-vast-hero__eyebrow">SoulSynergy — платформа нового поколения</p>
-          <h1 className="home-vast-hero__title">
-            Соединяем экспертов, практики и живые события в одном пространстве
-          </h1>
-          <p className="home-vast-hero__lead">
-            Мы создаём среду для долгосрочного развития: находите своих людей, углубляйтесь в темы и собирайте календарь встреч — от личных сессий до ретритов и эфиров.
-          </p>
-          <div className="home-vast-hero__actions">
-            <button type="button" className="home-vast-btn home-vast-btn--primary" onClick={() => navigate('/experts')}>
-              Каталог экспертов
-            </button>
-            <button type="button" className="home-vast-btn home-vast-btn--ghost" onClick={() => navigate('/events')}>
-              Афиша событий
-            </button>
-            <button type="button" className="home-vast-link" onClick={scrollToShowcase}>
-              Смотреть витрину
-            </button>
+          <div className="home-vast-hero__main">
+            <div className="home-vast-hero__copy">
+              <p className="home-vast-hero__eyebrow">SoulSynergy — платформа нового поколения</p>
+              <h1 className="home-vast-hero__title">
+                <span className="home-vast-hero__title-line">Соединяем</span>
+                <span className="home-vast-hero__title-line">экспертов и практики</span>
+                <span className="home-vast-hero__title-line">в одном пространстве</span>
+              </h1>
+              <p className="home-vast-hero__lead">
+                Находите своих людей, углубляйтесь в темы и собирайте календарь встреч — от личных сессий до ретритов и эфиров.
+              </p>
+              <div className="home-vast-hero__actions">
+                <button type="button" className="home-vast-btn home-vast-btn--hero-primary" onClick={() => navigate('/experts')}>
+                  Каталог экспертов
+                </button>
+                <button type="button" className="home-vast-btn home-vast-btn--hero-ghost" onClick={() => navigate('/events')}>
+                  Афиша событий
+                </button>
+                <button type="button" className="home-vast-link home-vast-link--hero" onClick={scrollToShowcase}>
+                  Смотреть витрину
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="home-vast-specs">
-            <div className="home-vast-spec">
-              <span className="home-vast-spec__label">Экспертов в каталоге</span>
-              <span className="home-vast-spec__value">{expertsCount}</span>
+          <div className="home-vast-hero__specs-bar">
+            <div className="home-vast-hero__spec-item">
+              <span className="home-vast-hero__spec-label">Экспертов в каталоге</span>
+              <span className="home-vast-hero__spec-value">{expertsCount}</span>
             </div>
-            <div className="home-vast-spec">
-              <span className="home-vast-spec__label">Материалов и статей</span>
-              <span className="home-vast-spec__value">{articles.length}</span>
+            <div className="home-vast-hero__spec-item">
+              <span className="home-vast-hero__spec-label">Материалов и статей</span>
+              <span className="home-vast-hero__spec-value">{articles.length}</span>
             </div>
-            <div className="home-vast-spec">
-              <span className="home-vast-spec__label">Ближайших событий</span>
-              <span className="home-vast-spec__value">{eventsPreview.length}</span>
+            <div className="home-vast-hero__spec-item">
+              <span className="home-vast-hero__spec-label">Ближайших событий</span>
+              <span className="home-vast-hero__spec-value">{eventsPreview.length}</span>
             </div>
           </div>
         </div>
