@@ -611,6 +611,17 @@ const HomePage = () => {
               <p className="home-db-hero__sub">
                 Лента материалов, афиша событий и каталог специалистов — всё в одном месте: ясная структура, много воздуха и акцент на людях и практиках.
               </p>
+              <div className="home-db-hero__search">
+                <div className="home-vast-search">
+                  <SearchOutlined />
+                  <input
+                    placeholder="Поиск по статьям и темам..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    aria-label="Поиск статей"
+                  />
+                </div>
+              </div>
               <div className="home-db-hero__popular">
                 <span className="home-db-hero__popular-label">Популярное:</span>
                 <div className="home-db-hero__pills">
@@ -768,15 +779,6 @@ const HomePage = () => {
         </div>
 
         <div ref={articlesFeedRef} className="home-db-feed-anchor" />
-        <div className="home-vast-search">
-          <SearchOutlined />
-          <input
-            placeholder="Поиск по статьям и темам..."
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            aria-label="Поиск статей"
-          />
-        </div>
 
         <div className="home-vast-toolbar">
           <Tabs

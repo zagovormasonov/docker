@@ -132,6 +132,17 @@
   max-width: 34rem;
 }
 
+.home-db-hero__search {
+  width: 100%;
+  max-width: min(32rem, 100%);
+  margin: 0 0 20px;
+}
+
+.home-db-hero__search .home-vast-search {
+  margin: 0;
+  max-width: none;
+}
+
 .home-db-hero__popular {
   margin-bottom: 20px;
 }
