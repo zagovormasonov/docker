@@ -10,10 +10,11 @@ import LazyAvatar from '../components/LazyAvatar';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 import ArticlePage from './ArticlePage';
+import './HomePage.css';
 
 dayjs.locale('ru');
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 
 type SortType = 'new' | 'popular';
 type ShowcaseTab = 'experts' | 'events';
@@ -49,20 +50,16 @@ interface ShowcaseHighlight {
   description: string;
   action: string;
   onClick: () => void;
-  accent: string;
-  color: string;
 }
 
 interface HighlightCardProps {
   item: ShowcaseHighlight;
   compact?: boolean;
-  isMobile: boolean;
   badges?: string[];
 }
 
 interface EventSpotlightProps {
   event: EventPreview;
-  isMobile: boolean;
   description: string;
   onOpen: () => void;
 }
@@ -92,196 +89,91 @@ const SHOWCASE_TABS: Array<{ key: ShowcaseTab; label: string }> = [
   { key: 'events', label: 'События' }
 ];
 
-const ShowcaseHighlightCard = ({ item, compact = false, isMobile, badges = [] }: HighlightCardProps) => (
+const ShowcaseHighlightCard = ({ item, compact = false, badges = [] }: HighlightCardProps) => (
   <div
+    role="button"
+    tabIndex={0}
     onClick={item.onClick}
-    style={{
-      minHeight: compact ? 160 : isMobile ? 260 : 340,
-      borderRadius: compact ? 24 : 28,
-      padding: compact ? 22 : isMobile ? 20 : 28,
-      background: item.accent,
-      color: item.color,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      cursor: 'pointer',
-      border: compact ? '1px solid rgba(226, 232, 240, 0.8)' : 'none',
-      boxShadow: compact ? 'none' : '0 20px 40px rgba(79, 70, 229, 0.16)'
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        item.onClick();
+      }
     }}
+    className={`vast-highlight ${compact ? 'vast-highlight--compact' : 'vast-highlight--hero'}`}
   >
     <div>
-      <Text style={{ color: 'inherit', opacity: compact ? 0.68 : 0.76, fontSize: compact ? 12 : 13, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-        {item.eyebrow}
-      </Text>
-      <h3
-        style={{
-          margin: compact ? '10px 0 8px' : '14px 0 12px',
-          fontSize: compact ? 24 : isMobile ? 28 : 38,
-          lineHeight: compact ? 1.15 : 1.02,
-          fontWeight: 500,
-          color: 'inherit'
-        }}
-      >
-        {item.title}
-      </h3>
-      <p
-        style={{
-          margin: 0,
-          fontSize: compact ? 14 : 16,
-          lineHeight: compact ? 1.6 : 1.65,
-          color: 'inherit',
-          opacity: compact ? 0.9 : 0.92,
-          maxWidth: compact ? undefined : 460
-        }}
-      >
-        {item.description}
-      </p>
+      <span className="vast-highlight__eyebrow">{item.eyebrow}</span>
+      <h3 className="vast-highlight__title">{item.title}</h3>
+      <p className="vast-highlight__desc">{item.description}</p>
     </div>
 
     {compact ? (
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600 }}>
-        {item.action}
-        <ArrowRightOutlined />
+      <div className="vast-highlight__footer">
+        <span className="vast-highlight__action">
+          {item.action}
+          <ArrowRightOutlined />
+        </span>
       </div>
     ) : (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          gap: 16,
-          flexWrap: 'wrap'
-        }}
-      >
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      <div className="vast-highlight__footer">
+        <div className="vast-highlight__badges">
           {badges.map((badge) => (
-            <span
-              key={badge}
-              style={{ padding: '10px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', fontSize: 13 }}
-            >
+            <span key={badge} className="vast-highlight__badge">
               {badge}
             </span>
           ))}
         </div>
-
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600 }}>
+        <span className="vast-highlight__action">
           {item.action}
           <ArrowRightOutlined />
-        </div>
+        </span>
       </div>
     )}
   </div>
 );
 
-const EventSpotlightSection = ({ event, isMobile, description, onOpen }: EventSpotlightProps) => (
-  <div
-    style={{
-      marginTop: 18,
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
-      gap: 18,
-      alignItems: 'stretch',
-      position: 'relative',
-      zIndex: 1
-    }}
-  >
-    <div
-      style={{
-        borderRadius: 24,
-        overflow: 'hidden',
-        minHeight: isMobile ? 320 : 420,
-        height: '100%',
-        position: 'relative',
-        background: '#0f172a'
-      }}
-    >
-      <div style={{ position: 'absolute', inset: 0 }}>
+const EventSpotlightSection = ({ event, description, onOpen }: EventSpotlightProps) => (
+  <div className="home-vast-event">
+    <div className="home-vast-event__visual">
+      <div className="home-vast-event__img-wrap">
         <LazyImage
           src={event.cover_image || '/eve.jpg'}
           alt={event.title}
           height="100%"
           style={{ width: '100%', height: '100%' }}
-          imgStyle={{ objectFit: 'contain', objectPosition: 'center center' }}
-          placeholderColor="#0f172a"
+          imgStyle={{ objectFit: 'cover', objectPosition: 'center center' }}
+          placeholderColor="#0a0a0c"
         />
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, rgba(15,23,42,0.04) 0%, rgba(15,23,42,0.72) 100%)'
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          left: 20,
-          right: 20,
-          bottom: 20,
-          color: '#fff'
-        }}
-      >
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-          <span style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
-            {event.event_type}
-          </span>
-          <span style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
-            {event.is_online ? 'Онлайн' : 'Оффлайн'}
-          </span>
+      <div className="home-vast-event__gradient" />
+      <div className="home-vast-event__caption">
+        <div className="home-vast-event__tags">
+          <span className="home-vast-event__tag">{event.event_type}</span>
+          <span className="home-vast-event__tag">{event.is_online ? 'Онлайн' : 'Оффлайн'}</span>
         </div>
-        <h4 style={{ margin: 0, fontSize: isMobile ? 22 : 28, lineHeight: 1.15, color: '#fff' }}>
-          {event.title}
-        </h4>
+        <h4 className="home-vast-event__title">{event.title}</h4>
       </div>
     </div>
 
-    <div
-      style={{
-        borderRadius: 24,
-        padding: isMobile ? 20 : 24,
-        background: '#ffffff',
-        border: '1px solid rgba(226, 232, 240, 0.9)',
-        boxShadow: '0 14px 32px rgba(15, 23, 42, 0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        minHeight: isMobile ? undefined : 420,
-        height: '100%'
-      }}
-    >
+    <div className="home-vast-event__panel">
       <div>
-        <Text style={{ color: '#4f46e5', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-          В фокусе недели
-        </Text>
-        <h4 style={{ margin: '10px 0 16px', fontSize: 26, lineHeight: 1.15, color: '#0f172a', fontWeight: 500 }}>
-          {event.title}
-        </h4>
-        <div style={{ display: 'grid', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 15 }}>
-            <CalendarOutlined style={{ color: '#6366f1' }} />
+        <span className="home-vast-event__kicker">В фокусе недели</span>
+        <h4 className="home-vast-event__panel-title">{event.title}</h4>
+        <div className="home-vast-event__meta">
+          <div className="home-vast-event__meta-row">
+            <CalendarOutlined />
             {dayjs(event.event_date).format('DD MMMM YYYY')}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 15 }}>
-            <EnvironmentOutlined style={{ color: '#6366f1' }} />
+          <div className="home-vast-event__meta-row">
+            <EnvironmentOutlined />
             {event.is_online ? 'Онлайн-подключение' : (event.location || event.city_name || 'Локация уточняется')}
           </div>
         </div>
-        <p style={{ margin: '16px 0 0', color: '#64748b', fontSize: 14, lineHeight: 1.65 }}>
-          {description}
-        </p>
+        <p className="home-vast-event__desc">{description}</p>
       </div>
 
-      <Button
-        type="primary"
-        onClick={onOpen}
-        style={{
-          marginTop: 20,
-          height: 46,
-          borderRadius: 14,
-          alignSelf: 'flex-start',
-          paddingInline: 18
-        }}
-      >
+      <Button type="primary" onClick={onOpen} style={{ marginTop: 20, alignSelf: 'flex-start', height: 44, paddingInline: 22 }}>
         Открыть событие
       </Button>
     </div>
@@ -289,41 +181,9 @@ const EventSpotlightSection = ({ event, isMobile, description, onOpen }: EventSp
 );
 
 const ArticleCard = memo(({ article, onOpen, onOpenAuthor }: ArticleCardProps) => (
-  <div
-    style={{
-      height: '100%',
-      background: 'white',
-      borderRadius: 24,
-      overflow: 'hidden',
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      cursor: 'pointer',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'relative'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-8px)';
-      e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)';
-    }}
-    onClick={() => onOpen(article.id)}
-  >
-    <div style={{ height: 220, position: 'relative', overflow: 'hidden' }}>
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          transition: 'transform 0.5s ease'
-        }}
-        className="card-image-wrapper"
-      >
+  <div className="home-vast-article" onClick={() => onOpen(article.id)}>
+    <div className="home-vast-article__media">
+      <div style={{ position: 'absolute', inset: 0 }} className="card-image-wrapper">
         <LazyImage
           src={article.cover_image || '/art.jpg'}
           alt={article.title}
@@ -331,69 +191,15 @@ const ArticleCard = memo(({ article, onOpen, onOpenAuthor }: ArticleCardProps) =
           style={{ width: '100%', objectFit: 'cover' }}
         />
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          top: 16,
-          right: 16,
-          background: 'rgba(255, 255, 255, 0.9)',
-          padding: '4px 12px',
-          borderRadius: 20,
-          fontSize: 12,
-          fontWeight: 600,
-          color: '#4b5563',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}
-      >
-        {dayjs(article.created_at).format('DD MMM')}
-      </div>
+      <span className="home-vast-article__date">{dayjs(article.created_at).format('DD MMM')}</span>
     </div>
 
-    <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <h3
-        style={{
-          fontSize: 18,
-          fontWeight: 500,
-          marginBottom: 12,
-          lineHeight: 1.4,
-          color: '#1f2937',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}
-      >
-        {article.title}
-      </h3>
-
-      <p
-        style={{
-          color: '#6b7280',
-          fontSize: 14,
-          lineHeight: 1.6,
-          marginBottom: 20,
-          flex: 1,
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}
-      >
-        {stripHtml(article.content)}
-      </p>
-
-      <div
-        style={{
-          paddingTop: 16,
-          marginTop: 'auto',
-          borderTop: '1px solid #f3f4f6',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
+    <div className="home-vast-article__body">
+      <h3 className="home-vast-article__title">{article.title}</h3>
+      <p className="home-vast-article__excerpt">{stripHtml(article.content)}</p>
+      <div className="home-vast-article__footer">
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+          className="home-vast-article__author"
           onClick={(e) => {
             e.stopPropagation();
             onOpenAuthor(article.author_id);
@@ -405,12 +211,9 @@ const ArticleCard = memo(({ article, onOpen, onOpenAuthor }: ArticleCardProps) =
             defaultSrc="/emp.jpg"
             icon={<UserOutlined />}
           />
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#4b5563' }}>
-            {article.author_name}
-          </span>
+          <span>{article.author_name}</span>
         </div>
-
-        <div style={{ display: 'flex', gap: 12, color: '#9ca3af', fontSize: 13 }}>
+        <div className="home-vast-article__meta">
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <HeartOutlined /> {article.likes_count || 0}
           </span>
@@ -571,27 +374,21 @@ const HomePage = () => {
       title: `${expertsCount}+ экспертов`,
       description: 'Психологи, проводники, наставники и практики, к которым можно перейти уже сейчас.',
       action: 'Перейти к экспертам',
-      onClick: () => navigate('/experts'),
-      accent: 'linear-gradient(135deg, rgba(99,102,241,0.95) 0%, rgba(129,140,248,0.88) 100%)',
-      color: '#ffffff'
+      onClick: () => navigate('/experts')
     },
     {
       eyebrow: 'Форматы',
       title: 'Личные и онлайн-сессии',
       description: 'Подберите удобный формат взаимодействия под свой ритм и запрос.',
       action: 'Найти формат',
-      onClick: () => navigate('/experts'),
-      accent: 'linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(238,242,255,0.98) 100%)',
-      color: '#312e81'
+      onClick: () => navigate('/experts')
     },
     {
       eyebrow: 'Навигация',
       title: 'Поиск по подходу и энергии',
       description: 'Ищите не только по профессии, но и по ощущению совпадения с человеком.',
       action: 'Смотреть профили',
-      onClick: () => navigate('/experts'),
-      accent: 'linear-gradient(145deg, rgba(224,231,255,0.92) 0%, rgba(255,255,255,0.98) 100%)',
-      color: '#312e81'
+      onClick: () => navigate('/experts')
     }
   ]), [expertsCount, navigate]);
 
@@ -603,18 +400,14 @@ const HomePage = () => {
         ? `${dayjs(nextEvent.event_date).format('DD MMMM')} • ${nextEvent.is_online ? 'Онлайн' : (nextEvent.city_name || 'Оффлайн')}`
         : 'Ретриты, мастер-классы, практики и встречи, которые помогают быть в живом потоке.',
       action: 'Перейти к событиям',
-      onClick: () => navigate('/events'),
-      accent: 'linear-gradient(135deg, rgba(79,70,229,0.95) 0%, rgba(14,165,233,0.82) 100%)',
-      color: '#ffffff'
+      onClick: () => navigate('/events')
     },
     {
       eyebrow: 'Форматы',
       title: 'Онлайн и офлайн',
       description: 'От камерных встреч в городе до дистанционных эфиров и групповых практик.',
       action: 'Открыть афишу',
-      onClick: () => navigate('/events'),
-      accent: 'linear-gradient(145deg, rgba(236,254,255,0.98) 0%, rgba(224,231,255,0.92) 100%)',
-      color: '#164e63'
+      onClick: () => navigate('/events')
     },
     {
       eyebrow: 'Подборка',
@@ -623,14 +416,11 @@ const HomePage = () => {
         ? `Сейчас в фокусе: ${nextEvent.event_type.toLowerCase()}.`
         : 'Соберите маршрут по темам, датам и ощущениям.',
       action: 'Смотреть события',
-      onClick: () => navigate('/events'),
-      accent: 'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(224,242,254,0.98) 100%)',
-      color: '#0f172a'
+      onClick: () => navigate('/events')
     }
   ]), [eventsPreview, nextEvent, navigate]);
 
   const activeHighlights = showcaseTab === 'experts' ? expertHighlights : eventHighlights;
-  const hasSearchValue = searchQuery.trim().length > 0;
   const showcaseBadges = showcaseTab === 'experts'
     ? ['Личный подбор', 'Проверенные профили']
     : ['Ближайшие даты', 'Онлайн и офлайн'];
@@ -708,145 +498,85 @@ const HomePage = () => {
 
   // Scroll to top when article changes
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const showcaseSectionRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
   }, [selectedArticleId]);
 
+  const scrollToShowcase = useCallback(() => {
+    showcaseSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', margin: '-24px 0 0', paddingBottom: 24, overflowX: 'hidden' }}>
-      {/* Hero Section */}
-      <div style={{
-        position: 'relative',
-        background: 'linear-gradient(-45deg, #e0e7ff, #f3e8ff, #eef2ff, #f5f3ff)',
-        backgroundSize: '400% 400%',
-        animation: 'gradient-flow 15s ease infinite',
-        padding: isMobile ? '40px 16px 60px' : '60px 24px 80px',
-        borderRadius: '0 0 48px 48px',
-        textAlign: 'center',
-        overflow: 'hidden'
-      }}>
-        {/* Decorative background elements */}
-        <div style={{
-          position: 'absolute',
-          top: '-20%',
-          left: '-10%',
-          width: '500px',
-          height: '500px',
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(255, 255, 255, 0) 70%)',
-          borderRadius: '50%',
-          filter: 'blur(40px)',
-          zIndex: 0
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '-10%',
-          right: '-5%',
-          width: '400px',
-          height: '400px',
-          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(255, 255, 255, 0) 70%)',
-          borderRadius: '50%',
-          filter: 'blur(40px)',
-          zIndex: 0
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <Title level={1} style={{ fontSize: isMobile ? 32 : 48, color: '#1e1b4b', marginBottom: 16 }}>
-            Soul Synergy
-          </Title>
-          <Paragraph style={{ fontSize: 18, color: '#4338ca', maxWidth: 600, margin: '0 auto' }}>
-            Пространство для поиска смыслов, экспертов и живых событий.
-          </Paragraph>
+    <div className="home-vast" style={{ paddingBottom: 24 }}>
+      <section className="home-vast-hero" aria-label="Главный экран">
+        <div className="home-vast-hero__grid" aria-hidden />
+        <div className="home-vast-hero__stars" aria-hidden />
+        <div className="home-vast-hero__noise" aria-hidden />
+        <div className="home-vast-hero__content">
+          <p className="home-vast-hero__eyebrow">SoulSynergy — платформа нового поколения</p>
+          <h1 className="home-vast-hero__title">
+            Соединяем экспертов, практики и живые события в одном пространстве
+          </h1>
+          <p className="home-vast-hero__lead">
+            Мы создаём среду для долгосрочного развития: находите своих людей, углубляйтесь в темы и собирайте календарь встреч — от личных сессий до ретритов и эфиров.
+          </p>
+          <div className="home-vast-hero__actions">
+            <button type="button" className="home-vast-btn home-vast-btn--primary" onClick={() => navigate('/experts')}>
+              Каталог экспертов
+            </button>
+            <button type="button" className="home-vast-btn home-vast-btn--ghost" onClick={() => navigate('/events')}>
+              Афиша событий
+            </button>
+            <button type="button" className="home-vast-link" onClick={scrollToShowcase}>
+              Смотреть витрину
+            </button>
+          </div>
+          <div className="home-vast-specs">
+            <div className="home-vast-spec">
+              <span className="home-vast-spec__label">Экспертов в каталоге</span>
+              <span className="home-vast-spec__value">{expertsCount}</span>
+            </div>
+            <div className="home-vast-spec">
+              <span className="home-vast-spec__label">Материалов и статей</span>
+              <span className="home-vast-spec__value">{articles.length}</span>
+            </div>
+            <div className="home-vast-spec">
+              <span className="home-vast-spec__label">Ближайших событий</span>
+              <span className="home-vast-spec__value">{eventsPreview.length}</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container" style={{ marginTop: -40, position: 'relative', zIndex: 2, paddingBottom: 60 }}>
-        <div
-          style={{
-            marginBottom: 32,
-            transition: 'all 0.35s ease'
-          }}
-        >
-          <div style={{
-            position: 'relative',
-            overflow: 'hidden',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.98) 100%)',
-            borderRadius: 32,
-            padding: isMobile ? 20 : 28,
-            border: '1px solid rgba(224, 231, 255, 0.95)',
-            boxShadow: '0 24px 60px rgba(99, 102, 241, 0.08)'
-          }}>
-            <div style={{
-            position: 'absolute',
-            top: -80,
-            right: -60,
-            width: 220,
-            height: 220,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(129,140,248,0.18) 0%, rgba(129,140,248,0) 72%)'
-            }} />
-
-            <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            gap: 16,
-            flexDirection: isMobile ? 'column' : 'row',
-            marginBottom: 24,
-            position: 'relative',
-            zIndex: 1
-            }}>
-              <div style={{ maxWidth: 620 }}>
-                <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '6px 12px',
-                borderRadius: 999,
-                background: 'rgba(99, 102, 241, 0.08)',
-                color: '#4f46e5',
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                marginBottom: 14
-                }}>
-                  Soul synergy
-                </div>
-                <Title level={2} style={{ margin: 0, fontSize: isMobile ? 28 : 36, lineHeight: 1.08, color: '#0f172a' }}>
-                  Переключайтесь между людьми и живыми событиями в одном ритме
-                </Title>
-                <Paragraph style={{ margin: '12px 0 0', fontSize: 16, color: '#64748b', maxWidth: 560 }}>
-                  Бенто-витрина помогает быстро выбрать, куда идти дальше: к экспертам за личной работой или в события за общим опытом и новыми знакомствами.
-                </Paragraph>
+      <div className="container home-vast-inner">
+        <div ref={showcaseSectionRef} style={{ marginBottom: 32 }}>
+          <div className="home-vast-panel">
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'flex-start' : 'center',
+                gap: 16,
+                flexDirection: isMobile ? 'column' : 'row',
+                marginBottom: 24
+              }}
+            >
+              <div style={{ maxWidth: 640 }}>
+                <h2 className="home-vast-section-title">Витрина направлений</h2>
+                <p className="home-vast-section-desc">
+                  Переключайтесь между экспертами и событиями — выбирайте формат, который откликается сейчас: личная работа или общий опыт и новые знакомства.
+                </p>
               </div>
-
-              <div style={{
-              display: 'inline-flex',
-              gap: 8,
-              padding: 6,
-              borderRadius: 999,
-              background: 'rgba(15, 23, 42, 0.04)',
-              border: '1px solid rgba(148, 163, 184, 0.14)'
-              }}>
+              <div className="home-vast-tabs-wrap">
                 {SHOWCASE_TABS.map((tab) => (
                   <button
                     key={tab.key}
                     type="button"
                     onClick={() => setShowcaseTab(tab.key)}
-                    style={{
-                      border: 'none',
-                      cursor: 'pointer',
-                      borderRadius: 999,
-                      padding: isMobile ? '10px 14px' : '10px 18px',
-                      fontSize: 14,
-                      fontWeight: 600,
-                      background: showcaseTab === tab.key ? '#ffffff' : 'transparent',
-                      color: showcaseTab === tab.key ? '#312e81' : '#64748b',
-                      boxShadow: showcaseTab === tab.key ? '0 10px 24px rgba(99, 102, 241, 0.12)' : 'none',
-                      transition: 'all 0.25s ease'
-                    }}
+                    className={`home-vast-tab-btn${showcaseTab === tab.key ? ' home-vast-tab-btn--active' : ''}`}
                   >
                     {tab.label}
                   </button>
@@ -854,27 +584,17 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1.35fr 0.85fr',
-            gap: 18,
-            position: 'relative',
-            zIndex: 1
-            }}>
-              <ShowcaseHighlightCard
-                item={activeHighlights[0]}
-                isMobile={isMobile}
-                badges={showcaseBadges}
-              />
-
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1.35fr 0.85fr',
+                gap: 18
+              }}
+            >
+              <ShowcaseHighlightCard item={activeHighlights[0]} badges={showcaseBadges} />
               <div style={{ display: 'grid', gap: 18 }}>
                 {activeHighlights.slice(1).map((item) => (
-                  <ShowcaseHighlightCard
-                    key={item.title}
-                    item={item}
-                    compact
-                    isMobile={isMobile}
-                  />
+                  <ShowcaseHighlightCard key={item.title} item={item} compact />
                 ))}
               </div>
             </div>
@@ -882,7 +602,6 @@ const HomePage = () => {
             {showcaseTab === 'events' && nextEvent && (
               <EventSpotlightSection
                 event={nextEvent}
-                isMobile={isMobile}
                 description={nextEventDescription}
                 onOpen={() => navigate(`/events/${nextEvent.id}`)}
               />
@@ -890,61 +609,17 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Moved Search Bar */}
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto 32px' }}>
-          <div style={{
-            position: 'relative',
-            background: 'white',
-            borderRadius: 24,
-            padding: '4px 8px 4px 24px',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
-            display: 'flex',
-            alignItems: 'center',
-            maxWidth: 600,
-            margin: '0 auto',
-            border: '1px solid rgba(226, 232, 240, 0.8)',
-            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-          }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 15px 30px -10px rgba(0, 0, 0, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.05)';
-            }}
-          >
-            <SearchOutlined style={{ fontSize: 20, color: '#818cf8' }} />
-            <input
-              placeholder="Найти статьи, авторов, вдохновение..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                width: '100%',
-                padding: '10px 16px',
-                fontSize: 16,
-                outline: 'none',
-                color: '#1f2937'
-              }}
-            />
-          </div>
+        <div className="home-vast-search">
+          <SearchOutlined style={{ fontSize: 18, color: 'rgba(161,161,170,0.9)', flexShrink: 0 }} />
+          <input
+            placeholder="Поиск по статьям и темам..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            aria-label="Поиск статей"
+          />
         </div>
 
-        {/* Unified Toolbar */}
-        <div style={{
-          background: 'white',
-          borderRadius: 24,
-          padding: '8px 12px',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16,
-          marginBottom: 32
-        }}>
+        <div className="home-vast-toolbar">
           <Tabs
             activeKey={sortType}
             onChange={(key) => setSortType(key as 'new' | 'popular')}
@@ -952,16 +627,17 @@ const HomePage = () => {
               {
                 key: 'new',
                 label: (
-                  <span style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: 15,
-                    fontWeight: 400,
-                    color: sortType === 'new' ? 'rgb(99, 102, 241)' : 'rgb(188, 189, 251)',
-                    transition: 'color 0.3s'
-                  }}>
-                    <ClockPlus size={18} />
+                  <span
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: 'inherit'
+                    }}
+                  >
+                    <ClockPlus size={17} />
                     <span>Новое</span>
                   </span>
                 )
@@ -969,25 +645,23 @@ const HomePage = () => {
               {
                 key: 'popular',
                 label: (
-                  <span style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: 15,
-                    fontWeight: 400,
-                    color: sortType === 'popular' ? 'rgb(99, 102, 241)' : 'rgb(188, 189, 251)',
-                    transition: 'color 0.3s'
-                  }}>
-                    <Gem size={18} />
+                  <span
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: 'inherit'
+                    }}
+                  >
+                    <Gem size={17} />
                     <span>Популярное</span>
                   </span>
                 )
               }
             ]}
-            style={{
-              marginBottom: 0,
-              flex: 1
-            }}
+            style={{ marginBottom: 0, flex: 1 }}
             tabBarStyle={{ marginBottom: 0, borderBottom: 'none' }}
           />
 
@@ -996,18 +670,11 @@ const HomePage = () => {
               type="primary"
               icon={<EditOutlined className="writing-icon" />}
               onClick={() => navigate('/create-article')}
-              size={isMobile ? "middle" : "large"}
+              size={isMobile ? 'middle' : 'large'}
               style={{
-                borderRadius: 16,
-                background: '#6366f1',
-                border: 'none',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                height: isMobile ? 36 : 40,
-                padding: isMobile ? '0 12px' : '0 20px',
-                fontWeight: 500,
+                flex: isMobile ? 1 : 'none',
                 display: 'flex',
-                alignItems: 'center',
-                flex: isMobile ? 1 : 'none'
+                alignItems: 'center'
               }}
             >
               Создать статью
@@ -1016,20 +683,14 @@ const HomePage = () => {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 80 }}>
+          <div className="home-vast-loading">
             <Spin size="large" />
           </div>
         ) : filteredArticles.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '80px 20px',
-            background: 'white',
-            borderRadius: 24,
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
-          }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-            <Title level={4} style={{ marginBottom: 8 }}>Ничего не найдено</Title>
-            <Text type="secondary">
+          <div className="home-vast-empty">
+            <div style={{ fontSize: 40, marginBottom: 16, opacity: 0.5 }}>◇</div>
+            <Title level={4} style={{ marginBottom: 8, color: 'inherit' }}>Ничего не найдено</Title>
+            <Text style={{ color: 'var(--vast-muted)' }}>
               {searchQuery.trim()
                 ? 'Попробуйте изменить поисковый запрос'
                 : 'Статей пока нет. Будьте первыми!'}
