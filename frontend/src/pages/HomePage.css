@@ -67,279 +67,213 @@
   --vast-noise-opacity: 0.04;
 }
 
-/* ——— Hero: полноэкранное фото + текст снизу слева (стиль Vast) + абстрактная «аврора» ——— */
+/* ——— Hero в духе Dribbble: светлая сетка, «шот» справа, пилюли «Популярное» ——— */
 
-.home-vast-hero {
-  position: relative;
-  isolation: isolate;
+.home-db-hero {
+  padding: clamp(32px, 5vw, 56px) 0 clamp(36px, 5vw, 56px);
+  margin-bottom: clamp(8px, 2vw, 20px);
 }
 
-.home-vast-hero--cinema {
-  min-height: min(100vh, 960px);
-  margin-bottom: clamp(40px, 6vw, 72px);
-}
-
-@supports (height: 100dvh) {
-  .home-vast-hero--cinema {
-    min-height: min(100dvh, 960px);
-  }
-}
-
-/* Фон: wall.jpg */
-.home-vast-hero__bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  background: var(--vast-page-bg);
-}
-
-.home-vast-hero__photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  transform: translateZ(0);
-}
-
-/* Мягкие цветовые пятна, медленный дрейф (абстракция поверх фото) */
-.home-vast-hero__aurora {
-  position: absolute;
-  inset: -18%;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.55;
-  background:
-    radial-gradient(ellipse 55% 42% at 22% 78%, rgba(129, 140, 248, 0.45), transparent 62%),
-    radial-gradient(ellipse 48% 38% at 78% 22%, rgba(56, 189, 248, 0.35), transparent 58%),
-    radial-gradient(ellipse 35% 30% at 55% 48%, rgba(167, 139, 250, 0.28), transparent 55%);
-  filter: blur(48px);
-  animation: home-vast-aurora-drift 24s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-vast-hero__aurora {
-    animation: none;
-    opacity: 0.35;
-  }
-}
-
-@keyframes home-vast-aurora-drift {
-  0% {
-    transform: translate(-1.5%, 0.5%) scale(1);
-  }
-  100% {
-    transform: translate(2.5%, -2.5%) scale(1.07);
-  }
-}
-
-.dark-theme .home-vast-hero__aurora {
-  opacity: 0.4;
-  background:
-    radial-gradient(ellipse 55% 42% at 22% 78%, rgba(59, 130, 246, 0.35), transparent 62%),
-    radial-gradient(ellipse 48% 38% at 78% 22%, rgba(96, 165, 250, 0.28), transparent 58%),
-    radial-gradient(ellipse 35% 30% at 55% 48%, rgba(129, 140, 248, 0.22), transparent 55%);
-}
-
-/* Скрим: фото остаётся ярким, затемнение снизу и слева под белый текст */
-.home-vast-hero__grid {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(15, 23, 42, 0.02) 38%, rgba(15, 23, 42, 0.55) 100%),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.5) 0%, rgba(15, 23, 42, 0.12) 48%, transparent 72%),
-    linear-gradient(165deg, rgba(255, 255, 255, 0.06) 0%, transparent 42%);
-}
-
-.dark-theme .home-vast-hero__grid {
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.15) 40%, rgba(0, 0, 0, 0.75) 100%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 75%);
-}
-
-.home-vast-hero__noise {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  opacity: calc(var(--vast-noise-opacity) * 1.2);
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-.home-vast-hero__content {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: clamp(88px, 12vh, 120px) 0 clamp(28px, 4vw, 48px);
-  box-sizing: border-box;
-}
-
-/* Та же ширина контента, что у .container на странице (max-width: 1200px + padding) */
-.home-vast-hero__inner {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 0;
+.home-db-hero__inner {
   width: 100%;
 }
 
-.home-vast-hero__main {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  min-height: 0;
-}
-
-.home-vast-hero__copy {
-  max-width: min(38rem, 100%);
-}
-
-.home-vast-hero__eyebrow {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
-  margin: 0 0 clamp(14px, 2.5vw, 22px);
-  font-weight: 500;
-  text-shadow: 0 1px 24px rgba(0, 0, 0, 0.35);
-}
-
-.home-vast-hero__title {
-  font-size: clamp(2.5rem, 7.2vw, 5rem);
-  font-weight: 600;
-  line-height: 0.98;
-  letter-spacing: -0.035em;
-  margin: 0 0 clamp(18px, 2.5vw, 26px);
-  color: #ffffff;
-  text-shadow: 0 4px 48px rgba(0, 0, 0, 0.45), 0 2px 12px rgba(0, 0, 0, 0.35);
-}
-
-.home-vast-hero__title-line {
-  display: block;
-}
-
-.home-vast-hero__lead {
-  font-size: clamp(0.95rem, 1.5vw, 1.125rem);
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.88);
-  max-width: 36rem;
-  margin: 0 0 clamp(22px, 3vw, 32px);
-  font-weight: 400;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
-}
-
-.home-vast-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 14px;
+.home-db-hero__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.44fr);
+  gap: clamp(28px, 5vw, 56px);
   align-items: center;
 }
 
-/* Кнопки поверх фото (как CTA у Vast) */
-.home-vast-btn--hero-primary {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #ffffff !important;
+@media (max-width: 900px) {
+  .home-db-hero__row {
+    grid-template-columns: 1fr;
+  }
+
+  .home-db-hero__visual {
+    order: -1;
+    max-width: 420px;
+    margin: 0 auto;
+    width: 100%;
+  }
 }
 
-.home-vast-btn--hero-primary:hover {
-  background: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #f1f5f9 !important;
+.home-db-hero__kicker {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--vast-muted);
+  margin: 0 0 14px;
+}
+
+.home-db-hero__title {
+  font-size: clamp(2.2rem, 5.2vw, 3.65rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  margin: 0 0 16px;
+  color: var(--vast-text);
+}
+
+.home-db-hero__title-line {
+  display: block;
+}
+
+.home-db-hero__title-line--accent {
+  color: var(--vast-accent);
+}
+
+.home-db-hero__sub {
+  margin: 0 0 20px;
+  font-size: clamp(15px, 1.35vw, 17px);
+  line-height: 1.65;
+  color: var(--vast-muted);
+  max-width: 34rem;
+}
+
+.home-db-hero__popular {
+  margin-bottom: 20px;
+}
+
+.home-db-hero__popular-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vast-text);
+  margin-bottom: 10px;
+}
+
+.home-db-hero__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-db-pill {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--vast-border);
+  background: var(--vast-void);
+  color: var(--vast-muted);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.home-db-pill:hover {
+  border-color: var(--vast-accent-dim);
+  color: var(--vast-accent);
+  background: var(--vast-surface-hover);
+  box-shadow: 0 2px 12px var(--vast-glow);
+}
+
+.home-db-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.home-db-btn {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s, filter 0.2s;
+}
+
+.home-db-btn--primary {
+  background: var(--vast-accent);
+  color: #ffffff;
+  border-color: var(--vast-accent);
+  box-shadow: 0 4px 16px var(--vast-glow);
+}
+
+.home-db-btn--primary:hover {
+  filter: brightness(0.94);
   transform: translateY(-1px);
 }
 
-.home-vast-btn--hero-ghost {
-  background: transparent !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.45) !important;
+.home-db-btn--secondary {
+  background: var(--vast-void);
+  color: var(--vast-text);
+  border-color: var(--vast-border-strong);
 }
 
-.home-vast-btn--hero-ghost:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.85) !important;
-  color: #ffffff !important;
+.home-db-btn--secondary:hover {
+  border-color: var(--vast-accent);
+  color: var(--vast-accent);
+  background: var(--vast-surface-hover);
 }
 
-.home-vast-link--hero {
-  color: rgba(255, 255, 255, 0.88) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.35) !important;
+.home-db-hero__stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  align-items: baseline;
 }
 
-.home-vast-link--hero:hover {
-  color: #ffffff !important;
-  border-bottom-color: rgba(255, 255, 255, 0.75) !important;
+.home-db-hero__stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 4.5rem;
 }
 
-/* Полоса метрик внизу hero */
-.home-vast-hero__specs-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  margin-top: clamp(28px, 5vw, 44px);
-  padding: clamp(14px, 2.2vw, 20px) clamp(16px, 2.5vw, 28px);
-  background: rgba(15, 23, 42, 0.42);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 2px;
-}
-
-.home-vast-hero__spec-item {
-  padding: 10px clamp(12px, 2vw, 20px);
-  text-align: center;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.home-vast-hero__spec-item:last-child {
-  border-right: none;
-}
-
-.home-vast-hero__spec-label {
-  display: block;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 6px;
-}
-
-.home-vast-hero__spec-value {
-  display: block;
-  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+.home-db-hero__stats-value {
+  font-size: 1.45rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #ffffff;
+  letter-spacing: -0.03em;
+  color: var(--vast-text);
 }
 
-@media (max-width: 640px) {
-  .home-vast-hero__specs-bar {
-    grid-template-columns: 1fr;
-    padding: 16px;
-  }
+.home-db-hero__stats-label {
+  font-size: 12px;
+  color: var(--vast-dim);
+}
 
-  .home-vast-hero__spec-item {
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 14px 8px;
-  }
+.home-db-hero__shot {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.1),
+    0 0 0 1px var(--vast-border);
+  background: var(--vast-article-media-bg);
+}
 
-  .home-vast-hero__spec-item:last-child {
-    border-bottom: none;
-  }
+.dark-theme .home-db-hero__shot {
+  box-shadow:
+    0 24px 56px rgba(0, 0, 0, 0.45),
+    0 0 0 1px var(--vast-border);
+}
+
+.home-db-hero__shot-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.home-db-feed-anchor {
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  scroll-margin-top: 88px;
+}
+
+.home-db-showcase-anchor {
+  scroll-margin-top: 88px;
 }
 
 .home-vast-btn {
@@ -977,4 +911,120 @@
   color: var(--vast-dim);
   font-size: 14px;
   line-height: 1.65;
+}
+
+/* ——— Dribbble: скругления, мягкие тени; акценты через --vast-accent проекта ——— */
+
+.home-vast--dribbble {
+  --vast-page-bg: #fafafb;
+  --vast-border: rgba(15, 23, 42, 0.08);
+}
+
+.dark-theme .home-vast--dribbble {
+  --vast-page-bg: #07080c;
+}
+
+.home-vast--dribbble .home-vast-panel {
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(15, 23, 42, 0.06);
+}
+
+.dark-theme .home-vast--dribbble .home-vast-panel {
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+}
+
+.home-vast--dribbble .home-vast-tabs-wrap {
+  border-radius: 999px;
+  padding: 5px;
+  border: none;
+}
+
+.home-vast--dribbble .home-vast-tab-btn {
+  border-radius: 999px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  padding: 9px 18px;
+}
+
+.home-vast--dribbble .home-vast-tab-btn--active {
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+}
+
+.home-vast--dribbble .home-vast-search {
+  border-radius: 999px;
+  border: none;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+  padding: 6px 10px 6px 22px;
+}
+
+.dark-theme .home-vast--dribbble .home-vast-search {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.home-vast--dribbble .home-vast-search:focus-within {
+  box-shadow: 0 0 0 3px var(--vast-glow), 0 2px 12px rgba(15, 23, 42, 0.06);
+}
+
+.home-vast--dribbble .home-vast-toolbar {
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+}
+
+.home-vast--dribbble .home-vast-article {
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.home-vast--dribbble .home-vast-article:hover {
+  box-shadow: var(--vast-card-hover-shadow);
+}
+
+.home-vast--dribbble .home-vast-article__date {
+  border-radius: 999px;
+}
+
+.home-vast--dribbble .home-vast-empty {
+  border-radius: 20px;
+}
+
+.home-vast--dribbble .vast-highlight {
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+}
+
+.home-vast--dribbble .vast-highlight:hover {
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.1);
+  transform: translateY(-3px);
+}
+
+.home-vast--dribbble .vast-highlight__badge {
+  border-radius: 999px;
+}
+
+.home-vast--dribbble .home-vast-event {
+  border-radius: 22px;
+  overflow: hidden;
+  gap: 0;
+  border: none;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  background: transparent;
+}
+
+.dark-theme .home-vast--dribbble .home-vast-event {
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.home-vast--dribbble .home-vast-btn {
+  border-radius: 999px;
+}
+
+.home-vast--dribbble .ant-btn-primary {
+  border-radius: 999px !important;
+  background: var(--vast-accent) !important;
+  color: #ffffff !important;
+}
+
+.home-vast--dribbble .ant-btn-primary:hover {
+  filter: brightness(0.92);
+  color: #ffffff !important;
 }

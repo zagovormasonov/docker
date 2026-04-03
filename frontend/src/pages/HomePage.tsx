@@ -93,6 +93,14 @@ const SHOWCASE_TABS: Array<{ key: ShowcaseTab; label: string }> = [
   { key: 'events', label: 'События' }
 ];
 
+const HERO_POPULAR_LINKS: Array<{ label: string; action: 'experts' | 'events' | 'showcase' | 'articles' | 'expert' }> = [
+  { label: 'Эксперты', action: 'experts' },
+  { label: 'События', action: 'events' },
+  { label: 'Витрина', action: 'showcase' },
+  { label: 'Статьи', action: 'articles' },
+  { label: 'Стать экспертом', action: 'expert' }
+];
+
 const ShowcaseHighlightCard = ({ item, compact = false, badges = [] }: HighlightCardProps) => (
   <div
     role="button"
@@ -503,6 +511,7 @@ const HomePage = () => {
   // Scroll to top when article changes
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const showcaseSectionRef = useRef<HTMLDivElement>(null);
+  const articlesFeedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
@@ -512,6 +521,33 @@ const HomePage = () => {
   const scrollToShowcase = useCallback(() => {
     showcaseSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
+
+  const scrollToArticlesFeed = useCallback(() => {
+    articlesFeedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const handleHeroPopularClick = useCallback(
+    (action: (typeof HERO_POPULAR_LINKS)[number]['action']) => {
+      switch (action) {
+        case 'experts':
+          navigate('/experts');
+          break;
+        case 'events':
+          navigate('/events');
+          break;
+        case 'showcase':
+          scrollToShowcase();
+          break;
+        case 'articles':
+          scrollToArticlesFeed();
+          break;
+        case 'expert':
+          navigate('/become-expert');
+          break;
+      }
+    },
+    [navigate, scrollToShowcase, scrollToArticlesFeed]
+  );
 
   // Ранний preload LCP-изображения hero (браузер дедуплицирует с тем же URL у <img>)
   useEffect(() => {
@@ -529,62 +565,70 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="home-vast" style={{ paddingBottom: 24 }}>
-      <section className="home-vast-hero home-vast-hero--cinema" aria-label="Главный экран">
-        <div className="home-vast-hero__bg" aria-hidden>
-          <img
-            className="home-vast-hero__photo"
-            src={HERO_WALL_SRC}
-            alt=""
-            width={2400}
-            height={1600}
-            sizes="100vw"
-            decoding="async"
-            fetchPriority="high"
-            loading="eager"
-          />
-        </div>
-        <div className="home-vast-hero__aurora" aria-hidden />
-        <div className="home-vast-hero__grid" aria-hidden />
-        <div className="home-vast-hero__noise" aria-hidden />
-        <div className="home-vast-hero__content">
-          <div className="container home-vast-hero__inner">
-            <div className="home-vast-hero__main">
-              <div className="home-vast-hero__copy">
-                <p className="home-vast-hero__eyebrow">SoulSynergy — платформа нового поколения</p>
-                <h1 className="home-vast-hero__title">
-                  <span className="home-vast-hero__title-line">Соединяем</span>
-                  <span className="home-vast-hero__title-line">экспертов и практики</span>
-                  <span className="home-vast-hero__title-line">в одном пространстве</span>
-                </h1>
-                <p className="home-vast-hero__lead">
-                  Находите своих людей, углубляйтесь в темы и собирайте календарь встреч — от личных сессий до ретритов и эфиров.
-                </p>
-                <div className="home-vast-hero__actions">
-                  <button type="button" className="home-vast-btn home-vast-btn--hero-primary" onClick={() => navigate('/experts')}>
-                    Каталог экспертов
-                  </button>
-                  <button type="button" className="home-vast-btn home-vast-btn--hero-ghost" onClick={() => navigate('/events')}>
-                    Афиша событий
-                  </button>
-                  <button type="button" className="home-vast-link home-vast-link--hero" onClick={scrollToShowcase}>
-                    Смотреть витрину
-                  </button>
+    <div className="home-vast home-vast--dribbble" style={{ paddingBottom: 24 }}>
+      <section className="home-db-hero" aria-label="Главный экран">
+        <div className="container home-db-hero__inner">
+          <div className="home-db-hero__row">
+            <div className="home-db-hero__text">
+              <p className="home-db-hero__kicker">SoulSynergy — сообщество практик и экспертов</p>
+              <h1 className="home-db-hero__title">
+                <span className="home-db-hero__title-line">Откройте лучших</span>
+                <span className="home-db-hero__title-line home-db-hero__title-line--accent">экспертов и практики</span>
+              </h1>
+              <p className="home-db-hero__sub">
+                Лента материалов, афиша событий и каталог специалистов — всё в одном месте: ясная структура, много воздуха и акцент на людях и практиках.
+              </p>
+              <div className="home-db-hero__popular">
+                <span className="home-db-hero__popular-label">Популярное:</span>
+                <div className="home-db-hero__pills">
+                  {HERO_POPULAR_LINKS.map(({ label, action }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className="home-db-pill"
+                      onClick={() => handleHeroPopularClick(action)}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
+              <div className="home-db-hero__cta">
+                <button type="button" className="home-db-btn home-db-btn--primary" onClick={() => navigate('/experts')}>
+                  Смотреть каталог
+                </button>
+                <button type="button" className="home-db-btn home-db-btn--secondary" onClick={() => navigate('/events')}>
+                  Афиша событий
+                </button>
+              </div>
+              <ul className="home-db-hero__stats" aria-label="Краткая статистика">
+                <li>
+                  <span className="home-db-hero__stats-value">{expertsCount}</span>
+                  <span className="home-db-hero__stats-label">экспертов</span>
+                </li>
+                <li>
+                  <span className="home-db-hero__stats-value">{articles.length}</span>
+                  <span className="home-db-hero__stats-label">статей</span>
+                </li>
+                <li>
+                  <span className="home-db-hero__stats-value">{eventsPreview.length}</span>
+                  <span className="home-db-hero__stats-label">событий скоро</span>
+                </li>
+              </ul>
             </div>
-            <div className="home-vast-hero__specs-bar">
-              <div className="home-vast-hero__spec-item">
-                <span className="home-vast-hero__spec-label">Экспертов в каталоге</span>
-                <span className="home-vast-hero__spec-value">{expertsCount}</span>
-              </div>
-              <div className="home-vast-hero__spec-item">
-                <span className="home-vast-hero__spec-label">Материалов и статей</span>
-                <span className="home-vast-hero__spec-value">{articles.length}</span>
-              </div>
-              <div className="home-vast-hero__spec-item">
-                <span className="home-vast-hero__spec-label">Ближайших событий</span>
-                <span className="home-vast-hero__spec-value">{eventsPreview.length}</span>
+            <div className="home-db-hero__visual">
+              <div className="home-db-hero__shot">
+                <img
+                  src={HERO_WALL_SRC}
+                  alt=""
+                  width={1200}
+                  height={900}
+                  sizes="(max-width: 900px) 100vw, 480px"
+                  decoding="async"
+                  fetchPriority="high"
+                  loading="eager"
+                  className="home-db-hero__shot-img"
+                />
               </div>
             </div>
           </div>
@@ -592,7 +636,7 @@ const HomePage = () => {
       </section>
 
       <div className="container home-vast-inner">
-        <div ref={showcaseSectionRef} style={{ marginBottom: 32 }}>
+        <div ref={showcaseSectionRef} className="home-db-showcase-anchor" style={{ marginBottom: 32 }}>
           <div className="home-vast-panel">
             <div
               style={{
@@ -649,6 +693,7 @@ const HomePage = () => {
           </div>
         </div>
 
+        <div ref={articlesFeedRef} className="home-db-feed-anchor" />
         <div className="home-vast-search">
           <SearchOutlined />
           <input
