@@ -14,9 +14,9 @@ import './HomePage.css';
 
 dayjs.locale('ru');
 
-/** Фон hero на главной (public/wall.jpg) */
+/** Запасной фон hero, если нет незакреплённых статей (public/wall.jpg) */
 const HERO_WALL_SRC = `${import.meta.env.BASE_URL}wall.jpg`;
-const HERO_PRELOAD_LINK_ID = 'home-hero-wall-preload';
+const HERO_PRELOAD_LINK_ID = 'home-hero-spotlight-preload';
 
 const { Title, Text } = Typography;
 
@@ -34,6 +34,7 @@ interface Article {
   views: number;
   likes_count: number;
   created_at: string;
+  is_pinned?: boolean;
 }
 
 interface EventPreview {
@@ -281,6 +282,9 @@ const HomePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
   const [articles, setArticles] = useState<Article[]>([]);
+  /** Самая популярная незакреплённая статья для блока hero (отдельно от сортировки ленты) */
+  const [heroSpotlightArticle, setHeroSpotlightArticle] = useState<Article | null>(null);
+  const [heroSpotlightReady, setHeroSpotlightReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortType, setSortType] = useState<SortType>('new');
   const [expertsCount, setExpertsCount] = useState<number>(0);
@@ -347,6 +351,29 @@ const HomePage = () => {
     fetchExpertsCount();
     fetchEventsPreview();
   }, [fetchArticles, fetchExpertsCount, fetchEventsPreview]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await api.get('/articles?sort=popular');
+        const rows: Article[] = Array.isArray(response.data) ? response.data : [];
+        const unpinned = rows
+          .filter((a) => !a.is_pinned)
+          .sort((a, b) => (b.views ?? 0) - (a.views ?? 0) || dayjs(b.created_at).valueOf() - dayjs(a.created_at).valueOf());
+        if (!cancelled) {
+          setHeroSpotlightArticle(unpinned[0] ?? null);
+        }
+      } catch {
+        if (!cancelled) setHeroSpotlightArticle(null);
+      } finally {
+        if (!cancelled) setHeroSpotlightReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Debounce для поискового запроса (500ms)
   useEffect(() => {
@@ -549,20 +576,26 @@ const HomePage = () => {
     [navigate, scrollToShowcase, scrollToArticlesFeed]
   );
 
-  // Ранний preload LCP-изображения hero (браузер дедуплицирует с тем же URL у <img>)
+  const heroSpotlightImageSrc = heroSpotlightArticle
+    ? (heroSpotlightArticle.cover_image || '/art.jpg')
+    : HERO_WALL_SRC;
+
+  // Preload обложки популярной статьи или запасного wall после определения spotlight
   useEffect(() => {
-    if (document.getElementById(HERO_PRELOAD_LINK_ID)) return;
+    if (!heroSpotlightReady) return;
+    const existing = document.getElementById(HERO_PRELOAD_LINK_ID);
+    existing?.remove();
     const link = document.createElement('link');
     link.id = HERO_PRELOAD_LINK_ID;
     link.rel = 'preload';
     link.as = 'image';
-    link.href = HERO_WALL_SRC;
+    link.href = heroSpotlightImageSrc;
     link.setAttribute('fetchpriority', 'high');
     document.head.appendChild(link);
     return () => {
       link.remove();
     };
-  }, []);
+  }, [heroSpotlightReady, heroSpotlightImageSrc]);
 
   return (
     <div className="home-vast home-vast--dribbble" style={{ paddingBottom: 24 }}>
@@ -617,18 +650,59 @@ const HomePage = () => {
               </ul>
             </div>
             <div className="home-db-hero__visual">
-              <div className="home-db-hero__shot">
-                <img
-                  src={HERO_WALL_SRC}
-                  alt=""
-                  width={1200}
-                  height={900}
-                  sizes="(max-width: 900px) 100vw, 480px"
-                  decoding="async"
-                  fetchPriority="high"
-                  loading="eager"
-                  className="home-db-hero__shot-img"
-                />
+              <div
+                className={`home-db-hero__shot${heroSpotlightArticle ? ' home-db-hero__shot--article' : ''}${!heroSpotlightReady ? ' home-db-hero__shot--loading' : ''}`}
+                role={heroSpotlightArticle ? 'button' : undefined}
+                tabIndex={heroSpotlightArticle ? 0 : undefined}
+                onClick={() => {
+                  if (heroSpotlightArticle) handleArticleClick(heroSpotlightArticle.id);
+                }}
+                onKeyDown={(e) => {
+                  if (!heroSpotlightArticle) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleArticleClick(heroSpotlightArticle.id);
+                  }
+                }}
+                aria-label={heroSpotlightArticle ? `Открыть статью: ${heroSpotlightArticle.title}` : undefined}
+              >
+                {!heroSpotlightReady ? null : heroSpotlightArticle ? (
+                  <>
+                    <img
+                      src={heroSpotlightImageSrc}
+                      alt=""
+                      width={1200}
+                      height={900}
+                      sizes="(max-width: 900px) 100vw, 480px"
+                      decoding="async"
+                      fetchPriority="high"
+                      loading="eager"
+                      className="home-db-hero__shot-img"
+                    />
+                    <div className="home-db-hero__shot-scrim" aria-hidden />
+                    <div className="home-db-hero__shot-caption">
+                      <span className="home-db-hero__shot-eyebrow">Популярное сейчас</span>
+                      <p className="home-db-hero__shot-title">{heroSpotlightArticle.title}</p>
+                      <span className="home-db-hero__shot-meta">
+                        <EyeOutlined aria-hidden /> {heroSpotlightArticle.views ?? 0}
+                        <span className="home-db-hero__shot-meta-sep" aria-hidden />
+                        <HeartOutlined aria-hidden /> {heroSpotlightArticle.likes_count ?? 0}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={HERO_WALL_SRC}
+                    alt=""
+                    width={1200}
+                    height={900}
+                    sizes="(max-width: 900px) 100vw, 480px"
+                    decoding="async"
+                    fetchPriority="high"
+                    loading="eager"
+                    className="home-db-hero__shot-img"
+                  />
+                )}
               </div>
             </div>
           </div>
