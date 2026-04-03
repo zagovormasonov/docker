@@ -14,6 +14,10 @@ import './HomePage.css';
 
 dayjs.locale('ru');
 
+/** Фон hero на главной (public/wall.jpg) */
+const HERO_WALL_SRC = `${import.meta.env.BASE_URL}wall.jpg`;
+const HERO_PRELOAD_LINK_ID = 'home-hero-wall-preload';
+
 const { Title, Text } = Typography;
 
 type SortType = 'new' | 'popular';
@@ -509,9 +513,37 @@ const HomePage = () => {
     showcaseSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
+  // Ранний preload LCP-изображения hero (браузер дедуплицирует с тем же URL у <img>)
+  useEffect(() => {
+    if (document.getElementById(HERO_PRELOAD_LINK_ID)) return;
+    const link = document.createElement('link');
+    link.id = HERO_PRELOAD_LINK_ID;
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = HERO_WALL_SRC;
+    link.setAttribute('fetchpriority', 'high');
+    document.head.appendChild(link);
+    return () => {
+      link.remove();
+    };
+  }, []);
+
   return (
     <div className="home-vast" style={{ paddingBottom: 24 }}>
       <section className="home-vast-hero" aria-label="Главный экран">
+        <div className="home-vast-hero__bg" aria-hidden>
+          <img
+            className="home-vast-hero__photo"
+            src={HERO_WALL_SRC}
+            alt=""
+            width={2400}
+            height={1600}
+            sizes="100vw"
+            decoding="async"
+            fetchPriority="high"
+            loading="eager"
+          />
+        </div>
         <div className="home-vast-hero__grid" aria-hidden />
         <div className="home-vast-hero__stars" aria-hidden />
         <div className="home-vast-hero__noise" aria-hidden />
