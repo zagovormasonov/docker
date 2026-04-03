@@ -610,7 +610,7 @@ const HomePage = () => {
         </div>
 
         <div className="home-vast-search">
-          <SearchOutlined style={{ fontSize: 18, color: 'rgba(161,161,170,0.9)', flexShrink: 0 }} />
+          <SearchOutlined />
           <input
             placeholder="Поиск по статьям и темам..."
             value={searchQuery}

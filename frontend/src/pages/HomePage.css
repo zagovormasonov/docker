@@ -1,7 +1,44 @@
-/* Vast-inspired dark space aesthetic — homepage only */
+/* Vast-inspired homepage — светлая тема по умолчанию; тёмная при body.dark-theme */
 
 .home-vast {
-  --vast-black: #030304;
+  --vast-page-bg: #f4f6fb;
+  --vast-void: #ffffff;
+  --vast-surface: rgba(255, 255, 255, 0.94);
+  --vast-surface-hover: #f1f5f9;
+  --vast-border: rgba(15, 23, 42, 0.09);
+  --vast-border-strong: rgba(15, 23, 42, 0.16);
+  --vast-text: #0f172a;
+  --vast-muted: #64748b;
+  --vast-dim: #94a3b8;
+  --vast-accent: #4f46e5;
+  --vast-accent-dim: rgba(79, 70, 229, 0.4);
+  --vast-glow: rgba(79, 70, 229, 0.15);
+  --vast-btn-primary-bg: #0f172a;
+  --vast-btn-primary-fg: #ffffff;
+  --vast-btn-primary-hover: #1e293b;
+  --vast-tabs-wrap-bg: #eef2f6;
+  --vast-tab-active-bg: #ffffff;
+  --vast-search-bg: #ffffff;
+  --vast-spec-cell-bg: #ffffff;
+  --vast-spec-grid-bg: var(--vast-border);
+  --vast-event-panel-bg: #fafbfc;
+  --vast-event-visual-bg: #e8edf5;
+  --vast-article-media-bg: #f1f5f9;
+  --vast-article-shade: rgba(255, 255, 255, 0.92);
+  --vast-card-hover-shadow: 0 24px 48px rgba(15, 23, 42, 0.1);
+  --vast-panel-shine: rgba(15, 23, 42, 0.06);
+  --vast-noise-opacity: 0.035;
+
+  font-family: 'Space Grotesk', 'Montserrat', system-ui, sans-serif;
+  color: var(--vast-text);
+  background: var(--vast-page-bg);
+  margin: -24px 0 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.dark-theme .home-vast {
+  --vast-page-bg: #030304;
   --vast-void: #07080c;
   --vast-surface: rgba(255, 255, 255, 0.035);
   --vast-surface-hover: rgba(255, 255, 255, 0.055);
@@ -13,12 +50,21 @@
   --vast-accent: #60a5fa;
   --vast-accent-dim: rgba(96, 165, 250, 0.35);
   --vast-glow: rgba(59, 130, 246, 0.15);
-  font-family: 'Space Grotesk', 'Montserrat', system-ui, sans-serif;
-  color: var(--vast-text);
-  background: var(--vast-black);
-  margin: -24px 0 0;
-  min-height: 100vh;
-  overflow-x: hidden;
+  --vast-btn-primary-bg: #fafafa;
+  --vast-btn-primary-fg: #030304;
+  --vast-btn-primary-hover: #e4e4e7;
+  --vast-tabs-wrap-bg: rgba(0, 0, 0, 0.35);
+  --vast-tab-active-bg: rgba(255, 255, 255, 0.08);
+  --vast-search-bg: rgba(0, 0, 0, 0.5);
+  --vast-spec-cell-bg: rgba(0, 0, 0, 0.45);
+  --vast-spec-grid-bg: var(--vast-border);
+  --vast-event-panel-bg: rgba(0, 0, 0, 0.55);
+  --vast-event-visual-bg: #0a0a0c;
+  --vast-article-media-bg: #0c0d12;
+  --vast-article-shade: rgba(3, 3, 4, 0.85);
+  --vast-card-hover-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  --vast-panel-shine: rgba(255, 255, 255, 0.12);
+  --vast-noise-opacity: 0.04;
 }
 
 .home-vast-hero {
@@ -35,18 +81,40 @@
   position: absolute;
   inset: 0;
   background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(79, 70, 229, 0.09), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 55%, rgba(99, 102, 241, 0.06), transparent 50%),
+    radial-gradient(ellipse 50% 45% at 0% 85%, rgba(14, 165, 233, 0.05), transparent 45%),
+    linear-gradient(180deg, #ffffff 0%, var(--vast-page-bg) 50%, #eef2f7 100%);
+  z-index: 0;
+}
+
+.dark-theme .home-vast-hero__grid {
+  background:
     radial-gradient(ellipse 120% 80% at 50% -20%, rgba(59, 130, 246, 0.12), transparent 55%),
     radial-gradient(ellipse 70% 50% at 100% 60%, rgba(99, 102, 241, 0.08), transparent 50%),
     radial-gradient(ellipse 50% 40% at 0% 80%, rgba(14, 165, 233, 0.06), transparent 45%),
-    linear-gradient(180deg, #050508 0%, var(--vast-black) 45%, #020203 100%);
-  z-index: 0;
+    linear-gradient(180deg, #050508 0%, var(--vast-page-bg) 45%, #020203 100%);
 }
 
 .home-vast-hero__stars {
   position: absolute;
   inset: 0;
   z-index: 1;
-  opacity: 0.55;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(15, 23, 42, 0.35), transparent),
+    radial-gradient(1px 1px at 30% 65%, rgba(15, 23, 42, 0.2), transparent),
+    radial-gradient(1.5px 1.5px at 72% 18%, rgba(79, 70, 229, 0.25), transparent),
+    radial-gradient(1px 1px at 88% 42%, rgba(15, 23, 42, 0.15), transparent),
+    radial-gradient(1px 1px at 45% 88%, rgba(15, 23, 42, 0.22), transparent),
+    radial-gradient(1px 1px at 15% 48%, rgba(15, 23, 42, 0.12), transparent),
+    radial-gradient(1.5px 1.5px at 55% 32%, rgba(79, 70, 229, 0.2), transparent),
+    radial-gradient(1px 1px at 92% 78%, rgba(15, 23, 42, 0.18), transparent);
+  background-size: 100% 100%;
+  animation: home-vast-twinkle-light 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.dark-theme .home-vast-hero__stars {
   background-image:
     radial-gradient(1px 1px at 10% 20%, rgba(255, 255, 255, 0.9), transparent),
     radial-gradient(1px 1px at 30% 65%, rgba(255, 255, 255, 0.5), transparent),
@@ -56,12 +124,19 @@
     radial-gradient(1px 1px at 15% 48%, rgba(255, 255, 255, 0.35), transparent),
     radial-gradient(1.5px 1.5px at 55% 32%, rgba(255, 255, 255, 0.7), transparent),
     radial-gradient(1px 1px at 92% 78%, rgba(255, 255, 255, 0.45), transparent);
-  background-size: 100% 100%;
-  animation: home-vast-twinkle 14s ease-in-out infinite alternate;
-  pointer-events: none;
+  animation: home-vast-twinkle-dark 14s ease-in-out infinite alternate;
 }
 
-@keyframes home-vast-twinkle {
+@keyframes home-vast-twinkle-light {
+  0% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 0.42;
+  }
+}
+
+@keyframes home-vast-twinkle-dark {
   0% {
     opacity: 0.45;
   }
@@ -74,7 +149,7 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  opacity: 0.04;
+  opacity: var(--vast-noise-opacity);
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -137,13 +212,13 @@
 }
 
 .home-vast-btn--primary {
-  background: var(--vast-text);
-  color: var(--vast-black);
-  border-color: var(--vast-text);
+  background: var(--vast-btn-primary-bg);
+  color: var(--vast-btn-primary-fg);
+  border-color: var(--vast-btn-primary-bg);
 }
 
 .home-vast-btn--primary:hover {
-  background: #e4e4e7;
+  background: var(--vast-btn-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -154,8 +229,8 @@
 }
 
 .home-vast-btn--ghost:hover {
-  background: var(--vast-surface);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: var(--vast-surface-hover);
+  border-color: var(--vast-dim);
 }
 
 .home-vast-link {
@@ -181,7 +256,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
-  background: var(--vast-border);
+  background: var(--vast-spec-grid-bg);
   border: 1px solid var(--vast-border);
   max-width: 720px;
 }
@@ -193,7 +268,7 @@
 }
 
 .home-vast-spec {
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--vast-spec-cell-bg);
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
@@ -239,7 +314,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  background: linear-gradient(90deg, transparent, var(--vast-panel-shine), transparent);
   pointer-events: none;
 }
 
@@ -249,7 +324,7 @@
   padding: 4px;
   border: 1px solid var(--vast-border);
   border-radius: 2px;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--vast-tabs-wrap-bg);
 }
 
 .home-vast-tab-btn {
@@ -268,8 +343,13 @@
 }
 
 .home-vast-tab-btn--active {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--vast-tab-active-bg);
   color: var(--vast-text);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.dark-theme .home-vast-tab-btn--active {
+  box-shadow: none;
 }
 
 .home-vast-section-title {
@@ -296,10 +376,16 @@
   align-items: center;
   gap: 14px;
   padding: 6px 8px 6px 20px;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--vast-search-bg);
   border: 1px solid var(--vast-border);
   border-radius: 2px;
   transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.home-vast-search .anticon {
+  color: var(--vast-dim) !important;
+  font-size: 18px;
+  flex-shrink: 0;
 }
 
 .home-vast-search:focus-within {
@@ -377,7 +463,6 @@
   background-color: var(--vast-accent);
 }
 
-/* Article cards — dark */
 .home-vast-article {
   height: 100%;
   background: var(--vast-void);
@@ -393,21 +478,21 @@
 .home-vast-article:hover {
   border-color: var(--vast-border-strong);
   transform: translateY(-4px);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--vast-card-hover-shadow);
 }
 
 .home-vast-article__media {
   height: 220px;
   position: relative;
   overflow: hidden;
-  background: #0c0d12;
+  background: var(--vast-article-media-bg);
 }
 
 .home-vast-article__media::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(3, 3, 4, 0.85) 100%);
+  background: linear-gradient(180deg, transparent 40%, var(--vast-article-shade) 100%);
   pointer-events: none;
 }
 
@@ -421,9 +506,13 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.65);
+  background: var(--vast-search-bg);
   border: 1px solid var(--vast-border);
   color: var(--vast-muted);
+}
+
+.dark-theme .home-vast-article__date {
+  background: rgba(0, 0, 0, 0.65);
 }
 
 .home-vast-article__body {
@@ -482,10 +571,9 @@
   font-family: 'IBM Plex Mono', monospace;
 }
 
-/* Primary button override inside home */
 .home-vast .ant-btn-primary {
-  background: var(--vast-text) !important;
-  color: var(--vast-black) !important;
+  background: var(--vast-btn-primary-bg) !important;
+  color: var(--vast-btn-primary-fg) !important;
   border: none !important;
   border-radius: 2px !important;
   font-weight: 500 !important;
@@ -493,8 +581,8 @@
 }
 
 .home-vast .ant-btn-primary:hover {
-  background: #e4e4e7 !important;
-  color: var(--vast-black) !important;
+  background: var(--vast-btn-primary-hover) !important;
+  color: var(--vast-btn-primary-fg) !important;
 }
 
 /* Showcase highlight cards */
@@ -612,7 +700,6 @@
   justify-content: flex-start;
 }
 
-/* Event spotlight — dark */
 .home-vast-event {
   margin-top: 22px;
   display: grid;
@@ -631,7 +718,7 @@
 .home-vast-event__visual {
   position: relative;
   min-height: 380px;
-  background: #0a0a0c;
+  background: var(--vast-event-visual-bg);
   overflow: hidden;
 }
 
@@ -649,9 +736,13 @@
 .home-vast-event__gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(3, 3, 4, 0.92) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.75) 100%);
   z-index: 1;
   pointer-events: none;
+}
+
+.dark-theme .home-vast-event__gradient {
+  background: linear-gradient(180deg, transparent 0%, rgba(3, 3, 4, 0.92) 100%);
 }
 
 .home-vast-event__caption {
@@ -660,7 +751,7 @@
   right: 20px;
   bottom: 20px;
   z-index: 2;
-  color: var(--vast-text);
+  color: #ffffff;
 }
 
 .home-vast-event__tags {
@@ -672,12 +763,12 @@
 
 .home-vast-event__tag {
   padding: 5px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   font-family: 'IBM Plex Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .home-vast-event__title {
@@ -685,10 +776,11 @@
   font-size: clamp(1.25rem, 2.2vw, 1.65rem);
   font-weight: 500;
   line-height: 1.15;
+  color: #ffffff;
 }
 
 .home-vast-event__panel {
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--vast-event-panel-bg);
   padding: 24px;
   display: flex;
   flex-direction: column;
