@@ -57,44 +57,46 @@ const stripHtml = (html: string): string => {
 
 const ArticleCard = memo(({ article, onOpen, onOpenAuthor }: ArticleCardProps) => (
   <div className="home-vast-article" onClick={() => onOpen(article.id)}>
-    <div className="home-vast-article__media">
-      <div style={{ position: 'absolute', inset: 0 }} className="card-image-wrapper">
-        <LazyImage
-          src={article.cover_image || '/art.jpg'}
-          alt={article.title}
-          height="100%"
-          style={{ width: '100%', objectFit: 'cover' }}
-        />
-      </div>
-      <span className="home-vast-article__date">{dayjs(article.created_at).format('DD MMM')}</span>
-    </div>
-
-    <div className="home-vast-article__body">
-      <h3 className="home-vast-article__title">{article.title}</h3>
-      <p className="home-vast-article__excerpt">{stripHtml(article.content)}</p>
-      <div className="home-vast-article__footer">
-        <div
-          className="home-vast-article__author"
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenAuthor(article.author_id);
-          }}
-        >
-          <LazyAvatar
-            size={32}
-            src={article.author_avatar}
-            defaultSrc="/emp.jpg"
-            icon={<UserOutlined />}
+    <div className="home-vast-article__inner">
+      <div className="home-vast-article__media">
+        <div style={{ position: 'absolute', inset: 0 }} className="card-image-wrapper">
+          <LazyImage
+            src={article.cover_image || '/art.jpg'}
+            alt={article.title}
+            height="100%"
+            style={{ width: '100%', objectFit: 'cover' }}
           />
-          <span>{article.author_name}</span>
         </div>
-        <div className="home-vast-article__meta">
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <HeartOutlined /> {article.likes_count || 0}
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <EyeOutlined /> {article.views}
-          </span>
+        <span className="home-vast-article__date">{dayjs(article.created_at).format('DD MMM')}</span>
+      </div>
+
+      <div className="home-vast-article__body">
+        <h3 className="home-vast-article__title">{article.title}</h3>
+        <p className="home-vast-article__excerpt">{stripHtml(article.content)}</p>
+        <div className="home-vast-article__footer">
+          <div
+            className="home-vast-article__author"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenAuthor(article.author_id);
+            }}
+          >
+            <LazyAvatar
+              size={32}
+              src={article.author_avatar}
+              defaultSrc="/emp.jpg"
+              icon={<UserOutlined />}
+            />
+            <span>{article.author_name}</span>
+          </div>
+          <div className="home-vast-article__meta">
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <HeartOutlined /> {article.likes_count || 0}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <EyeOutlined /> {article.views}
+            </span>
+          </div>
         </div>
       </div>
     </div>
