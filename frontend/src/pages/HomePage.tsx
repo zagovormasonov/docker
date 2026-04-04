@@ -311,28 +311,28 @@ const HomePage = () => {
             <div className="home-db-hero__text">
               <div className="home-db-hero__orbit">
                 {orbitExperts.slice(0, 2).map((expert, i) => (
-                  <OrbitingCircles key={expert.id} radius={70} duration={20} delay={i * 10}>
+                  <OrbitingCircles key={expert.id} radius={50} duration={20} delay={i * 10}>
                     <div className="orbit-avatar-wrapper" onClick={() => navigate(`/experts/${expert.id}`)}>
-                      <LazyAvatar src={expert.avatar_url} size={40} icon={<UserOutlined />} />
+                      <LazyAvatar src={expert.avatar_url} size={32} icon={<UserOutlined />} />
                     </div>
                   </OrbitingCircles>
                 ))}
                 {orbitExperts.slice(2, 5).map((expert, i) => (
-                  <OrbitingCircles key={expert.id} radius={125} duration={30} delay={i * 10} reverse>
+                  <OrbitingCircles key={expert.id} radius={90} duration={30} delay={i * 10} reverse>
                     <div className="orbit-avatar-wrapper" onClick={() => navigate(`/experts/${expert.id}`)}>
-                      <LazyAvatar src={expert.avatar_url} size={48} icon={<UserOutlined />} />
+                      <LazyAvatar src={expert.avatar_url} size={38} icon={<UserOutlined />} />
                     </div>
                   </OrbitingCircles>
                 ))}
                 {orbitExperts.slice(5, 8).map((expert, i) => (
-                  <OrbitingCircles key={expert.id} radius={185} duration={45} delay={i * 15}>
+                  <OrbitingCircles key={expert.id} radius={135} duration={45} delay={i * 15}>
                     <div className="orbit-avatar-wrapper" onClick={() => navigate(`/experts/${expert.id}`)}>
-                      <LazyAvatar src={expert.avatar_url} size={54} icon={<UserOutlined />} />
+                      <LazyAvatar src={expert.avatar_url} size={44} icon={<UserOutlined />} />
                     </div>
                   </OrbitingCircles>
                 ))}
                 <div className="orbit-center">
-                  <Sparkles size={32} className="orbit-center-icon" />
+                  <Sparkles size={24} className="orbit-center-icon" />
                 </div>
               </div>
               <p className="home-db-hero__kicker">SoulSynergy — сообщество практик и экспертов</p>
