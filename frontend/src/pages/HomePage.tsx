@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Row, Col, Tabs, Typography, Spin, Button, Modal } from 'antd';
 import { EyeOutlined, UserOutlined, HeartOutlined, EditOutlined, SearchOutlined, CloseOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { Gem, ClockPlus } from 'lucide-react';
+import { Gem, ClockPlus, Moon, Sun, Star, Zap, Feather, Heart, Sparkles } from 'lucide-react';
+import OrbitingCircles from '../components/magicui/OrbitingCircles';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import LazyImage from '../components/LazyImage';
@@ -33,7 +34,13 @@ interface Article {
   is_pinned?: boolean;
 }
 
- interface ArticleCardProps {
+ interface Expert {
+  id: number;
+  name: string;
+  avatar_url?: string;
+}
+
+interface ArticleCardProps {
   article: Article;
   onOpen: (articleId: number) => void;
   onOpenAuthor: (authorId: number) => void;
@@ -154,11 +161,25 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
 
+  const [orbitExperts, setOrbitExperts] = useState<Expert[]>([]);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const fetchOrbitExperts = async () => {
+      try {
+        const response = await api.get('/experts/search?limit=8&order=newest');
+        setOrbitExperts(response.data || []);
+      } catch (error) {
+        console.error('Ошибка загрузки экспертов для орбиты:', error);
+      }
+    };
+    fetchOrbitExperts();
   }, []);
 
   // Мемоизированная функция загрузки статей
@@ -288,6 +309,32 @@ const HomePage = () => {
         <div className="container home-db-hero__inner">
           <div className="home-db-hero__row">
             <div className="home-db-hero__text">
+              <div className="home-db-hero__orbit">
+                {orbitExperts.slice(0, 2).map((expert, i) => (
+                  <OrbitingCircles key={expert.id} radius={70} duration={20} delay={i * 10}>
+                    <div className="orbit-avatar-wrapper" onClick={() => navigate(`/experts/${expert.id}`)}>
+                      <LazyAvatar src={expert.avatar_url} size={40} icon={<UserOutlined />} />
+                    </div>
+                  </OrbitingCircles>
+                ))}
+                {orbitExperts.slice(2, 5).map((expert, i) => (
+                  <OrbitingCircles key={expert.id} radius={125} duration={30} delay={i * 10} reverse>
+                    <div className="orbit-avatar-wrapper" onClick={() => navigate(`/experts/${expert.id}`)}>
+                      <LazyAvatar src={expert.avatar_url} size={48} icon={<UserOutlined />} />
+                    </div>
+                  </OrbitingCircles>
+                ))}
+                {orbitExperts.slice(5, 8).map((expert, i) => (
+                  <OrbitingCircles key={expert.id} radius={185} duration={45} delay={i * 15}>
+                    <div className="orbit-avatar-wrapper" onClick={() => navigate(`/experts/${expert.id}`)}>
+                      <LazyAvatar src={expert.avatar_url} size={54} icon={<UserOutlined />} />
+                    </div>
+                  </OrbitingCircles>
+                ))}
+                <div className="orbit-center">
+                  <Sparkles size={32} className="orbit-center-icon" />
+                </div>
+              </div>
               <p className="home-db-hero__kicker">SoulSynergy — сообщество практик и экспертов</p>
               <h1 className="home-db-hero__title">
                 <span className="home-db-hero__title-line">Откройте лучших</span>
@@ -323,50 +370,22 @@ const HomePage = () => {
       <div className="container home-vast-inner">
 
         <div className="home-vast-toolbar">
-          <Tabs
-            activeKey={sortType}
-            onChange={(key) => setSortType(key as 'new' | 'popular')}
-            items={[
-              {
-                key: 'new',
-                label: (
-                  <span
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: 'inherit'
-                    }}
-                  >
-                    <ClockPlus size={17} />
-                    <span>Новое</span>
-                  </span>
-                )
-              },
-              {
-                key: 'popular',
-                label: (
-                  <span
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: 'inherit'
-                    }}
-                  >
-                    <Gem size={17} />
-                    <span>Популярное</span>
-                  </span>
-                )
-              }
-            ]}
-            style={{ marginBottom: 0, flex: 1 }}
-            tabBarStyle={{ marginBottom: 0, borderBottom: 'none' }}
-          />
+          <div className="home-vast-filters">
+            <button
+              className={`home-vast-filter ${sortType === 'new' ? 'is-active' : ''}`}
+              onClick={() => setSortType('new')}
+            >
+              <ClockPlus size={16} />
+              <span>Новое</span>
+            </button>
+            <button
+              className={`home-vast-filter ${sortType === 'popular' ? 'is-active' : ''}`}
+              onClick={() => setSortType('popular')}
+            >
+              <Gem size={16} />
+              <span>Популярное</span>
+            </button>
+          </div>
 
           {(user?.userType === 'expert' || user?.userType === 'admin') && (
             <Button

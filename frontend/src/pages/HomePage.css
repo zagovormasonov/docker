@@ -1,4 +1,4 @@
-/* Magic UI–inspired homepage — clean light theme */
+@import "../components/magicui/OrbitingCircles.css";
 
 .home-vast {
   --mu-bg: #ffffff;
@@ -106,8 +106,41 @@
   align-items: center;
   text-align: center;
   gap: 24px;
-  max-width: 680px;
+  max-width: 860px;
   margin: 0 auto;
+}
+
+.home-db-hero__orbit {
+  position: relative;
+  display: flex;
+  height: 480px;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: -80px;
+  margin-bottom: -100px;
+  /* fade out the edges */
+  mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
+}
+
+.orbit-center {
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: var(--mu-surface);
+  border: 1px solid var(--mu-border);
+  border-radius: 50%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+}
+
+.orbit-center-icon {
+  color: var(--mu-text);
 }
 
 .home-db-hero__text {
@@ -285,24 +318,53 @@
   box-shadow: var(--mu-card-shadow);
 }
 
-.home-vast-toolbar .ant-tabs-nav::before {
-  border-bottom: none !important;
+/* ——— Filters ——— */
+.home-vast-filters {
+  display: flex;
+  gap: 12px;
+  flex: 1;
 }
 
-.home-vast-toolbar .ant-tabs-tab {
-  padding: 8px 4px !important;
+.home-vast-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--mu-dim);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  outline: none;
 }
 
-.home-vast-toolbar .ant-tabs-tab-btn {
-  color: var(--mu-dim) !important;
+.home-vast-filter:hover {
+  color: var(--mu-muted);
 }
 
-.home-vast-toolbar .ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: var(--mu-text) !important;
+.home-vast-filter.is-active {
+  color: var(--mu-text);
+  background: var(--mu-surface);
+  border-color: var(--mu-border);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.home-vast-toolbar .ant-tabs-ink-bar {
-  background: var(--mu-accent) !important;
+.home-vast-filter.is-active::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  background: var(--mu-accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.home-vast-filter:focus-visible {
+  box-shadow: 0 0 0 2px var(--mu-border-strong);
 }
 
 /* ——— Empty & Loading ——— */
