@@ -33,20 +33,7 @@ interface Article {
   is_pinned?: boolean;
 }
 
-interface EventPreview {
-  id: number;
-  title: string;
-  description: string;
-  cover_image?: string;
-  event_type: string;
-  is_online: boolean;
-  city_name?: string;
-  event_date: string;
-  location?: string;
-}
-
-
-interface ArticleCardProps {
+ interface ArticleCardProps {
   article: Article;
   onOpen: (articleId: number) => void;
   onOpenAuthor: (authorId: number) => void;
@@ -290,19 +277,19 @@ const HomePage = () => {
   }, [isModalOpen, currentArticleIndex, filteredArticles]);
 
   // Scroll to top when article changes
-  // Scroll to top when article changes
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="home-vast home-vast--dribbble" style={{ paddingBottom: 24 }}>
-      <section className="home-db-hero" aria-label="Главный экран">
+    <div className="home-vast" style={{ paddingBottom: 24, position: 'relative' }}>
+      <div className="magic-radial-fade" />
+      <section className="home-db-hero" aria-label="Главный экран" style={{ position: 'relative', zIndex: 1 }}>
         <div className="container home-db-hero__inner">
           <div className="home-db-hero__row">
             <div className="home-db-hero__text">
               <p className="home-db-hero__kicker">SoulSynergy — сообщество практик и экспертов</p>
               <h1 className="home-db-hero__title">
                 <span className="home-db-hero__title-line">Откройте лучших</span>
-                <span className="home-db-hero__title-line home-db-hero__title-line--accent">экспертов и практики</span>
+                <span className="home-db-hero__title-line home-db-hero__title-line--accent magic-gradient-text">экспертов и практики</span>
               </h1>
               <p className="home-db-hero__sub">
                 Лента материалов, афиша событий и каталог специалистов — всё в одном месте: ясная структура, много воздуха и акцент на людях и практиках.
