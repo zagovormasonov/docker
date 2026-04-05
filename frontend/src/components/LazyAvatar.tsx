@@ -59,11 +59,21 @@ const LazyAvatar: React.FC<LazyAvatarProps> = ({
   }, [isInView, src, defaultSrc]);
 
   return (
-    <div ref={avatarRef} style={{ display: 'inline-flex', flexShrink: 0 }}>
+    <div 
+      ref={avatarRef} 
+      style={{ 
+        display: 'inline-flex', 
+        flexShrink: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...props.style 
+      }}
+    >
       <Avatar
         {...props}
         src={imageSrc}
         icon={!imageSrc && icon}
+        style={{ ...props.style, border: 'none' }}
       />
     </div>
   );

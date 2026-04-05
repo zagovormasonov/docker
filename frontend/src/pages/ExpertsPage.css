@@ -193,6 +193,25 @@
   padding: 3px;
   background: linear-gradient(135deg, var(--e-border) 0%, transparent 100%);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expert-card-v2__avatar-ring .ant-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+}
+
+.expert-card-v2__avatar-ring .ant-avatar img {
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
 }
 
 .expert-card-v2__name {

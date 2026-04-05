@@ -207,3 +207,7 @@
   background: var(--h-accent) !important;
   color: var(--mu-bg, #fff) !important;
 }
+
+.ant-avatar img {
+  object-fit: cover !important;
+}
