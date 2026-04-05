@@ -13,7 +13,7 @@ import {
   Badge,
   Empty
 } from 'antd';
-import { SendOutlined, UserOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { SendOutlined, UserOutlined, ArrowLeftOutlined, SearchOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import socketService from '../api/socket';
 import { useAuth } from '../contexts/AuthContext';
@@ -60,6 +60,8 @@ const ChatsPage = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showChatList, setShowChatList] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [chatSearchText, setChatSearchText] = useState('');
 
   // Синхронизация URL с состоянием чата
   useEffect(() => {
@@ -243,87 +245,47 @@ const ChatsPage = () => {
 
   const selectedChatObj = selectedChat ? chats.find(c => c.id === selectedChat) : null;
 
-  const renderChatRow = (chat: Chat) => (
-    <List.Item
-      onClick={() => handleChatSelect(chat.id)}
-      style={{
-        cursor: 'pointer',
-        background: selectedChat === chat.id ? '#f0f0f0' :
-          (chat.unread_count && chat.unread_count > 0 ? '#fff2f0' : 'transparent'),
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 8,
-        border: chat.unread_count && chat.unread_count > 0 ? '1px solid #ffccc7' : '1px solid transparent'
-      }}
-    >
-      <List.Item.Meta
-        avatar={
-          <Badge
-            dot={chat.other_user_online}
-            color="green"
-            count={chat.unread_count && chat.unread_count > 0 ? chat.unread_count : 0}
-            offset={[-5, 5]}
-          >
-            <Avatar
-              src={chat.other_user_avatar}
-              icon={!chat.other_user_avatar && <UserOutlined />}
-              size={48}
-            />
-          </Badge>
-        }
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span>{chat.other_user_name}</span>
-            {chat.last_message_sender_id === user?.id && (
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                (Вы)
-              </Text>
-            )}
-          </div>
-        }
-        description={
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text ellipsis type="secondary" style={{ flex: 1 }}>
-              {chat.last_message || 'Нет сообщений'}
-            </Text>
-            {chat.unread_count && chat.unread_count > 0 && (
-              <Badge
-                count={chat.unread_count}
-                size="small"
-                style={{
-                  marginLeft: 8,
-                  backgroundColor: '#ff4d4f',
-                  color: 'white',
-                  fontWeight: 'bold'
-                }}
-              />
-            )}
-          </div>
-        }
-      />
-      {chat.last_message_time && (
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          {dayjs(chat.last_message_time).format('HH:mm')}
-        </Text>
-      )}
-    </List.Item>
-  );
+  // Фильтрация чатов: только с сообщениями + поиск по имени или последнему сообщению
+  const filteredChats = chats.filter(chat => {
+    // 1. Скрываем чаты без последнего сообщения
+    if (!chat.last_message) return false;
+
+    // 2. Поиск
+    if (!chatSearchText) return true;
+    
+    const searchLower = chatSearchText.toLowerCase();
+    const nameMatch = chat.other_user_name?.toLowerCase().includes(searchLower);
+    const messageMatch = chat.last_message?.toLowerCase().includes(searchLower);
+    
+    return nameMatch || messageMatch;
+  });
 
   // Мобильная версия - список чатов
   if (isMobile && showChatList) {
     return (
       <div className="chats-page">
         <div className="chats-panel">
-          <div style={{ padding: '24px 24px 12px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fff' }}>
-            <Title level={4} style={{ margin: 0 }}>Чаты</Title>
+          <div style={{ padding: '20px 24px 12px', background: '#fff' }}>
+            <Title level={4} style={{ margin: '0 0 16px' }}>Чаты</Title>
+            <Input
+              placeholder="Поиск чатов и сообщений..."
+              prefix={<SearchOutlined style={{ color: '#8c8c8c' }} />}
+              value={chatSearchText}
+              onChange={(e) => setChatSearchText(e.target.value)}
+              style={{ borderRadius: '12px', background: '#f5f5f5', border: 'none' }}
+              allowClear
+            />
           </div>
           
           <div className="chat-list-container">
-            {chats.length === 0 ? (
-              <Empty description="Нет активных чатов" style={{ marginTop: 40 }} />
+            {filteredChats.length === 0 ? (
+              <Empty 
+                description={chatSearchText ? "Ничего не найдено" : "Нет активных чатов"} 
+                style={{ marginTop: 40 }} 
+              />
             ) : (
               <List
-                dataSource={chats}
+                dataSource={filteredChats}
                 renderItem={(chat) => (
                   <div 
                     className={`chat-item ${chat.unread_count ? 'chat-item-unread' : ''}`}
@@ -346,7 +308,7 @@ const ChatsPage = () => {
                         </div>
                         <Text type="secondary" style={{ fontSize: '13px' }} ellipsis>
                           {chat.last_message_sender_id === user?.id && <span style={{ color: '#6366f1' }}>Вы: </span>}
-                          {chat.last_message || 'Нет сообщений'}
+                          {chat.last_message}
                         </Text>
                       </div>
                     </div>
@@ -448,16 +410,27 @@ const ChatsPage = () => {
       <Row gutter={24} style={{ height: '100%' }}>
         <Col span={8}>
           <div className="chats-panel">
-            <div style={{ padding: '24px 24px 8px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-              <Title level={4} style={{ margin: 0 }}>Чаты</Title>
+            <div style={{ padding: '24px 24px 16px', background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+              <Title level={4} style={{ margin: '0 0 16px' }}>Чаты</Title>
+              <Input
+                placeholder="Поиск чатов и сообщений..."
+                prefix={<SearchOutlined style={{ color: '#8c8c8c' }} />}
+                value={chatSearchText}
+                onChange={(e) => setChatSearchText(e.target.value)}
+                style={{ borderRadius: '12px', background: '#f5f5f5', border: 'none' }}
+                allowClear
+              />
             </div>
             
             <div className="chat-list-container">
-              {chats.length === 0 ? (
-                <Empty description="Нет активных чатов" style={{ marginTop: 40 }} />
+              {filteredChats.length === 0 ? (
+                <Empty 
+                  description={chatSearchText ? "Ничего не найдено" : "Нет активных чатов"} 
+                  style={{ marginTop: 40 }} 
+                />
               ) : (
                 <List
-                  dataSource={chats}
+                  dataSource={filteredChats}
                   renderItem={(chat) => (
                     <div 
                       className={`chat-item ${selectedChat === chat.id ? 'chat-item-active' : ''} ${chat.unread_count ? 'chat-item-unread' : ''}`}
@@ -481,7 +454,7 @@ const ChatsPage = () => {
                           </div>
                           <Text type="secondary" style={{ fontSize: '13px' }} ellipsis>
                             {chat.last_message_sender_id === user?.id && <span style={{ color: '#6366f1' }}>Вы: </span>}
-                            {chat.last_message || 'Нет сообщений'}
+                            {chat.last_message}
                           </Text>
                         </div>
                       </div>
