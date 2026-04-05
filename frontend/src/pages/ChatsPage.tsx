@@ -280,10 +280,26 @@ const ChatsPage = () => {
     });
   }, [chats, chatSearchText]);
 
+  const handleScrollToMessage = (messageId?: number) => {
+    if (!messageId) return;
+    const element = document.getElementById(`message-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.style.backgroundColor = 'rgba(99, 102, 241, 0.15)';
+      setTimeout(() => {
+        element.style.backgroundColor = '';
+      }, 2000);
+    }
+  };
+
   const renderMessageReply = (message: Message) => {
     if (!message.parent_id) return null;
     return (
-      <div className="message-reply-snippet">
+      <div 
+        className="message-reply-snippet" 
+        onClick={() => handleScrollToMessage(message.parent_id)}
+        style={{ cursor: 'pointer' }}
+      >
         <div className="message-reply-sender">{message.parent_sender_name}</div>
         <Text className="message-reply-content" ellipsis>
           {message.parent_content?.includes('<div style=') ? 'Карточка товара' : message.parent_content}
@@ -386,10 +402,12 @@ const ChatsPage = () => {
               return (
                 <div
                   key={message.id}
+                  id={`message-${message.id}`}
                   className="message-row"
                   style={{
                     display: 'flex',
-                    justifyContent: isMe ? 'flex-end' : 'flex-start'
+                    justifyContent: isMe ? 'flex-end' : 'flex-start',
+                    transition: 'background-color 0.5s ease'
                   }}
                   onDoubleClick={() => handleReply(message)}
                 >
@@ -543,10 +561,12 @@ const ChatsPage = () => {
                       return (
                         <div
                           key={message.id}
+                          id={`message-${message.id}`}
                           className="message-row"
                           style={{
                             display: 'flex',
-                            justifyContent: isMe ? 'flex-end' : 'flex-start'
+                            justifyContent: isMe ? 'flex-end' : 'flex-start',
+                            transition: 'background-color 0.5s ease'
                           }}
                         >
                           <div className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}>

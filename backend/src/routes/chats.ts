@@ -165,9 +165,15 @@ router.get('/:chatId/messages', authenticateToken, async (req: AuthRequest, res)
     }
 
     const result = await query(
-      `SELECT m.*, u.name as sender_name, u.avatar_url as sender_avatar
+      `SELECT m.*, 
+              u.name as sender_name, 
+              u.avatar_url as sender_avatar,
+              pm.content as parent_content,
+              pu.name as parent_sender_name
        FROM messages m
        JOIN users u ON m.sender_id = u.id
+       LEFT JOIN messages pm ON m.parent_id = pm.id
+       LEFT JOIN users pu ON pm.sender_id = pu.id
        WHERE m.chat_id = $1
        ORDER BY m.created_at ASC`,
       [chatId]
