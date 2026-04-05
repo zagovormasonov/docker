@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Row,
@@ -246,19 +246,21 @@ const ChatsPage = () => {
   const selectedChatObj = selectedChat ? chats.find(c => c.id === selectedChat) : null;
 
   // Фильтрация чатов: только с сообщениями + поиск по имени или последнему сообщению
-  const filteredChats = chats.filter(chat => {
-    // 1. Скрываем чаты без последнего сообщения
-    if (!chat.last_message) return false;
+  const filteredChats = useMemo(() => {
+    return chats.filter(chat => {
+      // 1. Скрываем чаты без последнего сообщения
+      if (!chat.last_message) return false;
 
-    // 2. Поиск
-    if (!chatSearchText) return true;
-    
-    const searchLower = chatSearchText.toLowerCase();
-    const nameMatch = chat.other_user_name?.toLowerCase().includes(searchLower);
-    const messageMatch = chat.last_message?.toLowerCase().includes(searchLower);
-    
-    return nameMatch || messageMatch;
-  });
+      // 2. Поиск
+      if (!chatSearchText) return true;
+      
+      const searchLower = chatSearchText.toLowerCase();
+      const nameMatch = chat.other_user_name?.toLowerCase().includes(searchLower);
+      const messageMatch = chat.last_message?.toLowerCase().includes(searchLower);
+      
+      return nameMatch || messageMatch;
+    });
+  }, [chats, chatSearchText]);
 
   // Мобильная версия - список чатов
   if (isMobile && showChatList) {
