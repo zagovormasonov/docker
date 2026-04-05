@@ -164,6 +164,10 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_plan VARCHAR(50)`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_payment_date TIMESTAMP`);
+    
+    // Добавляем поддержку ответов на сообщения
+    await query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES messages(id) ON DELETE SET NULL`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_messages_parent ON messages(parent_id)`);
 
     // Таблица платежей (могла быть создана внешним скриптом)
     await query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS used_bonuses INTEGER DEFAULT 0`);

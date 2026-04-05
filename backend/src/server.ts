@@ -153,16 +153,17 @@ io.on('connection', async (socket) => {
   socket.on('send_message', async (data: {
     chatId: number;
     content: string;
+    parentId?: number;
   }) => {
     try {
-      const { chatId, content } = data;
+      const { chatId, content, parentId } = data;
 
       // Сохранение в БД
       const result = await query(
-        `INSERT INTO messages (chat_id, sender_id, content)
-         VALUES ($1, $2, $3)
+        `INSERT INTO messages (chat_id, sender_id, content, parent_id)
+         VALUES ($1, $2, $3, $4)
          RETURNING *`,
-        [chatId, userId, content]
+        [chatId, userId, content, parentId || null]
       );
 
       const message = result.rows[0];
@@ -173,14 +174,31 @@ io.on('connection', async (socket) => {
         [userId]
       );
 
-      const messageWithSender = {
+      // Если есть ответ на сообщение, получим данные родительского сообщения
+      let parentMessage = null;
+      if (parentId) {
+        const parentResult = await query(
+          `SELECT m.content, u.name as sender_name 
+           FROM messages m 
+           JOIN users u ON m.sender_id = u.id 
+           WHERE m.id = $1`,
+          [parentId]
+        );
+        if (parentResult.rows.length > 0) {
+          parentMessage = parentResult.rows[0];
+        }
+      }
+
+      const messageWithExtra = {
         ...message,
         sender_name: userResult.rows[0].name,
-        sender_avatar: userResult.rows[0].avatar_url
+        sender_avatar: userResult.rows[0].avatar_url,
+        parent_content: parentMessage?.content,
+        parent_sender_name: parentMessage?.sender_name
       };
 
       // Отправка всем в комнате
-      io.to(`chat_${chatId}`).emit('new_message', messageWithSender);
+      io.to(`chat_${chatId}`).emit('new_message', messageWithExtra);
     } catch (error) {
       console.error('Ошибка отправки сообщения:', error);
       socket.emit('error', { message: 'Ошибка отправки сообщения' });

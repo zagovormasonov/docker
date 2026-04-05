@@ -13,7 +13,14 @@ import {
   Badge,
   Empty
 } from 'antd';
-import { SendOutlined, UserOutlined, ArrowLeftOutlined, SearchOutlined } from '@ant-design/icons';
+import { 
+  SendOutlined, 
+  UserOutlined, 
+  ArrowLeftOutlined, 
+  SearchOutlined,
+  CloseOutlined,
+  RollbackOutlined
+} from '@ant-design/icons';
 import api from '../api/axios';
 import socketService from '../api/socket';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,6 +51,9 @@ interface Message {
   content: string;
   created_at: string;
   is_read: boolean;
+  parent_id?: number;
+  parent_content?: string;
+  parent_sender_name?: string;
 }
 
 const ChatsPage = () => {
@@ -60,8 +70,8 @@ const ChatsPage = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showChatList, setShowChatList] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const [chatSearchText, setChatSearchText] = useState('');
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
 
   // Синхронизация URL с состоянием чата
   useEffect(() => {
@@ -79,6 +89,7 @@ const ChatsPage = () => {
         setShowChatList(true);
       }
     }
+    setReplyTo(null);
   }, [chatId, isMobile]);
 
   useEffect(() => {
@@ -209,8 +220,9 @@ const ChatsPage = () => {
   const sendMessage = () => {
     if (!messageText.trim() || !selectedChat) return;
 
-    socketService.sendMessage(selectedChat, messageText.trim());
+    socketService.sendMessage(selectedChat, messageText.trim(), replyTo?.id);
     setMessageText('');
+    setReplyTo(null);
   };
 
   const scrollToBottom = () => {
@@ -243,6 +255,12 @@ const ChatsPage = () => {
     }
   };
 
+  const handleReply = (message: Message) => {
+    setReplyTo(message);
+    const input = document.querySelector('.chat-input-field input') as HTMLInputElement;
+    if (input) input.focus();
+  };
+
   const selectedChatObj = selectedChat ? chats.find(c => c.id === selectedChat) : null;
 
   // Фильтрация чатов: только с сообщениями + поиск по имени или последнему сообщению
@@ -261,6 +279,18 @@ const ChatsPage = () => {
       return nameMatch || messageMatch;
     });
   }, [chats, chatSearchText]);
+
+  const renderMessageReply = (message: Message) => {
+    if (!message.parent_id) return null;
+    return (
+      <div className="message-reply-snippet">
+        <div className="message-reply-sender">{message.parent_sender_name}</div>
+        <Text className="message-reply-content" ellipsis>
+          {message.parent_content?.includes('<div style=') ? 'Карточка товара' : message.parent_content}
+        </Text>
+      </div>
+    );
+  };
 
   // Мобильная версия - список чатов
   if (isMobile && showChatList) {
@@ -361,10 +391,10 @@ const ChatsPage = () => {
                     display: 'flex',
                     justifyContent: isMe ? 'flex-end' : 'flex-start'
                   }}
+                  onDoubleClick={() => handleReply(message)}
                 >
-                  <div
-                    className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}
-                  >
+                  <div className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}>
+                    {renderMessageReply(message)}
                     {message.content.includes('<div style=') ? (
                       <div dangerouslySetInnerHTML={{ __html: message.content }} />
                     ) : (
@@ -383,6 +413,22 @@ const ChatsPage = () => {
           </div>
 
           <div className="chat-input-wrapper">
+            {replyTo && (
+              <div className="reply-preview">
+                <div className="reply-preview-content">
+                  <div className="reply-preview-sender">Ответ на {replyTo.sender_name}</div>
+                  <Text className="reply-preview-text" ellipsis>
+                    {replyTo.content.includes('<div style=') ? 'Карточка товара' : replyTo.content}
+                  </Text>
+                </div>
+                <Button 
+                  icon={<CloseOutlined />} 
+                  type="text" 
+                  size="small" 
+                  onClick={() => setReplyTo(null)} 
+                />
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <Input
                 value={messageText}
@@ -503,9 +549,13 @@ const ChatsPage = () => {
                             justifyContent: isMe ? 'flex-end' : 'flex-start'
                           }}
                         >
-                          <div
-                            className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}
-                          >
+                          <div className={`message-bubble ${isMe ? 'message-sent' : 'message-received'}`}>
+                            <div className="message-actions">
+                              <button onClick={() => handleReply(message)} title="Ответить">
+                                <RollbackOutlined />
+                              </button>
+                            </div>
+                            {renderMessageReply(message)}
                             {message.content.includes('<div style=') ? (
                               <div dangerouslySetInnerHTML={{ __html: message.content }} />
                             ) : (
@@ -525,6 +575,22 @@ const ChatsPage = () => {
                 </div>
 
                 <div className="chat-input-wrapper">
+                  {replyTo && (
+                    <div className="reply-preview">
+                      <div className="reply-preview-content">
+                        <div className="reply-preview-sender">Ответ на {replyTo.sender_name}</div>
+                        <Text className="reply-preview-text" ellipsis>
+                          {replyTo.content.includes('<div style=') ? 'Карточка товара' : replyTo.content}
+                        </Text>
+                      </div>
+                      <Button 
+                        icon={<CloseOutlined />} 
+                        type="text" 
+                        size="small" 
+                        onClick={() => setReplyTo(null)} 
+                      />
+                    </div>
+                  )}
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <Input
                       value={messageText}

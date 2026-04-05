@@ -46,8 +46,8 @@ class SocketService {
     this.socket?.emit('join_chat', chatId);
   }
 
-  sendMessage(chatId: number, content: string) {
-    this.socket?.emit('send_message', { chatId, content });
+  sendMessage(chatId: number, content: string, parentId?: number) {
+    this.socket?.emit('send_message', { chatId, content, parentId });
   }
 
   onNewMessage(callback: (message: any) => void) {
