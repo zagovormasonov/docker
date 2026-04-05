@@ -329,6 +329,27 @@ const Header = () => {
           <div className="header-minimal__actions desktop-user-actions">
             {user ? (
               <>
+                {(user.userType === 'expert' || user.userType === 'admin') && (
+                  <Button 
+                    type="primary" 
+                    icon={<LayoutDashboard size={16} />}
+                    onClick={() => navigate('/expert-dashboard')}
+                    className="header-minimal__dashboard-btn"
+                    style={{ 
+                      borderRadius: '12px', 
+                      height: '36px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      fontWeight: 600,
+                      background: 'var(--mu-accent, #000)',
+                      border: 'none',
+                      marginRight: '8px'
+                    }}
+                  >
+                    {!isMobile && "Кабинет эксперта"}
+                  </Button>
+                )}
                 <div style={{ display: 'flex', gap: '4px' }}>
                   <button className="header-minimal__btn" onClick={handleChatsClick}>
                     <Badge count={unreadCount} size="small" offset={[2, -2]}>
