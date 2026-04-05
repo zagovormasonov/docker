@@ -36,7 +36,7 @@
 
 .experts-v2__title {
   font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: -0.03em;
   margin-bottom: 12px;
   color: var(--e-text);
