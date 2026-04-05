@@ -1,0 +1,209 @@
+.header-minimal {
+  --h-bg: rgba(255, 255, 255, 0.7);
+  --h-border: rgba(0, 0, 0, 0.06);
+  --h-text: #09090b;
+  --h-muted: #71717a;
+  --h-accent: #000000;
+  
+  height: 64px;
+  background: var(--h-bg);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid var(--h-border);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  transition: all 0.3s ease;
+}
+
+.dark-theme .header-minimal {
+  --h-bg: rgba(9, 9, 11, 0.7);
+  --h-border: rgba(255, 255, 255, 0.08);
+  --h-text: #fafafa;
+  --h-muted: #a1a1aa;
+  --h-accent: #ffffff;
+}
+
+.header-minimal__left,
+.header-minimal__right {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.header-minimal__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  transition: opacity 0.2s;
+}
+
+.header-minimal__logo:hover {
+  opacity: 0.8;
+}
+
+.header-minimal__logo-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.header-minimal__logo-text {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--h-text);
+}
+
+.header-minimal__nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-minimal__nav-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--h-muted);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.header-minimal__nav-link:hover {
+  color: var(--h-text);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.dark-theme .header-minimal__nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.header-minimal__nav-link.active {
+  color: var(--h-text);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dark-theme .header-minimal__nav-link.active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.header-minimal__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-minimal__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--h-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.header-minimal__btn:hover {
+  color: var(--h-text);
+  background: rgba(0, 0, 0, 0.03);
+  border-color: var(--h-border);
+}
+
+.dark-theme .header-minimal__btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.header-minimal__avatar {
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  padding: 2px;
+}
+
+.header-minimal__avatar:hover {
+  border-color: var(--h-border);
+}
+
+/* Search component in header */
+.header-minimal__search {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 38px;
+  width: 240px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-theme .header-minimal__search {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.header-minimal__search:focus-within {
+  width: 300px;
+  background: #fff;
+  border-color: var(--h-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dark-theme .header-minimal__search:focus-within {
+  background: #18181b;
+}
+
+.header-minimal__search input {
+  border: none;
+  background: transparent;
+  padding: 8px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  color: var(--h-text);
+}
+
+.header-minimal__search .anticon {
+  color: var(--h-muted);
+}
+
+@media (max-width: 768px) {
+  .header-minimal {
+    padding: 0 16px;
+    height: 60px;
+  }
+  
+  .header-minimal__nav,
+  .header-minimal__search,
+  .desktop-user-actions {
+    display: none !important;
+  }
+  
+  .header-minimal__left {
+    gap: 12px;
+  }
+}
+
+.header-minimal .ant-badge-count {
+  box-shadow: none !important;
+  font-size: 10px;
+  height: 16px;
+  min-width: 16px;
+  line-height: 16px;
+  background: var(--h-accent) !important;
+  color: var(--mu-bg, #fff) !important;
+}

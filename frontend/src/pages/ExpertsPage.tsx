@@ -1,14 +1,26 @@
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Input, Select, Typography, Tag, Space, Spin, Empty, Button } from 'antd';
-import { UserOutlined, EnvironmentOutlined, SearchOutlined, MessageOutlined, StarOutlined, StarFilled, CloseOutlined, CheckOutlined } from '@ant-design/icons';
+import { Row, Col, Input, Select, Typography, Spin, Empty, Button, Badge } from 'antd';
+import { 
+  Search, 
+  MapPin, 
+  MessageSquare, 
+  Star, 
+  X, 
+  Check, 
+  ChevronDown, 
+  Sparkles,
+  User,
+  Filter,
+  ArrowRight
+} from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import LazyAvatar from '../components/LazyAvatar';
+import './ExpertsPage.css';
 
 const { Title, Text } = Typography;
-const { Meta } = Card;
 
 interface Topic {
   id: number;
@@ -55,7 +67,7 @@ const ExpertsPage = () => {
   const [newExpertsFavoriteStatus, setNewExpertsFavoriteStatus] = useState<Record<number, boolean>>({});
   const [newExpertsOffset, setNewExpertsOffset] = useState(6);
   const [hasMoreExperts, setHasMoreExperts] = useState(true);
-  const [displayLimit, setDisplayLimit] = useState(12); // Ограничение отображения
+  const [displayLimit, setDisplayLimit] = useState(12);
   const searchTimeoutRef = useRef<number | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [mobileSelectType, setMobileSelectType] = useState<MobileSelectType | null>(null);
@@ -63,34 +75,19 @@ const ExpertsPage = () => {
   const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
   const originalBodyOverflow = useRef<string | null>(null);
   const navigate = useNavigate();
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-
-  // Debounce для поискового запроса (500ms)
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = window.setTimeout(() => {
-      setDebouncedSearchText(searchText);
-    }, 500);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = window.setTimeout(() => setDebouncedSearchText(searchText), 500);
+    return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, [searchText]);
 
-  // Мемоизированная функция загрузки тематик
   const fetchTopics = useCallback(async () => {
     try {
       const response = await api.get('/topics');
@@ -100,7 +97,6 @@ const ExpertsPage = () => {
     }
   }, []);
 
-  // Мемоизированная функция загрузки городов
   const fetchCities = useCallback(async () => {
     try {
       const response = await api.get('/cities');
@@ -110,40 +106,23 @@ const ExpertsPage = () => {
     }
   }, []);
 
-  // Мемоизированная функция загрузки новых экспертов
   const fetchNewExperts = useCallback(async () => {
     setNewExpertsLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.append('limit', '6');
-      params.append('order', 'newest');
-
-      const response = await api.get(`/experts/search?${params.toString()}`);
+      const response = await api.get('/experts/search?limit=6&order=newest');
       const newExpertsData = response.data;
       setNewExperts(newExpertsData);
-      
-      // Проверяем, есть ли еще эксперты
       setHasMoreExperts(newExpertsData.length === 6);
       
-      // Ленивая загрузка статуса избранного - загружаем только первые 6
       if (newExpertsData.length > 0 && user) {
-        // Загружаем статус только для первых 6 видимых экспертов
         const visibleExperts = newExpertsData.slice(0, 6);
-        const favoritePromises = visibleExperts.map((expert: Expert) => 
-          api.get(`/expert-interactions/${expert.id}/status`)
-            .catch(() => ({ data: { favorited: false } }))
+        const favoritePromises = visibleExperts.map((exp: Expert) => 
+          api.get(`/expert-interactions/${exp.id}/status`).catch(() => ({ data: { favorited: false } }))
         );
-        
-        try {
-          const favoriteResponses = await Promise.all(favoritePromises);
-          const favoriteStatusMap: Record<number, boolean> = {};
-          favoriteResponses.forEach((response, index) => {
-            favoriteStatusMap[visibleExperts[index].id] = response.data.favorited;
-          });
-          setNewExpertsFavoriteStatus(favoriteStatusMap);
-        } catch (error) {
-          console.error('Ошибка загрузки статуса избранного для новых экспертов:', error);
-        }
+        const responses = await Promise.all(favoritePromises);
+        const map: Record<number, boolean> = {};
+        responses.forEach((res, i) => map[visibleExperts[i].id] = res.data.favorited);
+        setNewExpertsFavoriteStatus(map);
       }
     } catch (error) {
       console.error('Ошибка загрузки новых экспертов:', error);
@@ -152,97 +131,55 @@ const ExpertsPage = () => {
     }
   }, [user]);
 
-  // Мемоизированная функция загрузки дополнительных экспертов
   const loadMoreExperts = useCallback(async () => {
     setLoadingMore(true);
     try {
-      const params = new URLSearchParams();
-      params.append('limit', '6');
-      params.append('offset', newExpertsOffset.toString());
-      params.append('order', 'newest');
-
-      const response = await api.get(`/experts/search?${params.toString()}`);
-      const moreExpertsData = response.data;
-      
-      // Добавляем новых экспертов к существующим, исключая дубликаты
+      const response = await api.get(`/experts/search?limit=6&offset=${newExpertsOffset}&order=newest`);
+      const moreData = response.data;
       setNewExperts(prev => {
-        const existingIds = new Set(prev.map(expert => expert.id));
-        const uniqueNewExperts = moreExpertsData.filter((expert: Expert) => !existingIds.has(expert.id));
-        return [...prev, ...uniqueNewExperts];
+        const ids = new Set(prev.map(e => e.id));
+        return [...prev, ...moreData.filter((e: Expert) => !ids.has(e.id))];
       });
-      
-      // Обновляем offset
       setNewExpertsOffset(prev => prev + 6);
+      setHasMoreExperts(moreData.length === 6);
       
-      // Проверяем, есть ли еще эксперты
-      setHasMoreExperts(moreExpertsData.length === 6);
-      
-      // Ленивая загрузка статуса избранного
-      if (moreExpertsData.length > 0 && user) {
-        const favoritePromises = moreExpertsData.map((expert: Expert) => 
-          api.get(`/expert-interactions/${expert.id}/status`)
-            .catch(() => ({ data: { favorited: false } }))
+      if (moreData.length > 0 && user) {
+        const promises = moreData.map((exp: Expert) => 
+          api.get(`/expert-interactions/${exp.id}/status`).catch(() => ({ data: { favorited: false } }))
         );
-        
-        try {
-          const favoriteResponses = await Promise.all(favoritePromises);
-          const favoriteStatusMap: Record<number, boolean> = {};
-          favoriteResponses.forEach((response, index) => {
-            favoriteStatusMap[moreExpertsData[index].id] = response.data.favorited;
-          });
-          setNewExpertsFavoriteStatus(prev => ({
-            ...prev,
-            ...favoriteStatusMap
-          }));
-        } catch (error) {
-          console.error('Ошибка загрузки статуса избранного:', error);
-        }
+        const responses = await Promise.all(promises);
+        const map: Record<number, boolean> = {};
+        responses.forEach((res, i) => map[moreData[i].id] = res.data.favorited);
+        setNewExpertsFavoriteStatus(prev => ({ ...prev, ...map }));
       }
     } catch (error) {
-      console.error('Ошибка загрузки дополнительных экспертов:', error);
+      console.error('Ошибка загрузки доп. экспертов:', error);
     } finally {
       setLoadingMore(false);
     }
   }, [newExpertsOffset, user]);
 
-  // Мемоизированная функция загрузки экспертов с фильтрацией
   const fetchExperts = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      
-      if (selectedTopics.length > 0) {
-        params.append('topics', selectedTopics.join(','));
-      }
-      if (selectedCity) {
-        params.append('city', selectedCity);
-      }
-      if (debouncedSearchText) {
-        params.append('search', debouncedSearchText);
-      }
+      if (selectedTopics.length > 0) params.append('topics', selectedTopics.join(','));
+      if (selectedCity) params.append('city', selectedCity);
+      if (debouncedSearchText) params.append('search', debouncedSearchText);
 
       const response = await api.get(`/experts/search?${params.toString()}`);
-      const expertsData = response.data;
-      setExperts(expertsData);
+      const data = response.data;
+      setExperts(data);
       
-      // Ленивая загрузка статуса избранного - загружаем только для первых 12 видимых
-      if (expertsData.length > 0 && user) {
-        const visibleExperts = expertsData.slice(0, 12);
-        const favoritePromises = visibleExperts.map((expert: Expert) => 
-          api.get(`/expert-interactions/${expert.id}/status`)
-            .catch(() => ({ data: { favorited: false } }))
+      if (data.length > 0 && user) {
+        const visible = data.slice(0, 12);
+        const promises = visible.map((exp: Expert) => 
+          api.get(`/expert-interactions/${exp.id}/status`).catch(() => ({ data: { favorited: false } }))
         );
-        
-        try {
-          const favoriteResponses = await Promise.all(favoritePromises);
-          const favoriteStatusMap: Record<number, boolean> = {};
-          favoriteResponses.forEach((response, index) => {
-            favoriteStatusMap[visibleExperts[index].id] = response.data.favorited;
-          });
-          setFavoriteStatus(favoriteStatusMap);
-        } catch (error) {
-          console.error('Ошибка загрузки статуса избранного:', error);
-        }
+        const responses = await Promise.all(promises);
+        const map: Record<number, boolean> = {};
+        responses.forEach((res, i) => map[visible[i].id] = res.data.favorited);
+        setFavoriteStatus(map);
       }
     } catch (error) {
       console.error('Ошибка загрузки экспертов:', error);
@@ -251,193 +188,96 @@ const ExpertsPage = () => {
     }
   }, [selectedTopics, selectedCity, debouncedSearchText, user]);
 
-  // Мемоизированная функция переключения избранного
   const toggleFavorite = useCallback(async (expertId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       const response = await api.post(`/expert-interactions/${expertId}/favorite`);
-      
-      // Обновляем статус в обоих списках
-      setFavoriteStatus(prev => ({
-        ...prev,
-        [expertId]: response.data.favorited
-      }));
-      
-      setNewExpertsFavoriteStatus(prev => ({
-        ...prev,
-        [expertId]: response.data.favorited
-      }));
+      const status = response.data.favorited;
+      setFavoriteStatus(prev => ({ ...prev, [expertId]: status }));
+      setNewExpertsFavoriteStatus(prev => ({ ...prev, [expertId]: status }));
     } catch (error) {
-      console.error('Ошибка изменения избранного:', error);
+      console.error('Ошибка избранного:', error);
     }
   }, []);
 
-  // Функция для показа большего количества экспертов
-  const loadMoreFilteredExperts = useCallback(() => {
-    setDisplayLimit(prev => prev + 12);
-  }, []);
+  const loadMoreFilteredExperts = useCallback(() => setDisplayLimit(prev => prev + 12), []);
 
-  // useEffect для начальной загрузки данных
   useEffect(() => {
     fetchTopics();
     fetchCities();
     fetchNewExperts();
   }, [fetchTopics, fetchCities, fetchNewExperts]);
 
-  // useEffect для загрузки экспертов при изменении фильтров
   useEffect(() => {
     fetchExperts();
-    setDisplayLimit(12); // Сбрасываем лимит при новом поиске
+    setDisplayLimit(12);
   }, [fetchExperts]);
 
   const renderExpertCard = useCallback((expert: Expert, isFavorited: boolean) => (
-    <Card
-      hoverable
+    <div 
+      className="expert-card-v2" 
       onClick={() => {
-        if (user && user.id === expert.id) {
-          navigate('/profile');
-        } else {
-          const identifier = expert.slug || expert.id;
-          navigate(`/experts/${identifier}`);
-        }
-      }}
-      style={{ 
-        height: '100%',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        borderRadius: 24,
-        overflow: 'hidden'
-      }}
-      bodyStyle={{ 
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '24px'
+        if (user && user.id === expert.id) navigate('/profile');
+        else navigate(`/experts/${expert.slug || expert.id}`);
       }}
     >
-      <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, display: 'flex', gap: 8 }}>
-        <Button
-          type="text"
-          icon={<MessageOutlined />}
-          onClick={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!user) { navigate('/login'); return; }
-            try {
-              const response = await api.post('/chats/create', { otherUserId: expert.id });
-              navigate(`/chats/${response.data.id}`);
-            } catch (error) {
-              console.error('Ошибка создания чата:', error);
-            }
-          }}
-          style={{
-            color: '#6366f1',
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '50%',
-            width: 36,
-            height: 36,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-            border: 'none'
-          }}
-        />
-        <Button
-          type="text"
-          icon={isFavorited ? <StarFilled /> : <StarOutlined />}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleFavorite(expert.id, e);
-          }}
-          style={{
-            color: isFavorited ? '#faad14' : '#8c8c8c',
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '50%',
-            width: 36,
-            height: 36,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-            border: 'none'
-          }}
-        />
-      </div>
-      
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-          <div style={{ flexShrink: 0, width: 64, height: 64 }}>
-            <LazyAvatar
-              size={64}
-              src={expert.avatar_url}
-              defaultSrc="/emp.jpg"
-              icon={<UserOutlined />}
-              style={{ backgroundColor: '#f5f5f7', width: 64, height: 64 }}
+      <div className="expert-card-v2__inner">
+        <div className="expert-card-v2__actions">
+          <button 
+            className="expert-card-v2__action-btn"
+            onClick={async (e) => {
+              e.stopPropagation();
+              if (!user) { navigate('/login'); return; }
+              try {
+                const response = await api.post('/chats/create', { otherUserId: expert.id });
+                navigate(`/chats/${response.data.id}`);
+              } catch (err) { console.error(err); }
+            }}
+          >
+            <MessageSquare size={16} />
+          </button>
+          <button 
+            className={`expert-card-v2__action-btn expert-card-v2__action-btn--fav ${isFavorited ? 'active' : ''}`}
+            onClick={(e) => toggleFavorite(expert.id, e)}
+          >
+            <Star size={16} />
+          </button>
+        </div>
+
+        <div className="expert-card-v2__header">
+          <div className="expert-card-v2__avatar-ring">
+            <LazyAvatar 
+              size={58} 
+              src={expert.avatar_url} 
+              defaultSrc="/emp.jpg" 
+              icon={<User size={24} />} 
+              style={{ width: '100%', height: '100%', borderRadius: '50%' }}
             />
           </div>
-          <div style={{ flex: 1, minWidth: 0, paddingRight: 72 }}>
-            <Title level={4} style={{ margin: '0 0 4px 0', fontSize: 18, color: '#1d1d1f' }} ellipsis>{expert.name}</Title>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 className="expert-card-v2__name">{expert.name}</h3>
             {expert.city && (
-              <Text type="secondary" style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <EnvironmentOutlined /> {expert.city}
-              </Text>
+              <span className="expert-card-v2__location">
+                <MapPin size={12} /> {expert.city}
+              </span>
             )}
           </div>
         </div>
 
-        <div style={{ flex: 1 }}>
-          {expert.bio && (
-            <Text 
-              type="secondary" 
-              style={{ 
-                display: '-webkit-box',
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                lineHeight: '1.5',
-                height: '4.5em',
-                fontSize: 14,
-                marginBottom: 16,
-                color: '#6e6e73'
-              }}
-            >
-              {expert.bio}
-            </Text>
-          )}
-        </div>
-        
+        <p className="expert-card-v2__bio">{expert.bio || 'Нет описания'}</p>
+
         {expert.topics && expert.topics.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 'auto' }}>
-            {expert.topics.slice(0, 3).map((topic, index) => (
-              <Tag key={index} style={{ 
-                borderRadius: 12, 
-                border: 'none', 
-                background: '#f5f5f7', 
-                color: '#1d1d1f', 
-                fontSize: 11,
-                padding: '2px 10px',
-                margin: 0
-              }}>{topic}</Tag>
+          <div className="expert-card-v2__topics">
+            {expert.topics.slice(0, 3).map((t, i) => (
+              <span key={i} className="expert-card-v2__topic">{t}</span>
             ))}
             {expert.topics.length > 3 && (
-              <Tag style={{ 
-                borderRadius: 12, 
-                border: 'none', 
-                background: '#f5f5f7', 
-                color: '#86868b', 
-                fontSize: 11,
-                padding: '2px 10px',
-                margin: 0
-              }}>+{expert.topics.length - 3}</Tag>
+              <span className="expert-card-v2__topic">+{expert.topics.length - 3}</span>
             )}
           </div>
         )}
       </div>
-    </Card>
+    </div>
   ), [user, navigate, toggleFavorite]);
 
   const selectedCityLabel = selectedCity || 'Все города';
@@ -445,30 +285,14 @@ const ExpertsPage = () => {
   const isMobileSelectOpen = isMobile && mobileSelectType !== null;
 
   useEffect(() => {
-    if (!isMobile) {
-      if (originalBodyOverflow.current !== null) {
-        document.body.style.overflow = originalBodyOverflow.current;
-        originalBodyOverflow.current = null;
-      }
-      return;
-    }
-
+    if (!isMobile) return;
     if (isMobileSelectOpen) {
-      if (originalBodyOverflow.current === null) {
-        originalBodyOverflow.current = document.body.style.overflow;
-      }
+      if (originalBodyOverflow.current === null) originalBodyOverflow.current = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
     } else if (originalBodyOverflow.current !== null) {
       document.body.style.overflow = originalBodyOverflow.current;
       originalBodyOverflow.current = null;
     }
-
-    return () => {
-      if (originalBodyOverflow.current !== null) {
-        document.body.style.overflow = originalBodyOverflow.current;
-        originalBodyOverflow.current = null;
-      }
-    };
   }, [isMobile, isMobileSelectOpen]);
 
   const openMobileSelect = (type: MobileSelectType) => {
@@ -478,286 +302,195 @@ const ExpertsPage = () => {
   };
 
   const closeMobileSelect = () => {
-    if (!mobileSelectType || mobileSelectClosing) {
-      return;
-    }
     setMobileSelectClosing(true);
     setTimeout(() => {
       setMobileSelectType(null);
       setMobileSelectClosing(false);
-      setMobileSelectSearch('');
     }, 250);
   };
 
   const handleMobileOptionClick = (value: string) => {
-    if (!mobileSelectType) return;
-
     if (mobileSelectType === 'city') {
       setSelectedCity(value);
       closeMobileSelect();
-      return;
+    } else {
+      const exists = selectedTopics.includes(value);
+      setSelectedTopics(prev => exists ? prev.filter(t => t !== value) : [...prev, value]);
     }
-
-    const exists = selectedTopics.includes(value);
-    setSelectedTopics((prev) =>
-      exists ? prev.filter((topic) => topic !== value) : [...prev, value]
-    );
   };
 
-  const mobileSelectConfig = useMemo<{
-    title: string;
-    multiple: boolean;
-    searchPlaceholder: string;
-    options: MobileSelectOption[];
-    selectedValues: string[];
-  } | null>(() => {
-    if (!mobileSelectType) {
-      return null;
-    }
-
-    if (mobileSelectType === 'city') {
-      return {
-        title: 'Выберите город',
-        multiple: false,
-        searchPlaceholder: 'Поиск города',
-        options: [
-          { label: 'Все города', value: '' },
-          ...cities.map((city) => ({ label: city.name, value: city.name }))
-        ],
-        selectedValues: selectedCity ? [selectedCity] : ['']
-      };
-    }
-
+  const mobileSelectConfig = useMemo(() => {
+    if (!mobileSelectType) return null;
+    if (mobileSelectType === 'city') return {
+      title: 'Город',
+      multiple: false,
+      options: [{ label: 'Все города', value: '' }, ...cities.map(c => ({ label: c.name, value: c.name }))],
+      selected: selectedCity ? [selectedCity] : ['']
+    };
     return {
-      title: 'Выберите тематики',
+      title: 'Тематики',
       multiple: true,
-      searchPlaceholder: 'Поиск тематики',
-      options: topics.map((topic) => ({ label: topic.name, value: topic.name })),
-      selectedValues: selectedTopics
+      options: topics.map(t => ({ label: t.name, value: t.name })),
+      selected: selectedTopics
     };
   }, [mobileSelectType, cities, topics, selectedCity, selectedTopics]);
 
   const renderMobileSelectOverlay = () => {
-    if (!isMobile || !mobileSelectConfig || typeof document === 'undefined') {
-      return null;
-    }
-
-    const searchValue = mobileSelectSearch.trim().toLowerCase();
-    const filteredOptions = mobileSelectConfig.options.filter((option) =>
-      option.label.toLowerCase().includes(searchValue)
-    );
+    if (!isMobile || !mobileSelectConfig) return null;
+    const filtered = mobileSelectConfig.options.filter(o => o.label.toLowerCase().includes(mobileSelectSearch.toLowerCase()));
 
     return createPortal(
       <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`} onClick={closeMobileSelect}>
-        <div className={`mobile-select-panel ${mobileSelectClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
+        <div className={`mobile-select-panel ${mobileSelectClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
           <div className="mobile-select-header">
-            <button type="button" className="mobile-select-close" onClick={closeMobileSelect}>
-              <CloseOutlined />
-            </button>
+            <button className="mobile-select-close" onClick={closeMobileSelect}><X size={20} /></button>
             <span className="mobile-select-title">{mobileSelectConfig.title}</span>
-            <button type="button" className="mobile-select-ready" onClick={closeMobileSelect}>
-              Готово
-            </button>
+            <button className="mobile-select-ready" onClick={closeMobileSelect}>Готово</button>
           </div>
-          <Input
-            size="large"
-            prefix={<SearchOutlined />}
-            placeholder={mobileSelectConfig.searchPlaceholder}
-            value={mobileSelectSearch}
-            onChange={(e) => setMobileSelectSearch(e.target.value)}
-            allowClear
+          <Input 
+            prefix={<Search size={16} />} 
+            placeholder="Поиск..." 
+            value={mobileSelectSearch} 
+            onChange={e => setMobileSelectSearch(e.target.value)} 
             className="mobile-select-search"
           />
           <div className="mobile-select-options">
-            {filteredOptions.map((option) => {
-              const selected = mobileSelectConfig.selectedValues.some(
-                (value) => String(value) === String(option.value)
-              );
-              return (
-                <button
-                  type="button"
-                  key={option.value}
-                  className={`mobile-select-option ${selected ? 'selected' : ''} ${mobileSelectConfig.multiple ? 'multi' : ''}`}
-                  onClick={() => handleMobileOptionClick(option.value)}
-                >
-                  {mobileSelectConfig.multiple && (
-                    <span className={`mobile-select-checkbox ${selected ? 'checked' : ''}`}>
-                      {selected && <CheckOutlined />}
-                    </span>
-                  )}
-                  <span className="mobile-select-label">{option.label}</span>
-                </button>
-              );
-            })}
-            {filteredOptions.length === 0 && (
-              <div className="mobile-select-empty">Ничего не найдено</div>
-            )}
+            {filtered.map(o => (
+              <button 
+                key={o.value} 
+                className={`mobile-select-option ${mobileSelectConfig.selected.includes(o.value) ? 'selected' : ''}`}
+                onClick={() => handleMobileOptionClick(o.value)}
+              >
+                {mobileSelectConfig.multiple && (
+                  <span className={`mobile-select-checkbox ${mobileSelectConfig.selected.includes(o.value) ? 'checked' : ''}`}>
+                    <Check size={14} />
+                  </span>
+                )}
+                <span className="mobile-select-label">{o.label}</span>
+              </button>
+            ))}
           </div>
         </div>
-      </div>,
-      document.body
+      </div>, document.body
     );
   };
 
   return (
-    <>
-    <div className="container">
-      <div className="page-header">
-        <Title level={2} className="page-title">Эксперты</Title>
-        <Text className="page-subtitle">Найдите своего духовного наставника</Text>
-      </div>
+    <div className="experts-v2">
+      <div className="container">
+        <header className="experts-v2__header">
+          <Badge count={<Sparkles size={16} color="#f59e0b" fill="#f59e0b" />} offset={[10, 0]}>
+            <h1 className="experts-v2__title">Наши эксперты</h1>
+          </Badge>
+          <p className="experts-v2__subtitle">
+            Сообщество профессионалов, готовых делиться знаниями и помогать в духовном росте
+          </p>
+        </header>
 
-      <Card style={{ marginBottom: 24 }}>
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Input
-            size="large"
-            placeholder="Поиск по имени или описанию"
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            allowClear
-          />
+        <div className="experts-v2__toolbar">
+          <div className="experts-v2__search">
+            <Search size={18} color="#71717a" />
+            <input 
+              placeholder="Поиск по имени или теме..." 
+              value={searchText} 
+              onChange={e => setSearchText(e.target.value)} 
+            />
+          </div>
 
-          {isMobile ? (
-            <Input
-              size="large"
-              placeholder="Выберите город"
-              prefix={<EnvironmentOutlined />}
-              value={selectedCityLabel}
-              readOnly
-              onClick={() => openMobileSelect('city')}
-            />
-          ) : (
-            <Select
-              size="large"
-              placeholder="Выберите город"
-              prefix={<EnvironmentOutlined />}
-              style={{ width: '100%' }}
-              value={selectedCity || undefined}
-              onChange={setSelectedCity}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-              options={[
-                { label: 'Все города', value: '' },
-                ...cities.map(c => ({ label: c.name, value: c.name }))
-              ]}
-              allowClear
-            />
-          )}
-
-          {isMobile ? (
-            <Input
-              size="large"
-              placeholder="Выберите тематики"
-              value={selectedTopicsLabel}
-              readOnly
-              onClick={() => openMobileSelect('topics')}
-            />
-          ) : (
-            <Select
-              mode="multiple"
-              size="large"
-              placeholder="Выберите тематики"
-              style={{ width: '100%' }}
-              value={selectedTopics}
-              onChange={setSelectedTopics}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-              options={topics.map(t => ({ label: t.name, value: t.name }))}
-              maxTagCount="responsive"
-            />
-          )}
-        </Space>
-      </Card>
-
-      {loading || newExpertsLoading ? (
-        <div style={{ textAlign: 'center', padding: 60 }}>
-          <Spin size="large" />
+          <div className="experts-v2__filters">
+            {isMobile ? (
+              <>
+                <button className="experts-v2__filter-trigger" onClick={() => openMobileSelect('city')}>
+                  <MapPin size={16} /> {selectedCityLabel}
+                </button>
+                <button className="experts-v2__filter-trigger" onClick={() => openMobileSelect('topics')}>
+                  <Filter size={16} /> {selectedTopics.length > 0 ? `Темы (${selectedTopics.length})` : 'Все темы'}
+                </button>
+              </>
+            ) : (
+              <>
+                <Select 
+                  style={{ width: 180 }} 
+                  placeholder="Город" 
+                  value={selectedCity || undefined} 
+                  onChange={setSelectedCity} 
+                  showSearch 
+                  options={[{ label: 'Все города', value: '' }, ...cities.map(c => ({ label: c.name, value: c.name }))]} 
+                  allowClear
+                />
+                <Select 
+                  mode="multiple" 
+                  style={{ minWidth: 200, maxWidth: 300 }} 
+                  placeholder="Тематики" 
+                  value={selectedTopics} 
+                  onChange={setSelectedTopics} 
+                  maxTagCount="responsive"
+                  options={topics.map(t => ({ label: t.name, value: t.name }))} 
+                />
+              </>
+            )}
+          </div>
         </div>
-      ) : (
-        <>
-          {/* Блок новых экспертов - показываем только если нет активных фильтров */}
-          {newExperts.length > 0 && !(selectedTopics.length > 0 || selectedCity || searchText) && (
-            <div style={{ marginBottom: 40 }}>
-              <Title level={3} style={{ marginBottom: 24 }}>Новые эксперты</Title>
-              <Row gutter={[24, 24]}>
-                {newExperts.map((expert) => (
-                  <Col xs={24} sm={12} lg={8} key={expert.id} style={{ display: 'flex' }}>
-                    {renderExpertCard(expert, newExpertsFavoriteStatus[expert.id])}
-                  </Col>
-                ))}
-              </Row>
-              
-              {/* Кнопка "Показать больше" */}
-              {hasMoreExperts && (
-                <div style={{ textAlign: 'center', marginTop: 32 }}>
-                  <Button
-                    type="primary"
-                    size="large"
-                    loading={loadingMore}
-                    onClick={loadMoreExperts}
-                    style={{
-                      minWidth: 200,
-                      height: 48,
-                      fontSize: 16,
-                      fontWeight: 600,
-                      borderRadius: 24
-                    }}
-                  >
-                    Показать больше экспертов
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* Фильтрованный список экспертов - показываем только если есть фильтры */}
-          {(selectedTopics.length > 0 || selectedCity || searchText) && (
-            <>
-              {experts.length === 0 ? (
-                <Empty description="Эксперты не найдены" style={{ padding: 60 }} />
-              ) : (
-                <>
-                  <Row gutter={[24, 24]}>
-                    {experts.slice(0, displayLimit).map((expert) => (
-                      <Col xs={24} sm={12} lg={8} key={expert.id} style={{ display: 'flex' }}>
-                        {renderExpertCard(expert, favoriteStatus[expert.id])}
-                      </Col>
-                    ))}
-                  </Row>
-                  
-                  {/* Кнопка "Показать еще" для фильтрованных экспертов */}
-                  {experts.length > displayLimit && (
-                    <div style={{ textAlign: 'center', marginTop: 32 }}>
-                      <Button
-                        type="default"
-                        size="large"
-                        onClick={loadMoreFilteredExperts}
-                        style={{
-                          minWidth: 200,
-                          height: 48,
-                          fontSize: 16,
-                          fontWeight: 600,
-                          borderRadius: 24
-                        }}
-                      >
-                        Показать еще ({experts.length - displayLimit} осталось)
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </>
-      )}
+        {loading || newExpertsLoading ? (
+          <div style={{ textAlign: 'center', padding: '100px 0' }}><Spin size="large" /></div>
+        ) : (
+          <>
+            {/* New Experts Grid - only show if no filters */}
+            {newExperts.length > 0 && !selectedTopics.length && !selectedCity && !searchText && (
+              <div style={{ marginBottom: 60 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                  <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Новые лица</h2>
+                </div>
+                <Row gutter={[24, 24]}>
+                  {newExperts.map(exp => (
+                    <Col xs={24} sm={12} lg={8} key={exp.id}>{renderExpertCard(exp, newExpertsFavoriteStatus[exp.id])}</Col>
+                  ))}
+                </Row>
+                {hasMoreExperts && (
+                  <div style={{ textAlign: 'center', marginTop: 32 }}>
+                    <Button 
+                      onClick={loadMoreExperts} 
+                      loading={loadingMore} 
+                      size="large" 
+                      style={{ borderRadius: 12, height: 48, padding: '0 32px' }}
+                    >
+                      Показать еще
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Filtered Results */}
+            {(selectedTopics.length > 0 || selectedCity || searchText) && (
+              <div>
+                <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>Результаты поиска</h2>
+                {experts.length === 0 ? (
+                  <Empty description="Никого не нашли :(" />
+                ) : (
+                  <>
+                    <Row gutter={[24, 24]}>
+                      {experts.slice(0, displayLimit).map(exp => (
+                        <Col xs={24} sm={12} lg={8} key={exp.id}>{renderExpertCard(exp, favoriteStatus[exp.id])}</Col>
+                      ))}
+                    </Row>
+                    {experts.length > displayLimit && (
+                      <div style={{ textAlign: 'center', marginTop: 32 }}>
+                        <Button onClick={loadMoreFilteredExperts} size="large" type="text" icon={<ChevronDown size={18} />}>
+                          Загрузить еще
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+      {renderMobileSelectOverlay()}
     </div>
-    {renderMobileSelectOverlay()}
-    </>
   );
 };
 

@@ -1,31 +1,34 @@
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Layout, Menu, Button, Avatar, Dropdown, Badge, Space, Drawer, Modal, Form, Input, message as antdMessage } from 'antd';
 import {
-  HomeOutlined,
-  TeamOutlined,
-  MessageOutlined,
-  UserOutlined,
-  LogoutOutlined,
-  EditOutlined,
-  LoginOutlined,
-  FileTextOutlined,
-  StarOutlined,
-  CalendarOutlined,
-  MenuOutlined,
-  CloseOutlined,
-  CheckCircleOutlined,
-  CustomerServiceOutlined,
-  SendOutlined,
-  SettingOutlined,
-  BellOutlined,
-  ScheduleOutlined,
-  SearchOutlined
-} from '@ant-design/icons';
+  Home,
+  Users,
+  Calendar,
+  MessageSquare,
+  User,
+  LogOut,
+  FileText,
+  Star,
+  Settings,
+  Headphones,
+  Send,
+  Bell,
+  Search,
+  Menu as MenuIcon,
+  X,
+  Sparkles,
+  Command,
+  Heart,
+  ChevronRight,
+  ShieldCheck,
+  LayoutDashboard
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import Notifications from './Notifications';
 import type { MenuProps } from 'antd';
 import { useState, useEffect } from 'react';
+import './Header.css';
 
 const { Header: AntHeader } = Layout;
 
@@ -42,6 +45,7 @@ const Header = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportForm] = Form.useForm();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -54,7 +58,7 @@ const Header = () => {
   useEffect(() => {
     const handleScroll = () => {
       if (location.pathname === '/') {
-        // Show search when scrolled past hero section (approx 400px)
+        // Show search when scrolled past hero section
         setShowSearch(window.scrollY > 400);
       } else {
         setShowSearch(false);
@@ -62,9 +66,7 @@ const Header = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    // Initial check
     handleScroll();
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname]);
 
@@ -81,8 +83,6 @@ const Header = () => {
   };
 
   const handleChatsClick = () => {
-    // НЕ сбрасываем счетчики при переходе в чаты
-    // markAsRead();
     navigate('/chats');
   };
 
@@ -116,38 +116,38 @@ const Header = () => {
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
-      icon: <UserOutlined />,
+      icon: <User size={16} />,
       label: 'Мой профиль',
       onClick: () => navigate('/profile')
     },
     {
       key: 'favorites',
-      icon: <StarOutlined />,
+      icon: <Star size={16} />,
       label: 'Избранное',
       onClick: () => navigate('/favorites')
     },
     {
       key: 'my-bookings',
-      icon: <ScheduleOutlined />,
+      icon: <Calendar size={16} />,
       label: 'Мои записи',
       onClick: () => navigate('/my-bookings')
     },
     ...((user?.userType === 'expert' || user?.userType === 'admin') ? [
       {
         key: 'my-articles',
-        icon: <FileTextOutlined />,
+        icon: <FileText size={16} />,
         label: 'Мои статьи',
         onClick: () => navigate('/my-articles')
       },
       {
         key: 'my-events',
-        icon: <CalendarOutlined />,
+        icon: <Calendar size={16} />,
         label: 'Мои события',
         onClick: () => navigate('/my-events')
       },
       {
         key: 'create-article',
-        icon: <EditOutlined />,
+        icon: <Sparkles size={16} />,
         label: 'Создать статью',
         onClick: () => navigate('/create-article')
       }
@@ -155,20 +155,21 @@ const Header = () => {
     ...(user?.userType === 'admin' ? [
       {
         key: 'moderation',
-        icon: <CheckCircleOutlined />,
+        icon: <ShieldCheck size={16} />,
         label: 'Модерация',
         onClick: () => navigate('/moderation')
       },
       {
         key: 'admin-panel',
-        icon: <SettingOutlined />,
+        icon: <Settings size={16} />,
         label: 'Админ панель',
         onClick: () => navigate('/admin-panel')
       }
     ] : []),
+    { type: 'divider' },
     {
       key: 'logout',
-      icon: <LogoutOutlined />,
+      icon: <LogOut size={16} />,
       label: 'Выйти',
       onClick: logout,
       danger: true
@@ -178,7 +179,7 @@ const Header = () => {
   const mobileMenuItems: MenuProps['items'] = [
     {
       key: 'home',
-      icon: <HomeOutlined />,
+      icon: <Home size={18} />,
       label: 'Главная',
       onClick: () => {
         navigate('/');
@@ -187,7 +188,7 @@ const Header = () => {
     },
     {
       key: 'experts',
-      icon: <TeamOutlined />,
+      icon: <Users size={18} />,
       label: 'Эксперты',
       onClick: () => {
         navigate('/experts');
@@ -196,7 +197,7 @@ const Header = () => {
     },
     {
       key: 'events',
-      icon: <CalendarOutlined />,
+      icon: <Calendar size={18} />,
       label: 'События',
       onClick: () => {
         navigate('/events');
@@ -207,24 +208,24 @@ const Header = () => {
       ...(user.userType === 'expert' || user.userType === 'admin' ? [
         {
           key: 'expert-dashboard-mobile',
-          icon: <CalendarOutlined />,
+          icon: <LayoutDashboard size={18} />,
           label: 'Кабинет эксперта',
           onClick: () => {
             navigate('/expert-dashboard');
             setMobileMenuOpen(false);
           },
           style: {
-            background: 'rgb(99, 102, 241)',
-            color: '#fff',
+            background: 'var(--mu-accent, #000)',
+            color: 'var(--mu-bg, #fff)',
             fontWeight: 500,
-            borderRadius: 8,
+            borderRadius: 12,
             margin: '8px 16px'
           }
         }
       ] : []),
       {
         key: 'chats',
-        icon: <MessageOutlined />,
+        icon: <MessageSquare size={18} />,
         label: `Чаты${unreadCount > 0 ? ` (${unreadCount})` : ''}`,
         onClick: () => {
           handleChatsClick();
@@ -233,7 +234,7 @@ const Header = () => {
       },
       {
         key: 'support',
-        icon: <CustomerServiceOutlined />,
+        icon: <Headphones size={18} />,
         label: 'Поддержка',
         onClick: () => {
           setSupportModalOpen(true);
@@ -242,7 +243,7 @@ const Header = () => {
       },
       {
         key: 'profile',
-        icon: <UserOutlined />,
+        icon: <User size={18} />,
         label: 'Мой профиль',
         onClick: () => {
           navigate('/profile');
@@ -251,7 +252,7 @@ const Header = () => {
       },
       {
         key: 'favorites',
-        icon: <StarOutlined />,
+        icon: <Star size={18} />,
         label: 'Избранное',
         onClick: () => {
           navigate('/favorites');
@@ -259,66 +260,8 @@ const Header = () => {
         }
       },
       {
-        key: 'my-bookings',
-        icon: <ScheduleOutlined />,
-        label: 'Мои записи',
-        onClick: () => {
-          navigate('/my-bookings');
-          setMobileMenuOpen(false);
-        }
-      },
-      ...(user?.userType === 'expert' || user?.userType === 'admin' ? [
-        {
-          key: 'my-articles',
-          icon: <FileTextOutlined />,
-          label: 'Мои статьи',
-          onClick: () => {
-            navigate('/my-articles');
-            setMobileMenuOpen(false);
-          }
-        },
-        {
-          key: 'my-events',
-          icon: <CalendarOutlined />,
-          label: 'Мои события',
-          onClick: () => {
-            navigate('/my-events');
-            setMobileMenuOpen(false);
-          }
-        },
-        {
-          key: 'create-article',
-          icon: <EditOutlined />,
-          label: 'Создать статью',
-          onClick: () => {
-            navigate('/create-article');
-            setMobileMenuOpen(false);
-          }
-        }
-      ] : []),
-      ...(user?.userType === 'admin' ? [
-        {
-          key: 'moderation',
-          icon: <CheckCircleOutlined />,
-          label: 'Модерация',
-          onClick: () => {
-            navigate('/moderation');
-            setMobileMenuOpen(false);
-          }
-        },
-        {
-          key: 'admin-panel',
-          icon: <SettingOutlined />,
-          label: 'Админ панель',
-          onClick: () => {
-            navigate('/admin-panel');
-            setMobileMenuOpen(false);
-          }
-        }
-      ] : []),
-      {
         key: 'logout',
-        icon: <LogoutOutlined />,
+        icon: <LogOut size={18} />,
         label: 'Выйти',
         onClick: () => {
           logout();
@@ -329,7 +272,7 @@ const Header = () => {
     ] : [
       {
         key: 'login',
-        icon: <LoginOutlined />,
+        icon: <User size={18} />,
         label: 'Войти',
         onClick: () => {
           navigate('/login');
@@ -338,7 +281,7 @@ const Header = () => {
       },
       {
         key: 'register',
-        icon: <UserOutlined />,
+        icon: <Sparkles size={18} />,
         label: 'Регистрация',
         onClick: () => {
           navigate('/register');
@@ -350,425 +293,161 @@ const Header = () => {
 
   return (
     <>
-      <AntHeader
-        style={{
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          padding: isMobile ? '0 12px' : '0 24px',
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.05)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          width: '100%',
-          zIndex: 999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: 72
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flex: 1 }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-            <img
-              src="/logo.png"
-              alt="SoulSynergy — Синергия душ Logo"
-              style={{
-                height: '48px',
-                width: '48px',
-                objectFit: 'contain'
-              }}
-            />
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-              <div style={{
-                fontSize: '22px',
-                fontWeight: 600,
-                color: 'rgb(99, 102, 241)',
-                letterSpacing: '-0.5px'
-              }}>
-                SoulSynergy
-              </div>
-              <div style={{
-                fontSize: '11px',
-                fontWeight: 400,
-                color: 'rgb(99, 102, 241)',
-                opacity: 0.8,
-                textTransform: 'lowercase',
-                letterSpacing: '0.5px'
-              }}>
-                синергия душ
-              </div>
-            </div>
+      <header className="header-minimal">
+        <div className="header-minimal__left">
+          <Link to="/" className="header-minimal__logo">
+            <img src="/logo.png" alt="SoulSynergy" className="header-minimal__logo-icon" />
+            <span className="header-minimal__logo-text">SoulSynergy</span>
           </Link>
 
-          {/* Dynamic Search Bar */}
-          <div style={{
-            marginLeft: showSearch ? 32 : 0,
-            opacity: showSearch ? 1 : 0,
-            visibility: showSearch ? 'visible' : 'hidden',
-            transform: showSearch ? 'translateX(0)' : 'translateX(-20px)',
-            transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-            width: showSearch ? 260 : 0,
-            overflow: 'hidden',
-            whiteSpace: 'nowrap'
-          }}
-            className="header-search-anim"
-          >
-            <Input
-              placeholder="Поиск статей..."
-              prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
-              value={searchParams.get('q') || ''}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              style={{
-                borderRadius: 20,
-                background: '#f3f4f6',
-                border: '1px solid transparent',
-                padding: '6px 12px',
-                fontSize: 14
-              }}
-              onFocus={(e) => {
-                e.target.style.background = '#fff';
-                e.target.style.borderColor = '#6366f1';
-                e.target.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.background = '#f3f4f6';
-                e.target.style.borderColor = 'transparent';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-          </div>
-
-          {/* Десктопное меню - скрыто на мобильных устройствах */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="desktop-menu">
-            <Link
-              to="/"
-              style={{
-                fontSize: '15px',
-                color: location.pathname === '/' ? 'rgb(99, 102, 241)' : '#4b5563',
-                textDecoration: 'none',
-                fontWeight: location.pathname === '/' ? 600 : 500,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                borderRadius: '12px',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-              <HomeOutlined /> Главная
+          <nav className="header-minimal__nav">
+            <Link to="/" className={`header-minimal__nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+              Главная
             </Link>
-            <Link
-              to="/experts"
-              style={{
-                fontSize: '15px',
-                color: location.pathname === '/experts' || location.pathname.startsWith('/experts/') ? 'rgb(99, 102, 241)' : '#4b5563',
-                textDecoration: 'none',
-                fontWeight: location.pathname === '/experts' || location.pathname.startsWith('/experts/') ? 600 : 500,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                borderRadius: '12px',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-              <TeamOutlined /> Эксперты
+            <Link to="/experts" className={`header-minimal__nav-link ${location.pathname.startsWith('/experts') ? 'active' : ''}`}>
+              Эксперты
             </Link>
-            <Link
-              to="/events"
-              style={{
-                fontSize: '15px',
-                color: location.pathname === '/events' || location.pathname.startsWith('/events/') ? 'rgb(99, 102, 241)' : '#4b5563',
-                textDecoration: 'none',
-                fontWeight: location.pathname === '/events' || location.pathname.startsWith('/events/') ? 600 : 500,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                borderRadius: '12px',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-              <CalendarOutlined /> События
+            <Link to="/events" className={`header-minimal__nav-link ${location.pathname.startsWith('/events') ? 'active' : ''}`}>
+              События
             </Link>
-          </div>
+          </nav>
         </div>
 
-        {/* Десктопные кнопки пользователя - скрыты на мобильных устройствах */}
-        <div className="desktop-user-actions">
-          <Space size="middle">
+        <div className="header-minimal__right">
+          {/* Dynamic Search */}
+          {showSearch && (
+            <div className="header-minimal__search">
+              <Search size={16} />
+              <input
+                placeholder="Поиск..."
+                value={searchParams.get('q') || ''}
+                onChange={(e) => handleSearchChange(e.target.value)}
+              />
+            </div>
+          )}
+
+          <div className="header-minimal__actions desktop-user-actions">
             {user ? (
               <>
-                {(user.userType === 'expert' || user.userType === 'admin') && (
-                  <Button
-                    type="primary"
-                    icon={<CalendarOutlined />}
-                    onClick={() => navigate('/expert-dashboard')}
-                    style={{
-                      background: 'rgb(99, 102, 241)',
-                      border: 'none',
-                      color: '#fff',
-                      fontWeight: 500,
-                      borderRadius: '12px',
-                      height: '40px',
-                      boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
-                    }}
-                  >
-                    Кабинет эксперта
-                  </Button>
-                )}
-                <div style={{ display: 'flex', gap: 4 }}>
-                  <Badge count={unreadCount} offset={[-5, 5]}>
-                    <Button
-                      type="text"
-                      icon={<MessageOutlined />}
-                      onClick={handleChatsClick}
-                      style={{ fontSize: '18px', width: 40, height: 40, borderRadius: '10px' }}
-                    />
-                  </Badge>
-                  <Badge count={notificationsUnreadCount} offset={[-5, 5]}>
-                    <Button
-                      type="text"
-                      icon={<BellOutlined />}
-                      onClick={() => setNotificationsOpen(true)}
-                      style={{ fontSize: '18px', width: 40, height: 40, borderRadius: '10px' }}
-                    />
-                  </Badge>
-                  <Button
-                    type="text"
-                    icon={<CustomerServiceOutlined />}
-                    onClick={() => setSupportModalOpen(true)}
-                    style={{ fontSize: '18px', width: 40, height: 40, borderRadius: '10px' }}
-                    title="Поддержка"
-                  />
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button className="header-minimal__btn" onClick={handleChatsClick}>
+                    <Badge count={unreadCount} size="small" offset={[2, -2]}>
+                      <MessageSquare size={19} />
+                    </Badge>
+                  </button>
+                  <button className="header-minimal__btn" onClick={() => setNotificationsOpen(true)}>
+                    <Badge count={notificationsUnreadCount} size="small" offset={[2, -2]}>
+                      <Bell size={19} />
+                    </Badge>
+                  </button>
+                  <button className="header-minimal__btn" onClick={() => setSupportModalOpen(true)}>
+                    <Headphones size={19} />
+                  </button>
                 </div>
 
-                {/* Тестовая кнопка для проверки уведомлений - только в разработке */}
-                {import.meta.env.DEV && (
-                  <Button
-                    type="text"
-                    onClick={testNotification}
-                    style={{ fontSize: '12px', color: '#ff4d4f' }}
-                  >
-                    🧪 Тест
-                  </Button>
-                )}
-                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                  <Avatar
-                    size={44}
-                    src={user.avatarUrl || '/emp.jpg'}
-                    icon={!user.avatarUrl && <UserOutlined />}
-                    style={{
-                      cursor: 'pointer',
-                      backgroundColor: '#6366f1',
-                      border: '2px solid #fff',
-                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
-                    }}
-                  />
+                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow={{ pointAtCenter: true }}>
+                  <div className="header-minimal__avatar">
+                    <Avatar
+                      size={36}
+                      src={user.avatarUrl || '/emp.jpg'}
+                      icon={!user.avatarUrl && <User size={20} />}
+                      style={{ cursor: 'pointer', backgroundColor: 'var(--mu-bg, #000)', color: 'var(--mu-text, #fff)' }}
+                    />
+                  </div>
                 </Dropdown>
               </>
             ) : (
-              <Space size={12}>
-                <Button
-                  type="text"
-                  icon={<LoginOutlined />}
-                  onClick={() => navigate('/login')}
-                  style={{ fontWeight: 500 }}
-                >
+              <Space size={8}>
+                <Button type="text" onClick={() => navigate('/login')} style={{ fontWeight: 500 }}>
                   Войти
                 </Button>
-                <Button
-                  type="primary"
+                <Button 
+                  type="primary" 
                   onClick={() => navigate('/register')}
-                  style={{
-                    background: '#6366f1',
-                    height: 40,
-                    borderRadius: 12,
-                    fontWeight: 500,
-                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)'
-                  }}
+                  style={{ borderRadius: '10px', height: '38px', fontWeight: 500 }}
                 >
                   Регистрация
                 </Button>
               </Space>
             )}
-          </Space>
-        </div>
+          </div>
 
-        {/* Мобильная кнопка меню с индикатором */}
-        <div style={{ position: 'relative' }}>
-          <Badge count={unreadCount} offset={[-5, 5]}>
-            <Button
-              type="text"
-              icon={<MenuOutlined />}
-              onClick={() => setMobileMenuOpen(true)}
-              style={{
-                fontSize: '18px',
-                display: 'none'
-              }}
-              className="mobile-menu-button"
-            />
-          </Badge>
+          <button 
+            className="header-minimal__btn mobile-menu-button" 
+            onClick={() => setMobileMenuOpen(true)}
+            style={{ display: 'none' }}
+          >
+            <Badge count={unreadCount} size="small">
+              <MenuIcon size={22} />
+            </Badge>
+          </button>
         </div>
-      </AntHeader>
+      </header>
 
-      {/* Мобильное меню */}
+      {/* Mobile Menu */}
       <Drawer
         placement="bottom"
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        height="85vh"
+        height="80vh"
         closable={false}
-        styles={{ 
-          body: { padding: 0, display: 'flex', flexDirection: 'column' },
-          content: { 
-            borderRadius: '32px 32px 0 0', 
-            overflow: 'hidden',
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-          },
-          mask: {
-            backdropFilter: 'blur(4px)',
-            background: 'rgba(0, 0, 0, 0.3)'
-          }
+        styles={{
+          body: { padding: 0 },
+          content: { borderRadius: '24px 24px 0 0', overflow: 'hidden' },
+          mask: { backdropFilter: 'blur(4px)' }
         }}
-        style={{ zIndex: 1000 }}
         className="mobile-bottom-sheet"
       >
-        <div className="bottom-sheet-handle" style={{
+        <div style={{
           width: '40px',
           height: '4px',
-          background: 'rgba(0, 0, 0, 0.1)',
+          background: 'rgba(0,0,0,0.1)',
           borderRadius: '2px',
-          margin: '12px auto 4px',
-          flexShrink: 0
+          margin: '12px auto'
         }} />
-        
         <div style={{ 
-          padding: '16px 24px', 
+          padding: '8px 24px 16px', 
           display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-          background: 'transparent'
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          borderBottom: '1px solid rgba(0,0,0,0.05)'
         }}>
-          <span style={{ fontSize: '18px', fontWeight: 700, color: '#1d1d1f' }}>Меню</span>
-          <Button 
-            type="link" 
-            onClick={() => setMobileMenuOpen(false)}
-            style={{ 
-              color: 'rgb(99, 102, 241)', 
-              fontWeight: 600, 
-              fontSize: '16px',
-              padding: '0 4px'
-            }}
-          >
-            Готово
-          </Button>
+          <span style={{ fontSize: 18, fontWeight: 700 }}>Навигация</span>
+          <Button type="text" icon={<ChevronRight size={20} />} onClick={() => setMobileMenuOpen(false)} />
         </div>
-
-        <div style={{ overflowY: 'auto', flex: 1, padding: '8px 0 32px' }}>
-          <Menu
-            mode="vertical"
-            items={mobileMenuItems}
-            style={{
-              border: 'none',
-              background: 'transparent',
-            }}
-            className="mobile-bottom-menu"
-          />
-        </div>
+        <Menu
+          mode="vertical"
+          items={mobileMenuItems}
+          style={{ border: 'none', padding: '8px 12px' }}
+          className="mobile-bottom-menu"
+        />
       </Drawer>
 
-      {/* Модальное окно поддержки */}
+      {/* Support Modal */}
       <Modal
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CustomerServiceOutlined style={{ color: '#1890ff' }} />
-            Поддержка
-          </div>
-        }
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Headphones size={20} /> Поддержка</div>}
         open={supportModalOpen}
-        onCancel={() => {
-          setSupportModalOpen(false);
-          supportForm.resetFields();
-        }}
-        afterClose={() => {
-          // Возвращаем фокус на страницу после закрытия модального окна
-          document.body.style.overflow = 'auto';
-        }}
-        destroyOnClose={true}
-        maskClosable={true}
+        onCancel={() => setSupportModalOpen(false)}
         footer={null}
-        width={500}
+        width={400}
+        centered
+        styles={{ content: { borderRadius: 20 } }}
       >
-        <Form
-          form={supportForm}
-          layout="vertical"
-          onFinish={handleSupportSubmit}
-          style={{ marginTop: 16 }}
-        >
-          <Form.Item
-            name="contact"
-            label="Контакт для связи"
-            rules={[
-              { required: true, message: 'Пожалуйста, укажите контакт для связи' },
-              { min: 3, message: 'Контакт должен содержать минимум 3 символа' }
-            ]}
-          >
-            <Input
-              placeholder="Email или ник в Telegram"
-              size="large"
-            />
+        <Form form={supportForm} layout="vertical" onFinish={handleSupportSubmit} style={{ marginTop: 16 }}>
+          <Form.Item name="contact" label="Контакт для связи" rules={[{ required: true }]}>
+            <Input placeholder="Email или Telegram" />
           </Form.Item>
-
-          <Form.Item
-            name="message"
-            label="Сообщение"
-            rules={[
-              { required: true, message: 'Пожалуйста, опишите вашу проблему' },
-              { min: 10, message: 'Сообщение должно содержать минимум 10 символов' }
-            ]}
-          >
-            <Input.TextArea
-              placeholder="Опишите вашу проблему или вопрос..."
-              rows={4}
-              size="large"
-            />
+          <Form.Item name="message" label="Сообщение" rules={[{ required: true }]}>
+            <Input.TextArea placeholder="Как мы можем помочь?" rows={4} />
           </Form.Item>
-
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-            <Space>
-              <Button onClick={() => {
-                setSupportModalOpen(false);
-                supportForm.resetFields();
-              }}>
-                Отмена
-              </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SendOutlined />}
-                loading={false}
-              >
-                Отправить
-              </Button>
-            </Space>
-          </Form.Item>
+          <div style={{ textAlign: 'right' }}>
+            <Button type="primary" htmlType="submit" icon={<Send size={16} />} style={{ borderRadius: 10 }}>
+              Отправить
+            </Button>
+          </div>
         </Form>
       </Modal>
 
-      {/* Компонент уведомлений */}
       <Notifications
         visible={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
