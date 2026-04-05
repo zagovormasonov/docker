@@ -1,15 +1,17 @@
 .experts-v2 {
   --e-bg: #ffffff;
   --e-surface: #ffffff;
-  --e-border: rgba(0, 0, 0, 0.08); /* Minimalist thin border */
+  --e-border: rgba(0, 0, 0, 0.08);
+  /* Minimalist thin border */
   --e-border-strong: rgba(0, 0, 0, 0.15);
   --e-text: #09090b;
   --e-muted: #71717a;
   --e-accent: #000000;
   --e-radius: 20px;
-  
+
   min-height: 100vh;
-  padding-top: 80px; /* Space for the fixed header */
+  padding-top: 80px;
+  /* Space for the fixed header */
   padding-bottom: 80px;
   background: var(--e-bg);
   color: var(--e-text);
@@ -28,7 +30,7 @@
 
 .experts-v2__header {
   text-align: center;
-  max-width: 700px;
+  max-width: 500px;
   margin: 0 auto 48px;
 }
 
@@ -116,7 +118,8 @@
   border-radius: var(--e-radius);
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 1px; /* space for shine border */
+  padding: 1px;
+  /* space for shine border */
   overflow: hidden;
   cursor: pointer;
 }
@@ -149,16 +152,14 @@
   inset: 0px;
   border-radius: var(--e-radius);
   padding: 1.5px;
-  background: conic-gradient(
-    from var(--shine-deg, 0deg),
-    transparent 0%,
-    transparent 10%,
-    var(--e-border-strong) 20%,
-    var(--e-muted) 25%,
-    var(--e-border-strong) 30%,
-    transparent 40%,
-    transparent 100%
-  );
+  background: conic-gradient(from var(--shine-deg, 0deg),
+      transparent 0%,
+      transparent 10%,
+      var(--e-border-strong) 20%,
+      var(--e-muted) 25%,
+      var(--e-border-strong) 30%,
+      transparent 40%,
+      transparent 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -171,8 +172,13 @@
 }
 
 @keyframes expert-shine {
-  from { --shine-deg: 0deg; }
-  to { --shine-deg: 360deg; }
+  from {
+    --shine-deg: 0deg;
+  }
+
+  to {
+    --shine-deg: 360deg;
+  }
 }
 
 .expert-card-v2:hover::before {
@@ -315,23 +321,23 @@
     flex-direction: column;
     padding: 12px;
   }
-  
+
   .experts-v2__search {
     width: 100%;
   }
-  
+
   .experts-v2__filters {
     width: 100%;
     overflow-x: auto;
     padding-bottom: 4px;
   }
-  
+
   .experts-v2__filter-trigger {
     white-space: nowrap;
     flex: 1;
     justify-content: center;
   }
-  
+
   .expert-card-v2__actions {
     opacity: 1;
     transform: none;
