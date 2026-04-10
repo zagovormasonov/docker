@@ -1,74 +1,68 @@
-# 🛠️ Настройка сервера разработки (DEV)
+# Dev Server Setup
 
-Для проекта настроен отдельный сервер разработки, который работает в изолированных Docker-контейнерах с собственной базой данных и защищен паролем.
+This project already contains a dedicated Docker stack for a development copy of the site.
 
-## 📋 Основные характеристики
-- **Поддомен:** `dev.yourdomain.com` (настраивается на хосте).
-- **База данных:** Отдельная (`synergy_db_dev`), данные сохраняются в volume `postgres_data_dev`.
-- **Защита:** Basic Auth (Логин: `admin`, Пароль: `defender007`).
-- **Порт:** `8081` (внутри контейнеров 80).
+Target URL:
+- `https://dev.soulsynergy.ru`
 
----
+Isolation rules:
+- Frontend runs in a separate container on host port `8081`
+- Backend runs in a separate container and talks only to `synergy_db_dev`
+- PostgreSQL data is stored in the dedicated Docker volume `postgres_data_dev`
+- The dev stack does not reuse the production database
 
-## 🚀 Быстрый старт
+## 1. Prepare environment
 
-### 1. Подготовка переменных окружения
-Создайте файл `.env.dev` в корне проекта. Вы можете скопировать его из примера:
-```bash
-cp env.dev.example .env.dev
-```
-Обязательно проверьте `FRONTEND_URL_DEV` и другие параметры в этом файле.
+Use the root file `.env.dev`.
 
-### 2. Запуск сервера
-Запустите специальный скрипт (для Windows):
-```bash
-.\docker-start-dev.bat
-```
-Или используйте команду напрямую:
-```bash
-docker-compose -f docker-compose.dev.yml --env-file .env.dev up -d --build
-```
+Important variables:
+- `FRONTEND_URL_DEV=https://dev.soulsynergy.ru`
+- `VITE_PUBLIC_APP_URL=https://dev.soulsynergy.ru`
+- `DB_PASSWORD=...`
 
----
+If you want test integrations instead of production ones, set:
+- `YOOKASSA_SHOP_ID_DEV`
+- `YOOKASSA_SECRET_KEY_DEV`
 
-## 🌐 Настройка поддомена (Nginx на хосте)
+## 2. Start the dev stack
 
-Чтобы сервер был доступен по адресу `dev.yourdomain.com`, добавьте конфигурацию в основной Nginx вашего сервера:
-
-```nginx
-server {
-    listen 80;
-    server_name dev.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:8081;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # Важно для WebSocket (чаты)
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
+```powershell
+docker compose -f docker-compose.dev.yml --env-file .env.dev up -d --build
 ```
 
----
+Stop it:
 
-## 🔒 Безопасность и Доступ
-При входе на `dev` версию сайта браузер запросит авторизацию:
-- **Логин:** `admin`
-- **Пароль:** `defender007`
+```powershell
+docker compose -f docker-compose.dev.yml --env-file .env.dev down
+```
 
-Эти настройки хранятся в файле [frontend/.htpasswd](file:///c:/Users/user/Desktop/synergy/frontend/.htpasswd) и подключаются через [frontend/nginx.dev.conf](file:///c:/Users/user/Desktop/synergy/frontend/nginx.dev.conf).
+If you need a fully clean empty dev database:
 
----
+```powershell
+docker compose -f docker-compose.dev.yml --env-file .env.dev down -v
+```
 
-## 📂 Новые файлы
-- [docker-compose.dev.yml](file:///c:/Users/user/Desktop/synergy/docker-compose.dev.yml) — основной конфиг dev-окружения.
-- [frontend/nginx.dev.conf](file:///c:/Users/user/Desktop/synergy/frontend/nginx.dev.conf) — конфиг Nginx с Basic Auth.
-- [frontend/.htpasswd](file:///c:/Users/user/Desktop/synergy/frontend/.htpasswd) — учетные данные для доступа.
-- [docker-start-dev.bat](file:///c:/Users/user/Desktop/synergy/docker-start-dev.bat) — скрипт запуска.
-- [env.dev.example](file:///c:/Users/user/Desktop/synergy/env.dev.example) — пример переменных окружения.
+## 3. Point the domain to the server
+
+DNS for `dev.soulsynergy.ru` must point to the same host where Docker is running.
+
+## 4. Configure host Nginx
+
+Use the host-level config from:
+- `deploy/nginx/dev.soulsynergy.ru.conf`
+
+It proxies the public domain to local port `8081`, which is the dev frontend container.
+
+## 5. Enable HTTPS
+
+Example with Certbot:
+
+```powershell
+certbot --nginx -d dev.soulsynergy.ru
+```
+
+## Notes
+
+- Basic Auth is enabled inside the dev frontend container via `frontend/.htpasswd`
+- Uploaded files are isolated in the Docker volume `uploads_data_dev`
+- Registration emails inside dev use `VITE_PUBLIC_APP_URL`, so links will point to `https://dev.soulsynergy.ru`
