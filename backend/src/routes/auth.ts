@@ -8,6 +8,7 @@ import { generateUniqueSlug } from '../utils/transliterate';
 import { generateReferralCode } from '../utils/referral';
 
 const router = express.Router();
+const isEmailVerificationDisabled = process.env.DISABLE_EMAIL_VERIFICATION === 'true';
 
 // Регистрация
 router.post(
@@ -51,7 +52,9 @@ router.post(
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Генерация токена верификации
-      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const verificationToken = isEmailVerificationDisabled
+        ? null
+        : crypto.randomBytes(32).toString('hex');
 
       // Генерация уникального slug
       const checkSlugExists = async (slug: string, userId: number | null): Promise<boolean> => {
@@ -82,9 +85,9 @@ router.post(
       // Создание пользователя
       const result = await query(
         `INSERT INTO users (email, password, name, user_type, email_verified, verification_token, slug, referral_code, referred_by_id) 
-         VALUES ($1, $2, $3, $4, false, $5, $6, $7, $8) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
          RETURNING id, email, name, user_type, verification_token, slug, referral_code, bonuses, created_at`,
-        [email, hashedPassword, name, userType, verificationToken, userSlug, myReferralCode, referredById]
+        [email, hashedPassword, name, userType, isEmailVerificationDisabled, verificationToken, userSlug, myReferralCode, referredById]
       );
 
       const user = result.rows[0];
@@ -142,7 +145,7 @@ router.post(
       }
 
       // Проверка подтверждения email
-      if (!user.email_verified) {
+      if (!isEmailVerificationDisabled && !user.email_verified) {
         return res.status(403).json({
           error: 'Email не подтвержден. Проверьте почту и перейдите по ссылке подтверждения.'
         });

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Typography, Modal, Checkbox, Space } from 'antd';
+import { Form, Input, Button, Card, message, Typography, Modal, Checkbox } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import emailjs from '@emailjs/browser';
 
 const { Title, Text } = Typography;
+const isEmailVerificationDisabled = import.meta.env.VITE_DISABLE_EMAIL_VERIFICATION === 'true';
 
 const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ const RegisterPage = () => {
           to_name: name,
           verification_url: verificationUrl,
           verification_token: verificationToken,
-          app_name: 'SoulSynergy — Синергия душ'
+          app_name: 'SoulSynergy - Синергия душ'
         },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
@@ -49,7 +50,6 @@ const RegisterPage = () => {
 
   const onFinish = async (values: any) => {
     if (plan) {
-      // Если указан план, сохраняем данные и перенаправляем на страницу оплаты
       localStorage.setItem('registrationData', JSON.stringify({
         ...values,
         referralCode
@@ -58,11 +58,25 @@ const RegisterPage = () => {
       return;
     }
 
-    // Обычная регистрация клиента
     setLoading(true);
     try {
       const result = await register(values.email, values.password, values.name, 'client', referralCode);
-      // ... rest of the existing code ...
+
+      if (isEmailVerificationDisabled) {
+        Modal.success({
+          title: 'Регистрация успешна!',
+          content: (
+            <div>
+              <p>Аккаунт создан без подтверждения email для dev-сервера.</p>
+              <p>Теперь можно сразу войти в систему.</p>
+            </div>
+          ),
+          okText: 'Понятно',
+          onOk: () => navigate('/login')
+        });
+        return;
+      }
+
       const emailSent = await sendVerificationEmail(
         result.user.email,
         result.user.name,
@@ -77,7 +91,7 @@ const RegisterPage = () => {
               <p>На ваш email <strong>{result.user.email}</strong> отправлено письмо с подтверждением.</p>
               <p>Пожалуйста, проверьте почту и перейдите по ссылке для активации аккаунта.</p>
               <p style={{ color: '#ff4d4f', fontWeight: 500, marginTop: 8 }}>
-                ⚠️ Если письмо не пришло, проверьте папку "Спам" или "Нежелательная почта"
+                Если письмо не пришло, проверьте папку "Спам" или "Нежелательная почта"
               </p>
             </div>
           ),
@@ -119,7 +133,7 @@ const RegisterPage = () => {
       >
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <Title level={2} style={{ margin: 0, fontWeight: 700, color: '#1a1a1a' }}>Регистрация</Title>
-          <Text style={{ color: '#666', fontSize: '15px' }}>Присоединяйтесь к сообществу SoulSynergy — Синергия душ</Text>
+          <Text style={{ color: '#666', fontSize: '15px' }}>Присоединяйтесь к сообществу SoulSynergy - Синергия душ</Text>
         </div>
 
         {referralCode && (
@@ -131,7 +145,7 @@ const RegisterPage = () => {
             border: '1px solid #bae6fd',
             textAlign: 'center'
           }}>
-            <Text strong style={{ color: '#0369a1', display: 'block' }}>🎁 Вам доступен бонус!</Text>
+            <Text strong style={{ color: '#0369a1', display: 'block' }}>Вам доступен бонус!</Text>
             <Text style={{ color: '#0c4a6e', fontSize: '13px' }}>
               Скидка по приглашению на подписку эксперта применится автоматически после подтверждения email.
               {plan === 'yearly' ? ' Сейчас вы перейдете к выбору тарифа.' : ''}
@@ -184,8 +198,6 @@ const RegisterPage = () => {
               placeholder="Пароль"
             />
           </Form.Item>
-
-
 
           <Form.Item style={{ marginBottom: 8 }}>
             <Checkbox
