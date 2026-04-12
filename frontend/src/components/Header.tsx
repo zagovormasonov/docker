@@ -223,6 +223,26 @@ const Header = () => {
           }
         }
       ] : []),
+      ...(user.userType === 'admin' ? [
+        {
+          key: 'moderation-mobile',
+          icon: <ShieldCheck size={18} />,
+          label: 'РњРѕРґРµСЂР°С†РёСЏ',
+          onClick: () => {
+            navigate('/moderation');
+            setMobileMenuOpen(false);
+          }
+        },
+        {
+          key: 'admin-panel-mobile',
+          icon: <Settings size={18} />,
+          label: 'РђРґРјРёРЅ РїР°РЅРµР»СЊ',
+          onClick: () => {
+            navigate('/admin-panel');
+            setMobileMenuOpen(false);
+          }
+        }
+      ] : []),
       {
         key: 'chats',
         icon: <MessageSquare size={18} />,
