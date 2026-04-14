@@ -223,11 +223,11 @@ const Header = () => {
           }
         }
       ] : []),
-      ...(user.userType === 'admin' ? [
+      ...(user?.userType === 'admin' ? [
         {
           key: 'moderation-mobile',
           icon: <ShieldCheck size={18} />,
-          label: 'РњРѕРґРµСЂР°С†РёСЏ',
+          label: 'Модерация',
           onClick: () => {
             navigate('/moderation');
             setMobileMenuOpen(false);
@@ -236,7 +236,7 @@ const Header = () => {
         {
           key: 'admin-panel-mobile',
           icon: <Settings size={18} />,
-          label: 'РђРґРјРёРЅ РїР°РЅРµР»СЊ',
+          label: 'Админ панель',
           onClick: () => {
             navigate('/admin-panel');
             setMobileMenuOpen(false);
@@ -416,7 +416,7 @@ const Header = () => {
           <button 
             className="header-minimal__btn mobile-menu-button" 
             onClick={() => setMobileMenuOpen(true)}
-            style={{ display: 'none' }}
+            style={{ border: 'none', background: 'transparent' }}
           >
             <Badge count={unreadCount} size="small">
               <MenuIcon size={22} />
