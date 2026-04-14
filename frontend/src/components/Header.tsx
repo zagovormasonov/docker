@@ -330,6 +330,16 @@ const Header = () => {
             <Link to="/events" className={`header-minimal__nav-link ${location.pathname.startsWith('/events') ? 'active' : ''}`}>
               События
             </Link>
+            {user?.userType === 'admin' && (
+              <>
+                <Link to="/moderation" className={`header-minimal__nav-link ${location.pathname.startsWith('/moderation') ? 'active' : ''}`}>
+                  Модерация
+                </Link>
+                <Link to="/admin-panel" className={`header-minimal__nav-link ${location.pathname.startsWith('/admin-panel') ? 'active' : ''}`}>
+                  Админ панель
+                </Link>
+              </>
+            )}
           </nav>
         </div>
 
