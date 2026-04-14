@@ -36,7 +36,9 @@ import {
   DeleteOutlined as DeleteImageOutlined,
   PlusOutlined,
   PushpinOutlined,
-  PushpinFilled
+  PushpinFilled,
+  SettingOutlined,
+  UnlockOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import axios from '../api/axios';
@@ -98,6 +100,7 @@ const AdminPanel: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [pinnedArticles, setPinnedArticles] = useState<Article[]>([]);
+  const [settings, setSettings] = useState<any>({});
   const [loading, setLoading] = useState(true);
   console.log('Initial state - loading:', loading, 'user:', user?.userType);
 
@@ -163,6 +166,18 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      console.log('fetchSettings called');
+      const response = await axios.get('/api/admin/settings');
+      console.log('Settings API Response:', response.data);
+      setSettings(response.data || {});
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      setSettings({});
+    }
+  };
+
   // Основной useEffect для загрузки данных - ЗАГРУЖАЕМ ВСЕ ДАННЫЕ
   useEffect(() => {
     console.log('useEffect triggered - LOADING ALL DATA');
@@ -177,7 +192,8 @@ const AdminPanel: React.FC = () => {
           fetchUsers(),
           fetchArticles(),
           fetchEvents(),
-          fetchPinnedArticles()
+          fetchPinnedArticles(),
+          fetchSettings()
         ]);
         
         console.log('Data load completed');
@@ -476,6 +492,18 @@ const AdminPanel: React.FC = () => {
       fetchPinnedArticles();
     } catch (error: any) {
       message.error(error.response?.data?.error || 'Ошибка изменения порядка');
+    }
+  };
+
+  const handleToggleAutoMod = async (enabled: boolean) => {
+    try {
+      await axios.put('/api/admin/settings/auto_moderation_events', {
+        value: { enabled }
+      });
+      message.success(`Автомодерация событий ${enabled ? 'включена' : 'выключена'}`);
+      fetchSettings();
+    } catch (error: any) {
+      message.error('Ошибка изменения настроек автомодерации');
     }
   };
 
@@ -1223,6 +1251,44 @@ const AdminPanel: React.FC = () => {
                 pagination={{ pageSize: 10 }}
                 scroll={{ x: 'max-content' }}
               />
+            ),
+          },
+          {
+            key: 'settings',
+            label: (
+              <span>
+                <SettingOutlined /> Настройки
+              </span>
+            ),
+            children: (
+              <div style={{ maxWidth: 600 }}>
+                <Card title="Глобальные настройки платформы">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                    <div>
+                      <Typography.Text strong style={{ fontSize: 16 }}>
+                        Включить автомодерацию событий
+                      </Typography.Text>
+                      <br />
+                      <Typography.Text type="secondary">
+                        При включении все новые события будут публиковаться автоматически без проверки администратором
+                      </Typography.Text>
+                    </div>
+                    <Switch 
+                      checked={settings.auto_moderation_events?.enabled} 
+                      onChange={handleToggleAutoMod}
+                    />
+                  </div>
+                  
+                  <Divider />
+                  
+                  <Alert
+                    message="Внимание"
+                    description="Включение автомодерации может привести к появлению нежелательного контента на платформе. Используйте эту функцию с осторожностью."
+                    type="warning"
+                    showIcon
+                  />
+                </Card>
+              </div>
             ),
           },
         ]}

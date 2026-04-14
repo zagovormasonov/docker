@@ -45,6 +45,8 @@ import scheduleRoutes from './routes/schedule';
 import subscriptionCheckerRoutes from './routes/subscription-checker';
 import adminPinnedArticlesRoutes from './routes/admin-pinned-articles';
 import webhooksRoutes from './routes/webhooks';
+import adminSettingsRoutes from './routes/admin-settings';
+
 
 dotenv.config();
 
@@ -108,6 +110,8 @@ app.use('/api/auth', refreshTokenRoutes);
 app.use('/api/admin/logs', adminLogsRoutes);
 app.use('/api/subscriptions', subscriptionCheckerRoutes);
 app.use('/api/admin/pinned-articles', adminPinnedArticlesRoutes);
+app.use('/api/admin/settings', adminSettingsRoutes);
+
 app.use('/api/bookings', bookingsRoutes);
 app.use('/api/schedule', scheduleRoutes);
 // Публичные страницы шаринга для соцсетей (с SSR OG-мета)

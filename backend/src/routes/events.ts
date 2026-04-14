@@ -258,7 +258,13 @@ router.post(
         return res.status(400).json({ error: 'Для офлайн события город обязателен' });
       }
 
-      console.log('📝 Создаем событие:', { title, eventType, isOnline, cityId, eventDate });
+      // Проверяем настройку автомодерации
+      const autoModResult = await query(
+        "SELECT value FROM global_settings WHERE key = 'auto_moderation_events'"
+      );
+      const autoModEnabled = autoModResult.rows.length > 0 && autoModResult.rows[0].value.enabled;
+
+      console.log('📝 Создаем событие:', { title, eventType, isOnline, cityId, eventDate, autoModEnabled });
 
       // Создаем событие с полями модерации
       const result = await query(
@@ -280,8 +286,8 @@ router.post(
           price,
           registrationLink,
           req.userId,
-          false, // is_published = false (требует модерации)
-          'pending' // moderation_status = 'pending'
+          autoModEnabled ? true : false, // is_published
+          autoModEnabled ? 'approved' : 'pending' // moderation_status
         ]
       );
 
