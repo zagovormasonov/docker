@@ -169,7 +169,7 @@ const AdminPanel: React.FC = () => {
   const fetchSettings = async () => {
     try {
       console.log('fetchSettings called');
-      const response = await axios.get('/api/admin/settings');
+      const response = await axios.get('/admin/settings');
       console.log('Settings API Response:', response.data);
       setSettings(response.data || {});
     } catch (error) {
@@ -497,7 +497,7 @@ const AdminPanel: React.FC = () => {
 
   const handleToggleAutoMod = async (enabled: boolean) => {
     try {
-      await axios.put('/api/admin/settings/auto_moderation_events', {
+      await axios.put('/admin/settings/auto_moderation_events', {
         value: { enabled }
       });
       message.success(`Автомодерация событий ${enabled ? 'включена' : 'выключена'}`);

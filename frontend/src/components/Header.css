@@ -181,6 +181,10 @@
   color: var(--h-muted);
 }
 
+.mobile-menu-button {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
   .header-minimal {
     padding: 0 16px;
@@ -195,6 +199,10 @@
   
   .header-minimal__left {
     gap: 12px;
+  }
+
+  .mobile-menu-button {
+    display: flex !important;
   }
 }
 

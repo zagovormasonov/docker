@@ -407,7 +407,7 @@ export const initDatabase = async () => {
 
     console.log('✅ База данных инициализирована');
   } catch (error) {
-    console.error('❌ Ошибка инициализации базы данных:', error);
+    console.error('❌ КРИТИЧЕСКАЯ ОШИБКА ИНИЦИАЛИЗАЦИИ БД:', error);
     throw error;
   }
 };
