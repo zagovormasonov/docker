@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Tabs, Typography, Button, Space, Alert } from 'antd';
+import { Typography, Button, Space, Avatar, Spin } from 'antd';
 import {
   CalendarOutlined,
-  SettingOutlined,
   TeamOutlined,
   InboxOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  UserOutlined,
+  MessageOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
+import { Calendar, Users, Inbox, ChevronLeft, Clock, MessageSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ExpertCalendar from '../components/ExpertCalendar';
 import api from '../api/axios';
+import '../styles/Profile.css';
 
 const { Title, Text } = Typography;
 
@@ -23,7 +28,7 @@ interface Client {
   total_bookings: number;
 }
 
-interface AllBooking {
+interface Booking {
   id: number;
   date: string;
   time_slot: string;
@@ -39,637 +44,297 @@ interface AllBooking {
 const ExpertDashboardPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('calendar');
-  const [showLocalTime, setShowLocalTime] = useState(false);
-  const [userCity, setUserCity] = useState<string>('');
+  const [activeSection, setActiveSection] = useState<'calendar' | 'bookings' | 'clients'>('calendar');
   const [clients, setClients] = useState<Client[]>([]);
-  const [allBookings, setAllBookings] = useState<AllBooking[]>([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // Отслеживаем размер экрана
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
   }, []);
 
-  // Загружаем количество pending заявок и клиентов при инициализации для бейджей
   useEffect(() => {
-    if (user && (user.userType === 'expert' || user.userType === 'admin')) {
-      loadPendingCount();
-      loadClientsCount();
-    }
-  }, [user]);
-
-  const loadClientsCount = async () => {
-    try {
-      const response = await api.get('/experts/my-clients');
-      setClients(response.data);
-    } catch (error) {
-      console.error('Ошибка загрузки клиентов:', error);
-    }
-  };
-
-  useEffect(() => {
-    // Ждём пока AuthContext загрузит пользователя
     if (authLoading) return;
-    
-    // Проверяем, является ли пользователь экспертом
     if (!user || (user.userType !== 'expert' && user.userType !== 'admin')) {
-      navigate('/profile');
-      return;
+      navigate('/profile'); return;
     }
+    loadPendingCount();
+    loadClientsCount();
+  }, [user, authLoading]);
 
-    // Загружаем данные в зависимости от активной вкладки
-    if (activeTab === 'clients') {
-      loadClients();
-    } else if (activeTab === 'bookings') {
-      loadAllBookings();
-    }
-
-    // Загружаем информацию о городе пользователя
-    if (user.city) {
-      setUserCity(user.city);
-    }
-  }, [user, navigate, activeTab, authLoading]);
+  useEffect(() => {
+    if (activeSection === 'clients') loadClients();
+    else if (activeSection === 'bookings') loadAllBookings();
+  }, [activeSection]);
 
   const loadPendingCount = async () => {
-    try {
-      const response = await api.get('/bookings/incoming');
-      setPendingCount(response.data.length);
-    } catch (error) {
-      console.error('Ошибка загрузки количества заявок:', error);
-    }
+    try { const r = await api.get('/bookings/incoming'); setPendingCount(r.data.length); } catch (e) {}
   };
-
+  const loadClientsCount = async () => {
+    try { const r = await api.get('/experts/my-clients'); setClients(r.data); } catch (e) {}
+  };
   const loadClients = async () => {
     setLoading(true);
-    try {
-      const response = await api.get('/experts/my-clients');
-      setClients(response.data);
-    } catch (error) {
-      console.error('Ошибка загрузки клиентов:', error);
-    } finally {
-      setLoading(false);
-    }
+    try { const r = await api.get('/experts/my-clients'); setClients(r.data); }
+    catch (e) {} finally { setLoading(false); }
   };
-
   const loadAllBookings = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/bookings/expert/bookings');
-      setAllBookings(response.data);
-      // Обновляем счетчик pending заявок
-      const pending = response.data.filter((b: AllBooking) => b.status === 'pending');
-      setPendingCount(pending.length);
-    } catch (error) {
-      console.error('Ошибка загрузки всех записей:', error);
-    } finally {
-      setLoading(false);
-    }
+      const r = await api.get('/bookings/expert/bookings');
+      setAllBookings(r.data);
+      setPendingCount(r.data.filter((b: Booking) => b.status === 'pending').length);
+    } catch (e) {} finally { setLoading(false); }
   };
 
-  const handleBookingAction = async (bookingId: number, action: 'confirm' | 'reject', rejectionReason?: string) => {
+  const handleBookingAction = async (id: number, action: 'confirm' | 'reject', reason?: string) => {
+    try { await api.put(`/bookings/${id}/${action}`, { rejectionReason: reason }); await loadAllBookings(); } catch (e) {}
+  };
+
+  const handleCancelBooking = async (id: number) => {
+    if (!confirm('Отменить запись?')) return;
     try {
-      await api.put(`/bookings/${bookingId}/${action}`, { rejectionReason });
+      await api.put(`/bookings/expert/bookings/${id}/status`, { status: 'cancelled', rejectionReason: 'Отменено экспертом' });
       await loadAllBookings();
-    } catch (error) {
-      console.error(`Ошибка ${action === 'confirm' ? 'подтверждения' : 'отклонения'} заявки:`, error);
-    }
+    } catch (e) {}
   };
 
-  const handleCancelBooking = async (bookingId: number) => {
-    if (!confirm('Вы уверены, что хотите отменить эту запись?')) {
-      return;
-    }
-
-    try {
-      await api.put(`/bookings/expert/bookings/${bookingId}/status`, {
-        status: 'cancelled',
-        rejectionReason: 'Отменено экспертом'
-      });
-      await loadAllBookings();
-    } catch (error) {
-      console.error('Ошибка отмены записи:', error);
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusStyles: Record<string, { text: string; color: string }> = {
-      pending: { text: '⏳ Ожидает', color: '#faad14' },
-      confirmed: { text: '✅ Подтверждено', color: '#52c41a' },
-      rejected: { text: '❌ Отклонено', color: '#ff4d4f' },
-      cancelled: { text: '🚫 Отменено', color: '#8c8c8c' }
-    };
-    
-    const statusInfo = statusStyles[status] || statusStyles.pending;
-    return (
-      <span style={{
-        padding: '4px 12px',
-        borderRadius: '12px',
-        fontSize: '12px',
-        fontWeight: 500,
-        backgroundColor: statusInfo.color + '20',
-        color: statusInfo.color
-      }}>
-        {statusInfo.text}
-      </span>
-    );
-  };
-
-  const formatDateTime = (dateString: string, timeSlot?: string) => {
-    const date = new Date(dateString);
-    
-    if (showLocalTime) {
-      // Показываем местное время пользователя
-      const formatted = date.toLocaleString('ru-RU', {
-        timeZone: 'Europe/Moscow', // Базовое время МСК
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      return formatted;
-    } else {
-      // Показываем время по МСК
-      const formatted = date.toLocaleString('ru-RU', {
-        timeZone: 'Europe/Moscow',
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-      });
-      return `${formatted}${timeSlot ? `, ${timeSlot}` : ''} МСК`;
-    }
+  const formatDate = (dateStr: string, timeSlot?: string) => {
+    const d = new Date(dateStr);
+    const formatted = d.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: 'long', year: 'numeric' });
+    return `${formatted}${timeSlot ? `, ${timeSlot}` : ''} МСК`;
   };
 
   const pendingBookings = allBookings.filter(b => b.status === 'pending');
   const confirmedBookings = allBookings.filter(b => b.status === 'confirmed');
   const historyBookings = allBookings.filter(b => ['rejected', 'cancelled'].includes(b.status));
 
-  const tabItems = [
-    {
-      key: 'calendar',
-      label: (
-        <span>
-          <CalendarOutlined /> Календарь
-        </span>
-      ),
-      children: (
-        <div>
-          <div style={{ marginBottom: 16 }}>
-            <Alert
-              message="Все время указано по МСК (Московское время)"
-              type="info"
-              showIcon
-              icon={<ClockCircleOutlined />}
-              action={
-                userCity && (
-                  <Button
-                    size="small"
-                    type="text"
-                    onClick={() => setShowLocalTime(!showLocalTime)}
-                  >
-                    {showLocalTime ? 'Показать МСК' : 'Показать местное время'}
-                  </Button>
-                )
-              }
-            />
-          </div>
-          <ExpertCalendar />
+  if (authLoading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}><Spin size="large" /></div>;
+  if (!user || (user.userType !== 'expert' && user.userType !== 'admin')) return null;
+
+  const StatusBadge = ({ status }: { status: string }) => {
+    const map: Record<string, { text: string; bg: string; color: string }> = {
+      pending: { text: 'Ожидает', bg: '#fff8e1', color: '#f59e0b' },
+      confirmed: { text: 'Подтверждено', bg: '#e8f5e9', color: '#22c55e' },
+      rejected: { text: 'Отклонено', bg: '#ffeef0', color: '#ef4444' },
+      cancelled: { text: 'Отменено', bg: '#f5f5f7', color: '#86868b' }
+    };
+    const s = map[status] || map.pending;
+    return <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: s.bg, color: s.color }}>{s.text}</span>;
+  };
+
+  const BookingCard = ({ booking, actions }: { booking: Booking; actions?: React.ReactNode }) => (
+    <div style={{
+      display: 'flex', gap: 16, padding: 20, background: '#f5f5f7', borderRadius: 20,
+      flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'flex-start',
+      textAlign: isMobile ? 'center' : 'left'
+    }}>
+      <Avatar size={56} src={booking.client_avatar || '/emp.jpg'} icon={<UserOutlined />}
+        style={{ border: '3px solid #fff', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', flexShrink: 0 }} />
+      <div style={{ flex: 1, width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 8 }}>
+          <Text strong style={{ fontSize: 16 }}>{booking.client_name}</Text>
+          <StatusBadge status={booking.status} />
         </div>
-      )
-    },
-    {
-      key: 'bookings',
-      label: (
-        <span>
-          <InboxOutlined /> Управление записями
-          {pendingCount > 0 && (
-            <span style={{
-              marginLeft: 8,
-              backgroundColor: '#ff4d4f',
-              color: '#fff',
-              padding: '2px 8px',
-              borderRadius: '10px',
-              fontSize: '12px',
-              fontWeight: 'bold'
-            }}>
-              {pendingCount}
-            </span>
-          )}
-        </span>
-      ),
-      children: (
-        <div>
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: isMobile ? 'column' : 'row',
-            justifyContent: 'space-between', 
-            alignItems: isMobile ? 'flex-start' : 'center',
-            gap: '12px',
-            marginBottom: 16 
-          }}>
-            <div>
-              <Title level={3} style={{ 
-                margin: 0,
-                fontSize: isMobile ? '18px' : '24px'
-              }}>Управление записями</Title>
-              <Text type="secondary" style={{ fontSize: isMobile ? '13px' : '14px' }}>
-                Все записи клиентов: подтверждение заявок, управление расписанием
-              </Text>
+        <Text type="secondary" style={{ fontSize: 13 }}>{booking.client_email}</Text>
+        <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>
+          📅 {formatDate(booking.date, booking.time_slot)}
+        </div>
+        {booking.client_message && (
+          <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(0,0,0,0.04)', borderRadius: 12, fontSize: 13 }}>
+            💬 {booking.client_message}
+          </div>
+        )}
+        {booking.rejection_reason && (
+          <div style={{ marginTop: 8, padding: '8px 12px', background: '#ffeef0', borderRadius: 12, fontSize: 13, color: '#ef4444' }}>
+            ❌ {booking.rejection_reason}
+          </div>
+        )}
+        {actions && <div style={{ marginTop: 12 }}>{actions}</div>}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="settings-page">
+      {/* Шапка */}
+      <div className="settings-page-header">
+        <button className="settings-back-btn" onClick={() => navigate('/profile')}>
+          <ChevronLeft size={22} />
+          <span>Профиль</span>
+        </button>
+        <h1 className="settings-page-title">Кабинет эксперта</h1>
+        <div style={{ width: 100 }}></div>
+      </div>
+
+      <div className="settings-page-content" style={{ maxWidth: 900 }}>
+        {/* Навигация по разделам */}
+        <div className="section-card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            {[
+              { key: 'calendar' as const, icon: <Calendar size={22} />, label: 'Календарь', color: '#5856d6', count: 0 },
+              { key: 'bookings' as const, icon: <Inbox size={22} />, label: 'Записи', color: '#ff9500', count: pendingCount },
+              { key: 'clients' as const, icon: <Users size={22} />, label: 'Клиенты', color: '#34c759', count: clients.length }
+            ].map(item => (
+              <button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                  padding: '24px 16px', border: 'none', cursor: 'pointer',
+                  background: activeSection === item.key ? '#f5f5f7' : '#fff',
+                  borderBottom: activeSection === item.key ? `3px solid ${item.color}` : '3px solid transparent',
+                  color: activeSection === item.key ? item.color : '#86868b',
+                  transition: 'all 0.2s', position: 'relative'
+                }}
+              >
+                {item.icon}
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{item.label}</span>
+                {item.count > 0 && (
+                  <span style={{
+                    position: 'absolute', top: 12, right: '25%',
+                    background: item.key === 'bookings' ? '#ff3b30' : '#007aff',
+                    color: '#fff', fontSize: 11, fontWeight: 700,
+                    padding: '2px 7px', borderRadius: 10, minWidth: 18, textAlign: 'center'
+                  }}>
+                    {item.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Контент секции */}
+        {activeSection === 'calendar' && (
+          <div className="section-card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '8px 12px', background: '#eef2ff', borderRadius: 12, fontSize: 13, color: '#5856d6' }}>
+              <Clock size={16} /> Все время указано по МСК
             </div>
-            {pendingCount > 0 && (
-              <div style={{
-                backgroundColor: '#fff1f0',
-                border: '1px solid #ffccc7',
-                borderRadius: 8,
-                padding: '8px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                width: isMobile ? '100%' : 'auto',
-                justifyContent: isMobile ? 'center' : 'flex-start'
-              }}>
-                <span style={{ fontSize: 20 }}>🔔</span>
-                <Text strong style={{ color: '#ff4d4f' }}>
-                  {pendingCount} {pendingCount === 1 ? 'новая заявка' : 'новых заявок'}
-                </Text>
+            <ExpertCalendar />
+          </div>
+        )}
+
+        {activeSection === 'bookings' && (
+          <>
+            {/* Pending */}
+            {pendingBookings.length > 0 && (
+              <div className="section-card" style={{ borderColor: '#ffe58f' }}>
+                <h2 className="section-title">⏳ Ожидают подтверждения
+                  <span style={{ background: '#ff3b30', color: '#fff', fontSize: 13, padding: '2px 10px', borderRadius: 12, fontWeight: 700, marginLeft: 8 }}>
+                    {pendingBookings.length}
+                  </span>
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {pendingBookings.map(b => (
+                    <BookingCard key={b.id} booking={b} actions={
+                      <Space direction={isMobile ? 'vertical' : 'horizontal'} style={{ width: isMobile ? '100%' : 'auto' }}>
+                        <Button type="primary" icon={<CheckOutlined />} onClick={() => handleBookingAction(b.id, 'confirm')} block={isMobile}
+                          style={{ borderRadius: 12, background: '#22c55e', border: 'none' }}>
+                          Подтвердить
+                        </Button>
+                        <Button danger icon={<CloseOutlined />} block={isMobile} style={{ borderRadius: 12 }}
+                          onClick={() => { const r = prompt('Причина отклонения (необязательно):'); if (r !== null) handleBookingAction(b.id, 'reject', r || undefined); }}>
+                          Отклонить
+                        </Button>
+                      </Space>
+                    } />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Confirmed */}
+            {confirmedBookings.length > 0 && (
+              <div className="section-card">
+                <h2 className="section-title">✅ Подтверждённые записи ({confirmedBookings.length})</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {confirmedBookings.map(b => (
+                    <BookingCard key={b.id} booking={b} actions={
+                      <Button danger onClick={() => handleCancelBooking(b.id)} block={isMobile} style={{ borderRadius: 12 }}>
+                        Отменить запись
+                      </Button>
+                    } />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* History */}
+            {historyBookings.length > 0 && (
+              <div className="section-card" style={{ opacity: 0.75 }}>
+                <h2 className="section-title">📝 История ({historyBookings.length})</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {historyBookings.map(b => <BookingCard key={b.id} booking={b} />)}
+                </div>
+              </div>
+            )}
+
+            {allBookings.length === 0 && !loading && (
+              <div className="section-card" style={{ textAlign: 'center', padding: '48px 32px' }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
+                <Text type="secondary" style={{ fontSize: 16 }}>У вас пока нет записей</Text>
+              </div>
+            )}
+
+            {loading && <div style={{ textAlign: 'center', padding: 40 }}><Spin size="large" /></div>}
+          </>
+        )}
+
+        {activeSection === 'clients' && (
+          <div className="section-card">
+            <h2 className="section-title"><Users size={20} /> Мои клиенты ({clients.length})</h2>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 20, fontSize: 14 }}>
+              Клиенты, которые записывались на консультации
+            </Text>
+
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
+            ) : clients.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {clients.map(client => (
+                  <div key={client.id} style={{
+                    display: 'flex', gap: 16, padding: 20, background: '#f5f5f7', borderRadius: 20,
+                    alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                    flexDirection: isMobile ? 'column' : 'row', textAlign: isMobile ? 'center' : 'left'
+                  }}
+                    onClick={() => navigate(`/experts/${client.id}`)}
+                  >
+                    <Avatar size={56} src={client.avatar_url || '/emp.jpg'} icon={<UserOutlined />}
+                      style={{ border: '3px solid #fff', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <Text strong style={{ fontSize: 16, display: 'block' }}>{client.name}</Text>
+                      <Text type="secondary" style={{ fontSize: 13 }}>{client.email}</Text>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#86868b' }}>
+                        {client.total_bookings} {client.total_bookings === 1 ? 'запись' : 'записей'}
+                        {client.last_booking_date && ` · Последняя: ${formatDate(client.last_booking_date)}`}
+                      </div>
+                    </div>
+                    <Button type="primary" icon={<MessageOutlined />}
+                      style={{ borderRadius: 12, background: '#1d1d1f', border: 'none' }}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try { const r = await api.post('/chats/create', { otherUserId: client.id }); navigate(`/chats/${r.data.id}`); } catch (e) {}
+                      }}
+                    >
+                      Написать
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '48px 32px' }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>👥</div>
+                <Text type="secondary" style={{ fontSize: 16 }}>У вас пока нет клиентов</Text>
               </div>
             )}
           </div>
-          <Alert
-            message="Все время указано по МСК (Московское время)"
-            type="info"
-            showIcon
-            icon={<ClockCircleOutlined />}
-            style={{ marginBottom: 16 }}
-            action={
-              userCity && (
-                <Button
-                  size="small"
-                  type="text"
-                  onClick={() => setShowLocalTime(!showLocalTime)}
-                >
-                  {showLocalTime ? 'Показать МСК' : 'Показать местное время'}
-                </Button>
-              )
-            }
-          />
-          
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: 40 }}>
-              <Text>Загрузка записей...</Text>
-            </div>
-          ) : (
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              {/* Ожидающие подтверждения - с выделением */}
-              {pendingBookings.length > 0 && (
-                <div style={{
-                  backgroundColor: '#fffbe6',
-                  border: '2px solid #ffe58f',
-                  borderRadius: 8,
-                  padding: 16
-                }}>
-                  <Title level={4} style={{ marginTop: 0 }}>
-                    ⏳ Ожидают подтверждения 
-                    <span style={{
-                      marginLeft: 8,
-                      backgroundColor: '#ff4d4f',
-                      color: '#fff',
-                      padding: '2px 10px',
-                      borderRadius: '12px',
-                      fontSize: '14px'
-                    }}>
-                      {pendingBookings.length}
-                    </span>
-                  </Title>
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    {pendingBookings.map((booking) => (
-                      <Card key={booking.id}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-                          <img 
-                            src={booking.client_avatar || '/emp.jpg'} 
-                            alt={booking.client_name}
-                            style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                              <Title level={5} style={{ margin: 0 }}>{booking.client_name}</Title>
-                              {getStatusBadge(booking.status)}
-                            </div>
-                            <Text type="secondary">{booking.client_email}</Text>
-                            <br />
-                            <Text strong style={{ marginTop: 8, display: 'block' }}>
-                              📅 {formatDateTime(booking.date, booking.time_slot)}
-                            </Text>
-                            {booking.client_message && (
-                              <div style={{ marginTop: 8, padding: 8, backgroundColor: '#f5f5f5', borderRadius: 4 }}>
-                                <Text style={{ fontSize: 12 }}>
-                                  <strong>💬 Сообщение:</strong> {booking.client_message}
-                                </Text>
-                              </div>
-                            )}
-                            <div style={{ marginTop: 12 }}>
-                              <Space 
-                                direction={isMobile ? 'vertical' : 'horizontal'}
-                                style={{ width: isMobile ? '100%' : 'auto' }}
-                              >
-                                <Button 
-                                  type="primary" 
-                                  onClick={() => handleBookingAction(booking.id, 'confirm')}
-                                  block={isMobile}
-                                >
-                                  ✓ Подтвердить
-                                </Button>
-                                <Button 
-                                  danger
-                                  onClick={() => {
-                                    const reason = prompt('Укажите причину отклонения (необязательно):');
-                                    if (reason !== null) {
-                                      handleBookingAction(booking.id, 'reject', reason || undefined);
-                                    }
-                                  }}
-                                  block={isMobile}
-                                >
-                                  ✕ Отклонить
-                                </Button>
-                              </Space>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </Space>
-                </div>
-              )}
-
-              {/* Подтвержденные */}
-              {confirmedBookings.length > 0 && (
-                <div>
-                  <Title level={4}>✅ Подтвержденные записи ({confirmedBookings.length})</Title>
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    {confirmedBookings.map((booking) => (
-                      <Card key={booking.id}>
-                        <div style={{ 
-                          display: 'flex', 
-                          flexDirection: isMobile ? 'column' : 'row',
-                          alignItems: isMobile ? 'center' : 'flex-start',
-                          gap: 16,
-                          textAlign: isMobile ? 'center' : 'left'
-                        }}>
-                          <img 
-                            src={booking.client_avatar || '/emp.jpg'} 
-                            alt={booking.client_name}
-                            style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                          <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
-                            <div style={{ 
-                              display: 'flex', 
-                              flexDirection: isMobile ? 'column' : 'row',
-                              justifyContent: 'space-between', 
-                              alignItems: isMobile ? 'center' : 'center',
-                              gap: '8px',
-                              marginBottom: 8 
-                            }}>
-                              <Title level={5} style={{ margin: 0, fontSize: isMobile ? '16px' : '18px' }}>{booking.client_name}</Title>
-                              {getStatusBadge(booking.status)}
-                            </div>
-                            <Text type="secondary">{booking.client_email}</Text>
-                            <br />
-                            <Text strong style={{ marginTop: 8, display: 'block' }}>
-                              📅 {formatDateTime(booking.date, booking.time_slot)}
-                            </Text>
-                            <div style={{ marginTop: 12 }}>
-                              <Button 
-                                danger
-                                onClick={() => handleCancelBooking(booking.id)}
-                                block={isMobile}
-                              >
-                                ✕ Отменить запись
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </Space>
-                </div>
-              )}
-
-              {/* История */}
-              {historyBookings.length > 0 && (
-                <div>
-                  <Title level={4}>📝 История ({historyBookings.length})</Title>
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    {historyBookings.map((booking) => (
-                      <Card key={booking.id} style={{ opacity: 0.7 }}>
-                        <div style={{ 
-                          display: 'flex', 
-                          flexDirection: isMobile ? 'column' : 'row',
-                          alignItems: isMobile ? 'center' : 'flex-start',
-                          gap: 16,
-                          textAlign: isMobile ? 'center' : 'left'
-                        }}>
-                          <img 
-                            src={booking.client_avatar || '/emp.jpg'} 
-                            alt={booking.client_name}
-                            style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                          <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
-                            <div style={{ 
-                              display: 'flex', 
-                              flexDirection: isMobile ? 'column' : 'row',
-                              justifyContent: 'space-between', 
-                              alignItems: isMobile ? 'center' : 'center',
-                              gap: '8px',
-                              marginBottom: 8 
-                            }}>
-                              <Title level={5} style={{ margin: 0, fontSize: isMobile ? '16px' : '18px' }}>{booking.client_name}</Title>
-                              {getStatusBadge(booking.status)}
-                            </div>
-                            <Text type="secondary">{booking.client_email}</Text>
-                            <br />
-                            <Text strong style={{ marginTop: 8, display: 'block' }}>
-                              📅 {formatDateTime(booking.date, booking.time_slot)}
-                            </Text>
-                            {booking.rejection_reason && (
-                              <div style={{ marginTop: 8, padding: 8, backgroundColor: '#fff1f0', borderRadius: 4, borderLeft: '3px solid #ff4d4f' }}>
-                                <Text style={{ fontSize: 12, color: '#ff4d4f' }}>
-                                  <strong>❌ Причина отклонения:</strong> {booking.rejection_reason}
-                                </Text>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </Space>
-                </div>
-              )}
-
-              {allBookings.length === 0 && (
-                <Card>
-                  <Text type="secondary">У вас пока нет записей</Text>
-                </Card>
-              )}
-            </Space>
-          )}
-        </div>
-      )
-    },
-    {
-      key: 'clients',
-      label: (
-        <span>
-          <TeamOutlined /> Мои клиенты
-          {clients.length > 0 && (
-            <span style={{
-              marginLeft: 8,
-              backgroundColor: '#e6f7ff',
-              color: '#1890ff',
-              padding: '2px 8px',
-              borderRadius: '10px',
-              fontSize: '12px',
-              fontWeight: 'bold'
-            }}>
-              {clients.length}
-            </span>
-          )}
-        </span>
-      ),
-      children: (
-        <div>
-          <Title level={3}>Список клиентов</Title>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-            Здесь отображаются клиенты, которые записывались к вам на консультации
-          </Text>
-          <Alert
-            message="Все время указано по МСК (Московское время)"
-            type="info"
-            showIcon
-            icon={<ClockCircleOutlined />}
-            style={{ marginBottom: 16 }}
-            action={
-              userCity && (
-                <Button
-                  size="small"
-                  type="text"
-                  onClick={() => setShowLocalTime(!showLocalTime)}
-                >
-                  {showLocalTime ? 'Показать МСК' : 'Показать местное время'}
-                </Button>
-              )
-            }
-          />
-          {loading ? (
-            <Text>Загрузка...</Text>
-          ) : clients.length > 0 ? (
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              {clients.map((client) => (
-                <Card 
-                  key={client.id} 
-                  hoverable
-                  onClick={() => navigate(`/experts/${client.id}`)}
-                >
-                  <div style={{ 
-                    display: 'flex', 
-                    flexDirection: isMobile ? 'column' : 'row',
-                    alignItems: 'center', 
-                    gap: 16,
-                    textAlign: isMobile ? 'center' : 'left'
-                  }}>
-                    <img 
-                      src={client.avatar_url || '/emp.jpg'} 
-                      alt={client.name}
-                      style={{ 
-                        width: 60, 
-                        height: 60, 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                    <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
-                      <Title level={5} style={{ margin: 0, fontSize: isMobile ? '16px' : '18px' }}>{client.name}</Title>
-                      <Text type="secondary">{client.email}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        Всего записей: {client.total_bookings}
-                      </Text>
-                      {client.last_booking_date && (
-                        <>
-                          <br />
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            Последняя запись: {formatDateTime(client.last_booking_date)}
-                          </Text>
-                        </>
-                      )}
-                    </div>
-                      <Button 
-                        type="primary"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            const response = await api.post('/chats/create', { otherUserId: client.id });
-                            navigate(`/chats/${response.data.id}`);
-                          } catch (error) {
-                            console.error('Ошибка создания чата:', error);
-                          }
-                        }}
-                        block={isMobile}
-                        style={{ width: isMobile ? '100%' : 'auto' }}
-                      >
-                        Написать
-                      </Button>
-                  </div>
-                </Card>
-              ))}
-            </Space>
-          ) : (
-            <Card>
-              <Text type="secondary">У вас пока нет клиентов</Text>
-            </Card>
-          )}
-        </div>
-      )
-    }
-  ];
-
-  // Показываем загрузку пока AuthContext проверяет токен
-  if (authLoading) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh' 
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="loading-spinner" style={{ marginBottom: 16 }}>Загрузка...</div>
-        </div>
+        )}
       </div>
-    );
-  }
-
-  if (!user || (user.userType !== 'expert' && user.userType !== 'admin')) {
-    return null;
-  }
-
-  return (
-    <div style={{ 
-      padding: isMobile ? '12px' : '24px',
-      maxWidth: isMobile ? '100%' : '1200px',
-      margin: '0 auto',
-      overflowX: 'hidden'
-    }}>
-      <Card style={{ overflowX: 'hidden' }}>
-        <ExpertCalendar />
-      </Card>
     </div>
   );
 };
