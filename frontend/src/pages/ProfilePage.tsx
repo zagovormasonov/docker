@@ -42,6 +42,20 @@ import ProductModal from '../components/ProductModal';
 import ShareProfileModal from '../components/ShareProfileModal';
 import { Tabs } from 'antd';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import {
+  MapPin,
+  MessageSquare,
+  Star,
+  Share2,
+  ExternalLink,
+  Users,
+  Image as ImageIcon,
+  BookOpen,
+  RussianRuble,
+  Settings,
+  Eye
+} from 'lucide-react';
+import '../styles/Profile.css';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -128,6 +142,7 @@ const ProfilePage = () => {
   const [tabsOrder, setTabsOrder] = useState<string[]>(['photos', 'gallery']);
   const [photosCount, setPhotosCount] = useState<number>(0);
   const [artworksCount, setArtworksCount] = useState<number>(0);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -716,13 +731,54 @@ const ProfilePage = () => {
 
   return (
     <>
-      <div className="container" style={{ maxWidth: 800 }}>
-        <Card>
-          <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
+      <div className="profile-container">
+        <div className="profile-header-card">
+          <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 12 }}>
+            <button
+              className="share-btn-top"
+              style={{
+                padding: 10,
+                background: 'rgba(0,0,0,0.03)',
+                borderRadius: '50%',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onClick={() => setIsEditMode(!isEditMode)}
+              title={isEditMode ? "Просмотр" : "Редактировать"}
+            >
+              {isEditMode ? <Eye size={20} color="#86868b" /> : <Settings size={20} color="#86868b" />}
+            </button>
+            <button
+              className="share-btn-top"
+              style={{
+                padding: 10,
+                background: 'rgba(0,0,0,0.03)',
+                borderRadius: '50%',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onClick={() => setShareModalVisible(true)}
+            >
+              <Share2 size={20} color="#86868b" />
+            </button>
+          </div>
+
+          <div className="profile-avatar-wrapper">
+            <Upload
+              accept="image/*"
+              showUploadList={false}
+              beforeUpload={handleAvatarUpload}
+              disabled={uploading}
+            >
+              <div style={{ position: 'relative', cursor: 'pointer' }}>
                 <Avatar
-                  size={100}
+                  size={140}
                   src={
                     tempAvatarUrl ||
                     lastUploadedAvatarUrl ||
@@ -730,7 +786,7 @@ const ProfilePage = () => {
                     '/emp.jpg'
                   }
                   icon={!tempAvatarUrl && !lastUploadedAvatarUrl && !user?.avatarUrl && <UserOutlined />}
-                  style={{ backgroundColor: '#6366f1' }}
+                  className="profile-avatar"
                 />
                 {uploading && (
                   <div style={{
@@ -748,56 +804,169 @@ const ProfilePage = () => {
                     <Progress
                       type="circle"
                       percent={uploadProgress}
-                      size={80}
-                      strokeColor="#6366f1"
+                      size={100}
+                      strokeColor="#fff"
                       format={(percent) => `${percent}%`}
                     />
                   </div>
                 )}
-              </div>
-              <div style={{ marginTop: 16, marginBottom: 16 }}>
-                <Upload
-                  accept="image/*"
-                  showUploadList={false}
-                  beforeUpload={handleAvatarUpload}
-                  disabled={uploading}
-                >
-                  <Button icon={<UploadOutlined />} loading={uploading}>
-                    {uploading ? 'Загрузка...' : 'Загрузить аватар'}
-                  </Button>
-                </Upload>
-                {uploading && uploadProgress > 0 && (
-                  <div style={{ marginTop: 8, maxWidth: 200, margin: '8px auto 0' }}>
-                    <Progress
-                      percent={uploadProgress}
-                      strokeColor="#6366f1"
-                      showInfo={true}
-                    />
+                {!uploading && (
+                  <div className="avatar-edit-overlay" style={{
+                    position: 'absolute',
+                    bottom: 5,
+                    right: 5,
+                    background: '#fff',
+                    borderRadius: '50%',
+                    padding: 8,
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <EditOutlined style={{ fontSize: 16, color: '#1d1d1f' }} />
                   </div>
                 )}
               </div>
-              <Title level={3}>{user?.name}</Title>
-              <Text type="secondary">{user?.email}</Text>
+            </Upload>
+          </div>
 
-              {/* Кнопка "Поделиться профилем" */}
-              <div style={{ marginTop: 16 }}>
-                <Button
-                  icon={<ShareAltOutlined />}
-                  onClick={() => setShareModalVisible(true)}
-                  style={{
-                    borderColor: '#6366f1',
-                    color: '#6366f1'
-                  }}
-                >
-                  Поделиться профилем
-                </Button>
+          <h1 className="profile-name">{user?.name}</h1>
+
+          {user?.city && (
+            <div className="profile-location">
+              <MapPin size={16} />
+              <span>{user.city}</span>
+            </div>
+          )}
+
+          {user?.bio && <div className="profile-bio">{user.bio}</div>}
+
+          <div className="profile-stats">
+            <div className="stat-item"><span className="stat-value">{photosCount}</span><span className="stat-label">Фото</span></div>
+            <div className="stat-item"><span className="stat-value">{artworksCount}</span><span className="stat-label">Галерея</span></div>
+            {(user?.userType === 'expert' || user?.userType === 'admin') && (
+              <>
+                <div className="stat-item"><span className="stat-value">{services.length}</span><span className="stat-label">Услуги</span></div>
+                <div className="stat-item"><span className="stat-value">{products.length}</span><span className="stat-label">Продукты</span></div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="profile-tabs-wrapper">
+          {(!isEditMode) ? (
+            <>
+              {(user?.vkUrl || user?.telegramUrl || user?.whatsapp || customSocials.length > 0 || (user?.topics && user.topics.length > 0)) && (
+                <div className="section-card">
+                  <h2 className="section-title"><ExternalLink size={20} /> Информация</h2>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                    {user?.vkUrl && <a href={user.vkUrl.startsWith('http') ? user.vkUrl : `https://${user.vkUrl}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>ВКонтакте</span></a>}
+                    {user?.telegramUrl && <a href={user.telegramUrl.startsWith('http') ? user.telegramUrl : `https://t.me/${user.telegramUrl.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>Telegram</span></a>}
+                    {user?.whatsapp && <a href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>WhatsApp</span></a>}
+                    {customSocials.map((social, index) => <a key={index} href={social.url.startsWith('http') ? social.url : `https://${social.url}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>{social.name}</span></a>)}
+                  </div>
+
+                  {user?.topics && user.topics.length > 0 && (
+                    <div style={{ marginTop: 24 }}>
+                      <Space wrap>
+                        {user.topics.map((topic: any) => (
+                          <Tag key={typeof topic === 'object' ? topic.id : topic} style={{ borderRadius: 20, padding: '4px 12px', border: 'none', background: '#f5f5f7', color: '#1d1d1f', fontSize: 13 }}>
+                            {typeof topic === 'object' ? topic.name : topic}
+                          </Tag>
+                        ))}
+                      </Space>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="section-card" style={{ padding: '24px' }}>
+                {/* Тот же механизм табов что и был, но в стиле ExpertProfilePage */}
+                {(() => {
+                  const allTabsMap = {
+                    photos: {
+                      key: 'photos',
+                      label: <span><ImageIcon size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Фото ({photosCount})</span>,
+                      children: <ProfileGallery
+                        userId={user?.id}
+                        isOwner={true}
+                        onItemsCountChange={(count) => setPhotosCount(count)}
+                      />
+                    },
+                    gallery: {
+                      key: 'gallery',
+                      label: <span><ImageIcon size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Галерея ({artworksCount})</span>,
+                      children: <ArtworkGallery
+                        userId={user?.id}
+                        isOwner={true}
+                        onItemsCountChange={(count) => setArtworksCount(count)}
+                      />
+                    }
+                  };
+
+                  const orderedTabs = tabsOrder.map(key => allTabsMap[key as keyof typeof allTabsMap]).filter(Boolean);
+
+                  return (
+                    <Tabs
+                      activeKey={activeTab}
+                      onChange={setActiveTab}
+                      className="custom-tabs"
+                      items={orderedTabs.map(tab => ({
+                        key: tab.key,
+                        label: tab.label,
+                        children: tab.children
+                      }))}
+                    />
+                  );
+                })()}
               </div>
 
-              {user?.bio && (
-                <div style={{ marginTop: 16 }}>
-                  <Text strong style={{ display: 'block', marginBottom: 8 }}>О себе:</Text>
-                  <Text>{user.bio}</Text>
+              {(user?.userType === 'expert' || user?.userType === 'admin') && services.length > 0 && (
+                <div className="section-card">
+                  <h2 className="section-title"><RussianRuble size={20} /> Услуги</h2>
+                  <div className="premium-grid">
+                    {services.map((service) => (
+                      <div key={service.id} className="premium-item-card">
+                        <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8 }}>{service.title}</h3>
+                        <div style={{ color: '#86868b', fontSize: 14, marginBottom: 12, height: '3.2em', overflow: 'hidden' }}>{service.description}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ fontWeight: 700, fontSize: 16 }}>{service.price ? `${service.price} ₽` : 'По запросу'}</div>
+                          <Button size="small" icon={<EditOutlined />} onClick={() => { setIsEditMode(true); handleEditService(service); }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {products.length > 0 && (
+                <div className="section-card">
+                  <h2 className="section-title"><ImageIcon size={20} /> Продукты</h2>
+                  <div className="premium-grid">
+                    {products.map((product) => (
+                      <div key={product.id} className="premium-item-card" onClick={() => handleProductClick(product)} style={{ cursor: 'pointer', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        {product.image_url && (
+                          <div style={{ width: '100%', height: 160, overflow: 'hidden' }}>
+                            <img src={product.image_url} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        )}
+                        <div style={{ padding: 20 }}>
+                          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{product.title}</h3>
+                          <div style={{ fontWeight: 700, fontSize: 15, color: '#1d1d1f' }}>{product.price ? `${product.price} ₽` : 'Бесплатно'}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            /* РЕЖИМ РЕДАКТИРОВАНИЯ (Старая функциональность) */
+            <div className="section-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h2 className="section-title" style={{ margin: 0 }}><Settings size={20} /> Настройки профиля</h2>
+                <Button onClick={() => setIsEditMode(false)} icon={<Eye size={18} />}>Просмотр</Button>
+              </div>
               )}
 
               {user?.topics && user.topics.length > 0 && (
@@ -1729,10 +1898,9 @@ const ProfilePage = () => {
                     )}
                   />
                 </div>
-              </>
-            )}
-          </Space>
-        </Card>
+            </div>
+          )}
+        </div>
       </div>
 
       {renderMobileSelectOverlay()}
