@@ -1026,10 +1026,9 @@ const ProfilePage = () => {
                   </Space>
                 </div>
               )}
-            </div>
 
-            {(user?.userType === 'expert' || user?.userType === 'admin') && (
-              <Space direction="vertical" size="large" style={{ width: '100%', marginTop: 24 }}>
+              {(user?.userType === 'expert' || user?.userType === 'admin') && (
+                <Space direction="vertical" size="large" style={{ width: '100%', marginTop: 24 }}>
                 {/* Статус подписки */}
                 <Card
                   style={{
@@ -1140,7 +1139,7 @@ const ProfilePage = () => {
                     </Text>
                   </div>
                 </Card>
-              </Space>
+                </Space>
             )}
 
             {user?.userType === 'client' && (
