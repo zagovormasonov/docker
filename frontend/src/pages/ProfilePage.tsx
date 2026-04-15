@@ -5,14 +5,10 @@ import {
 } from 'antd';
 import {
   UserOutlined, EditOutlined,
-  ShareAltOutlined,
-  SettingOutlined,
-  EyeOutlined,
-  EnvironmentOutlined,
-  CloseOutlined
+  CloseOutlined, ArrowLeftOutlined
 } from '@ant-design/icons';
 import {
-  MapPin, Share2, ExternalLink, Image as ImageIcon, RussianRuble, Settings, Eye
+  MapPin, Share2, ExternalLink, Image as ImageIcon, RussianRuble, Settings, Eye, ChevronLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -64,7 +60,6 @@ const ProfilePage = () => {
   const selectedCity = Form.useWatch('city', form);
   const selectedConsultationTypes = Form.useWatch('consultationTypes', form) || [];
   const selectedTopics = Form.useWatch('topics', form) || [];
-
   const isExpert = user?.userType === 'expert' || user?.userType === 'admin';
 
   useEffect(() => {
@@ -136,6 +131,15 @@ const ProfilePage = () => {
     return selectedTopics.map((id: any) => m.get(String(id))).filter(Boolean);
   }, [selectedTopics, topics]);
 
+  const userTopics = useMemo(() => {
+    if (!user?.topics) return [];
+    return user.topics.map((t: any) => {
+      if (typeof t === 'object') return t;
+      const found = topics.find((tp: any) => tp.id === t);
+      return found || { id: t, name: String(t) };
+    });
+  }, [user?.topics, topics]);
+
   const openMobileSelect = (type: MobileSelectType) => { setMobileSelectClosing(false); setMobileSelectType(type); };
   const closeMobileSelect = () => { setMobileSelectClosing(true); setTimeout(() => { setMobileSelectType(null); setMobileSelectClosing(false); }, 250); };
   const handleMobileOption = (value: any) => {
@@ -167,26 +171,63 @@ const ProfilePage = () => {
     );
   };
 
-  // Получаем все user topics как объекты
-  const userTopics = useMemo(() => {
-    if (!user?.topics) return [];
-    return user.topics.map((t: any) => {
-      if (typeof t === 'object') return t;
-      const found = topics.find(tp => tp.id === t);
-      return found || { id: t, name: String(t) };
-    });
-  }, [user?.topics, topics]);
+  /* ======================== */
+  /* РЕЖИМ НАСТРОЕК (как отдельная страница) */
+  /* ======================== */
+  if (isEditMode) {
+    return (
+      <>
+        <div className="settings-page">
+          {/* Шапка с кнопкой «Назад» */}
+          <div className="settings-page-header">
+            <button className="settings-back-btn" onClick={() => setIsEditMode(false)}>
+              <ChevronLeft size={22} />
+              <span>Назад</span>
+            </button>
+            <h1 className="settings-page-title">Настройки профиля</h1>
+            <div style={{ width: 100 }}></div>
+          </div>
 
+          <div className="settings-page-content">
+            {/* Кабинет эксперта */}
+            {isExpert && <ExpertStatusSection user={user} />}
+
+            {/* Редактирование профиля */}
+            <ProfileEditForm
+              user={user} form={form} cities={cities} topics={topics}
+              customSocials={customSocials} onSocialsUpdate={setCustomSocials}
+              onFinish={onFinish} loading={loading} isMobile={isMobile}
+              openMobileSelect={openMobileSelect} selectedCity={selectedCity}
+              selectedTopicsLabel={topicLabels.join(', ')}
+              selectedConsultationTypesLabel={selectedConsultationTypes.join(', ')}
+            />
+
+            {/* Услуги и продукты */}
+            {isExpert && (
+              <>
+                <ServiceManager user={user} services={services} onServicesUpdate={setServices} isMobile={isMobile} />
+                <ProductManager products={products} onProductsUpdate={setProducts} isMobile={isMobile} />
+              </>
+            )}
+          </div>
+        </div>
+        {mobileOverlay()}
+      </>
+    );
+  }
+
+  /* ======================== */
+  /* РЕЖИМ ПРОСМОТРА ПРОФИЛЯ */
+  /* ======================== */
   return (
     <>
       <div className="profile-container">
-        {/* === HEADER === */}
         <div className="profile-header-card">
           <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 8 }}>
-            <button className="header-action-btn" onClick={() => setIsEditMode(!isEditMode)} title={isEditMode ? 'Просмотр' : 'Настройки'}>
-              {isEditMode ? <Eye size={18} color="#86868b" /> : <Settings size={18} color="#86868b" />}
+            <button className="header-action-btn" onClick={() => setIsEditMode(true)} title="Настройки">
+              <Settings size={18} color="#86868b" />
             </button>
-            <button className="header-action-btn" onClick={() => setShareModalVisible(true)}>
+            <button className="header-action-btn" onClick={() => setShareModalVisible(true)} title="Поделиться">
               <Share2 size={18} color="#86868b" />
             </button>
           </div>
@@ -194,12 +235,8 @@ const ProfilePage = () => {
           <div className="profile-avatar-wrapper">
             <Upload accept="image/*" showUploadList={false} beforeUpload={handleAvatarUpload} disabled={uploading}>
               <div style={{ position: 'relative', cursor: 'pointer' }}>
-                <Avatar
-                  size={140}
-                  src={lastUploadedAvatarUrl || user?.avatarUrl || '/emp.jpg'}
-                  icon={!user?.avatarUrl && <UserOutlined />}
-                  className="profile-avatar"
-                />
+                <Avatar size={140} src={lastUploadedAvatarUrl || user?.avatarUrl || '/emp.jpg'}
+                  icon={!user?.avatarUrl && <UserOutlined />} className="profile-avatar" />
                 {uploading && (
                   <div className="avatar-upload-overlay">
                     <Progress type="circle" percent={uploadProgress} size={100} strokeColor="#fff" format={p => `${p}%`} />
@@ -230,133 +267,90 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* === CONTENT === */}
         <div className="profile-tabs-wrapper">
-          {!isEditMode ? (
-            <>
-              {/* Контакты и тематики */}
-              {(user?.vkUrl || user?.telegramUrl || user?.whatsapp || customSocials.length > 0 || userTopics.length > 0) && (
-                <div className="section-card">
-                  <h2 className="section-title"><ExternalLink size={20} /> Информация</h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-                    {user?.vkUrl && <a href={user.vkUrl.startsWith('http') ? user.vkUrl : `https://${user.vkUrl}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>ВКонтакте</span></a>}
-                    {user?.telegramUrl && <a href={user.telegramUrl.startsWith('http') ? user.telegramUrl : `https://t.me/${user.telegramUrl.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>Telegram</span></a>}
-                    {user?.whatsapp && <a href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>WhatsApp</span></a>}
-                    {customSocials.map((s, i) => <a key={i} href={s.url.startsWith('http') ? s.url : `https://${s.url}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>{s.name}</span></a>)}
-                  </div>
-                  {userTopics.length > 0 && (
-                    <div style={{ marginTop: 24 }}>
-                      <Space wrap>
-                        {userTopics.map((t: any) => (
-                          <Tag key={t.id} style={{ borderRadius: 20, padding: '4px 12px', border: 'none', background: '#f5f5f7', color: '#1d1d1f', fontSize: 13 }}>
-                            {t.name}
-                          </Tag>
-                        ))}
-                      </Space>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Галерея */}
-              <div className="section-card" style={{ padding: 24 }}>
-                <Tabs
-                  className="custom-tabs"
-                  items={tabsOrder.map(key => {
-                    if (key === 'photos') return {
-                      key: 'photos',
-                      label: <span><ImageIcon size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Фото ({photosCount})</span>,
-                      children: <ProfileGallery userId={user?.id} isOwner={true} onItemsCountChange={setPhotosCount} />
-                    };
-                    return {
-                      key: 'gallery',
-                      label: <span><ImageIcon size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Галерея ({artworksCount})</span>,
-                      children: <ArtworkGallery userId={user?.id} isOwner={true} onItemsCountChange={setArtworksCount} />
-                    };
-                  })}
-                />
+          {/* Контакты и тематики */}
+          {(user?.vkUrl || user?.telegramUrl || user?.whatsapp || customSocials.length > 0 || userTopics.length > 0) && (
+            <div className="section-card">
+              <h2 className="section-title"><ExternalLink size={20} /> Информация</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                {user?.vkUrl && <a href={user.vkUrl.startsWith('http') ? user.vkUrl : `https://${user.vkUrl}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>ВКонтакте</span></a>}
+                {user?.telegramUrl && <a href={user.telegramUrl.startsWith('http') ? user.telegramUrl : `https://t.me/${user.telegramUrl.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>Telegram</span></a>}
+                {user?.whatsapp && <a href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>WhatsApp</span></a>}
+                {customSocials.map((s: any, i: number) => <a key={i} href={s.url.startsWith('http') ? s.url : `https://${s.url}`} target="_blank" rel="noopener noreferrer" className="premium-social-link"><span>{s.name}</span></a>)}
               </div>
-
-              {/* Услуги */}
-              {isExpert && services.length > 0 && (
-                <div className="section-card">
-                  <h2 className="section-title"><RussianRuble size={20} /> Услуги</h2>
-                  <div className="premium-grid">
-                    {services.map((s: any) => (
-                      <div key={s.id} className="premium-item-card">
-                        <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8 }}>{s.title}</h3>
-                        <div style={{ color: '#86868b', fontSize: 14, marginBottom: 12, height: '3.2em', overflow: 'hidden' }}>{s.description}</div>
-                        <div style={{ fontWeight: 700, fontSize: 16 }}>{s.price ? `${s.price} ₽` : 'По запросу'}</div>
-                      </div>
+              {userTopics.length > 0 && (
+                <div style={{ marginTop: 24 }}>
+                  <Space wrap>
+                    {userTopics.map((t: any) => (
+                      <Tag key={t.id} style={{ borderRadius: 20, padding: '4px 12px', border: 'none', background: '#f5f5f7', color: '#1d1d1f', fontSize: 13 }}>{t.name}</Tag>
                     ))}
-                  </div>
+                  </Space>
                 </div>
-              )}
-
-              {/* Продукты */}
-              {products.length > 0 && (
-                <div className="section-card">
-                  <h2 className="section-title"><ImageIcon size={20} /> Продукты</h2>
-                  <div className="premium-grid">
-                    {products.map((p: any) => (
-                      <div key={p.id} className="premium-item-card" style={{ cursor: 'pointer', padding: 0, overflow: 'hidden' }}>
-                        {p.image_url && (
-                          <div style={{ width: '100%', height: 160, overflow: 'hidden' }}>
-                            <img src={p.image_url} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          </div>
-                        )}
-                        <div style={{ padding: 20 }}>
-                          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{p.title}</h3>
-                          <div style={{ fontWeight: 700, fontSize: 15 }}>{p.price ? `${p.price} ₽` : 'Бесплатно'}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Предложение стать экспертом */}
-              {user?.userType === 'client' && <ExpertBenefitsCard />}
-            </>
-          ) : (
-            /* === РЕЖИМ НАСТРОЕК === */
-            <div className="settings-dashboard">
-              {isExpert && <ExpertStatusSection user={user} />}
-
-              <ProfileEditForm
-                user={user} form={form} cities={cities} topics={topics}
-                customSocials={customSocials} onSocialsUpdate={setCustomSocials}
-                onFinish={onFinish} loading={loading} isMobile={isMobile}
-                openMobileSelect={openMobileSelect}
-                selectedCity={selectedCity}
-                selectedTopicsLabel={topicLabels.join(', ')}
-                selectedConsultationTypesLabel={selectedConsultationTypes.join(', ')}
-              />
-
-              {isExpert && (
-                <>
-                  <ServiceManager user={user} services={services} onServicesUpdate={setServices} isMobile={isMobile} />
-                  <ProductManager products={products} onProductsUpdate={setProducts} isMobile={isMobile} />
-                </>
               )}
             </div>
           )}
+
+          {/* Галерея */}
+          <div className="section-card" style={{ padding: 24 }}>
+            <Tabs className="custom-tabs" items={tabsOrder.map(key => {
+              if (key === 'photos') return {
+                key: 'photos',
+                label: <span><ImageIcon size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Фото ({photosCount})</span>,
+                children: <ProfileGallery userId={user?.id} isOwner={true} onItemsCountChange={setPhotosCount} />
+              };
+              return {
+                key: 'gallery',
+                label: <span><ImageIcon size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Галерея ({artworksCount})</span>,
+                children: <ArtworkGallery userId={user?.id} isOwner={true} onItemsCountChange={setArtworksCount} />
+              };
+            })} />
+          </div>
+
+          {/* Услуги */}
+          {isExpert && services.length > 0 && (
+            <div className="section-card">
+              <h2 className="section-title"><RussianRuble size={20} /> Услуги</h2>
+              <div className="premium-grid">
+                {services.map((s: any) => (
+                  <div key={s.id} className="premium-item-card">
+                    <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 8 }}>{s.title}</h3>
+                    <div style={{ color: '#86868b', fontSize: 14, marginBottom: 12, height: '3.2em', overflow: 'hidden' }}>{s.description}</div>
+                    <div style={{ fontWeight: 700, fontSize: 16 }}>{s.price ? `${s.price} ₽` : 'По запросу'}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Продукты */}
+          {products.length > 0 && (
+            <div className="section-card">
+              <h2 className="section-title"><ImageIcon size={20} /> Продукты</h2>
+              <div className="premium-grid">
+                {products.map((p: any) => (
+                  <div key={p.id} className="premium-item-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    {p.image_url && (
+                      <div style={{ width: '100%', height: 160, overflow: 'hidden' }}>
+                        <img src={p.image_url} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    <div style={{ padding: 20 }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{p.title}</h3>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{p.price ? `${p.price} ₽` : 'Бесплатно'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {user?.userType === 'client' && <ExpertBenefitsCard />}
         </div>
       </div>
 
-      {mobileOverlay()}
-
       {user && (
-        <ShareProfileModal
-          visible={shareModalVisible}
-          onClose={() => setShareModalVisible(false)}
-          expert={{
-            id: user.id, name: user.name, slug: user.slug,
-            avatar_url: user.avatarUrl, bio: user.bio, city: user.city,
-            topics: user.topics || [], telegram_url: user.telegramUrl,
-            whatsapp: user.whatsapp, customSocials
-          }}
-        />
+        <ShareProfileModal visible={shareModalVisible} onClose={() => setShareModalVisible(false)}
+          expert={{ id: user.id, name: user.name, slug: user.slug, avatar_url: user.avatarUrl, bio: user.bio, city: user.city, topics: user.topics || [], telegram_url: user.telegramUrl, whatsapp: user.whatsapp, customSocials }} />
       )}
     </>
   );
