@@ -3,7 +3,8 @@ import { Form, Input, Button, Card, Space, Divider, Select, message, Typography 
 import { PlusOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 
-const { TextArea, Text } = Typography;
+const { Text } = Typography;
+const { TextArea } = Input;
 
 interface ProfileEditFormProps {
   user: any;

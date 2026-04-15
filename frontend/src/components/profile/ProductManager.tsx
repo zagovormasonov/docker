@@ -3,7 +3,8 @@ import { Form, Input, Button, Card, Space, List, Tag, Popconfirm, Typography, Se
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 
-const { Title, Text, TextArea } = Typography;
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 interface Product {
   id: number;
