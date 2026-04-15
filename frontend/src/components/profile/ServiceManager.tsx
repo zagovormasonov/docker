@@ -1,168 +1,119 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Space, List, Tag, Popconfirm, Typography, Select, message } from 'antd';
+import { Form, Input, Button, Space, List, Tag, Popconfirm, Typography, Select, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
-interface Service {
-  id: number;
-  title: string;
-  description: string;
-  price?: number;
-  duration?: number;
-  service_type: 'online' | 'offline' | 'both';
-}
-
 interface ServiceManagerProps {
   user: any;
-  services: Service[];
-  onServicesUpdate: (services: Service[]) => void;
+  services: any[];
+  onServicesUpdate: (services: any[]) => void;
   isMobile: boolean;
 }
 
 const ServiceManager: React.FC<ServiceManagerProps> = ({ user, services, onServicesUpdate, isMobile }) => {
   const [form] = Form.useForm();
   const [showForm, setShowForm] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [editing, setEditing] = useState<any>(null);
 
-  const handleEdit = (service: Service) => {
-    setEditingService(service);
-    form.setFieldsValue({
-      title: service.title,
-      description: service.description,
-      price: service.price,
-      duration: service.duration,
-      serviceType: service.service_type
-    });
+  const handleEdit = (s: any) => {
+    setEditing(s);
+    form.setFieldsValue({ title: s.title, description: s.description, price: s.price, duration: s.duration, serviceType: s.service_type });
     setShowForm(true);
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      await api.delete(`/experts/services/${id}`);
-      onServicesUpdate(services.filter(s => s.id !== id));
-      message.success('Услуга удалена');
-    } catch (error) {
-      message.error('Ошибка при удалении');
-    }
+    try { await api.delete(`/experts/services/${id}`); onServicesUpdate(services.filter(s => s.id !== id)); message.success('Удалено'); }
+    catch { message.error('Ошибка'); }
   };
 
   const onFinish = async (values: any) => {
     try {
-      if (editingService) {
-        const response = await api.put(`/experts/services/${editingService.id}`, values);
-        onServicesUpdate(services.map(s => s.id === editingService.id ? response.data : s));
-        message.success('Услуга обновлена');
+      if (editing) {
+        const r = await api.put(`/experts/services/${editing.id}`, values);
+        onServicesUpdate(services.map(s => s.id === editing.id ? r.data : s));
+        message.success('Обновлено');
       } else {
-        const response = await api.post('/experts/services', values);
-        onServicesUpdate([...services, response.data]);
-        message.success('Услуга добавлена');
+        const r = await api.post('/experts/services', values);
+        onServicesUpdate([...services, r.data]);
+        message.success('Добавлено');
       }
-      setShowForm(false);
-      setEditingService(null);
-      form.resetFields();
-    } catch (error) {
-      message.error('Ошибка при сохранении');
-    }
+      setShowForm(false); setEditing(null); form.resetFields();
+    } catch { message.error('Ошибка'); }
   };
 
   return (
-    <div className="manager-section">
+    <div className="section-card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <Title level={4} style={{ margin: 0 }}>Мои услуги</Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditingService(null);
-            form.resetFields();
-            setShowForm(!showForm);
-          }}
-          style={{ borderRadius: 8 }}
-        >
-          {showForm ? 'Отмена' : 'Добавить услугу'}
+        <h2 className="section-title" style={{ margin: 0 }}>💼 Мои услуги</h2>
+        <Button type="primary" icon={<PlusOutlined />} style={{ borderRadius: 12, background: '#1d1d1f', border: 'none' }}
+          onClick={() => { setEditing(null); form.resetFields(); setShowForm(!showForm); }}>
+          {showForm ? 'Отмена' : 'Добавить'}
         </Button>
       </div>
 
       {showForm && (
-        <Card className="settings-sub-card" style={{ marginBottom: 24, borderRadius: 12, border: '1px solid #f0f0f0' }}>
-          <Form form={form} layout="vertical" onFinish={onFinish}>
+        <div style={{ padding: 20, background: '#f5f5f7', borderRadius: 20, marginBottom: 20 }}>
+          <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
             <Form.Item name="title" label="Название" rules={[{ required: true, message: 'Введите название' }]}>
-              <Input placeholder="Например: Консультация по таро" size="large" />
+              <Input size="large" placeholder="Название услуги" style={{ borderRadius: 12 }} />
             </Form.Item>
-
-            <Form.Item name="description" label="Описание" rules={[{ required: true, message: 'Введите описание' }]}>
-              <TextArea rows={4} placeholder="Опишите вашу услугу..." />
+            <Form.Item name="description" label="Описание" rules={[{ required: true }]}>
+              <TextArea rows={3} placeholder="Опишите вашу услугу..." style={{ borderRadius: 12 }} />
             </Form.Item>
-
-            <Space wrap size="middle" style={{ width: '100%', marginBottom: 16 }}>
-              <Form.Item name="price" label="Цена (₽)" style={{ marginBottom: 0 }}>
-                <Input type="number" placeholder="3000" size="large" />
+            <Space wrap size="middle">
+              <Form.Item name="price" label="Цена (₽)">
+                <Input type="number" placeholder="3000" size="large" style={{ borderRadius: 12, width: 140 }} />
               </Form.Item>
-              <Form.Item name="duration" label="Длительность (мин)" style={{ marginBottom: 0 }}>
-                <Input type="number" placeholder="60" size="large" />
+              <Form.Item name="duration" label="Длительность (мин)">
+                <Input type="number" placeholder="60" size="large" style={{ borderRadius: 12, width: 140 }} />
               </Form.Item>
-              <Form.Item name="serviceType" label="Формат" rules={[{ required: true }]} style={{ marginBottom: 0 }}>
-                <Select style={{ width: 140 }} size="large">
+              <Form.Item name="serviceType" label="Формат" rules={[{ required: true }]}>
+                <Select style={{ width: 140 }} size="large" placeholder="Тип">
                   <Select.Option value="online">Онлайн</Select.Option>
                   <Select.Option value="offline">Офлайн</Select.Option>
                   <Select.Option value="both">Оба</Select.Option>
                 </Select>
               </Form.Item>
             </Space>
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit" size="large" block={isMobile}>
-                {editingService ? 'Сохранить изменения' : 'Создать услугу'}
-              </Button>
-            </Form.Item>
+            <Button type="primary" htmlType="submit" size="large" style={{ borderRadius: 12, marginTop: 8, background: '#1d1d1f', border: 'none' }}>
+              {editing ? 'Сохранить' : 'Создать'}
+            </Button>
           </Form>
-        </Card>
+        </div>
       )}
 
-      <List
-        dataSource={services}
-        locale={{ emptyText: 'У вас пока нет добавленных услуг' }}
-        renderItem={(service) => (
-          <List.Item
-            className="settings-list-item"
-            actions={[
-              <Button key="edit" type="text" icon={<EditOutlined />} onClick={() => handleEdit(service)} />,
-              <Popconfirm
-                key="delete"
-                title="Удалить услугу?"
-                onConfirm={() => handleDelete(service.id)}
-                okText="Да"
-                cancelText="Нет"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>
-            ]}
-          >
-            <List.Item.Meta
-              title={
-                <Space>
-                  <span style={{ fontWeight: 600 }}>{service.title}</span>
-                  <Tag color={service.service_type === 'online' ? 'blue' : service.service_type === 'offline' ? 'green' : 'purple'}>
-                    {service.service_type === 'online' ? 'Онлайн' : service.service_type === 'offline' ? 'Офлайн' : 'Оба'}
+      {services.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '32px 0', color: '#86868b' }}>Нет добавленных услуг</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {services.map(s => (
+            <div key={s.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '16px 20px', background: '#f5f5f7', borderRadius: 16, transition: 'all 0.2s'
+            }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{s.title}</div>
+                <Space size="small">
+                  {s.price && <Text type="secondary">{s.price} ₽</Text>}
+                  {s.duration && <Text type="secondary">· {s.duration} мин</Text>}
+                  <Tag color={s.service_type === 'online' ? 'blue' : s.service_type === 'offline' ? 'green' : 'purple'} style={{ borderRadius: 10 }}>
+                    {s.service_type === 'online' ? 'Онлайн' : s.service_type === 'offline' ? 'Офлайн' : 'Оба'}
                   </Tag>
                 </Space>
-              }
-              description={
-                <div>
-                  <div style={{ color: '#86868b', marginBottom: 6 }}>{service.description}</div>
-                  <Space size="middle">
-                    {service.price && <Text strong>{service.price} ₽</Text>}
-                    {service.duration && <Text type="secondary">{service.duration} мин</Text>}
-                  </Space>
-                </div>
-              }
-            />
-          </List.Item>
-        )}
-      />
+              </div>
+              <Space>
+                <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(s)} />
+                <Popconfirm title="Удалить?" onConfirm={() => handleDelete(s.id)}>
+                  <Button type="text" danger icon={<DeleteOutlined />} />
+                </Popconfirm>
+              </Space>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
