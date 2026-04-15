@@ -56,7 +56,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
       <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
         {/* Основная информация */}
         <div style={{ marginBottom: 32 }}>
-          <Text strong style={{ fontSize: 15, display: 'block', marginBottom: 16, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11 }}>Основная информация</Text>
+          <Text strong style={{ display: 'block', marginBottom: 16, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11 }}>Основная информация</Text>
           <Form.Item name="name" label="Имя" rules={[{ required: true, message: 'Введите имя' }]}>
             <Input size="large" placeholder="Как вас зовут?" style={{ borderRadius: 12 }} />
           </Form.Item>
