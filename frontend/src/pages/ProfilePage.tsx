@@ -967,8 +967,7 @@ const ProfilePage = () => {
                 <h2 className="section-title" style={{ margin: 0 }}><Settings size={20} /> Настройки профиля</h2>
                 <Button onClick={() => setIsEditMode(false)} icon={<Eye size={18} />}>Просмотр</Button>
               </div>
-              )}
-
+              
               {user?.topics && user.topics.length > 0 && (
                 <div style={{ marginTop: 16 }}>
                   <Text strong style={{ display: 'block', marginBottom: 8 }}>Тематики:</Text>
@@ -1483,8 +1482,10 @@ const ProfilePage = () => {
                     );
                   })()}
                 </div>
+              </>
+            )}
 
-                <Divider />
+            <Divider />
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <Title level={4} style={{ margin: 0 }}>Мои услуги</Title>
