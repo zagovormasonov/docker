@@ -1139,8 +1139,9 @@ const ProfilePage = () => {
                       </span>
                     </Text>
                   </div>
-                  </Space>
-                </div>
+                </Card>
+              </Space>
+            </div>
               )}
 
             {user?.userType === 'client' && (
