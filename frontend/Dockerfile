@@ -43,6 +43,9 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Копируем конфиг nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Копируем htpasswd для Basic Auth на /test
+COPY .htpasswd-test /etc/nginx/.htpasswd-test
+
 # Порт
 EXPOSE 80
 
