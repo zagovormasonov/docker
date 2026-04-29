@@ -1,0 +1,56 @@
+.magic-orbit-svg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  stroke: var(--mu-border);
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+  opacity: 0.5;
+}
+
+.magic-orbit-item {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  animation: orbit calc(var(--duration) * 1s) linear infinite;
+  animation-delay: calc(var(--delay) * 1s);
+  width: fit-content;
+  height: fit-content;
+  pointer-events: auto;
+}
+
+.magic-orbit-item.reverse {
+  animation-direction: reverse;
+}
+
+.orbit-avatar-wrapper {
+  padding: 2px;
+  background: var(--mu-surface);
+  border: 1px solid var(--mu-border);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.orbit-avatar-wrapper:hover {
+  transform: scale(1.15);
+  border-color: var(--mu-border-strong);
+  z-index: 50;
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg) translateY(calc(var(--radius) * -1px)) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateY(calc(var(--radius) * -1px)) rotate(-360deg);
+  }
+}

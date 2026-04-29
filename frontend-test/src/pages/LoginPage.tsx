@@ -1,0 +1,112 @@
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Form, Input, Button, Card, message, Typography } from 'antd';
+import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { useAuth } from '../contexts/AuthContext';
+
+const { Title, Text } = Typography;
+
+const LoginPage = () => {
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const onFinish = async (values: any) => {
+    setLoading(true);
+    try {
+      await login(values.email, values.password);
+      message.success('Успешный вход!');
+      navigate('/');
+    } catch (error: any) {
+      message.error(error.response?.data?.error || 'Ошибка входа');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, rgb(180 194 255) 0%, rgb(245 236 255) 100%)',
+      padding: '20px'
+    }}>
+      <Card
+        style={{
+          width: '100%',
+          maxWidth: 420,
+          borderRadius: 16,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ marginBottom: 24 }}>
+            <Title level={2} style={{ margin: 0 }}>Вход в SoulSynergy</Title>
+            <div style={{ fontSize: '12px', color: '#6366f1', textTransform: 'lowercase', marginTop: 4, fontWeight: 500, opacity: 0.8 }}>синергия душ</div>
+          </div>
+          <Text type="secondary">Добро пожаловать обратно!</Text>
+        </div>
+
+        <Form
+          name="login"
+          onFinish={onFinish}
+          layout="vertical"
+          size="large"
+        >
+          <Form.Item
+            name="email"
+            rules={[
+              { required: true, message: 'Введите email' },
+              { type: 'email', message: 'Неверный формат email' }
+            ]}
+          >
+            <Input
+              prefix={<MailOutlined />}
+              placeholder="Email"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: 'Введите пароль' }]}
+          >
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="Пароль"
+            />
+          </Form.Item>
+
+          <div style={{ textAlign: 'right', marginBottom: 16 }}>
+            <Link to="/forgot-password">
+              <Text type="secondary" style={{ fontSize: 14 }}>
+                Забыли пароль?
+              </Text>
+            </Link>
+          </div>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              block
+              style={{ height: 48 }}
+            >
+              Войти
+            </Button>
+          </Form.Item>
+
+          <div style={{ textAlign: 'center' }}>
+            <Text type="secondary">
+              Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+            </Text>
+          </div>
+        </Form>
+      </Card>
+    </div>
+  );
+};
+
+export default LoginPage;

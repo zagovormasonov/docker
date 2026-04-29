@@ -81,6 +81,30 @@ services:
       timeout: 10s
       retries: 3
 
+  # Frontend-Test (тестовая копия сайта на /test/)
+  frontend-test:
+    build:
+      context: ./frontend-test
+      dockerfile: Dockerfile
+      args:
+        - VITE_EMAILJS_SERVICE_ID=${VITE_EMAILJS_SERVICE_ID}
+        - VITE_EMAILJS_PUBLIC_KEY=${VITE_EMAILJS_PUBLIC_KEY}
+        - VITE_EMAILJS_VERIFICATION_TEMPLATE_ID=${VITE_EMAILJS_VERIFICATION_TEMPLATE_ID}
+        - VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID=${VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID}
+        - VITE_EMAILJS_MODERATION_TEMPLATE_ID=${VITE_EMAILJS_MODERATION_TEMPLATE_ID}
+    container_name: synergy-frontend-test
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - synergy-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # pgAdmin - графический интерфейс для управления PostgreSQL
   pgadmin:
     image: dpage/pgadmin4:latest
