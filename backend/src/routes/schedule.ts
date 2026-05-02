@@ -96,6 +96,79 @@ router.post('/expert/schedule', authenticateToken, requireExpert, async (req: Au
   }
 });
 
+// Изменить время интервала (эксперт)
+router.put('/expert/schedule/:id', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { startTime, endTime } = req.body;
+
+    if (!startTime || !endTime) {
+      return res.status(400).json({ error: 'Необходимо указать время начала и окончания' });
+    }
+
+    const checkResult = await query(
+      `SELECT * FROM expert_schedule WHERE id = $1 AND expert_id = $2`,
+      [id, req.userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Расписание не найдено' });
+    }
+
+    const row = checkResult.rows[0] as { day_of_week: number };
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ error: 'Неверный формат времени' });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({ error: 'Время начала должно быть раньше времени окончания' });
+    }
+
+    const durationMs = end.getTime() - start.getTime();
+    const slotDuration = Math.floor(durationMs / (1000 * 60));
+
+    const overlapCheck = await query(
+      `SELECT id, start_time, end_time FROM expert_schedule 
+       WHERE expert_id = $1 
+       AND day_of_week = $2 
+       AND id <> $3
+       AND is_active = true
+       AND (
+         (start_time < $5 AND end_time > $4) OR
+         (start_time >= $4 AND start_time < $5) OR
+         (end_time > $4 AND end_time <= $5)
+       )`,
+      [req.userId, row.day_of_week, id, startTime, endTime]
+    );
+
+    if (overlapCheck.rows.length > 0) {
+      const conflictSlot = overlapCheck.rows[0] as { start_time: string; end_time: string };
+      return res.status(400).json({
+        error: `Время пересекается с сеансом: ${conflictSlot.start_time.slice(0, 5)} - ${conflictSlot.end_time.slice(0, 5)}`,
+      });
+    }
+
+    const result = await query(
+      `UPDATE expert_schedule 
+       SET start_time = $1, end_time = $2, slot_duration = $3, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $4
+       RETURNING *`,
+      [startTime, endTime, slotDuration, id]
+    );
+
+    res.json({
+      message: 'Расписание обновлено',
+      schedule: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Ошибка обновления расписания:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Удалить расписание (эксперт)
 router.delete('/expert/schedule/:id', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
   try {

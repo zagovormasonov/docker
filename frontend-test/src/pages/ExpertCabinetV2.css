@@ -528,6 +528,12 @@
   color: var(--ec-act);
 }
 
+.expert-cab-v2 .ec-cal-cell.ec-cal-pick {
+  box-shadow: inset 0 0 0 2px var(--ec-acc);
+  color: var(--ec-act);
+  font-weight: 600;
+}
+
 .expert-cab-v2 .ec-cal-cell.ec-empty {
   color: var(--ec-t3);
   cursor: default;
@@ -1216,5 +1222,468 @@
     justify-content: flex-start;
     flex-wrap: wrap;
     gap: 10px;
+  }
+}
+
+/* Планировщик календаря (сетка + сайдбар) */
+.expert-cab-v2 .ec-planner {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+
+.expert-cab-v2 .ec-planner-side {
+  flex: 0 0 272px;
+  padding: 18px 16px;
+  background: var(--ec-bgc);
+  border: 1px solid var(--ec-bd);
+  border-radius: var(--ec-rlg);
+}
+
+.expert-cab-v2 .ec-planner-side-date {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ec-t1);
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
+.expert-cab-v2 .ec-planner-side-dow {
+  font-size: 13px;
+  color: var(--ec-t3);
+  margin-top: 4px;
+  margin-bottom: 16px;
+  text-transform: capitalize;
+}
+
+.expert-cab-v2 .ec-planner-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.expert-cab-v2 .ec-planner-tab {
+  border: 1px solid var(--ec-bd);
+  background: var(--ec-bgs);
+  color: var(--ec-t2);
+  font-size: 12px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.expert-cab-v2 .ec-planner-tab:hover {
+  background: var(--ec-acp);
+  color: var(--ec-act);
+}
+
+.expert-cab-v2 .ec-planner-tab--on {
+  background: var(--ec-acc);
+  border-color: var(--ec-acc);
+  color: #fff;
+}
+
+.expert-cab-v2 .ec-planner-mini-cal {
+  margin-bottom: 16px;
+}
+
+.expert-cab-v2 .ec-planner-mini-cal .ec-cal-hdr {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.expert-cab-v2 .ec-planner-mini-cal .ec-cal-grid {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.expert-cab-v2 .ec-planner-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.expert-cab-v2 .ec-planner-primary-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: var(--ec-rmd);
+  background: var(--ec-acc);
+  color: #fff !important;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+
+.expert-cab-v2 .ec-planner-primary-btn:hover {
+  background: var(--ec-act);
+}
+
+.expert-cab-v2 .ec-planner-icon-btn {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border: 1px solid var(--ec-bd);
+  border-radius: var(--ec-rmd);
+  background: var(--ec-bgs);
+  color: var(--ec-t2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+
+.expert-cab-v2 .ec-planner-icon-btn:hover {
+  background: var(--ec-acp);
+  color: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-planner-link-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border: none;
+  border-top: 1px solid var(--ec-bd);
+  background: none;
+  font-size: 14px;
+  color: var(--ec-t1);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.expert-cab-v2 .ec-planner-link-row:hover {
+  color: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-planner-chevron {
+  color: var(--ec-t3);
+  font-size: 18px;
+}
+
+.expert-cab-v2 .ec-planner-add-slot {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px;
+  border-radius: var(--ec-rmd);
+  border: 1px dashed var(--ec-acc);
+  background: var(--ec-acp);
+  color: var(--ec-act);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.expert-cab-v2 .ec-planner-add-slot:hover:not(:disabled) {
+  background: var(--ec-acs);
+}
+
+.expert-cab-v2 .ec-planner-add-slot:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.expert-cab-v2 .ec-planner-flash {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border-radius: var(--ec-rmd);
+  font-size: 12px;
+}
+
+.expert-cab-v2 .ec-planner-flash--ok {
+  background: var(--ec-tell);
+  color: var(--ec-telt);
+  border: 1px solid var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-planner-flash--err {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.expert-cab-v2 .ec-planner-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.expert-cab-v2 .ec-planner-week-strip {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: var(--ec-bgc);
+  border: 1px solid var(--ec-bd);
+  border-radius: var(--ec-rlg);
+}
+
+.expert-cab-v2 .ec-planner-week-strip--week {
+  justify-content: space-between;
+}
+
+.expert-cab-v2 .ec-planner-wd {
+  flex: 1;
+  min-width: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--ec-rmd);
+  background: var(--ec-bgs);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.expert-cab-v2 .ec-planner-wd:hover {
+  border-color: var(--ec-bd);
+  background: var(--ec-acp);
+}
+
+.expert-cab-v2 .ec-planner-wd--active {
+  border-color: var(--ec-acc);
+  background: var(--ec-acp);
+}
+
+.expert-cab-v2 .ec-planner-wd-dow {
+  font-size: 10px;
+  color: var(--ec-t3);
+  text-transform: lowercase;
+}
+
+.expert-cab-v2 .ec-planner-wd-num {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ec-t1);
+}
+
+.expert-cab-v2 .ec-planner-wd--active .ec-planner-wd-num {
+  color: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-planner-grid-card {
+  background: var(--ec-bgc);
+  border: 1px solid var(--ec-bd);
+  border-radius: var(--ec-rlg);
+  padding: 12px 12px 16px;
+}
+
+.expert-cab-v2 .ec-planner-timeline {
+  display: flex;
+  gap: 10px;
+  position: relative;
+}
+
+.expert-cab-v2 .ec-planner-track-col {
+  flex: 0 0 44px;
+  position: relative;
+}
+
+.expert-cab-v2 .ec-planner-hour-label {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--ec-t3);
+  font-variant-numeric: tabular-nums;
+}
+
+.expert-cab-v2 .ec-planner-track {
+  flex: 1;
+  position: relative;
+  border-left: 1px solid var(--ec-bd);
+  border-radius: 0 var(--ec-rmd) var(--ec-rmd) 0;
+  background: linear-gradient(180deg, var(--ec-bgs) 0%, var(--ec-bgc) 40%);
+}
+
+.expert-cab-v2 .ec-planner-hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--ec-bd);
+  pointer-events: none;
+}
+
+.expert-cab-v2 .ec-planner-blocks {
+  position: absolute;
+  left: 8px;
+  right: 10px;
+  top: 0;
+  bottom: 0;
+}
+
+.expert-cab-v2 .ec-planner-block {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: var(--ec-rmd);
+  border: 1px solid var(--ec-bd);
+  padding: 8px 10px 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  transition: box-shadow 0.12s, transform 0.12s;
+}
+
+.expert-cab-v2 .ec-planner-block:hover {
+  box-shadow: 0 4px 14px rgba(74, 63, 168, 0.12);
+}
+
+.expert-cab-v2 .ec-planner-block::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-planner-block--free {
+  z-index: 1;
+  background: rgba(123, 111, 212, 0.12);
+  border-color: rgba(123, 111, 212, 0.28);
+  color: var(--ec-t1);
+}
+
+.expert-cab-v2 .ec-planner-block--free.ec-planner-block--muted {
+  opacity: 0.72;
+  background: var(--ec-bgs);
+}
+
+.expert-cab-v2 .ec-planner-block--book {
+  z-index: 2;
+  background: var(--ec-bgc);
+  border-color: rgba(123, 111, 212, 0.35);
+  box-shadow: 0 2px 8px rgba(45, 42, 74, 0.06);
+}
+
+.expert-cab-v2 .ec-planner-block--pending {
+  border-style: dashed;
+}
+
+.expert-cab-v2 .ec-planner-block-time {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ec-act);
+}
+
+.expert-cab-v2 .ec-planner-block-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ec-t1);
+  line-height: 1.25;
+}
+
+.expert-cab-v2 .ec-planner-block-meta {
+  font-size: 11px;
+  color: var(--ec-t3);
+}
+
+.expert-cab-v2 .ec-planner-bookings-panel {
+  background: var(--ec-bgc);
+  border: 1px solid var(--ec-bd);
+  border-radius: var(--ec-rlg);
+  overflow: hidden;
+}
+
+.expert-cab-v2 .ec-planner-bookings-scroll {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 12px 16px 16px;
+}
+
+.expert-cab-v2 .ec-planner-booking-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-planner-booking-row:last-child {
+  border-bottom: none;
+}
+
+.expert-cab-v2 .ec-planner-br-name {
+  font-weight: 600;
+  color: var(--ec-t1);
+}
+
+.expert-cab-v2 .ec-planner-br-meta {
+  font-size: 12px;
+  color: var(--ec-t3);
+  margin-top: 4px;
+}
+
+.expert-cab-v2 .ec-planner-br-status {
+  font-size: 11px;
+  color: var(--ec-t2);
+  margin-top: 4px;
+  text-transform: lowercase;
+}
+
+.expert-cab-v2 .ec-planner-br-actions {
+  margin-top: 8px;
+}
+
+.expert-cab-v2 .ec-planner-empty-list {
+  color: var(--ec-t3);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.expert-cab-v2 .ec-planner-modal-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ec-t2);
+  margin-bottom: 6px;
+}
+
+.expert-cab-v2 .ec-planner-time-input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--ec-bd);
+  border-radius: var(--ec-rmd);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.expert-cab-v2 .ec-planner-edit-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 960px) {
+  .expert-cab-v2 .ec-planner {
+    flex-direction: column;
+  }
+
+  .expert-cab-v2 .ec-planner-side {
+    flex: none;
+    width: 100%;
   }
 }
