@@ -9,6 +9,12 @@ interface AuthRequest extends express.Request {
   userType?: string;
 }
 
+function rowDateToYMD(v: unknown): string {
+  if (v instanceof Date) return v.toISOString().split('T')[0];
+  const s = String(v);
+  return s.length >= 10 ? s.slice(0, 10) : s;
+}
+
 // Получить расписание эксперта
 router.get('/expert/schedule', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
   try {
@@ -233,6 +239,77 @@ router.put('/expert/schedule/:id/toggle', authenticateToken, requireExpert, asyn
   }
 });
 
+// Разовые дни без записи (отдых), поверх недельного шаблона
+router.get('/expert/exceptions', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      `SELECT id, exception_date, note FROM expert_schedule_exceptions
+       WHERE expert_id = $1
+       ORDER BY exception_date ASC`,
+      [req.userId]
+    );
+    res.json(
+      result.rows.map((r: { id: number; exception_date: unknown; note: string | null }) => ({
+        id: r.id,
+        exception_date: rowDateToYMD(r.exception_date),
+        note: r.note ?? undefined,
+      }))
+    );
+  } catch (error) {
+    console.error('Ошибка списка исключений:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+router.post('/expert/exceptions', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const { date, note } = req.body as { date?: string; note?: string };
+    if (!date || typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ error: 'Укажите дату в формате YYYY-MM-DD' });
+    }
+    const noteVal = note && typeof note === 'string' ? note.trim().slice(0, 500) : null;
+    try {
+      const result = await query(
+        `INSERT INTO expert_schedule_exceptions (expert_id, exception_date, note)
+         VALUES ($1, $2::date, $3)
+         RETURNING id, exception_date, note`,
+        [req.userId, date, noteVal]
+      );
+      const r = result.rows[0] as { id: number; exception_date: unknown; note: string | null };
+      res.status(201).json({
+        id: r.id,
+        exception_date: rowDateToYMD(r.exception_date),
+        note: r.note ?? undefined,
+      });
+    } catch (e: unknown) {
+      const code = (e as { code?: string }).code;
+      if (code === '23505') {
+        return res.status(409).json({ error: 'Этот день уже отмечен как выходной' });
+      }
+      throw e;
+    }
+  } catch (error) {
+    console.error('Ошибка добавления исключения:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+router.delete('/expert/exceptions/:id', authenticateToken, requireExpert, async (req: AuthRequest, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Неверный id' });
+    const del = await query(
+      `DELETE FROM expert_schedule_exceptions WHERE id = $1 AND expert_id = $2 RETURNING id`,
+      [id, req.userId]
+    );
+    if (del.rows.length === 0) return res.status(404).json({ error: 'Не найдено' });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Ошибка удаления исключения:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // Получить доступные слоты эксперта на основе расписания (для клиента)
 router.get('/expert/:expertId/available-slots', authenticateToken, async (req: AuthRequest, res) => {
   try {
@@ -270,12 +347,29 @@ router.get('/expert/:expertId/available-slots', authenticateToken, async (req: A
       bookedResult.rows.map(row => `${row.date.toISOString().split('T')[0]}_${row.time_slot}`)
     );
 
+    const rangeStart = start.toISOString().split('T')[0];
+    const rangeEnd = end.toISOString().split('T')[0];
+    const excResult = await query(
+      `SELECT exception_date FROM expert_schedule_exceptions
+       WHERE expert_id = $1 AND exception_date >= $2::date AND exception_date <= $3::date`,
+      [expertId, rangeStart, rangeEnd]
+    );
+    const exceptionDates = new Set(
+      excResult.rows.map((row: { exception_date: unknown }) => rowDateToYMD(row.exception_date))
+    );
+
     // Генерируем доступные слоты
     const slots: any[] = [];
     const current = new Date(start);
     current.setHours(0, 0, 0, 0);
 
     while (current <= end) {
+      const dateStr = current.toISOString().split('T')[0];
+      if (exceptionDates.has(dateStr)) {
+        current.setDate(current.getDate() + 1);
+        continue;
+      }
+
       const dayOfWeek = current.getDay();
       
       // Находим расписание для этого дня недели
@@ -283,7 +377,6 @@ router.get('/expert/:expertId/available-slots', authenticateToken, async (req: A
 
       for (const schedule of daySchedules) {
         const timeSlot = `${schedule.start_time.slice(0, 5)} - ${schedule.end_time.slice(0, 5)}`;
-        const dateStr = current.toISOString().split('T')[0];
         const slotKey = `${dateStr}_${timeSlot}`;
 
         // Проверяем, забронирован ли этот слот

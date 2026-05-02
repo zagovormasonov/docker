@@ -58,6 +58,12 @@ interface ExpertSchedule {
   is_active: boolean;
 }
 
+interface ScheduleExceptionRow {
+  id: number;
+  exception_date: string;
+  note?: string;
+}
+
 const PH = ['🌸', '🦋', '🔮', '🌿', '✨', '🙏'];
 
 function IconGrid() {
@@ -139,6 +145,7 @@ const ExpertDashboardPage: React.FC = () => {
   const [calMonth, setCalMonth] = useState(dayjs());
   const [pickDay, setPickDay] = useState(dayjs());
   const [schedules, setSchedules] = useState<ExpertSchedule[]>([]);
+  const [scheduleExceptions, setScheduleExceptions] = useState<ScheduleExceptionRow[]>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -194,9 +201,21 @@ const ExpertDashboardPage: React.FC = () => {
     }
   }, []);
 
+  const loadExceptions = useCallback(async () => {
+    try {
+      const r = await api.get('/schedule/expert/exceptions');
+      setScheduleExceptions(Array.isArray(r.data) ? r.data : []);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   useEffect(() => {
-    if (panel === 'calendar') loadSchedules();
-  }, [panel, loadSchedules]);
+    if (panel === 'calendar') {
+      loadSchedules();
+      loadExceptions();
+    }
+  }, [panel, loadSchedules, loadExceptions]);
 
   const formatDate = (dateStr: string, timeSlot?: string) => {
     const d = dayjs(dateStr);
@@ -267,6 +286,11 @@ const ExpertDashboardPage: React.FC = () => {
     });
     return map;
   }, [allBookings]);
+
+  const exceptionDateSet = useMemo(
+    () => new Set(scheduleExceptions.map((e) => dayjs(e.exception_date).format('YYYY-MM-DD'))),
+    [scheduleExceptions]
+  );
 
   const slotsForPickDay = useMemo(() => {
     const k = pickDay.format('YYYY-MM-DD');
@@ -344,7 +368,7 @@ const ExpertDashboardPage: React.FC = () => {
     </button>
   );
 
-  const renderMiniCalendar = (onPick?: boolean) => (
+  const renderMiniCalendar = (onPick?: boolean, showExceptionMarks?: boolean) => (
     <>
       <div className="ec-cal-hdr">
         <span className="ec-cal-month">{calMonth.locale('ru').format('MMMM YYYY')}</span>
@@ -372,7 +396,9 @@ const ExpertDashboardPage: React.FC = () => {
           const booked = dayBk.some((b) => b.status === 'confirmed');
           const isToday = date.isSame(dayjs(), 'day');
           const isPick = onPick && date.isSame(pickDay, 'day');
+          const isExc = showExceptionMarks && exceptionDateSet.has(k);
           let cls = 'ec-cal-cell';
+          if (isExc) cls += ' ec-cal-exception';
           if (isToday) cls += ' ec-today';
           else if (isPick) cls += ' ec-cal-pick';
           else if (booked) cls += ' ec-booked';
@@ -696,9 +722,11 @@ const ExpertDashboardPage: React.FC = () => {
         pickDay={pickDay}
         setPickDay={setPickDay}
         setCalMonth={setCalMonth}
-        miniCalendar={renderMiniCalendar(true)}
+        miniCalendar={renderMiniCalendar(true, true)}
         schedules={schedules}
         loadSchedules={loadSchedules}
+        scheduleExceptions={scheduleExceptions}
+        loadExceptions={loadExceptions}
         allBookings={allBookings}
         services={services}
         user={{ id: user.id, slug: user.slug, name: user.name }}

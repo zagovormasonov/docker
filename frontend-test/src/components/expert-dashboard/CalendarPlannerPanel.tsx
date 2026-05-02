@@ -52,6 +52,12 @@ function fmtTime(time: string) {
   return time.slice(0, 5);
 }
 
+export interface PlannerScheduleException {
+  id: number;
+  exception_date: string;
+  note?: string;
+}
+
 export interface CalendarPlannerPanelProps {
   pickDay: Dayjs;
   setPickDay: (d: Dayjs) => void;
@@ -59,6 +65,8 @@ export interface CalendarPlannerPanelProps {
   miniCalendar: React.ReactNode;
   schedules: PlannerExpertSchedule[];
   loadSchedules: () => Promise<void>;
+  scheduleExceptions: PlannerScheduleException[];
+  loadExceptions: () => Promise<void>;
   allBookings: PlannerBooking[];
   services: { title?: string; price?: number }[];
   user: { id: number; slug?: string; name?: string };
@@ -78,6 +86,8 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
   miniCalendar,
   schedules,
   loadSchedules,
+  scheduleExceptions,
+  loadExceptions,
   allBookings,
   services,
   user,
@@ -98,6 +108,8 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
   const [addOpen, setAddOpen] = useState(false);
   const [addForm, setAddForm] = useState({ start: '09:00', end: '10:00' });
   const [bookingFocus, setBookingFocus] = useState<PlannerBooking | null>(null);
+  const [exceptionsOpen, setExceptionsOpen] = useState(false);
+  const [excInputDate, setExcInputDate] = useState('');
 
   useEffect(() => {
     if (!ok) return;
@@ -130,6 +142,13 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
       ),
     [allBookings, pickDay]
   );
+
+  const exceptionDayKeys = useMemo(
+    () => new Set(scheduleExceptions.map((e) => dayjs(e.exception_date).format('YYYY-MM-DD'))),
+    [scheduleExceptions]
+  );
+
+  const isPickDayOff = exceptionDayKeys.has(pickDay.format('YYYY-MM-DD'));
 
   const { gridStartMin, gridEndMin, gridHeightPx, minToPx } = useMemo(() => {
     let gs = 9 * 60;
@@ -254,10 +273,40 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
     }
   }
 
+  const addExceptionDay = async () => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(excInputDate)) {
+      message.warning('Выберите дату');
+      return;
+    }
+    try {
+      await api.post('/schedule/expert/exceptions', { date: excInputDate });
+      message.success('Выходной сохранён — в эту дату клиенты не увидят слоты');
+      setExcInputDate('');
+      await loadExceptions();
+    } catch (e: unknown) {
+      const msg = (e as { response?: { data?: { error?: string } } }).response?.data?.error;
+      message.error(msg || 'Не удалось сохранить');
+    }
+  };
+
+  const removeExceptionDay = async (id: number) => {
+    try {
+      await api.delete(`/schedule/expert/exceptions/${id}`);
+      message.success('День снова доступен для записи');
+      await loadExceptions();
+    } catch (e: unknown) {
+      const msg = (e as { response?: { data?: { error?: string } } }).response?.data?.error;
+      message.error(msg || 'Ошибка');
+    }
+  };
+
   return (
     <>
       <div className="ec-page-title">Календарь записей</div>
-      <div className="ec-page-sub">Сетка по МСК. Интервалы повторяются каждую неделю для выбранного дня недели.</div>
+      <div className="ec-page-sub">
+        Интервалы задаются по дням недели (пн–вс): тот же шаблон каждую неделю, на все месяцы вперёд. Время — МСК. Исключения —
+        разовые дни отдыха: в них запись на странице мастера скрыта, уже созданные заявки остаются в списке.
+      </div>
 
       <div className="ec-planner">
         <aside className="ec-planner-side">
@@ -293,6 +342,10 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
             </button>
           </div>
 
+          <p className="ec-planner-side-hint">
+            Недельный шаблон повторяется сам по себе. «Исключения» — только точечные выходные.
+          </p>
+
           <div className="ec-planner-mini-cal">{miniCalendar}</div>
 
           <div className="ec-planner-actions">
@@ -315,11 +368,7 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
           <button type="button" className="ec-planner-link-row" onClick={onOpenServices}>
             Услуги <span className="ec-planner-chevron">›</span>
           </button>
-          <button
-            type="button"
-            className="ec-planner-link-row"
-            onClick={() => Modal.info({ title: 'Исключения', content: 'Скоро: выходные и особые дни без автоповтора.', okText: 'Понятно' })}
-          >
+          <button type="button" className="ec-planner-link-row" onClick={() => setExceptionsOpen(true)}>
             Исключения <span className="ec-planner-chevron">›</span>
           </button>
 
@@ -337,7 +386,9 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
               <button
                 key={d.format('YYYY-MM-DD')}
                 type="button"
-                className={`ec-planner-wd ${d.isSame(pickDay, 'day') ? 'ec-planner-wd--active' : ''}`}
+                className={`ec-planner-wd ${d.isSame(pickDay, 'day') ? 'ec-planner-wd--active' : ''} ${
+                  exceptionDayKeys.has(d.format('YYYY-MM-DD')) ? 'ec-planner-wd--off' : ''
+                }`}
                 onClick={() => {
                   setPickDay(d);
                   setCalMonth(d.startOf('month'));
@@ -350,6 +401,11 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
           </div>
 
           <div className="ec-planner-grid-card">
+            {isPickDayOff ? (
+              <div className="ec-planner-dayoff-banner">
+                Выходной (исключение): шаблон на этот календарный день для клиентов не показывается. Записи ниже — уже существующие.
+              </div>
+            ) : null}
             <div className="ec-planner-timeline">
               <div className="ec-planner-track-col">
                 {hourTicks.map((m) => (
@@ -372,13 +428,19 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
                       <button
                         key={sch.id}
                         type="button"
-                        className={`ec-planner-block ec-planner-block--free ${sch.is_active ? '' : 'ec-planner-block--muted'}`}
+                        className={`ec-planner-block ec-planner-block--free ${sch.is_active ? '' : 'ec-planner-block--muted'} ${
+                          isPickDayOff ? 'ec-planner-block--dayoff' : ''
+                        }`}
                         style={{ top, height: h }}
                         onClick={() => setEditSchedule(sch)}
                       >
                         <span className="ec-planner-block-time">{fmtTime(sch.start_time)}</span>
                         <span className="ec-planner-block-title">
-                          {sch.is_active ? `Свободно · ${svcTitle}` : 'Скрыто от клиентов'}
+                          {isPickDayOff
+                            ? 'Выходной · не для записи'
+                            : sch.is_active
+                              ? `Свободно · ${svcTitle}`
+                              : 'Скрыто от клиентов'}
                         </span>
                         <span className="ec-planner-block-meta">{sch.slot_duration} мин</span>
                       </button>
@@ -592,6 +654,48 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
             </Space>
           </>
         )}
+      </Modal>
+
+      <Modal
+        title="Исключения — дни без записи"
+        open={exceptionsOpen}
+        onCancel={() => setExceptionsOpen(false)}
+        footer={null}
+        destroyOnClose
+        width={420}
+      >
+        <p className="ec-planner-exc-intro">
+          Разовые выходные поверх недельного шаблона: в выбранную дату клиенты не видят слоты. Остальные недели идут как обычно.
+        </p>
+        <div className="ec-planner-exc-add">
+          <label className="ec-planner-modal-label">Дата</label>
+          <input
+            type="date"
+            className="ec-planner-time-input"
+            value={excInputDate}
+            onChange={(e) => setExcInputDate(e.target.value)}
+          />
+          <Button type="primary" block style={{ marginTop: 12 }} onClick={() => void addExceptionDay()}>
+            Добавить выходной
+          </Button>
+        </div>
+        <div className="ec-planner-exc-list">
+          {[...scheduleExceptions]
+            .sort((a, b) => dayjs(a.exception_date).valueOf() - dayjs(b.exception_date).valueOf())
+            .map((row) => (
+              <div key={row.id} className="ec-planner-exc-row">
+                <span className="ec-planner-exc-date">{dayjs(row.exception_date).locale('ru').format('D MMMM YYYY')}</span>
+                <Button type="link" danger size="small" onClick={() => void removeExceptionDay(row.id)}>
+                  Убрать
+                </Button>
+              </div>
+            ))}
+          {!scheduleExceptions.length ? (
+            <div className="ec-planner-empty-list" style={{ marginTop: 12 }}>
+              Пока нет — все календарные дни следуют недельному шаблону
+            </div>
+          ) : null}
+        </div>
       </Modal>
     </>
   );

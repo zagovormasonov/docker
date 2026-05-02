@@ -374,6 +374,19 @@ export const initDatabase = async () => {
     // Индексы для оптимизации бронирований
     await query(`CREATE INDEX IF NOT EXISTS idx_expert_schedule_expert ON expert_schedule(expert_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_expert_schedule_day ON expert_schedule(day_of_week)`);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS expert_schedule_exceptions (
+        id SERIAL PRIMARY KEY,
+        expert_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        exception_date DATE NOT NULL,
+        note TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(expert_id, exception_date)
+      )
+    `);
+    await query(`CREATE INDEX IF NOT EXISTS idx_schedule_exc_expert ON expert_schedule_exceptions(expert_id)`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_schedule_exc_date ON expert_schedule_exceptions(exception_date)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_expert_availability_expert ON expert_availability(expert_id)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_expert_availability_date ON expert_availability(date)`);
     await query(`CREATE INDEX IF NOT EXISTS idx_bookings_expert ON bookings(expert_id)`);
