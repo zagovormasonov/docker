@@ -1189,6 +1189,14 @@
   border: 1px solid var(--ec-bd);
 }
 
+.expert-cab-v2 .ec-expert-calendar .session-client-hint {
+  color: var(--ec-telt);
+}
+
+.expert-cab-v2 .ec-expert-calendar .session-client-hint--off {
+  color: var(--ec-t3);
+}
+
 .expert-cab-v2 .ec-expert-calendar .btn-save-modern,
 .expert-cab-v2 .ec-expert-calendar .btn-add-session {
   background: var(--ec-acc);

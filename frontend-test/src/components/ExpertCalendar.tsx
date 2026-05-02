@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Switch, Tabs, Card, Typography, Button, Space } from 'antd';
-import { CalendarOutlined, CloseOutlined, EditOutlined, ClockCircleOutlined, TeamOutlined, InboxOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CloseOutlined, EditOutlined, DeleteOutlined, ClockCircleOutlined, TeamOutlined, InboxOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import './ExpertCalendar.css';
@@ -59,7 +59,7 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeView, setActiveView] = useState<'calendar' | 'editor' | 'bookings' | 'clients'>('calendar');
+  const [activeView, setActiveView] = useState<'calendar' | 'bookings' | 'clients'>('calendar');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Данные для bookings и clients
@@ -69,7 +69,6 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
 
   // Форма добавления расписания - для каждого дня недели
   const [activeForms, setActiveForms] = useState<{[key: number]: {startTime: string, endTime: string}[]}>({});
-  const [editingSchedule, setEditingSchedule] = useState<{id: number, startTime: string, endTime: string} | null>(null);
 
   // Отслеживаем размер экрана
   useEffect(() => {
@@ -177,41 +176,6 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
       setError(err.response?.data?.error || 'Ошибка удаления расписания');
     }
   };
-
-  const handleEditSchedule = async (scheduleId: number) => {
-    if (!editingSchedule) return;
-    
-    const { startTime, endTime } = editingSchedule;
-    
-    if (!startTime || !endTime) {
-      setError('Укажите время начала и окончания');
-      return;
-    }
-
-    const start = new Date(`2000-01-01T${startTime}`);
-    const end = new Date(`2000-01-01T${endTime}`);
-    
-    if (start >= end) {
-      setError('Время начала должно быть раньше времени окончания');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await axios.put(`/schedule/expert/schedule/${scheduleId}`, {
-        startTime,
-        endTime
-      });
-      setSuccess('Расписание обновлено');
-      setEditingSchedule(null);
-      await loadSchedule();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка обновления расписания');
-    } finally {
-      setLoading(false);
-    }
-  };
-
 
   const handleToggleSchedule = async (scheduleId: number, isActive: boolean) => {
     try {
@@ -352,60 +316,28 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
       <Tabs
         className={embedded ? 'ec-cal-ant-tabs' : undefined}
         activeKey={activeView}
-        onChange={(key) => setActiveView(key as 'calendar' | 'editor' | 'bookings' | 'clients')}
+        onChange={(key) => setActiveView(key as 'calendar' | 'bookings' | 'clients')}
         items={[
           {
             key: 'calendar',
             label: 'Календарь',
             children: (
-              <div className="client-view-preview">
-                {schedules.filter(s => s.is_active).length === 0 ? (
-                  <div className="preview-empty">
-                    <p>Нет активных слотов для отображения</p>
-                    <p style={{ fontSize: 14, color: '#9ca3af' }}>
-                      Добавьте расписание и включите слоты, чтобы они отображались для клиентов
-                    </p>
-                  </div>
-                ) : (
-                  <div className="client-calendar-view">
-                    {DAYS_OF_WEEK.map(day => {
-                      const daySchedules = groupedSchedules[day.value]?.filter(s => s.is_active) || [];
-                      if (daySchedules.length === 0) return null;
-
-                      return (
-                        <div key={day.value} className="client-date-section">
-                          <h3 className="client-date-header">{day.label}</h3>
-                          <div className="client-slots-grid">
-                            {daySchedules.map(schedule => (
-                              <div key={schedule.id} className="client-slot-button">
-                                <span className="client-slot-time">🕐 {formatTime(schedule.start_time)}</span>
-                                <span className="client-slot-duration">⏱️ {schedule.slot_duration} мин</span>
-                                <span className="client-slot-status">🟢 Доступно</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }).filter(Boolean)}
-                  </div>
-                )}
-              </div>
-            )
-          },
-          {
-            key: 'editor',
-            label: 'Редактор',
-            children: (
-              <div className="availability-section">
+              <div className="availability-section calendar-schedule-merged">
                 <div className="add-slots-section">
-                  <h3>Добавить расписание</h3>
-                  <p className="info-text">Добавьте сеансы для каждого дня недели. Укажите время начала и окончания — длительность рассчитается автоматически.</p>
-                  
+                  <h3>Расписание и слоты</h3>
+                  <p className="info-text">
+                    Добавьте сеансы по дням недели и укажите время начала и окончания — длительность слота рассчитается автоматически.
+                    Включённые слоты видят клиенты при записи; выключенный сеанс или день скрыты от каталога.
+                  </p>
+
                   <div className="days-schedule-form">
                     {DAYS_OF_WEEK.map(day => {
                       const daySchedules = groupedSchedules[day.value] || [];
                       const activeCount = daySchedules.filter(s => s.is_active).length;
                       const dayActive = activeCount > 0;
+                      const n = daySchedules.length;
+                      const sessionWord =
+                        n === 0 ? 'сеансов' : n === 1 ? 'сеанс' : n >= 2 && n <= 4 ? 'сеанса' : 'сеансов';
 
                       const handleToggleDay = async (makeActive: boolean) => {
                         if (daySchedules.length === 0) return;
@@ -425,7 +357,6 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                         }
                       };
 
-
                       return (
                         <div key={day.value} className="day-card">
                           <div className="day-card-header">
@@ -436,7 +367,7 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                               <div>
                                 <div className="day-title">{day.label}</div>
                                 <div className="day-meta">
-                                  Рабочий день • {daySchedules.length || 0} онлайн-сессии
+                                  Рабочий день • {n} {sessionWord}
                                 </div>
                               </div>
                             </div>
@@ -450,8 +381,10 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                                 checkedChildren="Вкл"
                                 unCheckedChildren="Выкл"
                                 className="day-switch"
+                                disabled={daySchedules.length === 0}
                               />
                               <button
+                                type="button"
                                 className="day-delete"
                                 onClick={() => {
                                   if (daySchedules.length === 0) return;
@@ -482,19 +415,26 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                           </div>
 
                           <div className="day-sessions">
-                            {/* Существующие сеансы */}
                             {daySchedules.length === 0 ? (
-                              <div className="empty-day">Нет сеансов в этот день</div>
+                              <div className="empty-day">Нет сеансов в этот день — добавьте интервал ниже</div>
                             ) : (
                               daySchedules.map(schedule => (
                                 <div key={schedule.id} className={`session-card ${!schedule.is_active ? 'inactive' : ''}`}>
                                   <div className="session-info">
                                     <span className="session-dot" />
-                                    <span className="session-time">{formatTime(schedule.start_time)} — {formatTime(schedule.end_time)}</span>
+                                    <span className="session-time">
+                                      {formatTime(schedule.start_time)} — {formatTime(schedule.end_time)}
+                                    </span>
                                     <span className="session-duration">{schedule.slot_duration} мин</span>
+                                    {schedule.is_active ? (
+                                      <span className="session-client-hint">Клиентам: доступно</span>
+                                    ) : (
+                                      <span className="session-client-hint session-client-hint--off">Скрыто</span>
+                                    )}
                                   </div>
                                   <div className="session-controls">
                                     <button
+                                      type="button"
                                       className="btn-edit-schedule"
                                       onClick={() => {
                                         Modal.confirm({
@@ -539,7 +479,7 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                                           onOk: async () => {
                                             const startInput = document.getElementById(`edit-start-${schedule.id}`) as HTMLInputElement;
                                             const endInput = document.getElementById(`edit-end-${schedule.id}`) as HTMLInputElement;
-                                            
+
                                             if (!startInput?.value || !endInput?.value) {
                                               setError('Укажите время начала и окончания');
                                               return;
@@ -547,7 +487,7 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
 
                                             const start = new Date(`2000-01-01T${startInput.value}`);
                                             const end = new Date(`2000-01-01T${endInput.value}`);
-                                            
+
                                             if (start >= end) {
                                               setError('Время начала должно быть раньше времени окончания');
                                               return;
@@ -573,6 +513,26 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                                     >
                                       <EditOutlined />
                                     </button>
+                                    <button
+                                      type="button"
+                                      className="btn-delete-small"
+                                      onClick={() => {
+                                        Modal.confirm({
+                                          title: 'Удалить сеанс?',
+                                          content: `${formatTime(schedule.start_time)} — ${formatTime(schedule.end_time)} (${schedule.slot_duration} мин)`,
+                                          okText: 'Удалить',
+                                          cancelText: 'Отмена',
+                                          okButtonProps: { danger: true },
+                                          centered: true,
+                                          onOk: async () => {
+                                            await handleDeleteSchedule(schedule.id);
+                                          }
+                                        });
+                                      }}
+                                      title="Удалить сеанс"
+                                    >
+                                      <DeleteOutlined />
+                                    </button>
                                     <Switch
                                       checked={schedule.is_active}
                                       onChange={(checked) => handleToggleSchedule(schedule.id, checked)}
@@ -586,10 +546,9 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                             )}
                           </div>
 
-                          {/* Формы добавления новых сеансов */}
                           {activeForms[day.value]?.map((form, index) => (
                             <div key={index} className="session-form">
-                              <div className="session-form-title">Добавить новый сеанс</div>
+                              <div className="session-form-title">Новый сеанс</div>
                               <div className="time-inputs wide">
                                 <div className="time-input-wrapper">
                                   <input
@@ -610,10 +569,11 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                                     placeholder="Конец"
                                   />
                                 </div>
-                                <span className="slot-length">Оч мин</span>
+                                <span className="slot-length">Авто мин</span>
                               </div>
                               <div className="session-actions modern">
                                 <button
+                                  type="button"
                                   className="btn-cancel-modern"
                                   onClick={() => removeSessionForm(day.value, index)}
                                   disabled={loading}
@@ -622,6 +582,7 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                                   Отменить
                                 </button>
                                 <button
+                                  type="button"
                                   className="btn-save-modern"
                                   onClick={() => handleAddSchedule(day.value, index)}
                                   disabled={loading}
@@ -633,51 +594,13 @@ const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => 
                             </div>
                           ))}
 
-                          {/* Кнопка добавления сеанса */}
-                          <button
-                            className="btn-add-session modern"
-                            onClick={() => addSessionForm(day.value)}
-                          >
-                            + Добавить ещё один сеанс
+                          <button type="button" className="btn-add-session modern" onClick={() => addSessionForm(day.value)}>
+                            + Добавить сеанс
                           </button>
                         </div>
                       );
                     })}
                   </div>
-                </div>
-
-                <div className="slots-list">
-                  <h3>Ваше расписание</h3>
-                  {schedules.length === 0 ? (
-                    <p className="empty-message">У вас пока нет расписания. Добавьте дни и время работы выше.</p>
-                  ) : (
-                    <div className="schedule-list">
-                      {DAYS_OF_WEEK.map(day => {
-                        const daySchedules = groupedSchedules[day.value] || [];
-                        if (daySchedules.length === 0) return null;
-
-                        return (
-                          <div key={day.value} className="schedule-day-group">
-                            <h4>{day.label}</h4>
-                            <div className="schedule-items">
-                              {daySchedules.map(schedule => (
-                                <div key={schedule.id} className="schedule-item">
-                                  <div className="schedule-info">
-                                    <span className="schedule-time">
-                                      🕐 {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
-                                    </span>
-                                    <span className="schedule-duration">
-                                      📊 Слот: {schedule.slot_duration} мин
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
               </div>
             )

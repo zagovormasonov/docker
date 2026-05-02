@@ -351,6 +351,26 @@
   border-radius: 999px;
 }
 
+.session-client-hint {
+  font-size: 11px;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.session-client-hint--off {
+  color: #9ca3af;
+}
+
+.calendar-schedule-merged .add-slots-section {
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+
+.calendar-schedule-merged .add-slots-section h3 {
+  margin-top: 0;
+}
+
 .add-slots-section {
   background: var(--card-bg);
   padding: 24px;
