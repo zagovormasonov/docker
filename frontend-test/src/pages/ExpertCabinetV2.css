@@ -1685,41 +1685,108 @@
   user-select: none;
 }
 
-.expert-cab-v2 .ec-planner-time-select {
-  appearance: none;
-  -webkit-appearance: none;
-  border: none;
-  background: transparent;
-  font-family: inherit;
-  font-size: 20px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--ec-t1);
-  cursor: pointer;
-  line-height: 1.2;
-  padding: 4px 26px 4px 8px;
+/* Ant Select вместо нативного <select> — триггер внутри карточки времени */
+.expert-cab-v2 .ec-planner-time-ant-select.ant-select {
+  margin: 0;
+}
+
+.expert-cab-v2 .ec-planner-time-ant-select .ant-select-selector {
+  padding: 2px 22px 2px 6px !important;
+  min-height: auto !important;
+  height: auto !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.expert-cab-v2 .ec-planner-time-ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  background: rgba(123, 111, 212, 0.06) !important;
   border-radius: var(--ec-rsm);
-  transition: background 0.12s ease;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6890' d='M3 4.5 6 8l3-3.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
 }
 
-.expert-cab-v2 .ec-planner-time-select:hover {
-  background-color: rgba(123, 111, 212, 0.08);
+.expert-cab-v2 .ec-planner-time-ant-select.ant-select-focused .ant-select-selector {
+  background: rgba(123, 111, 212, 0.08) !important;
+  border-radius: var(--ec-rsm);
 }
 
-.expert-cab-v2 .ec-planner-time-select:focus {
-  outline: none;
-  background-color: rgba(123, 111, 212, 0.1);
+.expert-cab-v2 .ec-planner-time-ant-select .ant-select-selection-item {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums;
+  color: var(--ec-t1) !important;
+  line-height: 1.25 !important;
+  padding-inline-end: 0 !important;
+  display: flex;
+  align-items: center;
 }
 
-.expert-cab-v2 .ec-planner-time-select--h {
-  min-width: 4.25rem;
+.expert-cab-v2 .ec-planner-time-ant-select .ant-select-arrow {
+  inset-inline-end: 2px;
 }
 
-.expert-cab-v2 .ec-planner-time-select--m {
-  min-width: 4.25rem;
+.expert-cab-v2 .ec-planner-time-suffix-ico {
+  font-size: 10px;
+  color: var(--ec-t3);
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.expert-cab-v2 .ec-planner-time-ant-select.ant-select-open .ec-planner-time-suffix-ico {
+  transform: rotate(180deg);
+  color: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-planner-time-ant-select--h.ant-select {
+  width: 78px;
+}
+
+.expert-cab-v2 .ec-planner-time-ant-select--m.ant-select {
+  width: 78px;
+}
+
+/* Выпадающий список (рендерится в портале — свои токены на корне) */
+.ec-planner-time-dropdown.ant-select-dropdown {
+  --ec-acc: #7b6fd4;
+  --ec-acp: #eae8fb;
+  --ec-act: #4a3fa8;
+  --ec-bgs: #f0effe;
+  --ec-t1: #2d2a4a;
+  --ec-t2: #6b6890;
+  --ec-t3: #a8a5c4;
+  --ec-rmd: 10px;
+  --ec-rsm: 6px;
+
+  padding: 8px !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow:
+    0 22px 56px rgba(45, 42, 74, 0.14),
+    0 0 0 1px rgba(123, 111, 212, 0.11) !important;
+}
+
+.ec-planner-time-dropdown .ant-select-item {
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  border-radius: var(--ec-rsm) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums !important;
+  color: var(--ec-t1) !important;
+  line-height: 1.2 !important;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.ec-planner-time-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: var(--ec-bgs) !important;
+}
+
+.ec-planner-time-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background: var(--ec-acp) !important;
+  color: var(--ec-act) !important;
+  font-weight: 700 !important;
+}
+
+.ec-planner-time-dropdown .ant-select-item-option-selected.ant-select-item-option-active {
+  background: rgba(123, 111, 212, 0.18) !important;
 }
 
 .expert-cab-v2 .ec-planner-edit-modal {

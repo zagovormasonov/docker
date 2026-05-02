@@ -2,8 +2,8 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import 'dayjs/locale/ru';
-import { Button, Modal, Space, message, Checkbox } from 'antd';
-import { CheckOutlined, CloseOutlined, CopyOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
+import { Button, Modal, Space, message, Checkbox, Select } from 'antd';
+import { CheckOutlined, CloseOutlined, CopyOutlined, DeleteOutlined, DownOutlined, LinkOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 
 dayjs.extend(isoWeek);
@@ -54,6 +54,8 @@ function fmtTime(time: string) {
 
 const HOUR_OPTS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTE_OPTS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+const HOUR_OPTIONS = HOUR_OPTS.map((x) => ({ label: x, value: x }));
+const MINUTE_OPTIONS = MINUTE_OPTS.map((x) => ({ label: x, value: x }));
 
 function parseHm(v: string): { h: string; m: string } {
   const m = v?.match(/^(\d{1,2}):(\d{2})/);
@@ -63,41 +65,48 @@ function parseHm(v: string): { h: string; m: string } {
   return { h: String(h).padStart(2, '0'), m: String(mm).padStart(2, '0') };
 }
 
+const timeSelectPopupContainer = (trigger: HTMLElement) =>
+  (trigger.closest('.expert-cab-v2') as HTMLElement | null) || document.body;
+
 const PlannerTimeField: React.FC<{
   value: string;
   onChange: (hhmm: string) => void;
   labelledBy?: string;
 }> = ({ value, onChange, labelledBy }) => {
   const { h, m } = parseHm(value);
+  const suffix = <DownOutlined className="ec-planner-time-suffix-ico" aria-hidden />;
+
   return (
     <div className="ec-planner-time-field" role="group" aria-labelledby={labelledBy}>
-      <select
-        className="ec-planner-time-select ec-planner-time-select--h"
-        value={h}
-        onChange={(e) => onChange(`${e.target.value}:${m}`)}
+      <Select
         aria-label="Часы"
-      >
-        {HOUR_OPTS.map((x) => (
-          <option key={x} value={x}>
-            {x}
-          </option>
-        ))}
-      </select>
+        value={h}
+        options={HOUR_OPTIONS}
+        onChange={(nh) => onChange(`${nh}:${m}`)}
+        variant="borderless"
+        showSearch={false}
+        listHeight={280}
+        className="ec-planner-time-ant-select ec-planner-time-ant-select--h"
+        popupClassName="ec-planner-time-dropdown"
+        getPopupContainer={timeSelectPopupContainer}
+        suffixIcon={suffix}
+      />
       <span className="ec-planner-time-colon" aria-hidden>
         :
       </span>
-      <select
-        className="ec-planner-time-select ec-planner-time-select--m"
-        value={m}
-        onChange={(e) => onChange(`${h}:${e.target.value}`)}
+      <Select
         aria-label="Минуты"
-      >
-        {MINUTE_OPTS.map((x) => (
-          <option key={x} value={x}>
-            {x}
-          </option>
-        ))}
-      </select>
+        value={m}
+        options={MINUTE_OPTIONS}
+        onChange={(nm) => onChange(`${h}:${nm}`)}
+        variant="borderless"
+        showSearch={false}
+        listHeight={280}
+        className="ec-planner-time-ant-select ec-planner-time-ant-select--m"
+        popupClassName="ec-planner-time-dropdown"
+        getPopupContainer={timeSelectPopupContainer}
+        suffixIcon={suffix}
+      />
     </div>
   );
 };
