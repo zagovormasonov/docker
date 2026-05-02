@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Spin, Button, Space } from 'antd';
-import { CheckOutlined, CloseOutlined, UserOutlined } from '@ant-design/icons';
+import { Spin, Button, Space, Modal, Switch } from 'antd';
+import { CheckOutlined, CloseOutlined, UserOutlined, EditOutlined, DeleteOutlined, CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import isBetween from 'dayjs/plugin/isBetween';
 import 'dayjs/locale/ru';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
-import ExpertCalendar from '../components/ExpertCalendar';
 import ServiceManager from '../components/profile/ServiceManager';
 import ProductManager from '../components/profile/ProductManager';
+import '../components/ExpertCalendar.css';
 import './ExpertCabinetV2.css';
 
 dayjs.extend(isoWeek);
@@ -47,6 +47,15 @@ interface NotifRow {
   message?: string;
   is_read?: boolean;
   created_at: string;
+}
+
+interface ExpertSchedule {
+  id: number;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  slot_duration: number;
+  is_active: boolean;
 }
 
 const PH = ['🌸', '🦋', '🔮', '🌿', '✨', '🙏'];
@@ -129,6 +138,11 @@ const ExpertDashboardPage: React.FC = () => {
   const [incomingCount, setIncomingCount] = useState(0);
   const [calMonth, setCalMonth] = useState(dayjs());
   const [pickDay, setPickDay] = useState(dayjs());
+  const [schedules, setSchedules] = useState<ExpertSchedule[]>([]);
+  const [scheduleBusy, setScheduleBusy] = useState(false);
+  const [scheduleErr, setScheduleErr] = useState('');
+  const [scheduleOk, setScheduleOk] = useState('');
+  const [activeScheduleForms, setActiveScheduleForms] = useState<Record<number, { startTime: string; endTime: string }[]>>({});
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -174,6 +188,26 @@ const ExpertDashboardPage: React.FC = () => {
   useEffect(() => {
     if (panel === 'clients' && user) loadAll();
   }, [panel, user, loadAll]);
+
+  const loadSchedules = useCallback(async () => {
+    try {
+      const r = await api.get('/schedule/expert/schedule');
+      setSchedules(Array.isArray(r.data) ? r.data : []);
+    } catch (e) {
+      console.error(e);
+      setScheduleErr('Не удалось загрузить расписание');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (panel === 'calendar') loadSchedules();
+  }, [panel, loadSchedules]);
+
+  useEffect(() => {
+    if (!scheduleOk) return;
+    const t = window.setTimeout(() => setScheduleOk(''), 4500);
+    return () => window.clearTimeout(t);
+  }, [scheduleOk]);
 
   const formatDate = (dateStr: string, timeSlot?: string) => {
     const d = dayjs(dateStr);
@@ -245,6 +279,15 @@ const ExpertDashboardPage: React.FC = () => {
     return map;
   }, [allBookings]);
 
+  const scheduleByWeekday = useMemo(() => {
+    const acc: Record<number, ExpertSchedule[]> = {};
+    schedules.forEach((s) => {
+      if (!acc[s.day_of_week]) acc[s.day_of_week] = [];
+      acc[s.day_of_week].push(s);
+    });
+    return acc;
+  }, [schedules]);
+
   const slotsForPickDay = useMemo(() => {
     const k = pickDay.format('YYYY-MM-DD');
     return bookingsByDay.get(k) || [];
@@ -298,6 +341,82 @@ const ExpertDashboardPage: React.FC = () => {
       await loadAll();
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const clearScheduleMsgs = () => {
+    setScheduleErr('');
+    setScheduleOk('');
+  };
+
+  const addScheduleFormRow = (dayOfWeek: number) => {
+    setActiveScheduleForms((prev) => ({
+      ...prev,
+      [dayOfWeek]: [...(prev[dayOfWeek] || []), { startTime: '09:00', endTime: '18:00' }],
+    }));
+  };
+
+  const removeScheduleFormRow = (dayOfWeek: number, index: number) => {
+    setActiveScheduleForms((prev) => ({
+      ...prev,
+      [dayOfWeek]: (prev[dayOfWeek] || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateScheduleFormRow = (dayOfWeek: number, index: number, field: 'startTime' | 'endTime', value: string) => {
+    setActiveScheduleForms((prev) => ({
+      ...prev,
+      [dayOfWeek]: (prev[dayOfWeek] || []).map((row, i) => (i === index ? { ...row, [field]: value } : row)),
+    }));
+  };
+
+  const handleExpertScheduleAdd = async (dayOfWeek: number, index: number) => {
+    const form = activeScheduleForms[dayOfWeek]?.[index];
+    if (!form) return;
+    const { startTime, endTime } = form;
+    if (!startTime || !endTime) {
+      setScheduleErr('Укажите время начала и окончания');
+      return;
+    }
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    if (start >= end) {
+      setScheduleErr('Время начала должно быть раньше окончания');
+      return;
+    }
+    setScheduleBusy(true);
+    clearScheduleMsgs();
+    try {
+      await api.post('/schedule/expert/schedule', { dayOfWeek, startTime, endTime });
+      setScheduleOk('Слот добавлен');
+      removeScheduleFormRow(dayOfWeek, index);
+      await loadSchedules();
+    } catch (err: any) {
+      setScheduleErr(err.response?.data?.error || 'Ошибка добавления слота');
+    } finally {
+      setScheduleBusy(false);
+    }
+  };
+
+  const handleExpertScheduleDelete = async (scheduleId: number) => {
+    clearScheduleMsgs();
+    try {
+      await api.delete(`/schedule/expert/schedule/${scheduleId}`);
+      setScheduleOk('Слот удалён');
+      await loadSchedules();
+    } catch (err: any) {
+      setScheduleErr(err.response?.data?.error || 'Ошибка удаления');
+    }
+  };
+
+  const handleExpertScheduleToggle = async (scheduleId: number, isActive: boolean) => {
+    clearScheduleMsgs();
+    try {
+      await api.put(`/schedule/expert/schedule/${scheduleId}/toggle`, { isActive });
+      setScheduleOk(isActive ? 'Слот включён' : 'Слот выключен');
+      await loadSchedules();
+    } catch (err: any) {
+      setScheduleErr(err.response?.data?.error || 'Ошибка переключения слота');
     }
   };
 
@@ -662,64 +781,348 @@ const ExpertDashboardPage: React.FC = () => {
     </>
   );
 
-  const renderCalendarPanel = () => (
-    <>
-      <div className="ec-page-title">Календарь записей</div>
-      <div className="ec-page-sub">Управляйте слотами и расписанием (МСК)</div>
-      <div className="ec-two-col">
-        <div className="ec-col-card">{renderMiniCalendar(false)}</div>
-        <div className="ec-col-card">
-          <div className="ec-cc-hdr">
-            <span className="ec-cc-title">Подтверждённые и заявки</span>
-          </div>
-          <div style={{ padding: 16, maxHeight: 360, overflowY: 'auto' }}>
-            {[...pendingBookings, ...confirmedBookings].slice(0, 20).map((b) => (
-              <div key={b.id} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--ec-bd)' }}>
-                <div style={{ fontWeight: 600 }}>{b.client_name}</div>
-                <div style={{ fontSize: 12, color: 'var(--ec-t3)' }}>{formatDate(b.date, b.time_slot)}</div>
-                <div style={{ fontSize: 11, marginTop: 4 }}>Статус: {b.status}</div>
-                {b.status === 'pending' && (
-                  <div className="ec-booking-actions">
-                    <Button size="small" type="primary" icon={<CheckOutlined />} onClick={() => handleBookingAction(b.id, 'confirm')}>
-                      OK
-                    </Button>
-                    <Button
-                      size="small"
-                      danger
-                      icon={<CloseOutlined />}
-                      onClick={() => {
-                        const r = prompt('Причина:');
-                        if (r !== null) handleBookingAction(b.id, 'reject', r || undefined);
-                      }}
-                    >
-                      Нет
-                    </Button>
+  const renderCalendarPanel = () => {
+    const dow = pickDay.day();
+    const daySchedules = scheduleByWeekday[dow] || [];
+    const activeCount = daySchedules.filter((s) => s.is_active).length;
+    const dayActive = activeCount > 0;
+    const n = daySchedules.length;
+    const sessionWord =
+      n === 0 ? 'слотов' : n === 1 ? 'слот' : n >= 2 && n <= 4 ? 'слота' : 'слотов';
+    const fmt = (time: string) => time.slice(0, 5);
+
+    const handleToggleDay = async (makeActive: boolean) => {
+      if (daySchedules.length === 0) return;
+      try {
+        setScheduleBusy(true);
+        clearScheduleMsgs();
+        await Promise.all(
+          daySchedules.map((schedule) =>
+            api.put(`/schedule/expert/schedule/${schedule.id}/toggle`, { isActive: makeActive })
+          )
+        );
+        setScheduleOk(makeActive ? 'День активирован' : 'День выключен');
+        await loadSchedules();
+      } catch (err: any) {
+        setScheduleErr(err.response?.data?.error || 'Ошибка обновления дня');
+      } finally {
+        setScheduleBusy(false);
+      }
+    };
+
+    return (
+      <>
+        <div className="ec-page-title">Календарь записей</div>
+        <div className="ec-page-sub">Выберите день в сетке — настраиваются слоты на этот день недели (МСК, повтор каждую неделю).</div>
+        <div className="ec-two-col">
+          <div className="ec-col-card ec-schedule-widget">
+            <div className="ec-cc-hdr">
+              <span className="ec-cc-title">Календарь и слоты</span>
+            </div>
+            <p className="ec-schedule-widget-hint">
+              Активные слоты показываются клиентам. Записи на конкретные даты — в колонке справа.
+            </p>
+            {scheduleErr ? <div className="ec-schedule-widget-alert ec-schedule-widget-alert--err">{scheduleErr}</div> : null}
+            {scheduleOk ? <div className="ec-schedule-widget-alert ec-schedule-widget-alert--ok">{scheduleOk}</div> : null}
+            {renderMiniCalendar(true)}
+            <div className="ec-cc-hdr ec-cc-hdr--sub">
+              <span className="ec-cc-title">Шаблон · {pickDay.locale('ru').format('dddd')}</span>
+              <span style={{ fontSize: 11, color: 'var(--ec-t3)' }}>
+                {n} {sessionWord}
+              </span>
+            </div>
+            <div className="availability-section">
+              <div className="add-slots-section">
+                <div className="days-schedule-form" style={{ gridTemplateColumns: '1fr' }}>
+                  <div className="day-card">
+                    <div className="day-card-header">
+                      <div className="day-card-title">
+                        <div className="day-icon">
+                          <CalendarOutlined />
+                        </div>
+                        <div>
+                          <div className="day-title">{pickDay.locale('ru').format('dddd')}</div>
+                          <div className="day-meta">Повторяется каждую неделю</div>
+                        </div>
+                      </div>
+                      <div className="day-card-actions">
+                        <span className={`day-status ${dayActive ? 'active' : 'inactive'}`}>
+                          {dayActive ? 'Есть активные слоты' : 'Все слоты выкл.'}
+                        </span>
+                        <Switch
+                          checked={dayActive}
+                          onChange={(checked) => handleToggleDay(checked)}
+                          checkedChildren="Вкл"
+                          unCheckedChildren="Выкл"
+                          className="day-switch"
+                          disabled={daySchedules.length === 0 || scheduleBusy}
+                        />
+                        <button
+                          type="button"
+                          className="day-delete"
+                          disabled={daySchedules.length === 0 || scheduleBusy}
+                          onClick={() => {
+                            if (daySchedules.length === 0) return;
+                            Modal.confirm({
+                              title: 'Удалить все слоты этого дня недели?',
+                              content: 'Все интервалы для выбранного дня будут удалены.',
+                              okText: 'Удалить',
+                              cancelText: 'Отмена',
+                              okButtonProps: { danger: true },
+                              centered: true,
+                              onOk: async () => {
+                                try {
+                                  setScheduleBusy(true);
+                                  clearScheduleMsgs();
+                                  for (const sch of daySchedules) {
+                                    await api.delete(`/schedule/expert/schedule/${sch.id}`);
+                                  }
+                                  setScheduleOk('Слоты дня удалены');
+                                  await loadSchedules();
+                                } catch (err: any) {
+                                  setScheduleErr(err.response?.data?.error || 'Ошибка удаления');
+                                } finally {
+                                  setScheduleBusy(false);
+                                }
+                              },
+                            });
+                          }}
+                          title="Удалить все слоты дня"
+                        >
+                          <CloseOutlined />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="day-sessions">
+                      {daySchedules.length === 0 ? (
+                        <div className="empty-day">Нет слотов — добавьте интервал ниже</div>
+                      ) : (
+                        daySchedules.map((schedule) => (
+                          <div key={schedule.id} className={`session-card ${!schedule.is_active ? 'inactive' : ''}`}>
+                            <div className="session-info">
+                              <span className="session-dot" />
+                              <span className="session-time">
+                                {fmt(schedule.start_time)} — {fmt(schedule.end_time)}
+                              </span>
+                              <span className="session-duration">{schedule.slot_duration} мин</span>
+                              {schedule.is_active ? (
+                                <span className="session-client-hint">Клиентам видно</span>
+                              ) : (
+                                <span className="session-client-hint session-client-hint--off">Скрыто</span>
+                              )}
+                            </div>
+                            <div className="session-controls">
+                              <button
+                                type="button"
+                                className="btn-edit-schedule"
+                                disabled={scheduleBusy}
+                                onClick={() => {
+                                  Modal.confirm({
+                                    title: 'Изменить время слота',
+                                    centered: true,
+                                    content: (
+                                      <div style={{ marginTop: 20 }}>
+                                        <div style={{ marginBottom: 16 }}>
+                                          <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Начало</label>
+                                          <input
+                                            type="time"
+                                            defaultValue={schedule.start_time}
+                                            id={`ec-edit-start-${schedule.id}`}
+                                            style={{
+                                              width: '100%',
+                                              padding: '8px 12px',
+                                              border: '1px solid #d9d9d9',
+                                              borderRadius: '6px',
+                                              fontSize: '14px',
+                                            }}
+                                          />
+                                        </div>
+                                        <div>
+                                          <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Окончание</label>
+                                          <input
+                                            type="time"
+                                            defaultValue={schedule.end_time}
+                                            id={`ec-edit-end-${schedule.id}`}
+                                            style={{
+                                              width: '100%',
+                                              padding: '8px 12px',
+                                              border: '1px solid #d9d9d9',
+                                              borderRadius: '6px',
+                                              fontSize: '14px',
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                    ),
+                                    okText: 'Сохранить',
+                                    cancelText: 'Отмена',
+                                    onOk: async () => {
+                                      const startInput = document.getElementById(`ec-edit-start-${schedule.id}`) as HTMLInputElement;
+                                      const endInput = document.getElementById(`ec-edit-end-${schedule.id}`) as HTMLInputElement;
+                                      if (!startInput?.value || !endInput?.value) {
+                                        setScheduleErr('Укажите время начала и окончания');
+                                        return;
+                                      }
+                                      const start = new Date(`2000-01-01T${startInput.value}`);
+                                      const end = new Date(`2000-01-01T${endInput.value}`);
+                                      if (start >= end) {
+                                        setScheduleErr('Начало должно быть раньше окончания');
+                                        return;
+                                      }
+                                      try {
+                                        setScheduleBusy(true);
+                                        clearScheduleMsgs();
+                                        await api.put(`/schedule/expert/schedule/${schedule.id}`, {
+                                          startTime: startInput.value,
+                                          endTime: endInput.value,
+                                        });
+                                        setScheduleOk('Время обновлено');
+                                        await loadSchedules();
+                                      } catch (err: any) {
+                                        setScheduleErr(err.response?.data?.error || 'Ошибка сохранения');
+                                      } finally {
+                                        setScheduleBusy(false);
+                                      }
+                                    },
+                                  });
+                                }}
+                                title="Редактировать"
+                              >
+                                <EditOutlined />
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-delete-small"
+                                disabled={scheduleBusy}
+                                onClick={() => {
+                                  Modal.confirm({
+                                    title: 'Удалить слот?',
+                                    content: `${fmt(schedule.start_time)} — ${fmt(schedule.end_time)} (${schedule.slot_duration} мин)`,
+                                    okText: 'Удалить',
+                                    cancelText: 'Отмена',
+                                    okButtonProps: { danger: true },
+                                    centered: true,
+                                    onOk: async () => {
+                                      await handleExpertScheduleDelete(schedule.id);
+                                    },
+                                  });
+                                }}
+                                title="Удалить слот"
+                              >
+                                <DeleteOutlined />
+                              </button>
+                              <Switch
+                                checked={schedule.is_active}
+                                disabled={scheduleBusy}
+                                onChange={(checked) => handleExpertScheduleToggle(schedule.id, checked)}
+                                checkedChildren="Вкл"
+                                unCheckedChildren="Выкл"
+                                className="session-switch"
+                              />
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {activeScheduleForms[dow]?.map((form, index) => (
+                      <div key={index} className="session-form">
+                        <div className="session-form-title">Новый слот</div>
+                        <div className="time-inputs wide">
+                          <div className="time-input-wrapper">
+                            <input
+                              type="time"
+                              value={form.startTime}
+                              onChange={(e) => updateScheduleFormRow(dow, index, 'startTime', e.target.value)}
+                              className="form-input-small"
+                            />
+                          </div>
+                          <span className="time-separator">—</span>
+                          <div className="time-input-wrapper">
+                            <input
+                              type="time"
+                              value={form.endTime}
+                              onChange={(e) => updateScheduleFormRow(dow, index, 'endTime', e.target.value)}
+                              className="form-input-small"
+                            />
+                          </div>
+                          <span className="slot-length">Авто мин</span>
+                        </div>
+                        <div className="session-actions modern">
+                          <button
+                            type="button"
+                            className="btn-cancel-modern"
+                            onClick={() => removeScheduleFormRow(dow, index)}
+                            disabled={scheduleBusy}
+                          >
+                            Отменить
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-save-modern"
+                            onClick={() => handleExpertScheduleAdd(dow, index)}
+                            disabled={scheduleBusy}
+                          >
+                            ✓ Сохранить слот
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    <button type="button" className="btn-add-session modern" disabled={scheduleBusy} onClick={() => addScheduleFormRow(dow)}>
+                      + Добавить слот на {pickDay.locale('ru').format('dddd')}
+                    </button>
                   </div>
-                )}
-                {b.status === 'confirmed' && (
-                  <Button size="small" danger style={{ marginTop: 8 }} onClick={() => handleCancelBooking(b.id)}>
-                    Отменить
-                  </Button>
-                )}
+                </div>
               </div>
-            ))}
-            {!pendingBookings.length && !confirmedBookings.length && (
-              <div style={{ color: 'var(--ec-t3)', fontSize: 13 }}>Пока нет записей</div>
-            )}
+            </div>
+          </div>
+
+          <div className="ec-col-card">
+            <div className="ec-cc-hdr">
+              <span className="ec-cc-title">Подтверждённые и заявки</span>
+            </div>
+            <div style={{ padding: 16, maxHeight: 480, overflowY: 'auto' }}>
+              {[...pendingBookings, ...confirmedBookings].slice(0, 20).map((b) => (
+                <div key={b.id} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--ec-bd)' }}>
+                  <div style={{ fontWeight: 600 }}>{b.client_name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ec-t3)' }}>{formatDate(b.date, b.time_slot)}</div>
+                  <div style={{ fontSize: 11, marginTop: 4 }}>Статус: {b.status}</div>
+                  {b.status === 'pending' && (
+                    <div className="ec-booking-actions">
+                      <Button size="small" type="primary" icon={<CheckOutlined />} onClick={() => handleBookingAction(b.id, 'confirm')}>
+                        OK
+                      </Button>
+                      <Button
+                        size="small"
+                        danger
+                        icon={<CloseOutlined />}
+                        onClick={() => {
+                          const r = prompt('Причина:');
+                          if (r !== null) handleBookingAction(b.id, 'reject', r || undefined);
+                        }}
+                      >
+                        Нет
+                      </Button>
+                    </div>
+                  )}
+                  {b.status === 'confirmed' && (
+                    <Button size="small" danger style={{ marginTop: 8 }} onClick={() => handleCancelBooking(b.id)}>
+                      Отменить
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {!pendingBookings.length && !confirmedBookings.length && (
+                <div style={{ color: 'var(--ec-t3)', fontSize: 13 }}>Пока нет записей</div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="ec-col-card ec-col-card--calendar-tool" style={{ marginTop: 16 }}>
-        <div className="ec-cc-hdr">
-          <span className="ec-cc-title">Кабинет эксперта</span>
-          <span className="ec-cc-hint">Расписание, записи и клиенты</span>
-        </div>
-        <div className="ec-expert-calendar">
-          <ExpertCalendar embedded />
-        </div>
-      </div>
-    </>
-  );
+      </>
+    );
+  };
 
   const renderClientsPanel = () => (
     <>
