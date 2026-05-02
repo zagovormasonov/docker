@@ -57,11 +57,11 @@ services:
       retries: 5
       start_period: 40s
 
-  # Frontend (Nginx с Basic Auth)
+  # Frontend (Nginx с Basic Auth): основной сайт + /test/ в одном образе
   frontend-dev:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         - VITE_PUBLIC_APP_URL=${VITE_PUBLIC_APP_URL:-${FRONTEND_URL_DEV:-https://dev.soulsynergy.ru}}
         - VITE_DISABLE_EMAIL_VERIFICATION=${VITE_DISABLE_EMAIL_VERIFICATION:-true}
@@ -79,32 +79,6 @@ services:
       - ./frontend/.htpasswd:/etc/nginx/.htpasswd:ro
     depends_on:
       - backend-dev
-    networks:
-      - synergy-network-dev
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Frontend-Test (тестовая копия сайта на /test/)
-  frontend-test:
-    build:
-      context: ./frontend-test
-      dockerfile: Dockerfile
-      args:
-        - VITE_PUBLIC_APP_URL=${VITE_PUBLIC_APP_URL:-${FRONTEND_URL_DEV:-https://dev.soulsynergy.ru}}
-        - VITE_DISABLE_EMAIL_VERIFICATION=${VITE_DISABLE_EMAIL_VERIFICATION:-true}
-        - VITE_EMAILJS_SERVICE_ID=${VITE_EMAILJS_SERVICE_ID}
-        - VITE_EMAILJS_PUBLIC_KEY=${VITE_EMAILJS_PUBLIC_KEY}
-        - VITE_EMAILJS_VERIFICATION_TEMPLATE_ID=${VITE_EMAILJS_VERIFICATION_TEMPLATE_ID}
-        - VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID=${VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID}
-        - VITE_EMAILJS_MODERATION_TEMPLATE_ID=${VITE_EMAILJS_MODERATION_TEMPLATE_ID}
-    container_name: synergy-frontend-test-dev
-    restart: unless-stopped
-    depends_on:
-      - backend-dev
-      - frontend-dev
     networks:
       - synergy-network-dev
     healthcheck:

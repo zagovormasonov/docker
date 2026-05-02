@@ -1,10 +1,9 @@
-# Frontend Dockerfile - многоступенчатая сборка
-# Этап 1: Сборка приложения
-FROM node:18-alpine AS builder
+# Context: корень репозитория (.)
+# Собирает основной сайт и копию для /test/ в одном образе (без отдельного контейнера frontend-test).
 
+FROM node:18-alpine AS builder-main
 WORKDIR /app
 
-# Принимаем build arguments для EmailJS
 ARG VITE_PUBLIC_APP_URL
 ARG VITE_DISABLE_EMAIL_VERIFICATION
 ARG VITE_EMAILJS_SERVICE_ID
@@ -13,7 +12,6 @@ ARG VITE_EMAILJS_VERIFICATION_TEMPLATE_ID
 ARG VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID
 ARG VITE_EMAILJS_MODERATION_TEMPLATE_ID
 
-# Экспортируем как переменные окружения для Vite
 ENV VITE_PUBLIC_APP_URL=$VITE_PUBLIC_APP_URL
 ENV VITE_DISABLE_EMAIL_VERIFICATION=$VITE_DISABLE_EMAIL_VERIFICATION
 ENV VITE_EMAILJS_SERVICE_ID=$VITE_EMAILJS_SERVICE_ID
@@ -22,31 +20,42 @@ ENV VITE_EMAILJS_VERIFICATION_TEMPLATE_ID=$VITE_EMAILJS_VERIFICATION_TEMPLATE_ID
 ENV VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID=$VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID
 ENV VITE_EMAILJS_MODERATION_TEMPLATE_ID=$VITE_EMAILJS_MODERATION_TEMPLATE_ID
 
-# Копируем package файлы
-COPY package*.json ./
-
-# Устанавливаем зависимости
+COPY frontend/package*.json ./
 RUN npm install --production=false --legacy-peer-deps
-
-# Копируем исходники
-COPY . .
-
-# Собираем production build (переменные VITE_* будут вшиты в сборку)
+COPY frontend/ ./
 RUN npm run build
 
-# Этап 2: Nginx для раздачи статики
+FROM node:18-alpine AS builder-test
+WORKDIR /app
+
+ARG VITE_PUBLIC_APP_URL
+ARG VITE_DISABLE_EMAIL_VERIFICATION
+ARG VITE_EMAILJS_SERVICE_ID
+ARG VITE_EMAILJS_PUBLIC_KEY
+ARG VITE_EMAILJS_VERIFICATION_TEMPLATE_ID
+ARG VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID
+ARG VITE_EMAILJS_MODERATION_TEMPLATE_ID
+
+ENV VITE_PUBLIC_APP_URL=$VITE_PUBLIC_APP_URL
+ENV VITE_DISABLE_EMAIL_VERIFICATION=$VITE_DISABLE_EMAIL_VERIFICATION
+ENV VITE_EMAILJS_SERVICE_ID=$VITE_EMAILJS_SERVICE_ID
+ENV VITE_EMAILJS_PUBLIC_KEY=$VITE_EMAILJS_PUBLIC_KEY
+ENV VITE_EMAILJS_VERIFICATION_TEMPLATE_ID=$VITE_EMAILJS_VERIFICATION_TEMPLATE_ID
+ENV VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID=$VITE_EMAILJS_RESET_PASSWORD_TEMPLATE_ID
+ENV VITE_EMAILJS_MODERATION_TEMPLATE_ID=$VITE_EMAILJS_MODERATION_TEMPLATE_ID
+
+COPY frontend-test/package*.json ./
+RUN npm install --production=false --legacy-peer-deps
+COPY frontend-test/ ./
+RUN npm run build
+
 FROM nginx:alpine
 
-# Копируем собранное приложение
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder-main /app/dist /usr/share/nginx/html
+COPY --from=builder-test /app/dist /usr/share/nginx/html/test
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/.htpasswd-test /etc/nginx/.htpasswd-test
 
-# Копируем конфиг nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Копируем htpasswd для Basic Auth на /test
-COPY .htpasswd-test /etc/nginx/.htpasswd-test
-
-# Порт
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

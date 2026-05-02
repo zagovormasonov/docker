@@ -13,6 +13,12 @@ export default defineConfig({
       '/uploads': {
         target: 'http://localhost:3001',
         changeOrigin: true
+      },
+      // Тестовая копия из frontend-test (npm run dev:frontend-test, порт 5174): один origin без Docker
+      '/test': {
+        target: 'http://localhost:5174',
+        changeOrigin: true,
+        ws: true
       }
     }
   }
