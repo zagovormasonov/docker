@@ -701,7 +701,6 @@ const ExpertDashboardPage: React.FC = () => {
         loadSchedules={loadSchedules}
         allBookings={allBookings}
         services={services}
-        user={{ id: user.id, slug: user.slug, name: user.name }}
         pendingBookings={pendingBookings}
         confirmedBookings={confirmedBookings}
         formatDate={formatDate}

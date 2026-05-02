@@ -2,8 +2,8 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import 'dayjs/locale/ru';
-import { Button, Modal, Space, message, Checkbox, Select } from 'antd';
-import { CheckOutlined, CloseOutlined, CopyOutlined, DeleteOutlined, DownOutlined, LinkOutlined } from '@ant-design/icons';
+import { Button, Modal, Space, Checkbox, Select } from 'antd';
+import { CheckOutlined, CloseOutlined, DeleteOutlined, DownOutlined, PlusOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 import { cabinetSelectPopupContainer } from '../ExpertCabinetSelect';
 
@@ -51,6 +51,19 @@ const HOUR_PX = 52;
 
 function fmtTime(time: string) {
   return time.slice(0, 5);
+}
+
+function mkRowId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `r-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+}
+
+interface AddSlotRow {
+  id: string;
+  start: string;
+  end: string;
 }
 
 const HOUR_OPTS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
@@ -122,7 +135,6 @@ export interface CalendarPlannerPanelProps {
   loadSchedules: () => Promise<void>;
   allBookings: PlannerBooking[];
   services: { title?: string; price?: number }[];
-  user: { id: number; slug?: string; name?: string };
   pendingBookings: PlannerBooking[];
   confirmedBookings: PlannerBooking[];
   formatDate: (dateStr: string, timeSlot?: string) => string;
@@ -140,7 +152,6 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
   loadSchedules,
   allBookings,
   services,
-  user,
   pendingBookings,
   confirmedBookings,
   formatDate,
@@ -155,7 +166,7 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
   const [editSchedule, setEditSchedule] = useState<PlannerExpertSchedule | null>(null);
   const [editVisible, setEditVisible] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
-  const [addForm, setAddForm] = useState({ start: '09:00', end: '10:00' });
+  const [addSlotRows, setAddSlotRows] = useState<AddSlotRow[]>([]);
   const [bookingFocus, setBookingFocus] = useState<PlannerBooking | null>(null);
   const [editTimes, setEditTimes] = useState({ start: '09:00', end: '10:00' });
 
@@ -175,6 +186,12 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
     }
   }, [editSchedule]);
 
+  useEffect(() => {
+    if (addOpen) {
+      setAddSlotRows([{ id: mkRowId(), start: '09:00', end: '10:00' }]);
+    }
+  }, [addOpen]);
+
   const scheduleByWeekday = useMemo(() => {
     const acc: Record<number, PlannerExpertSchedule[]> = {};
     schedules.forEach((s) => {
@@ -187,7 +204,6 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
   const dow = pickDay.day();
   const daySchedules = scheduleByWeekday[dow] || [];
   const svcTitle = services[0]?.title || 'Консультация';
-  const publicUrl = `${window.location.origin}/experts/${user.slug || user.id}`;
 
   const bookingsOnPickDay = useMemo(
     () =>
@@ -244,33 +260,42 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
     setErr('');
   }, []);
 
-  const handleAdd = async () => {
-    const okAdd = await addSlotSubmit(dow, addForm.start, addForm.end);
-    if (okAdd) setAddOpen(false);
-  };
-
-  async function addSlotSubmit(dayOfWeek: number, startTime: string, endTime: string) {
-    if (!timeValid(startTime) || !timeValid(endTime)) return false;
-    const start = new Date(`2000-01-01T${startTime}`);
-    const end = new Date(`2000-01-01T${endTime}`);
-    if (start >= end) {
-      flashErr('Время начала должно быть раньше окончания');
-      return false;
+  const handleAddAll = async () => {
+    if (!addSlotRows.length) return;
+    for (let i = 0; i < addSlotRows.length; i++) {
+      const row = addSlotRows[i];
+      if (!timeValid(row.start) || !timeValid(row.end)) {
+        flashErr(`Строка ${i + 1}: укажите время начала и окончания`);
+        return;
+      }
+      const start = new Date(`2000-01-01T${row.start}`);
+      const end = new Date(`2000-01-01T${row.end}`);
+      if (start >= end) {
+        flashErr(`Строка ${i + 1}: начало должно быть раньше окончания`);
+        return;
+      }
     }
     setBusy(true);
     setErr('');
     try {
-      await api.post('/schedule/expert/schedule', { dayOfWeek, startTime, endTime });
-      flashOk('Слот добавлен');
+      for (const row of addSlotRows) {
+        await api.post('/schedule/expert/schedule', {
+          dayOfWeek: dow,
+          startTime: row.start,
+          endTime: row.end,
+        });
+      }
+      const n = addSlotRows.length;
+      flashOk(n === 1 ? 'Интервал добавлен' : `Добавлено интервалов: ${n}`);
       await loadSchedules();
-      return true;
+      setAddOpen(false);
     } catch (e: any) {
-      flashErr(e.response?.data?.error || 'Ошибка добавления слота');
-      return false;
+      flashErr(e.response?.data?.error || 'Ошибка добавления — проверьте пересечения с другими слотами');
+      await loadSchedules();
     } finally {
       setBusy(false);
     }
-  }
+  };
 
   function timeValid(t: string) {
     return !!t && t.length >= 4;
@@ -365,25 +390,8 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
 
           <div className="ec-planner-mini-cal">{miniCalendar}</div>
 
-          <div className="ec-planner-actions">
-            <a className="ec-planner-primary-btn" href={publicUrl} target="_blank" rel="noreferrer">
-              <LinkOutlined /> Страница записи
-            </a>
-            <button
-              type="button"
-              className="ec-planner-icon-btn"
-              title="Копировать ссылку"
-              onClick={() => {
-                void navigator.clipboard.writeText(publicUrl);
-                message.success('Ссылка скопирована');
-              }}
-            >
-              <CopyOutlined />
-            </button>
-          </div>
-
           <button type="button" className="ec-planner-add-slot" disabled={busy} onClick={() => setAddOpen(true)}>
-            + Добавить интервал
+            + Добавить интервалы
           </button>
 
           {err ? <div className="ec-planner-flash ec-planner-flash--err">{err}</div> : null}
@@ -513,27 +521,66 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
       </div>
 
       <Modal
-        title={`Новый интервал · ${pickDay.locale('ru').format('dddd')}`}
+        title={`Интервалы · ${pickDay.locale('ru').format('dddd')}`}
         open={addOpen}
         onCancel={() => setAddOpen(false)}
-        onOk={() => void handleAdd()}
+        onOk={() => void handleAddAll()}
         confirmLoading={busy}
-        okText="Сохранить"
+        okText="Сохранить все"
+        width={440}
       >
-        <div className="ec-planner-time-fields">
-          <div className="ec-planner-time-field-group">
-            <span className="ec-planner-modal-label" id="ec-add-label-start">
-              Начало
-            </span>
-            <PlannerTimeField labelledBy="ec-add-label-start" value={addForm.start} onChange={(v) => setAddForm((f) => ({ ...f, start: v }))} />
-          </div>
-          <div className="ec-planner-time-field-group">
-            <span className="ec-planner-modal-label" id="ec-add-label-end">
-              Окончание
-            </span>
-            <PlannerTimeField labelledBy="ec-add-label-end" value={addForm.end} onChange={(v) => setAddForm((f) => ({ ...f, end: v }))} />
-          </div>
+        <p className="ec-planner-add-modal-hint">Несколько строк — несколько слотов на этот день недели (МСК).</p>
+        <div className="ec-planner-add-rows">
+          {addSlotRows.map((row, idx) => (
+            <div key={row.id} className="ec-planner-add-row">
+              <span className="ec-planner-add-row-num">{idx + 1}</span>
+              <div className="ec-planner-add-row-fields">
+                <div className="ec-planner-time-field-group">
+                  <span className="ec-planner-modal-label" id={`ec-add-${row.id}-s`}>
+                    Начало
+                  </span>
+                  <PlannerTimeField
+                    labelledBy={`ec-add-${row.id}-s`}
+                    value={row.start}
+                    onChange={(v) =>
+                      setAddSlotRows((list) => list.map((r) => (r.id === row.id ? { ...r, start: v } : r)))
+                    }
+                  />
+                </div>
+                <div className="ec-planner-time-field-group">
+                  <span className="ec-planner-modal-label" id={`ec-add-${row.id}-e`}>
+                    Конец
+                  </span>
+                  <PlannerTimeField
+                    labelledBy={`ec-add-${row.id}-e`}
+                    value={row.end}
+                    onChange={(v) =>
+                      setAddSlotRows((list) => list.map((r) => (r.id === row.id ? { ...r, end: v } : r)))
+                    }
+                  />
+                </div>
+              </div>
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                className="ec-planner-add-row-remove"
+                disabled={addSlotRows.length <= 1}
+                aria-label="Удалить строку"
+                onClick={() => setAddSlotRows((list) => list.filter((r) => r.id !== row.id))}
+              />
+            </div>
+          ))}
         </div>
+        <Button
+          type="dashed"
+          block
+          icon={<PlusOutlined />}
+          className="ec-planner-add-row-more"
+          onClick={() => setAddSlotRows((list) => [...list, { id: mkRowId(), start: '12:00', end: '13:00' }])}
+        >
+          Ещё интервал
+        </Button>
       </Modal>
 
       <Modal

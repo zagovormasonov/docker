@@ -1308,52 +1308,6 @@
   padding-right: 0;
 }
 
-.expert-cab-v2 .ec-planner-actions {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.expert-cab-v2 .ec-planner-primary-btn {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 11px 14px;
-  border-radius: var(--ec-rmd);
-  background: var(--ec-acc);
-  color: #fff !important;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.12s;
-}
-
-.expert-cab-v2 .ec-planner-primary-btn:hover {
-  background: var(--ec-act);
-}
-
-.expert-cab-v2 .ec-planner-icon-btn {
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  border: 1px solid var(--ec-bd);
-  border-radius: var(--ec-rmd);
-  background: var(--ec-bgs);
-  color: var(--ec-t2);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.12s, color 0.12s;
-}
-
-.expert-cab-v2 .ec-planner-icon-btn:hover {
-  background: var(--ec-acp);
-  color: var(--ec-acc);
-}
-
 .expert-cab-v2 .ec-planner-add-slot {
   width: 100%;
   margin-top: 12px;
@@ -1751,6 +1705,70 @@
 
 .expert-cab-v2 .ec-planner-edit-modal .ec-planner-time-fields {
   margin-bottom: 8px;
+}
+
+.expert-cab-v2 .ec-planner-add-modal-hint {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ec-t2);
+  margin: 0 0 16px;
+}
+
+.expert-cab-v2 .ec-planner-add-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 12px;
+  max-height: min(52vh, 420px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.expert-cab-v2 .ec-planner-add-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: var(--ec-bgs);
+  border: 1px solid var(--ec-bd);
+  border-radius: var(--ec-rmd);
+}
+
+.expert-cab-v2 .ec-planner-add-row-num {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ec-acp);
+  color: var(--ec-act);
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 28px;
+}
+
+.expert-cab-v2 .ec-planner-add-row-fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+}
+
+.expert-cab-v2 .ec-planner-add-row-fields .ec-planner-time-field {
+  max-width: none;
+}
+
+.expert-cab-v2 .ec-planner-add-row-remove {
+  flex-shrink: 0;
+  margin-top: 26px;
+}
+
+.expert-cab-v2 .ec-planner-add-row-more {
+  border-color: rgba(123, 111, 212, 0.35) !important;
+  color: var(--ec-act) !important;
 }
 
 @media (max-width: 960px) {
