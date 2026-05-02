@@ -17,8 +17,11 @@ const Layout = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  /* Главная v2 — полноэкранный макет со своей навигацией (без дублирования Header) */
+  /* Полноэкранные макеты со своей шапкой */
   if (location.pathname === '/' || location.pathname === '') {
+    return <Outlet />;
+  }
+  if (location.pathname.startsWith('/expert-dashboard')) {
     return <Outlet />;
   }
 
