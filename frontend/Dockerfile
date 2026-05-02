@@ -54,7 +54,6 @@ FROM nginx:alpine
 COPY --from=builder-main /app/dist /usr/share/nginx/html
 COPY --from=builder-test /app/dist /usr/share/nginx/html/test
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY frontend/.htpasswd-test /etc/nginx/.htpasswd-test
 
 EXPOSE 80
 
