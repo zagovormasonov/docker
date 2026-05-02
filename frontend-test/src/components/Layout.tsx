@@ -17,6 +17,11 @@ const Layout = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  /* Главная v2 — полноэкранный макет со своей навигацией (без дублирования Header) */
+  if (location.pathname === '/' || location.pathname === '') {
+    return <Outlet />;
+  }
+
   const isChatsRoute = location.pathname.startsWith('/chats');
   const HEADER_HEIGHT = 64;
 
