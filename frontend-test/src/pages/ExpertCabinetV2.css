@@ -534,22 +534,6 @@
   font-weight: 600;
 }
 
-.expert-cab-v2 .ec-cal-cell.ec-cal-exception:not(.ec-today) {
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--ec-bgs),
-    var(--ec-bgs) 4px,
-    rgba(192, 122, 24, 0.08) 4px,
-    rgba(192, 122, 24, 0.08) 8px
-  );
-  color: var(--ec-ambt);
-  font-weight: 600;
-}
-
-.expert-cab-v2 .ec-cal-cell.ec-today.ec-cal-exception {
-  box-shadow: inset 0 -4px 0 rgba(255, 255, 255, 0.95);
-}
-
 .expert-cab-v2 .ec-cal-cell.ec-empty {
   color: var(--ec-t3);
   cursor: default;
@@ -1370,31 +1354,6 @@
   color: var(--ec-acc);
 }
 
-.expert-cab-v2 .ec-planner-link-row {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border: none;
-  border-top: 1px solid var(--ec-bd);
-  background: none;
-  font-size: 14px;
-  color: var(--ec-t1);
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-}
-
-.expert-cab-v2 .ec-planner-link-row:hover {
-  color: var(--ec-acc);
-}
-
-.expert-cab-v2 .ec-planner-chevron {
-  color: var(--ec-t3);
-  font-size: 18px;
-}
-
 .expert-cab-v2 .ec-planner-add-slot {
   width: 100%;
   margin-top: 12px;
@@ -1501,27 +1460,6 @@
   color: var(--ec-acc);
 }
 
-.expert-cab-v2 .ec-planner-wd--off:not(.ec-planner-wd--active) {
-  opacity: 0.72;
-  border-style: dashed;
-  border-color: rgba(192, 122, 24, 0.35);
-}
-
-.expert-cab-v2 .ec-planner-wd--off.ec-planner-wd--active {
-  border-color: rgba(192, 122, 24, 0.55);
-}
-
-.expert-cab-v2 .ec-planner-dayoff-banner {
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--ec-ambt);
-  background: var(--ec-ambl);
-  border: 1px solid rgba(192, 122, 24, 0.25);
-  border-radius: var(--ec-rmd);
-  padding: 10px 12px;
-  margin-bottom: 12px;
-}
-
 .expert-cab-v2 .ec-planner-grid-card {
   background: var(--ec-bgc);
   border: 1px solid var(--ec-bd);
@@ -1619,12 +1557,6 @@
   background: var(--ec-bgs);
 }
 
-.expert-cab-v2 .ec-planner-block--free.ec-planner-block--dayoff {
-  opacity: 0.65;
-  background: var(--ec-ambl);
-  border-color: rgba(192, 122, 24, 0.28);
-}
-
 .expert-cab-v2 .ec-planner-block--book {
   z-index: 2;
   background: var(--ec-bgc);
@@ -1709,16 +1641,85 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--ec-t2);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
 }
 
-.expert-cab-v2 .ec-planner-time-input {
-  width: 100%;
-  padding: 9px 11px;
+.expert-cab-v2 .ec-planner-time-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.expert-cab-v2 .ec-planner-time-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.expert-cab-v2 .ec-planner-time-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, var(--ec-bgc) 0%, var(--ec-bgs) 100%);
   border: 1px solid var(--ec-bd);
   border-radius: var(--ec-rmd);
-  font-size: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  width: 100%;
+  max-width: 280px;
+}
+
+.expert-cab-v2 .ec-planner-time-field:focus-within {
+  border-color: var(--ec-acc);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 0 0 3px rgba(123, 111, 212, 0.22);
+}
+
+.expert-cab-v2 .ec-planner-time-colon {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ec-t3);
+  line-height: 1;
+  padding: 0 2px;
+  user-select: none;
+}
+
+.expert-cab-v2 .ec-planner-time-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
   font-family: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ec-t1);
+  cursor: pointer;
+  line-height: 1.2;
+  padding: 4px 26px 4px 8px;
+  border-radius: var(--ec-rsm);
+  transition: background 0.12s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6890' d='M3 4.5 6 8l3-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+}
+
+.expert-cab-v2 .ec-planner-time-select:hover {
+  background-color: rgba(123, 111, 212, 0.08);
+}
+
+.expert-cab-v2 .ec-planner-time-select:focus {
+  outline: none;
+  background-color: rgba(123, 111, 212, 0.1);
+}
+
+.expert-cab-v2 .ec-planner-time-select--h {
+  min-width: 4.25rem;
+}
+
+.expert-cab-v2 .ec-planner-time-select--m {
+  min-width: 4.25rem;
 }
 
 .expert-cab-v2 .ec-planner-edit-modal {
@@ -1727,39 +1728,8 @@
   gap: 4px;
 }
 
-.expert-cab-v2 .ec-planner-exc-intro {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--ec-t2);
-  margin: 0 0 16px;
-}
-
-.expert-cab-v2 .ec-planner-exc-list {
-  margin-top: 20px;
-  max-height: 240px;
-  overflow-y: auto;
-  border-top: 1px solid var(--ec-bd);
-  padding-top: 12px;
-}
-
-.expert-cab-v2 .ec-planner-exc-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--ec-bd);
-}
-
-.expert-cab-v2 .ec-planner-exc-row:last-child {
-  border-bottom: none;
-}
-
-.expert-cab-v2 .ec-planner-exc-date {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ec-t1);
-  text-transform: capitalize;
+.expert-cab-v2 .ec-planner-edit-modal .ec-planner-time-fields {
+  margin-bottom: 8px;
 }
 
 @media (max-width: 960px) {
