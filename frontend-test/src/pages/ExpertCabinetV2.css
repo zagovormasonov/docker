@@ -1611,90 +1611,116 @@
   gap: 0;
 }
 
+/* Селекты времени в модалках (портал body — wrapClassName ec-planner-modal) */
+.ec-planner-modal .ec-planner-time-field,
 .expert-cab-v2 .ec-planner-time-field {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 12px 16px;
-  background: linear-gradient(180deg, var(--ec-bgc) 0%, var(--ec-bgs) 100%);
-  border: 1px solid var(--ec-bd);
-  border-radius: var(--ec-rmd);
+  background: linear-gradient(180deg, #fff 0%, #f0effe 100%);
+  border: 1px solid rgba(123, 111, 212, 0.13);
+  border-radius: var(--ec-rmd, 10px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
   width: 100%;
-  max-width: 280px;
+  max-width: none;
+  box-sizing: border-box;
 }
 
+.expert-cab-v2 .ec-planner-time-field {
+  background: linear-gradient(180deg, var(--ec-bgc) 0%, var(--ec-bgs) 100%);
+  border: 1px solid var(--ec-bd);
+  border-radius: var(--ec-rmd);
+}
+
+.ec-planner-modal .ec-planner-time-field:focus-within,
 .expert-cab-v2 .ec-planner-time-field:focus-within {
-  border-color: var(--ec-acc);
+  border-color: var(--ec-acc, #7b6fd4);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 0 0 3px rgba(123, 111, 212, 0.22);
 }
 
+.ec-planner-modal .ec-planner-time-fields > .ec-planner-time-field-group {
+  width: 100%;
+}
+
+.ec-planner-modal .ec-planner-add-row-fields > .ec-planner-time-field-group {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.ec-planner-modal .ec-planner-time-colon,
 .expert-cab-v2 .ec-planner-time-colon {
   font-size: 22px;
   font-weight: 700;
-  color: var(--ec-t3);
+  flex-shrink: 0;
+  color: var(--ec-t3, #a8a5c4);
   line-height: 1;
-  padding: 0 2px;
+  padding: 0 4px;
   user-select: none;
 }
 
-/* Ant Select вместо нативного <select> — триггер внутри карточки времени */
+/* Ant Select — час и минуты делят ширину карточки поровну */
+.ec-planner-modal .ec-planner-time-ant-select.ant-select,
 .expert-cab-v2 .ec-planner-time-ant-select.ant-select {
   margin: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto !important;
 }
 
+.ec-planner-modal .ec-planner-time-ant-select .ant-select-selector,
 .expert-cab-v2 .ec-planner-time-ant-select .ant-select-selector {
-  padding: 2px 22px 2px 6px !important;
+  padding: 2px 22px 2px 8px !important;
   min-height: auto !important;
   height: auto !important;
+  width: 100% !important;
   border: none !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
+.ec-planner-modal .ec-planner-time-ant-select:not(.ant-select-disabled):hover .ant-select-selector,
 .expert-cab-v2 .ec-planner-time-ant-select:not(.ant-select-disabled):hover .ant-select-selector {
   background: rgba(123, 111, 212, 0.06) !important;
-  border-radius: var(--ec-rsm);
+  border-radius: var(--ec-rsm, 6px);
 }
 
+.ec-planner-modal .ec-planner-time-ant-select.ant-select-focused .ant-select-selector,
 .expert-cab-v2 .ec-planner-time-ant-select.ant-select-focused .ant-select-selector {
   background: rgba(123, 111, 212, 0.08) !important;
-  border-radius: var(--ec-rsm);
+  border-radius: var(--ec-rsm, 6px);
 }
 
+.ec-planner-modal .ec-planner-time-ant-select .ant-select-selection-item,
 .expert-cab-v2 .ec-planner-time-ant-select .ant-select-selection-item {
   font-size: 20px !important;
   font-weight: 700 !important;
   font-variant-numeric: tabular-nums;
-  color: var(--ec-t1) !important;
+  color: var(--ec-t1, #2d2a4a) !important;
   line-height: 1.25 !important;
   padding-inline-end: 0 !important;
-  display: flex;
+  display: flex !important;
   align-items: center;
+  justify-content: center;
 }
 
+.ec-planner-modal .ec-planner-time-ant-select .ant-select-arrow,
 .expert-cab-v2 .ec-planner-time-ant-select .ant-select-arrow {
-  inset-inline-end: 2px;
+  inset-inline-end: 4px;
 }
 
+.ec-planner-modal .ec-planner-time-suffix-ico,
 .expert-cab-v2 .ec-planner-time-suffix-ico {
   font-size: 10px;
-  color: var(--ec-t3);
+  color: var(--ec-t3, #a8a5c4);
   transition: transform 0.2s ease, color 0.15s ease;
 }
 
+.ec-planner-modal .ec-planner-time-ant-select.ant-select-open .ec-planner-time-suffix-ico,
 .expert-cab-v2 .ec-planner-time-ant-select.ant-select-open .ec-planner-time-suffix-ico {
   transform: rotate(180deg);
-  color: var(--ec-acc);
-}
-
-.expert-cab-v2 .ec-planner-time-ant-select--h.ant-select {
-  width: 78px;
-}
-
-.expert-cab-v2 .ec-planner-time-ant-select--m.ant-select {
-  width: 78px;
+  color: var(--ec-acc, #7b6fd4);
 }
 
 .expert-cab-v2 .ec-planner-edit-modal {
@@ -1759,6 +1785,10 @@
 
 .expert-cab-v2 .ec-planner-add-row-fields .ec-planner-time-field {
   max-width: none;
+}
+
+.ec-planner-modal .ec-planner-add-row-fields .ec-planner-time-field {
+  width: 100%;
 }
 
 .expert-cab-v2 .ec-planner-add-row-remove {

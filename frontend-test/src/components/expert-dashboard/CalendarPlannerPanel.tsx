@@ -528,6 +528,7 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
         confirmLoading={busy}
         okText="Сохранить все"
         width={440}
+        wrapClassName="ec-planner-modal"
       >
         <p className="ec-planner-add-modal-hint">Несколько строк — несколько слотов на этот день недели (МСК).</p>
         <div className="ec-planner-add-rows">
@@ -589,6 +590,7 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
         onCancel={() => setEditSchedule(null)}
         footer={null}
         destroyOnClose
+        wrapClassName="ec-planner-modal"
       >
         {editSchedule && (
           <div className="ec-planner-edit-modal">
