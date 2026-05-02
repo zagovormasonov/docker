@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Space, Tag, Popconfirm, Typography, Select, Upload, message } from 'antd';
+import { Form, Input, Button, Space, Tag, Popconfirm, Typography, Upload, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
+import { ExpertCabinetSelect } from '../ExpertCabinetSelect';
+
+const PRODUCT_TYPE_OPTIONS = [
+  { value: 'digital', label: 'Цифровой' },
+  { value: 'physical', label: 'Физический' },
+  { value: 'service', label: 'Услуга' },
+];
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -138,11 +145,12 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
                 label="Тип продукта"
                 rules={[{ required: true, message: 'Выберите тип' }]}
               >
-                <Select style={{ width: 160 }} size="large" placeholder="Выберите тип">
-                  <Select.Option value="digital">Цифровой</Select.Option>
-                  <Select.Option value="physical">Физический</Select.Option>
-                  <Select.Option value="service">Услуга</Select.Option>
-                </Select>
+                <ExpertCabinetSelect
+                  style={{ width: 160 }}
+                  size="large"
+                  placeholder="Выберите тип"
+                  options={PRODUCT_TYPE_OPTIONS}
+                />
               </Form.Item>
             </Space>
 

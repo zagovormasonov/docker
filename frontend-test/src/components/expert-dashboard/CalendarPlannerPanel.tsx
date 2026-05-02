@@ -5,6 +5,7 @@ import 'dayjs/locale/ru';
 import { Button, Modal, Space, message, Checkbox, Select } from 'antd';
 import { CheckOutlined, CloseOutlined, CopyOutlined, DeleteOutlined, DownOutlined, LinkOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
+import { cabinetSelectPopupContainer } from '../ExpertCabinetSelect';
 
 dayjs.extend(isoWeek);
 dayjs.locale('ru');
@@ -65,9 +66,6 @@ function parseHm(v: string): { h: string; m: string } {
   return { h: String(h).padStart(2, '0'), m: String(mm).padStart(2, '0') };
 }
 
-const timeSelectPopupContainer = (trigger: HTMLElement) =>
-  (trigger.closest('.expert-cab-v2') as HTMLElement | null) || document.body;
-
 const PlannerTimeField: React.FC<{
   value: string;
   onChange: (hhmm: string) => void;
@@ -86,9 +84,11 @@ const PlannerTimeField: React.FC<{
         variant="borderless"
         showSearch={false}
         listHeight={280}
+        popupMatchSelectWidth={false}
+        dropdownStyle={{ minWidth: 120 }}
         className="ec-planner-time-ant-select ec-planner-time-ant-select--h"
-        popupClassName="ec-planner-time-dropdown"
-        getPopupContainer={timeSelectPopupContainer}
+        popupClassName="ec-cabinet-select-dropdown ec-planner-time-dropdown"
+        getPopupContainer={cabinetSelectPopupContainer}
         suffixIcon={suffix}
       />
       <span className="ec-planner-time-colon" aria-hidden>
@@ -102,9 +102,11 @@ const PlannerTimeField: React.FC<{
         variant="borderless"
         showSearch={false}
         listHeight={280}
+        popupMatchSelectWidth={false}
+        dropdownStyle={{ minWidth: 120 }}
         className="ec-planner-time-ant-select ec-planner-time-ant-select--m"
-        popupClassName="ec-planner-time-dropdown"
-        getPopupContainer={timeSelectPopupContainer}
+        popupClassName="ec-cabinet-select-dropdown ec-planner-time-dropdown"
+        getPopupContainer={cabinetSelectPopupContainer}
         suffixIcon={suffix}
       />
     </div>

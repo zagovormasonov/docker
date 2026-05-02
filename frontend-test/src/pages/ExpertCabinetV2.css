@@ -1743,52 +1743,6 @@
   width: 78px;
 }
 
-/* Выпадающий список (рендерится в портале — свои токены на корне) */
-.ec-planner-time-dropdown.ant-select-dropdown {
-  --ec-acc: #7b6fd4;
-  --ec-acp: #eae8fb;
-  --ec-act: #4a3fa8;
-  --ec-bgs: #f0effe;
-  --ec-t1: #2d2a4a;
-  --ec-t2: #6b6890;
-  --ec-t3: #a8a5c4;
-  --ec-rmd: 10px;
-  --ec-rsm: 6px;
-
-  padding: 8px !important;
-  border-radius: 14px !important;
-  background: #fff !important;
-  box-shadow:
-    0 22px 56px rgba(45, 42, 74, 0.14),
-    0 0 0 1px rgba(123, 111, 212, 0.11) !important;
-}
-
-.ec-planner-time-dropdown .ant-select-item {
-  margin: 0 !important;
-  padding: 10px 14px !important;
-  border-radius: var(--ec-rsm) !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  font-variant-numeric: tabular-nums !important;
-  color: var(--ec-t1) !important;
-  line-height: 1.2 !important;
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-.ec-planner-time-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-  background: var(--ec-bgs) !important;
-}
-
-.ec-planner-time-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-  background: var(--ec-acp) !important;
-  color: var(--ec-act) !important;
-  font-weight: 700 !important;
-}
-
-.ec-planner-time-dropdown .ant-select-item-option-selected.ant-select-item-option-active {
-  background: rgba(123, 111, 212, 0.18) !important;
-}
-
 .expert-cab-v2 .ec-planner-edit-modal {
   display: flex;
   flex-direction: column;

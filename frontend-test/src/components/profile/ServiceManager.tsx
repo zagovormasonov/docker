@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Space, List, Tag, Popconfirm, Typography, Select, message } from 'antd';
+import { Form, Input, Button, Space, List, Tag, Popconfirm, Typography, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
+import { ExpertCabinetSelect } from '../ExpertCabinetSelect';
+
+const SERVICE_TYPE_OPTIONS = [
+  { value: 'online', label: 'Онлайн' },
+  { value: 'offline', label: 'Офлайн' },
+  { value: 'both', label: 'Оба' },
+];
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -71,11 +78,12 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({ user, services, onServi
                 <Input type="number" placeholder="60" size="large" style={{ borderRadius: 12, width: 140 }} />
               </Form.Item>
               <Form.Item name="serviceType" label="Формат" rules={[{ required: true }]}>
-                <Select style={{ width: 140 }} size="large" placeholder="Тип">
-                  <Select.Option value="online">Онлайн</Select.Option>
-                  <Select.Option value="offline">Офлайн</Select.Option>
-                  <Select.Option value="both">Оба</Select.Option>
-                </Select>
+                <ExpertCabinetSelect
+                  style={{ width: 140 }}
+                  size="large"
+                  placeholder="Тип"
+                  options={SERVICE_TYPE_OPTIONS}
+                />
               </Form.Item>
             </Space>
             <Button type="primary" htmlType="submit" size="large" style={{ borderRadius: 12, marginTop: 8, background: '#1d1d1f', border: 'none' }}>
