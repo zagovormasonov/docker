@@ -199,6 +199,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 28%;
 }
 
 .expert-cab-v2 .ec-pm-name {
@@ -417,6 +418,12 @@
 
 .expert-cab-v2 .ec-cc-action:hover {
   color: var(--ec-act);
+}
+
+.expert-cab-v2 .ec-cc-hint {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ec-t3);
 }
 
 .expert-cab-v2 .ec-cal-hdr {
@@ -814,17 +821,20 @@
 }
 
 .expert-cab-v2 .ec-pp-cover {
-  height: 90px;
+  height: 96px;
   background: var(--ec-acp);
   position: relative;
+  border-radius: calc(var(--ec-rlg) - 1px) calc(var(--ec-rlg) - 1px) 0 0;
 }
 
 .expert-cab-v2 .ec-pp-ava-wrap {
-  padding: 0 20px;
-  margin-top: -28px;
+  padding: 4px 20px 0;
+  margin-top: -26px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .expert-cab-v2 .ec-pp-ava {
@@ -838,12 +848,14 @@
   justify-content: center;
   font-size: 22px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .expert-cab-v2 .ec-pp-ava img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 28%;
 }
 
 .expert-cab-v2 .ec-pp-edit-btn {
@@ -1030,4 +1042,219 @@
 /* Вложенные формы из Profile — чуть приглушить рамки */
 .expert-cab-v2 .section-card {
   border-radius: var(--ec-rlg);
+}
+
+@media (max-width: 520px) {
+  .expert-cab-v2 .ec-pp-ava-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .expert-cab-v2 .ec-pp-edit-btn {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 0;
+  }
+}
+
+/* Кабинет эксперта внутри раздела «Календарь» — стиль как у кабинета */
+.expert-cab-v2 .ec-col-card.ec-col-card--calendar-tool {
+  overflow: visible;
+}
+
+@media (max-width: 520px) {
+  .expert-cab-v2 .ec-col-card--calendar-tool .ec-cc-hdr {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+.expert-cab-v2 .ec-expert-calendar {
+  padding: 0;
+}
+
+.expert-cab-v2 .ec-expert-calendar .expert-calendar--embedded {
+  padding: 12px 16px 20px;
+  margin: 0;
+  max-width: none;
+}
+
+@media (max-width: 700px) {
+  .expert-cab-v2 .ec-expert-calendar .expert-calendar--embedded {
+    padding: 10px 12px 16px;
+  }
+}
+
+.expert-cab-v2 .ec-expert-calendar .timezone-info {
+  background: var(--ec-bgs);
+  border-color: var(--ec-bd);
+  color: var(--ec-t2);
+  border-radius: var(--ec-rmd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .timezone-icon {
+  color: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-expert-calendar .ec-cal-ant-tabs.ant-tabs .ant-tabs-nav {
+  margin-bottom: 0 !important;
+}
+
+.expert-cab-v2 .ec-expert-calendar .ec-cal-ant-tabs.ant-tabs .ant-tabs-nav::before {
+  border-color: var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .ec-cal-ant-tabs.ant-tabs .ant-tabs-tab {
+  font-size: 13px;
+  color: var(--ec-t2);
+  padding: 10px 12px !important;
+}
+
+.expert-cab-v2 .ec-expert-calendar .ec-cal-ant-tabs.ant-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--ec-act);
+  font-weight: 600;
+}
+
+.expert-cab-v2 .ec-expert-calendar .ec-cal-ant-tabs.ant-tabs .ant-tabs-ink-bar {
+  background: var(--ec-acc);
+}
+
+@media (max-width: 700px) {
+  .expert-cab-v2 .ec-expert-calendar .ec-cal-ant-tabs.ant-tabs .ant-tabs-nav-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .expert-cab-v2 .ec-expert-calendar .ec-cal-ant-tabs.ant-tabs .ant-tabs-tab {
+    flex-shrink: 0;
+    padding: 10px 14px !important;
+    margin: 0 !important;
+  }
+
+  .expert-cab-v2 .ec-expert-calendar .ec-cal-ant-tabs.ant-tabs .ant-tabs-nav-list {
+    flex-wrap: nowrap !important;
+  }
+}
+
+.expert-cab-v2 .ec-expert-calendar .day-card {
+  background: var(--ec-bgc);
+  border: 1px solid var(--ec-bd);
+  box-shadow: none;
+}
+
+.expert-cab-v2 .ec-expert-calendar .day-icon {
+  background: var(--ec-acp);
+  color: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-expert-calendar .day-switch.ant-switch-checked,
+.expert-cab-v2 .ec-expert-calendar .session-switch.ant-switch-checked {
+  background: var(--ec-acc) !important;
+}
+
+.expert-cab-v2 .ec-expert-calendar .session-switch.danger.ant-switch-checked {
+  background: #ef4444 !important;
+}
+
+.expert-cab-v2 .ec-expert-calendar .session-dot {
+  background: var(--ec-acc);
+  box-shadow: 0 0 0 6px var(--ec-acp);
+}
+
+.expert-cab-v2 .ec-expert-calendar .session-card {
+  background: var(--ec-bgs);
+  border: 1px solid var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .btn-save-modern,
+.expert-cab-v2 .ec-expert-calendar .btn-add-session {
+  background: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-expert-calendar .btn-save-modern:hover:not(:disabled),
+.expert-cab-v2 .ec-expert-calendar .btn-add-session:hover {
+  background: var(--ec-act);
+}
+
+.expert-cab-v2 .ec-expert-calendar .btn-edit-schedule {
+  color: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-expert-calendar .btn-edit-schedule:hover {
+  background: var(--ec-acp);
+  color: var(--ec-act);
+}
+
+.expert-cab-v2 .ec-expert-calendar .client-date-section {
+  background: var(--ec-bgc);
+  border: 1px solid var(--ec-bd);
+  box-shadow: none;
+  border-radius: var(--ec-rmd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .client-date-header {
+  color: var(--ec-acc);
+  border-color: var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .client-slot-button {
+  border-color: var(--ec-bd);
+  background: var(--ec-bgc);
+}
+
+.expert-cab-v2 .ec-expert-calendar .client-slot-button:hover {
+  border-color: var(--ec-acc);
+}
+
+.expert-cab-v2 .ec-expert-calendar .preview-empty {
+  background: var(--ec-bgs);
+  border: 1px dashed var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .session-form {
+  background: var(--ec-bgs);
+  border: 1px solid var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .empty-day {
+  background: var(--ec-bgs);
+  border-color: var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .time-input-wrapper {
+  border-color: var(--ec-bd);
+  background: var(--ec-bgc);
+}
+
+.expert-cab-v2 .ec-expert-calendar .btn-cancel-modern {
+  border: 1px solid var(--ec-bd);
+}
+
+.expert-cab-v2 .ec-expert-calendar .ant-card {
+  border-radius: var(--ec-rmd);
+  border-color: var(--ec-bd);
+}
+
+@media (max-width: 700px) {
+  .expert-cab-v2 .ec-expert-calendar .day-switch.ant-switch,
+  .expert-cab-v2 .ec-expert-calendar .session-switch.ant-switch {
+    min-height: 28px;
+    min-width: 56px;
+  }
+
+  .expert-cab-v2 .ec-expert-calendar .day-card-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .expert-cab-v2 .ec-expert-calendar .session-controls {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 }

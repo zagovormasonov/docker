@@ -48,7 +48,12 @@ const DAYS_OF_WEEK = [
   { value: 0, label: 'Воскресенье' }
 ];
 
-const ExpertCalendar: React.FC = () => {
+export interface ExpertCalendarProps {
+  /** Встроен в кабинет мастера — общие стили карточки и заголовок снаружи */
+  embedded?: boolean;
+}
+
+const ExpertCalendar: React.FC<ExpertCalendarProps> = ({ embedded = false }) => {
   const navigate = useNavigate();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(false);
@@ -333,8 +338,8 @@ const ExpertCalendar: React.FC = () => {
   }, {} as Record<number, Schedule[]>);
 
   return (
-    <div className="expert-calendar">
-      <h2 style={{ fontWeight: 400 }}>Кабинет эксперта</h2>
+    <div className={`expert-calendar${embedded ? ' expert-calendar--embedded' : ''}`}>
+      {!embedded && <h2 style={{ fontWeight: 400 }}>Кабинет эксперта</h2>}
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
@@ -345,6 +350,7 @@ const ExpertCalendar: React.FC = () => {
       </div>
 
       <Tabs
+        className={embedded ? 'ec-cal-ant-tabs' : undefined}
         activeKey={activeView}
         onChange={(key) => setActiveView(key as 'calendar' | 'editor' | 'bookings' | 'clients')}
         items={[

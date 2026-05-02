@@ -709,8 +709,14 @@ const ExpertDashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="ec-col-card" style={{ marginTop: 16 }}>
-        <ExpertCalendar />
+      <div className="ec-col-card ec-col-card--calendar-tool" style={{ marginTop: 16 }}>
+        <div className="ec-cc-hdr">
+          <span className="ec-cc-title">Кабинет эксперта</span>
+          <span className="ec-cc-hint">Расписание, записи и клиенты</span>
+        </div>
+        <div className="ec-expert-calendar">
+          <ExpertCalendar embedded />
+        </div>
       </div>
     </>
   );
