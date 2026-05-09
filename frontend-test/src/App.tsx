@@ -20,7 +20,7 @@ import MyArticlesPage from './pages/MyArticlesPage';
 import MyEventsPage from './pages/MyEventsPage';
 import ArchivedArticlesPage from './pages/ArchivedArticlesPage';
 import FavoritesPage from './pages/FavoritesPage';
-import EventsPage from './pages/EventsPage';
+import SoulSynergyEventsPage from './pages/SoulSynergyEventsPage';
 import EventPage from './pages/EventPage';
 import CreateEventPage from './pages/CreateEventPage';
 import EventsFilterPage from './pages/EventsFilterPage';
@@ -78,7 +78,7 @@ function App() {
                 <Route path="experts/:id" element={<ExpertProfilePage />} />
                 <Route path="articles/:id" element={<ArticlePage />} />
 
-                <Route path="events" element={<EventsPage />} />
+                <Route path="events" element={<SoulSynergyEventsPage />} />
                 <Route path="events/filters" element={<EventsFilterPage />} />
                 <Route path="events/:id" element={<EventPage />} />
                 <Route path="events/create" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
