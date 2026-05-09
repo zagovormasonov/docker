@@ -27,6 +27,9 @@ const Layout = () => {
   if (location.pathname === '/events') {
     return <Outlet />;
   }
+  if (location.pathname === '/experts') {
+    return <Outlet />;
+  }
 
   const isChatsRoute = location.pathname.startsWith('/chats');
   const HEADER_HEIGHT = 64;

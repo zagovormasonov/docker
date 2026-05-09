@@ -10,7 +10,7 @@ import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import ExpertsPage from './pages/ExpertsPage';
+import SoulSynergyMastersPage from './pages/SoulSynergyMastersPage';
 import ExpertProfilePage from './pages/ExpertProfilePage';
 import ArticlePage from './pages/ArticlePage';
 import ProfilePage from './pages/ProfilePage';
@@ -74,7 +74,7 @@ function App() {
 
               <Route path="/" element={<Layout />}>
                 <Route index element={<HomePage />} />
-                <Route path="experts" element={<ExpertsPage />} />
+                <Route path="experts" element={<SoulSynergyMastersPage />} />
                 <Route path="experts/:id" element={<ExpertProfilePage />} />
                 <Route path="articles/:id" element={<ArticlePage />} />
 
