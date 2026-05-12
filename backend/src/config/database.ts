@@ -261,7 +261,11 @@ export const initDatabase = async () => {
       await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false`);
       await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderation_status VARCHAR(20) DEFAULT 'pending'`);
       await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderation_reason TEXT`);
+      await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderated_by INTEGER REFERENCES users(id)`);
       await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS moderated_at TIMESTAMP`);
+      // Новые события без явного статуса считаем опубликованными (модерация событий отключена)
+      await query(`ALTER TABLE events ALTER COLUMN is_published SET DEFAULT true`);
+      await query(`ALTER TABLE events ALTER COLUMN moderation_status SET DEFAULT 'approved'`);
       console.log('✅ Поля модерации событий добавлены');
     } catch (error) {
       console.log('⚠️ Поля модерации событий уже существуют или ошибка:', error.message);

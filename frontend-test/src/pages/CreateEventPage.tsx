@@ -16,7 +16,6 @@ import { marked } from 'marked';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { EVENT_TYPES } from './EventsPage';
-import ModerationNotification from '../components/ModerationNotification';
 
 const { Title, Text } = Typography;
 
@@ -58,8 +57,6 @@ const CreateEventPage = () => {
   const [isOnline, setIsOnline] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
-  const [moderationStatus, setModerationStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
-  const [moderationReason, setModerationReason] = useState('');
   const [description, setDescription] = useState('');
   const quillRef = useRef<ReactQuill>(null);
 
@@ -92,8 +89,6 @@ const CreateEventPage = () => {
 
       setIsOnline(event.is_online);
       setCoverImageUrl(event.cover_image || '');
-      setModerationStatus(event.moderation_status || null);
-      setModerationReason(event.moderation_reason || '');
       setDescription(event.description || '');
 
       form.setFieldsValue({
@@ -184,10 +179,8 @@ const CreateEventPage = () => {
         if (response.data.message) {
           message.success(response.data.message);
         } else {
-          message.success('Событие создано и отправлено на модерацию');
+          message.success('Событие опубликовано');
         }
-
-        setModerationStatus('pending');
       }
 
       navigate('/events');
@@ -336,15 +329,6 @@ const CreateEventPage = () => {
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
       <Card>
         <Title level={2}>{id ? 'Редактировать событие' : 'Создать событие'}</Title>
-
-        {moderationStatus && (
-          <ModerationNotification
-            eventId={id ? parseInt(id) : 0}
-            status={moderationStatus}
-            reason={moderationReason}
-            onStatusChange={(status) => setModerationStatus(status as 'pending' | 'approved' | 'rejected')}
-          />
-        )}
 
         <Form
           form={form}

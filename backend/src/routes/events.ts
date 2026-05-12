@@ -279,11 +279,23 @@ router.post(
         ]
       );
 
-      const newEvent = result.rows[0];
-      console.log('✅ Событие создано:', newEvent.id);
+      const inserted = result.rows[0];
+      console.log('✅ Событие создано:', inserted.id);
 
-      // Упрощенная версия - только создание события без уведомлений
-      console.log('✅ Событие успешно создано');
+      // Повторно фиксируем публикацию: на случай DEFAULT/trigger в БД, которые перезаписывают INSERT
+      await query(
+        `UPDATE events SET
+          is_published = true,
+          moderation_status = 'approved',
+          moderation_reason = NULL,
+          moderated_by = NULL,
+          moderated_at = NULL
+        WHERE id = $1`,
+        [inserted.id]
+      );
+
+      const publishedResult = await query('SELECT * FROM events WHERE id = $1', [inserted.id]);
+      const newEvent = publishedResult.rows[0];
 
       res.status(201).json({
         ...newEvent,
