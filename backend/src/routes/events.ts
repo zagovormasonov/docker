@@ -138,8 +138,8 @@ router.get('/', async (req: AuthRequest, res) => {
       params.push(dateTo);
     }
 
-    // Сортировка по дате (ближайшие первыми)
-    queryText += ` ORDER BY e.event_date ASC`;
+    // Сортировка: сначала по дате проведения (ближайшие выше), при равной дате — недавно созданные выше
+    queryText += ` ORDER BY e.event_date ASC, e.created_at DESC, e.id DESC`;
 
     console.log('📝 SQL запрос:', queryText);
     console.log('📝 Параметры:', params);
