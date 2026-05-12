@@ -6,12 +6,6 @@ import { authenticateToken, requireExpert, AuthRequest } from '../middleware/aut
 
 const router = express.Router();
 
-// Функция отправки письма модерации (отключена на сервере)
-const sendModerationEmail = async (event: any, organizer: any) => {
-  console.log('📧 EmailJS отключен на сервере - используем только уведомления в чат');
-  return true;
-};
-
 // Типы событий
 export const EVENT_TYPES = [
   'Ретрит',
@@ -258,15 +252,9 @@ router.post(
         return res.status(400).json({ error: 'Для офлайн события город обязателен' });
       }
 
-      // Проверяем настройку автомодерации
-      const autoModResult = await query(
-        "SELECT value FROM global_settings WHERE key = 'auto_moderation_events'"
-      );
-      const autoModEnabled = autoModResult.rows.length > 0 && autoModResult.rows[0].value.enabled;
+      console.log('📝 Создаем событие:', { title, eventType, isOnline, cityId, eventDate });
 
-      console.log('📝 Создаем событие:', { title, eventType, isOnline, cityId, eventDate, autoModEnabled });
-
-      // Создаем событие с полями модерации
+      // События экспертов публикуются сразу, без модерации
       const result = await query(
         `INSERT INTO events (
           title, description, cover_image, event_type, is_online, city_id,
@@ -286,8 +274,8 @@ router.post(
           price,
           registrationLink,
           req.userId,
-          autoModEnabled ? true : false, // is_published
-          autoModEnabled ? 'approved' : 'pending' // moderation_status
+          true,
+          'approved'
         ]
       );
 
@@ -299,7 +287,7 @@ router.post(
 
       res.status(201).json({
         ...newEvent,
-        message: 'Событие создано и отправлено на модерацию'
+        message: 'Событие опубликовано'
       });
     } catch (error) {
       console.error('❌ Ошибка создания события:', error);
@@ -367,7 +355,6 @@ router.put(
         return res.status(400).json({ error: 'Для офлайн события город обязателен' });
       }
 
-      // Обновляем событие и сбрасываем статус модерации
       const result = await query(
         `UPDATE events SET
           title = $1,
@@ -380,8 +367,8 @@ router.put(
           location = $8,
           price = $9,
           registration_link = $10,
-          is_published = false,
-          moderation_status = 'pending',
+          is_published = true,
+          moderation_status = 'approved',
           moderation_reason = NULL,
           moderated_by = NULL,
           moderated_at = NULL,
@@ -404,51 +391,11 @@ router.put(
       );
 
       const updatedEvent = result.rows[0];
-      console.log('✅ Событие обновлено и отправлено на модерацию:', updatedEvent.id);
-
-      // Отправляем уведомление администратору о повторной модерации
-      try {
-        // Находим администратора
-        const adminResult = await query(
-          'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
-          ['admin', 'samyrize77777@gmail.com']
-        );
-
-        if (adminResult.rows.length > 0) {
-          const admin = adminResult.rows[0];
-
-          // Создаем или находим чат с администратором
-          let chatResult = await query(
-            'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
-            [req.userId, admin.id]
-          );
-
-          if (chatResult.rows.length === 0) {
-            chatResult = await query(
-              'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
-              [req.userId, admin.id]
-            );
-          }
-
-          const chatId = chatResult.rows[0].id;
-
-          // Отправляем уведомление о повторной модерации
-          await query(
-            `INSERT INTO messages (chat_id, sender_id, content, is_read) 
-             VALUES ($1, $2, $3, false)`,
-            [chatId, req.userId, `🔄 Событие отредактировано и отправлено на повторную модерацию:\n\n📌 Название: ${title}\n\n📅 Дата: ${new Date(eventDate).toLocaleDateString('ru-RU')}\n\n🔗 ID события: ${updatedEvent.id}`]
-          );
-
-          console.log('📨 Уведомление администратору отправлено');
-        }
-      } catch (notificationError) {
-        console.error('Ошибка отправки уведомления администратору:', notificationError);
-        // Не прерываем обновление события из-за ошибки уведомления
-      }
+      console.log('✅ Событие обновлено и остаётся опубликованным:', updatedEvent.id);
 
       res.json({
         ...updatedEvent,
-        message: 'Событие обновлено и отправлено на повторную модерацию'
+        message: 'Событие обновлено'
       });
     } catch (error) {
       console.error('Ошибка обновления события:', error);

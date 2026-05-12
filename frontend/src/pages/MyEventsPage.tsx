@@ -41,8 +41,6 @@ interface Event {
     is_online: boolean;
     city_name: string;
     event_date: string;
-    moderation_status?: string;
-    is_published: boolean;
 }
 
 const MyEventsPage = () => {
@@ -157,15 +155,6 @@ const MyEventsPage = () => {
                                             <Tag color={getEventTypeColor(event.event_type)}>
                                                 {event.event_type}
                                             </Tag>
-                                            {event.moderation_status === 'pending' && (
-                                                <Tag color="blue">🔄 На модерации</Tag>
-                                            )}
-                                            {event.moderation_status === 'approved' && (
-                                                <Tag color="green">✓ Одобрено</Tag>
-                                            )}
-                                            {event.moderation_status === 'rejected' && (
-                                                <Tag color="red">✗ Отклонено</Tag>
-                                            )}
                                         </Space>
                                     </div>
 
