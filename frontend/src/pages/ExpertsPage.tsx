@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Empty, Select, Spin } from 'antd';
-import { MapPin, MessageSquare, Search, Sparkles, Star, User } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Button, Empty, Input, Select, Spin } from 'antd';
+import { Check, ChevronDown, Filter, MapPin, MessageSquare, Search, Sparkles, Star, User, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import LazyAvatar from '../components/LazyAvatar';
@@ -9,6 +10,7 @@ import './ExpertsPage.css';
 
 type TabKey = 'all' | 'new' | 'city' | 'retreats';
 type TagKind = 'tp' | 'tt' | 'ta';
+type MobileSelectType = 'city' | 'topics' | 'sort';
 
 interface Topic {
   id: number;
@@ -65,7 +67,6 @@ const formatPrice = (value?: number | string) => {
 };
 
 const normalize = (value?: string) => (value || '').trim().toLowerCase();
-
 const includesAny = (value: string, needles: string[]) => needles.some((needle) => value.includes(needle));
 
 const classifyTopic = (topic: string): TagKind => {
@@ -132,6 +133,17 @@ const ExpertsPage = () => {
   const [previewDetails, setPreviewDetails] = useState<ExpertDetails | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [countData, setCountData] = useState<{ count: number } | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
+  const [mobileSelectType, setMobileSelectType] = useState<MobileSelectType | null>(null);
+  const [mobileSelectSearch, setMobileSelectSearch] = useState('');
+  const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
+  const originalBodyOverflow = useRef<string | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 900);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchPageData = useCallback(async () => {
     setLoading(true);
@@ -180,6 +192,22 @@ const ExpertsPage = () => {
   useEffect(() => {
     fetchPageData();
   }, [fetchPageData]);
+
+  const isMobileSelectOpen = isMobile && mobileSelectType !== null;
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    if (isMobileSelectOpen) {
+      if (originalBodyOverflow.current === null) {
+        originalBodyOverflow.current = document.body.style.overflow;
+      }
+      document.body.style.overflow = 'hidden';
+    } else if (originalBodyOverflow.current !== null) {
+      document.body.style.overflow = originalBodyOverflow.current;
+      originalBodyOverflow.current = null;
+    }
+  }, [isMobile, isMobileSelectOpen]);
 
   const filteredExperts = useMemo(() => {
     const normalizedSearch = normalize(searchText);
@@ -286,6 +314,136 @@ const ExpertsPage = () => {
     visible: filteredExperts.length
   };
 
+  const selectedCityLabel = selectedCity || 'Все города';
+  const selectedTopicsLabel = selectedTopics.length ? `Темы (${selectedTopics.length})` : 'Все тематики';
+  const sortLabel = sortBy === 'name' ? 'По имени' : 'По новизне';
+
+  const openMobileSelect = (type: MobileSelectType) => {
+    setMobileSelectClosing(false);
+    setMobileSelectSearch('');
+    setMobileSelectType(type);
+  };
+
+  const closeMobileSelect = () => {
+    setMobileSelectClosing(true);
+    window.setTimeout(() => {
+      setMobileSelectType(null);
+      setMobileSelectClosing(false);
+      setMobileSelectSearch('');
+    }, 250);
+  };
+
+  const mobileSelectConfig = useMemo(() => {
+    if (!mobileSelectType) return null;
+
+    if (mobileSelectType === 'city') {
+      return {
+        title: 'Город',
+        multiple: false,
+        options: [{ label: 'Все города', value: '' }, ...cities.map((city) => ({ label: city.name, value: city.name }))],
+        selected: selectedCity ? [selectedCity] : ['']
+      };
+    }
+
+    if (mobileSelectType === 'sort') {
+      return {
+        title: 'Сортировка',
+        multiple: false,
+        options: [
+          { label: 'По новизне', value: 'newest' },
+          { label: 'По имени', value: 'name' }
+        ],
+        selected: [sortBy]
+      };
+    }
+
+    return {
+      title: 'Тематики',
+      multiple: true,
+      options: topics.map((topic) => ({ label: topic.name, value: topic.name })),
+      selected: selectedTopics
+    };
+  }, [cities, mobileSelectType, selectedCity, selectedTopics, sortBy, topics]);
+
+  const handleMobileOptionClick = (value: string) => {
+    if (mobileSelectType === 'city') {
+      setSelectedCity(value);
+      closeMobileSelect();
+      return;
+    }
+
+    if (mobileSelectType === 'sort') {
+      setSortBy(value as 'newest' | 'name');
+      closeMobileSelect();
+      return;
+    }
+
+    const exists = selectedTopics.includes(value);
+    setSelectedTopics((prev) => (exists ? prev.filter((topic) => topic !== value) : [...prev, value]));
+  };
+
+  const renderMobileSelectOverlay = () => {
+    if (!isMobile || !mobileSelectConfig) return null;
+
+    const filteredOptions = mobileSelectConfig.options.filter((option) =>
+      option.label.toLowerCase().includes(mobileSelectSearch.toLowerCase())
+    );
+
+    return createPortal(
+      <div className={`mobile-select-overlay ${mobileSelectClosing ? 'closing' : ''}`} onClick={closeMobileSelect}>
+        <div className={`mobile-select-panel ${mobileSelectClosing ? 'closing' : ''}`} onClick={(event) => event.stopPropagation()}>
+          <div className="mobile-select-header">
+            <button className="mobile-select-close" onClick={closeMobileSelect}>
+              <X size={20} />
+            </button>
+            <span className="mobile-select-title">{mobileSelectConfig.title}</span>
+            <button className="mobile-select-ready" onClick={closeMobileSelect}>
+              Готово
+            </button>
+          </div>
+
+          <Input
+            prefix={<Search size={16} />}
+            placeholder="Поиск..."
+            value={mobileSelectSearch}
+            onChange={(event) => setMobileSelectSearch(event.target.value)}
+            className="mobile-select-search"
+          />
+
+          <div className="mobile-select-options">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => {
+                const isSelected = mobileSelectConfig.selected.includes(option.value);
+
+                return (
+                  <button
+                    key={option.value}
+                    className={`mobile-select-option ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleMobileOptionClick(option.value)}
+                  >
+                    {mobileSelectConfig.multiple ? (
+                      <span className={`mobile-select-checkbox ${isSelected ? 'checked' : ''}`}>
+                        <Check size={14} />
+                      </span>
+                    ) : (
+                      <span className={`mobile-select-radio ${isSelected ? 'checked' : ''}`}>
+                        <Check size={14} />
+                      </span>
+                    )}
+                    <span className="mobile-select-label">{option.label}</span>
+                  </button>
+                );
+              })
+            ) : (
+              <div className="mobile-select-empty">Ничего не найдено</div>
+            )}
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
   return (
     <div className="ss-mstr">
       <div className="page-header">
@@ -317,24 +475,42 @@ const ExpertsPage = () => {
             />
           </div>
 
-          <Select
-            className="ss-select"
-            value={selectedCity || undefined}
-            placeholder="Все города"
-            onChange={(value) => setSelectedCity(value || '')}
-            allowClear
-            options={cities.map((city) => ({ label: city.name, value: city.name }))}
-          />
+          {isMobile ? (
+            <div className="mobile-filter-row">
+              <button type="button" className="mobile-filter-trigger" onClick={() => openMobileSelect('city')}>
+                <MapPin size={16} />
+                <span>{selectedCityLabel}</span>
+                <ChevronDown size={16} />
+              </button>
 
-          <Select
-            mode="multiple"
-            className="ss-select ss-select-topics"
-            value={selectedTopics}
-            placeholder="Тематики"
-            onChange={setSelectedTopics}
-            maxTagCount="responsive"
-            options={topics.map((topic) => ({ label: topic.name, value: topic.name }))}
-          />
+              <button type="button" className="mobile-filter-trigger" onClick={() => openMobileSelect('topics')}>
+                <Filter size={16} />
+                <span>{selectedTopicsLabel}</span>
+                <ChevronDown size={16} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <Select
+                className="ss-select"
+                value={selectedCity || undefined}
+                placeholder="Все города"
+                onChange={(value) => setSelectedCity(value || '')}
+                allowClear
+                options={cities.map((city) => ({ label: city.name, value: city.name }))}
+              />
+
+              <Select
+                mode="multiple"
+                className="ss-select ss-select-topics"
+                value={selectedTopics}
+                placeholder="Тематики"
+                onChange={setSelectedTopics}
+                maxTagCount="responsive"
+                options={topics.map((topic) => ({ label: topic.name, value: topic.name }))}
+              />
+            </>
+          )}
         </div>
 
         <div className="filter-tabs">
@@ -387,15 +563,22 @@ const ExpertsPage = () => {
         <div className="catalog">
           <div className="sort-row">
             <span className="sort-label">Найдено {filteredExperts.length} экспертов</span>
-            <Select
-              className="ss-sort-select"
-              value={sortBy}
-              onChange={setSortBy}
-              options={[
-                { label: 'По новизне', value: 'newest' },
-                { label: 'По имени', value: 'name' }
-              ]}
-            />
+            {isMobile ? (
+              <button type="button" className="mobile-sort-trigger" onClick={() => openMobileSelect('sort')}>
+                <span>{sortLabel}</span>
+                <ChevronDown size={16} />
+              </button>
+            ) : (
+              <Select
+                className="ss-sort-select"
+                value={sortBy}
+                onChange={setSortBy}
+                options={[
+                  { label: 'По новизне', value: 'newest' },
+                  { label: 'По имени', value: 'name' }
+                ]}
+              />
+            )}
           </div>
 
           {loading ? (
@@ -656,6 +839,8 @@ const ExpertsPage = () => {
           ) : null}
         </aside>
       </div>
+
+      {renderMobileSelectOverlay()}
     </div>
   );
 };
