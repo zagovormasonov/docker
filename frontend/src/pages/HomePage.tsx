@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Button, Modal } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
@@ -6,10 +6,13 @@ import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
-import ArticlePage from './ArticlePage';
 import './HomePageV2.css';
 
 dayjs.locale('ru');
+
+const ArticlePage = lazy(() => import('./ArticlePage'));
+const HOME_PRIMARY_CACHE_TTL = 2 * 60 * 1000;
+const HOME_AUX_CACHE_TTL = 5 * 60 * 1000;
 
 interface Article {
   id: number;
@@ -46,6 +49,23 @@ interface DigitalProductPreview {
   price: string;
   author: string;
 }
+
+interface HomePrimaryCache {
+  timestamp: number;
+  articlesNew: Article[];
+  events: EventRow[];
+  expertsSide: ExpertRow[];
+}
+
+interface HomeAuxCache {
+  timestamp: number;
+  popularArticles?: Article[];
+  expertsCount?: number;
+  digitalPreview?: DigitalProductPreview[];
+}
+
+let homePrimaryCache: HomePrimaryCache | null = null;
+let homeAuxCache: HomeAuxCache | null = null;
 
 const TICKER_LINE = [
   { dot: 'var(--ss-teal)', text: 'Рахмат опубликовал новую практику' },
@@ -138,6 +158,8 @@ export default function HomePage() {
   const [expertsSide, setExpertsSide] = useState<ExpertRow[]>([]);
   const [digitalPreview, setDigitalPreview] = useState<DigitalProductPreview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [popularLoaded, setPopularLoaded] = useState(false);
+  const [popularLoading, setPopularLoading] = useState(false);
 
   const [feedTab, setFeedTab] = useState<'stream' | 'popular' | 'events'>('stream');
   const [pillActive, setPillActive] = useState<string | null>(null);
@@ -167,31 +189,69 @@ export default function HomePage() {
   }, [searchQuery]);
 
   useEffect(() => {
+    if (homePrimaryCache && Date.now() - homePrimaryCache.timestamp < HOME_PRIMARY_CACHE_TTL) {
+      setArticlesNew(homePrimaryCache.articlesNew);
+      setEvents(homePrimaryCache.events);
+      setExpertsSide(homePrimaryCache.expertsSide);
+      setLoading(false);
+    }
+
+    if (homeAuxCache && Date.now() - homeAuxCache.timestamp < HOME_AUX_CACHE_TTL) {
+      if (homeAuxCache.popularArticles) {
+        setArticlesPopular(homeAuxCache.popularArticles);
+        setPopularLoaded(true);
+      }
+      if (homeAuxCache.digitalPreview) {
+        setDigitalPreview(homeAuxCache.digitalPreview);
+      }
+      if (typeof homeAuxCache.expertsCount === 'number') {
+        setStats((prev) => ({ ...prev, experts: homeAuxCache?.expertsCount ?? prev.experts }));
+      }
+    }
+
     let alive = true;
 
     (async () => {
-      setLoading(true);
+      if (!homePrimaryCache || Date.now() - homePrimaryCache.timestamp >= HOME_PRIMARY_CACHE_TTL) {
+        setLoading(true);
+      }
+
       try {
-        const [newRes, popRes, evRes, exRes] = await Promise.all([
+        const [newRes, evRes, exRes] = await Promise.all([
           api.get('/articles?sort=new'),
-          api.get('/articles?sort=popular'),
           api.get('/events'),
           api.get('/experts/search?limit=8&order=newest'),
         ]);
 
         if (!alive) return;
 
-        setArticlesNew(Array.isArray(newRes.data) ? newRes.data : []);
-        setArticlesPopular(Array.isArray(popRes.data) ? popRes.data : []);
-        setEvents(Array.isArray(evRes.data) ? evRes.data : []);
-        setExpertsSide(Array.isArray(exRes.data) ? exRes.data : []);
+        const nextArticles = Array.isArray(newRes.data) ? newRes.data : [];
+        const nextEvents = Array.isArray(evRes.data) ? evRes.data : [];
+        const nextExperts = Array.isArray(exRes.data) ? exRes.data : [];
+
+        setArticlesNew(nextArticles);
+        setEvents(nextEvents);
+        setExpertsSide(nextExperts);
+        setStats((prev) => ({
+          ...prev,
+          articles: nextArticles.length,
+          eventsMonth: nextEvents.filter((event) => dayjs(event.event_date).month() === dayjs().month()).length,
+        }));
+
+        homePrimaryCache = {
+          timestamp: Date.now(),
+          articlesNew: nextArticles,
+          events: nextEvents,
+          expertsSide: nextExperts,
+        };
       } catch (error) {
         console.error(error);
         if (alive) {
-          setArticlesNew([]);
-          setArticlesPopular([]);
-          setEvents([]);
-          setExpertsSide([]);
+          if (!homePrimaryCache) {
+            setArticlesNew([]);
+            setEvents([]);
+            setExpertsSide([]);
+          }
         }
       } finally {
         if (alive) setLoading(false);
@@ -204,48 +264,59 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    if (feedTab !== 'popular' || popularLoaded) return;
+
+    let alive = true;
+
+    (async () => {
+      setPopularLoading(true);
+      try {
+        const response = await api.get('/articles?sort=popular');
+        if (!alive) return;
+
+        const nextPopular = Array.isArray(response.data) ? response.data : [];
+        setArticlesPopular(nextPopular);
+        setPopularLoaded(true);
+        homeAuxCache = {
+          ...homeAuxCache,
+          timestamp: Date.now(),
+          popularArticles: nextPopular,
+        };
+      } catch (error) {
+        console.error('Ошибка загрузки популярных статей:', error);
+      } finally {
+        if (alive) {
+          setPopularLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [feedTab, popularLoaded]);
+
+  useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        const cRes = await api.get('/experts/count');
-        const aRes = await api.get('/articles?sort=new');
-        const eRes = await api.get('/events');
+        if (typeof homeAuxCache?.expertsCount === 'number') {
+          return;
+        }
 
+        const response = await api.get('/experts/count');
         if (!alive) return;
 
-        const month = dayjs().month();
-        const eventsThisMonth = (eRes.data || []).filter((ev: EventRow) => dayjs(ev.event_date).month() === month).length;
-        const articleCount = Array.isArray(aRes.data) ? aRes.data.length : 0;
-        let digital = 0;
-
-        try {
-          const sample = await api.get('/experts/search?limit=8');
-          const experts = sample.data || [];
-          const chunk = experts.slice(0, 6);
-          const results = await Promise.all(
-            chunk.map((expert: ExpertRow) =>
-              api.get(`/products/expert/${expert.id}`).then((response) => response.data || []).catch(() => [])
-            )
-          );
-
-          results.forEach((products: { product_type?: string }[]) => {
-            digital += products.filter((product) => product.product_type === 'digital').length;
-          });
-        } catch {
-          // ignore product preview counter errors
-        }
-
-        setStats({
-          experts: cRes.data?.count ?? 0,
-          articles: articleCount,
-          eventsMonth: eventsThisMonth,
-          digital,
-        });
+        const expertsCount = response.data?.count ?? 0;
+        setStats((prev) => ({ ...prev, experts: expertsCount }));
+        homeAuxCache = {
+          ...homeAuxCache,
+          timestamp: Date.now(),
+          expertsCount,
+        };
       } catch {
-        if (alive) {
-          setStats({ experts: 0, articles: 0, eventsMonth: 0, digital: 0 });
-        }
+        // ignore stats enrichment errors
       }
     })();
 
@@ -255,56 +326,82 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    let alive = true;
+    const timeoutId = window.setTimeout(() => {
+      let alive = true;
 
-    (async () => {
-      if (!expertsSide.length) {
-        setDigitalPreview([]);
-        return;
-      }
-
-      const preview: DigitalProductPreview[] = [];
-
-      for (const expert of expertsSide) {
-        try {
-          const response = await api.get(`/products/expert/${expert.id}`);
-          const list = (response.data || []).filter((product: { product_type?: string }) => product.product_type === 'digital');
-
-          for (const product of list) {
-            preview.push({
-              title: product.title,
-              price: `${product.price} ₽`,
-              author: expert.name,
-            });
-
-            if (preview.length >= 3) break;
-          }
-        } catch {
-          // ignore per-expert product errors
+      (async () => {
+        if (!expertsSide.length) {
+          setDigitalPreview([]);
+          return;
         }
 
-        if (preview.length >= 3) break;
-      }
+        if (homeAuxCache?.digitalPreview && Date.now() - homeAuxCache.timestamp < HOME_AUX_CACHE_TTL) {
+          setDigitalPreview(homeAuxCache.digitalPreview);
+          return;
+        }
 
-      if (alive) {
-        setDigitalPreview(preview);
-      }
-    })();
+        const sampleExperts = expertsSide.slice(0, 3);
+        try {
+          const results = await Promise.all(
+            sampleExperts.map((expert) =>
+              api.get(`/products/expert/${expert.id}`).then((response) => ({
+                expert,
+                products: response.data || [],
+              })).catch(() => ({
+                expert,
+                products: [],
+              }))
+            )
+          );
 
-    return () => {
-      alive = false;
-    };
+          if (!alive) return;
+
+          const preview = results
+            .flatMap(({ expert, products }) =>
+              products
+                .filter((product: { product_type?: string }) => product.product_type === 'digital')
+                .map((product: { title: string; price: string }) => ({
+                  title: product.title,
+                  price: `${product.price} ₽`,
+                  author: expert.name,
+                }))
+            )
+            .slice(0, 3);
+
+          setDigitalPreview(preview);
+          setStats((prev) => ({ ...prev, digital: preview.length }));
+          homeAuxCache = {
+            ...homeAuxCache,
+            timestamp: Date.now(),
+            digitalPreview: preview,
+          };
+        } catch {
+          // ignore deferred preview errors
+        }
+      })();
+
+      return () => {
+        alive = false;
+      };
+    }, 900);
+
+    return () => window.clearTimeout(timeoutId);
   }, [expertsSide]);
 
   useEffect(() => {
+    let alive = true;
     const timer = window.setTimeout(() => {
+      if (!alive) return;
       animateCount(s1.current, stats.experts);
       animateCount(s2.current, stats.articles >= 100 ? 100 : stats.articles);
       animateCount(s3.current, stats.eventsMonth);
       animateCount(s4.current, stats.digital);
     }, 320);
 
-    return () => clearTimeout(timer);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
   }, [stats]);
 
   const articlesMain = feedTab === 'popular' ? articlesPopular : articlesNew;
@@ -669,7 +766,7 @@ export default function HomePage() {
             </button>
           </div>
 
-          {loading ? (
+          {loading || (feedTab === 'popular' && popularLoading && !popularLoaded) ? (
             <div className="ss-loading">Загрузка ленты…</div>
           ) : feedTab === 'events' ? (
             <div className="ss-feed-grid">
@@ -864,7 +961,11 @@ export default function HomePage() {
             }}
           >
             <div style={{ width: '100%', maxWidth: 900 }}>
-              {selectedArticleId ? <ArticlePage embeddedArticleId={selectedArticleId} /> : null}
+              {selectedArticleId ? (
+                <Suspense fallback={<div className="ss-loading">Загрузка статьи…</div>}>
+                  <ArticlePage embeddedArticleId={selectedArticleId} />
+                </Suspense>
+              ) : null}
             </div>
           </div>
         </div>
