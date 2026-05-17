@@ -15,14 +15,14 @@ const Layout = () => {
       <MainHeader />
       <Content
         style={{
-          padding: isChatsRoute || isHomeRoute ? 0 : '24px 0',
-          paddingTop: isChatsRoute ? HEADER_HEIGHT : isHomeRoute ? HEADER_HEIGHT : HEADER_HEIGHT + 24
+          padding: 0,
+          paddingTop: 0
         }}
       >
         <Outlet />
       </Content>
       {!isChatsRoute && (
-        <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0', padding: '24px 0' }}>
+        <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0', padding: '16px 0' }}>
           <Space direction="vertical" size="small">
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontWeight: 600, color: 'rgb(99, 102, 241)', fontSize: '16px' }}>SoulSynergy</div>
