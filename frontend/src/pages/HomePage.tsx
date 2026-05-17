@@ -149,7 +149,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   const [articlesNew, setArticlesNew] = useState<Article[]>([]);
   const [articlesPopular, setArticlesPopular] = useState<Article[]>([]);
@@ -454,7 +454,8 @@ export default function HomePage() {
     setModalOpen(true);
   };
 
-    user?.userType === 'expert' || user?.userType === 'admin' ? 'Кабинет мастера' : 'Личный кабинет';
+  const cabinetLabel = user?.userType === 'expert' || user?.userType === 'admin' ? 'Кабинет мастера' : 'Личный кабинет';
+  const cabinetHref = user?.slug ? `/${user.userType}/${user.slug}` : '/login';
 
   const onPill = (filter: string) => {
     setPillActive((prev) => (prev === filter ? null : filter));
