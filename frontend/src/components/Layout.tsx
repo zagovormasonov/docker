@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Layout as AntLayout, Space, Typography } from 'antd';
-import Header from './Header';
+import MainHeader from './MainHeader';
 
 const { Content, Footer } = AntLayout;
 
@@ -12,7 +12,7 @@ const Layout = () => {
 
   return (
     <AntLayout style={{ minHeight: '100vh', background: '#fafafa' }}>
-      <Header />
+      <MainHeader />
       <Content
         style={{
           padding: isChatsRoute || isHomeRoute ? 0 : '24px 0',
