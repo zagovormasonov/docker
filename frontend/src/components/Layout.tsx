@@ -1,27 +1,13 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Layout as AntLayout, Space, Typography } from 'antd';
-import { useEffect, useState } from 'react';
 import Header from './Header';
 
 const { Content, Footer } = AntLayout;
-const { Text } = Typography;
 
 const Layout = () => {
   const location = useLocation();
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768);
-    onResize();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  if (location.pathname === '/' || location.pathname === '') {
-    return <Outlet />;
-  }
-
   const isChatsRoute = location.pathname.startsWith('/chats');
+  const isHomeRoute = location.pathname === '/' || location.pathname === '';
   const HEADER_HEIGHT = 64;
 
   return (
@@ -29,8 +15,8 @@ const Layout = () => {
       <Header />
       <Content
         style={{
-          padding: isChatsRoute ? 0 : '24px 0',
-          paddingTop: isChatsRoute ? HEADER_HEIGHT : HEADER_HEIGHT + 24
+          padding: isChatsRoute || isHomeRoute ? 0 : '24px 0',
+          paddingTop: isChatsRoute ? HEADER_HEIGHT : isHomeRoute ? HEADER_HEIGHT : HEADER_HEIGHT + 24
         }}
       >
         <Outlet />

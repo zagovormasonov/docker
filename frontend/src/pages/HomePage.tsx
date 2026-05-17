@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Modal } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import api from '../api/axios';
@@ -147,10 +147,9 @@ function animateCount(el: HTMLElement | null, target: number, duration = 1400) {
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
-  const { user, token } = useAuth();
+  const { user } = useAuth();
 
   const [articlesNew, setArticlesNew] = useState<Article[]>([]);
   const [articlesPopular, setArticlesPopular] = useState<Article[]>([]);
@@ -455,9 +454,6 @@ export default function HomePage() {
     setModalOpen(true);
   };
 
-  const cabinetHref =
-    user?.userType === 'expert' || user?.userType === 'admin' ? '/expert-dashboard' : '/profile';
-  const cabinetLabel =
     user?.userType === 'expert' || user?.userType === 'admin' ? 'Кабинет мастера' : 'Личный кабинет';
 
   const onPill = (filter: string) => {
