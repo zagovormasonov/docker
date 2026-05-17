@@ -17,6 +17,10 @@ const Layout = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  if (location.pathname === '/' || location.pathname === '') {
+    return <Outlet />;
+  }
+
   const isChatsRoute = location.pathname.startsWith('/chats');
   const HEADER_HEIGHT = 64;
 
