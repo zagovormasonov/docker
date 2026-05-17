@@ -127,6 +127,7 @@
 
 .ss-mstr .srch-inp {
   flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   font-size: 13px;
@@ -855,6 +856,29 @@
     gap: 10px;
   }
 
+  .ss-mstr .srch-wrap {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 0 14px;
+    border-radius: 14px;
+  }
+
+  .ss-mstr .srch-ico {
+    margin-right: 10px;
+  }
+
+  .ss-mstr .srch-inp {
+    width: 100%;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .ss-mstr .srch-inp::placeholder {
+    font-size: 14px;
+  }
+
   .ss-mstr .mobile-filter-row {
     width: 100%;
   }
@@ -912,6 +936,21 @@
 }
 
 @media (max-width: 640px) {
+  .ss-mstr .srch-wrap {
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+  }
+
+  .ss-mstr .srch-ico {
+    margin-right: 8px;
+  }
+
+  .ss-mstr .srch-inp,
+  .ss-mstr .srch-inp::placeholder {
+    font-size: 13px;
+  }
+
   .ss-mstr .mobile-filter-row {
     flex-direction: column;
   }
