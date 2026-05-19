@@ -303,7 +303,7 @@ router.post(
 
       res.status(201).json({
         ...article,
-        message: 'Статья сохранена как черновик. Нажмите "Опубликовать" для отправки на модерацию.'
+        message: 'Статья сохранена как черновик. Нажмите "Опубликовать" чтобы опубликовать.'
       });
     } catch (error) {
       console.error('Ошибка создания статьи:', error);
@@ -371,7 +371,7 @@ router.put(
 
       res.json({
         ...updatedArticle,
-        message: 'Статья сохранена. Нажмите "Опубликовать" для отправки на модерацию.'
+        message: 'Статья сохранена. Нажмите "Опубликовать" чтобы опубликовать.'
       });
     } catch (error) {
       console.error('Ошибка обновления статьи:', error);
@@ -403,11 +403,14 @@ router.post(
 
       const article = currentArticle.rows[0];
 
-      // Обновляем статус на "на модерации"
+      // Публикуем статью сразу без модерации
       const result = await query(
-        `UPDATE articles 
-         SET moderation_status = 'pending',
-             is_published = false,
+        `UPDATE articles
+         SET moderation_status = 'approved',
+             is_published = true,
+             moderation_reason = NULL,
+             moderated_by = NULL,
+             moderated_at = NULL,
              updated_at = CURRENT_TIMESTAMP
          WHERE id = $1 AND author_id = $2
          RETURNING *`,
@@ -416,48 +419,11 @@ router.post(
 
       const updatedArticle = result.rows[0];
 
-      // Отправляем уведомление администратору
-      try {
-        const adminResult = await query(
-          'SELECT id, name FROM users WHERE user_type = $1 AND email = $2',
-          ['admin', 'samyrize77777@gmail.com']
-        );
-
-        if (adminResult.rows.length > 0) {
-          const admin = adminResult.rows[0];
-
-          // Создаем или находим чат с администратором
-          let chatResult = await query(
-            'SELECT * FROM chats WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)',
-            [req.userId, admin.id]
-          );
-
-          if (chatResult.rows.length === 0) {
-            chatResult = await query(
-              'INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2) RETURNING *',
-              [req.userId, admin.id]
-            );
-          }
-
-          const chatId = chatResult.rows[0].id;
-
-          // Отправляем уведомление о статье на модерацию
-          await query(
-            `INSERT INTO messages (chat_id, sender_id, content, is_read) 
-             VALUES ($1, $2, $3, false)`,
-            [chatId, req.userId, `📝 Статья отправлена на модерацию:\n\n📌 Название: ${article.title}\n\n📄 Содержание:\n${article.content.substring(0, 500)}${article.content.length > 500 ? '...' : ''}\n\n🔗 ID статьи: ${article.id}`]
-          );
-
-          console.log('📨 Уведомление администратору отправлено');
-        }
-      } catch (notificationError) {
-        console.error('Ошибка отправки уведомления администратору:', notificationError);
-        // Не прерываем публикацию из-за ошибки уведомления
-      }
+      console.log('✅ Статья опубликована без модерации:', updatedArticle.id);
 
       res.json({
         ...updatedArticle,
-        message: 'Статья отправлена на модерацию. В ближайшее время вы получите ответ в чате.'
+        message: 'Статья опубликована.'
       });
     } catch (error) {
       console.error('Ошибка публикации статьи:', error);

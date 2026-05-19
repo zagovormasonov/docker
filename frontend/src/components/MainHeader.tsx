@@ -45,7 +45,7 @@ const MainHeader = () => {
             Мастера
           </Link>
           <Link className={`ss-nl ${location.pathname.startsWith('/events') ? 'ss-active' : ''}`} to="/events">
-            Практики
+            События
           </Link>
           <Link className="ss-nl" to="/expert-landing">
             Цифровые продукты<span className="ss-ndot" />
@@ -53,6 +53,16 @@ const MainHeader = () => {
           <button type="button" className="ss-nl" onClick={() => navigate('/')}>
             Дзен
           </button>
+          {user?.userType === 'admin' && (
+            <>
+              <Link className={`ss-nl ${location.pathname.startsWith('/moderation') ? 'ss-active' : ''}`} to="/moderation">
+                Модерация
+              </Link>
+              <Link className={`ss-nl ${location.pathname.startsWith('/admin-panel') ? 'ss-active' : ''}`} to="/admin-panel">
+                Админ панель
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="ss-nav-right">
@@ -128,7 +138,7 @@ const MainHeader = () => {
                   Мастера
                 </Link>
                 <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/events') ? 'ss-mobile-nav-link--active' : ''}`} to="/events" onClick={close}>
-                  Практики
+                  События
                 </Link>
                 <Link className="ss-mobile-nav-link" to="/expert-landing" onClick={close}>
                   Цифровые продукты
@@ -138,6 +148,16 @@ const MainHeader = () => {
               <div className="ss-mobile-divider" />
 
               <nav className="ss-mobile-nav">
+                {token && user?.userType === 'admin' && (
+                  <>
+                    <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/moderation') ? 'ss-mobile-nav-link--active' : ''}`} to="/moderation" onClick={close}>
+                      Модерация
+                    </Link>
+                    <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/admin-panel') ? 'ss-mobile-nav-link--active' : ''}`} to="/admin-panel" onClick={close}>
+                      Админ панель
+                    </Link>
+                  </>
+                )}
                 {token && isExpertOrAdmin && (
                   <Link className="ss-mobile-nav-link ss-mobile-nav-link--cabinet" to={cabinetHref} onClick={close}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
