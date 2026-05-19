@@ -6,7 +6,7 @@ import './MainHeader.css';
 const MainHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isExpertOrAdmin = user?.userType === 'expert' || user?.userType === 'admin';
@@ -100,6 +100,22 @@ const MainHeader = () => {
             {user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : null}
           </Link>
 
+          {token && (
+            <button
+              type="button"
+              className="ss-nl ss-logout-btn"
+              onClick={logout}
+              aria-label="Выйти"
+              title="Выйти"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                <path d="M10.5 11L13.5 8l-3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M13.5 8H6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
+
           {/* Гамбургер — только на маленьких экранах */}
           <button
             type="button"
@@ -178,6 +194,15 @@ const MainHeader = () => {
                   <Link className="ss-mobile-nav-link" to="/chats" onClick={close}>
                     Чаты
                   </Link>
+                )}
+                {token && (
+                  <button
+                    type="button"
+                    className="ss-mobile-nav-link ss-mobile-nav-link--logout"
+                    onClick={() => { logout(); close(); }}
+                  >
+                    Выйти
+                  </button>
                 )}
                 {!token && (
                   <>

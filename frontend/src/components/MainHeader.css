@@ -407,3 +407,36 @@
   background: var(--ss-accent-text);
   color: #fff;
 }
+
+.ss-mobile-nav-link--logout {
+  color: #e53935;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.ss-mobile-nav-link--logout:hover {
+  background: #ffeaea;
+  color: #c62828;
+}
+
+.ss-logout-btn {
+  opacity: 0.6;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.ss-logout-btn:hover {
+  opacity: 1;
+  color: #e53935;
+}
