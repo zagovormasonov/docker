@@ -119,56 +119,58 @@ const MainHeader = () => {
               </button>
             </div>
 
-            <nav className="ss-mobile-nav">
-              <Link className={`ss-mobile-nav-link ${location.pathname === '/' ? 'ss-mobile-nav-link--active' : ''}`} to="/" onClick={close}>
-                Главная
-              </Link>
-              <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/experts') ? 'ss-mobile-nav-link--active' : ''}`} to="/experts" onClick={close}>
-                Мастера
-              </Link>
-              <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/events') ? 'ss-mobile-nav-link--active' : ''}`} to="/events" onClick={close}>
-                Практики
-              </Link>
-              <Link className="ss-mobile-nav-link" to="/expert-landing" onClick={close}>
-                Цифровые продукты
-              </Link>
-            </nav>
+            <div className="ss-mobile-sheet-body">
+              <nav className="ss-mobile-nav">
+                <Link className={`ss-mobile-nav-link ${location.pathname === '/' ? 'ss-mobile-nav-link--active' : ''}`} to="/" onClick={close}>
+                  Главная
+                </Link>
+                <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/experts') ? 'ss-mobile-nav-link--active' : ''}`} to="/experts" onClick={close}>
+                  Мастера
+                </Link>
+                <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/events') ? 'ss-mobile-nav-link--active' : ''}`} to="/events" onClick={close}>
+                  Практики
+                </Link>
+                <Link className="ss-mobile-nav-link" to="/expert-landing" onClick={close}>
+                  Цифровые продукты
+                </Link>
+              </nav>
 
-            <div className="ss-mobile-divider" />
+              <div className="ss-mobile-divider" />
 
-            <nav className="ss-mobile-nav">
-              {token && isExpertOrAdmin && (
-                <Link className="ss-mobile-nav-link ss-mobile-nav-link--cabinet" to={cabinetHref} onClick={close}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                    <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-                    <rect x="9" y="1.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-                    <rect x="1.5" y="9" width="5.5" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-                    <rect x="9" y="9" width="5.5" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-                  </svg>
-                  Кабинет мастера
-                </Link>
-              )}
-              {token && (
-                <Link className="ss-mobile-nav-link" to={profileHref} onClick={close}>
-                  Мой профиль
-                </Link>
-              )}
-              {token && (
-                <Link className="ss-mobile-nav-link" to="/chats" onClick={close}>
-                  Чаты
-                </Link>
-              )}
-              {!token && (
-                <>
-                  <Link className="ss-mobile-nav-link" to="/login" onClick={close}>
-                    Войти
+              <nav className="ss-mobile-nav">
+                {token && isExpertOrAdmin && (
+                  <Link className="ss-mobile-nav-link ss-mobile-nav-link--cabinet" to={cabinetHref} onClick={close}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+                      <rect x="9" y="1.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+                      <rect x="1.5" y="9" width="5.5" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+                      <rect x="9" y="9" width="5.5" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+                    </svg>
+                    Кабинет мастера
                   </Link>
-                  <Link className="ss-mobile-nav-link ss-mobile-nav-link--cabinet" to="/register" onClick={close}>
-                    Регистрация
+                )}
+                {token && (
+                  <Link className="ss-mobile-nav-link" to={profileHref} onClick={close}>
+                    Мой профиль
                   </Link>
-                </>
-              )}
-            </nav>
+                )}
+                {token && (
+                  <Link className="ss-mobile-nav-link" to="/chats" onClick={close}>
+                    Чаты
+                  </Link>
+                )}
+                {!token && (
+                  <>
+                    <Link className="ss-mobile-nav-link" to="/login" onClick={close}>
+                      Войти
+                    </Link>
+                    <Link className="ss-mobile-nav-link ss-mobile-nav-link--cabinet" to="/register" onClick={close}>
+                      Регистрация
+                    </Link>
+                  </>
+                )}
+              </nav>
+            </div>
           </div>
         </div>
       )}
