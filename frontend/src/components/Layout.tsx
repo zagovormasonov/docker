@@ -9,10 +9,6 @@ const Layout = () => {
   const isChatsRoute = location.pathname.startsWith('/chats');
   const HEADER_HEIGHT = 64;
 
-  if (location.pathname.startsWith('/expert-dashboard')) {
-    return <Outlet />;
-  }
-
   return (
     <AntLayout style={{ minHeight: '100vh', background: '#fafafa' }}>
       <MainHeader />

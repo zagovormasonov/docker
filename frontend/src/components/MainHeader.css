@@ -205,6 +205,10 @@
     padding-left: 12px;
   }
 
+  .ss-logout-btn {
+    display: none;
+  }
+
   .ss-ibt {
     width: 28px;
     height: 28px;
