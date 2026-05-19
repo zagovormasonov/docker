@@ -844,6 +844,32 @@ const ExpertDashboardPage: React.FC = () => {
         </div>
       </nav>
 
+      {/* Горизонтальное меню панелей — видно только на мобильных (≤800px) вместо скрытого сайдбара */}
+      <div className="ec-mobile-tabs">
+        <button type="button" className={`ec-mobile-tab ${panel === 'dashboard' ? 'ec-active' : ''}`} onClick={() => setPanel('dashboard')}>
+          <IconGrid /> Обзор
+        </button>
+        <button type="button" className={`ec-mobile-tab ${panel === 'profile' ? 'ec-active' : ''}`} onClick={() => setPanel('profile')}>
+          <IconUser /> Профиль
+        </button>
+        <button type="button" className={`ec-mobile-tab ${panel === 'calendar' ? 'ec-active' : ''}`} onClick={() => setPanel('calendar')}>
+          <IconCal /> Календарь
+          {incomingCount > 0 && <span className="ec-cm-badge">{incomingCount}</span>}
+        </button>
+        <button type="button" className={`ec-mobile-tab ${panel === 'clients' ? 'ec-active' : ''}`} onClick={() => setPanel('clients')}>
+          <IconClients /> Клиенты
+        </button>
+        <button type="button" className={`ec-mobile-tab ${panel === 'services' ? 'ec-active' : ''}`} onClick={() => setPanel('services')}>
+          <IconStar /> Услуги
+        </button>
+        <button type="button" className={`ec-mobile-tab ${panel === 'products' ? 'ec-active' : ''}`} onClick={() => setPanel('products')}>
+          <IconBox /> Продукты
+        </button>
+        <button type="button" className={`ec-mobile-tab ${panel === 'income' ? 'ec-active' : ''}`} onClick={() => setPanel('income')}>
+          <IconIncome /> Доход
+        </button>
+      </div>
+
       <div className="ec-layout">
         <aside className="ec-side">
           <div className="ec-profile-mini">

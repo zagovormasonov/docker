@@ -1860,7 +1860,7 @@
 
   .expert-cab-v2 .ec-planner-week-strip {
     position: sticky;
-    top: 56px;
+    top: 111px; /* nav 56px + mobile-tabs ≈55px */
     z-index: 5;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -1978,7 +1978,8 @@
   }
 
   .expert-cab-v2 .ec-planner-week-strip {
-    top: 52px;
+    /* nav 56px + mobile-tabs ≈55px */
+    top: 111px;
     padding-inline: 8px;
   }
 
@@ -2002,5 +2003,154 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+}
+
+/* ═══ Мобильная шапка кабинета ════════════════════════════════════ */
+@media (max-width: 768px) {
+  .expert-cab-v2 .ec-nav {
+    padding: 0 12px;
+  }
+  .expert-cab-v2 .ec-nav-links {
+    display: none;
+  }
+  .expert-cab-v2 .ec-nav-logo {
+    margin-right: 0;
+    flex-shrink: 0;
+  }
+  .expert-cab-v2 .ec-cab-active {
+    display: none;
+  }
+  /* показываем только chat-icon + avatar */
+  .expert-cab-v2 .ec-nav-right {
+    gap: 6px;
+  }
+}
+
+/* ═══ Мобильные вкладки панелей (замена боковой панели) ═══════════ */
+.expert-cab-v2 .ec-mobile-tabs {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .expert-cab-v2 .ec-mobile-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 10px 14px;
+    background: var(--ec-bgc);
+    border-bottom: 1px solid var(--ec-bd);
+    position: sticky;
+    top: 56px;
+    z-index: 50;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .expert-cab-v2 .ec-mobile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  /* sticky-полоса недели учитывает высоту вкладок */
+  .expert-cab-v2 .ec-planner-week-strip {
+    top: 111px;
+  }
+}
+
+.expert-cab-v2 .ec-mobile-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--ec-bd);
+  background: var(--ec-bgs);
+  color: var(--ec-t2);
+  font-size: 12px;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1.4;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.expert-cab-v2 .ec-mobile-tab.ec-active {
+  background: var(--ec-acp);
+  border-color: var(--ec-acc);
+  color: var(--ec-act);
+  font-weight: 600;
+}
+
+.expert-cab-v2 .ec-mobile-tab .ec-cm-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+}
+
+.expert-cab-v2 .ec-mobile-tab.ec-active .ec-cm-icon {
+  opacity: 1;
+}
+
+/* Значок в мобильной вкладке */
+.expert-cab-v2 .ec-mobile-tab .ec-cm-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--ec-acc);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 100px;
+}
+
+/* ═══ Защита от горизонтального переполнения на малых экранах ════ */
+@media (max-width: 480px) {
+  .expert-cab-v2 .ec-main {
+    padding: 14px 10px 20px;
+  }
+
+  .expert-cab-v2 .ec-sc {
+    padding: 12px;
+  }
+
+  .expert-cab-v2 .ec-sc-val {
+    font-size: 20px;
+  }
+
+  /* Слоты в мини-календаре на дашборде */
+  .expert-cab-v2 .ec-slot {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .expert-cab-v2 .ec-slot-time {
+    min-width: auto;
+  }
+
+  .expert-cab-v2 .ec-slot-status {
+    margin-left: 0;
+  }
+
+  .expert-cab-v2 .ec-cal-cell {
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  /* Плановые блоки */
+  .expert-cab-v2 .ec-planner-block-title {
+    font-size: 11px;
+  }
+
+  /* Строки клиентов */
+  .expert-cab-v2 .ec-client-item,
+  .expert-cab-v2 .ec-svc-item {
+    padding: 10px 12px;
+  }
+
+  /* Заголовок секции карточки */
+  .expert-cab-v2 .ec-cc-hdr {
+    padding: 12px;
+  }
+
+  /* Плановая временная сетка */
+  .expert-cab-v2 .ec-planner-grid-card {
+    padding: 8px 6px 12px;
   }
 }
