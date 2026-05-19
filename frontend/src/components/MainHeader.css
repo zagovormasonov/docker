@@ -296,8 +296,9 @@
   background: #fff;
   border-radius: 20px 20px 0 0;
   animation: ss-sheet-in 0.22s ease;
-  /* Занимаем до 92% высоты экрана, контент прокручивается внутри */
-  max-height: 92vh;
+  /* 92% от оверлея (position:fixed inset:0) = реальная видимая область.
+     Избегаем vh, т.к. на iOS Safari vh считается без учёта строки браузера. */
+  max-height: 92%;
   display: flex;
   flex-direction: column;
 }

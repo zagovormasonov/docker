@@ -1859,30 +1859,18 @@
   }
 
   .expert-cab-v2 .ec-planner-week-strip {
-    position: sticky;
-    top: 111px; /* nav 56px + mobile-tabs ≈55px */
-    z-index: 5;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    gap: 6px;
+    gap: 4px;
     padding: 8px 10px;
-    /* убираем отрицательный margin, который вызывал выход за экран */
     margin: 0;
     width: 100%;
     box-sizing: border-box;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .expert-cab-v2 .ec-planner-week-strip::-webkit-scrollbar {
-    display: none;
   }
 
   .expert-cab-v2 .ec-planner-wd {
-    flex: 0 0 46px;
-    min-width: 46px;
-    padding: 8px 2px 10px;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 7px 2px 9px;
   }
 
   .expert-cab-v2 .ec-planner-wd-num {
@@ -1981,14 +1969,10 @@
   }
 
   .expert-cab-v2 .ec-planner-week-strip {
-    /* nav 56px + mobile-tabs ≈55px */
-    top: 111px;
     padding-inline: 8px;
   }
 
   .expert-cab-v2 .ec-planner-wd {
-    flex-basis: 54px;
-    min-width: 54px;
     border-radius: 14px;
   }
 
@@ -2052,18 +2036,12 @@
   .expert-cab-v2 .ec-mobile-tabs::-webkit-scrollbar {
     display: none;
   }
-  /* sticky-полоса недели учитывает высоту вкладок */
-  .expert-cab-v2 .ec-planner-week-strip {
-    top: 111px;
-  }
-  /* Предотвращаем горизонтальное переполнение полотна календаря.
-     overflow-x: clip — обрезает контент как hidden, но НЕ создаёт
-     scroll-контейнер и не ломает position: sticky у дочерних элементов. */
+  /* Предотвращаем горизонтальное переполнение полотна календаря */
   .expert-cab-v2 .ec-main {
-    overflow-x: clip;
+    overflow-x: hidden;
   }
   .expert-cab-v2 .ec-planner-main {
-    overflow-x: clip;
+    overflow-x: hidden;
     min-width: 0;
   }
   .expert-cab-v2 .ec-planner-grid-card {
