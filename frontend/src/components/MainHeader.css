@@ -288,17 +288,20 @@
   to   { opacity: 1; }
 }
 
+/* Sheet — position:fixed, чтобы не зависеть от родителей.
+   dvh (dynamic viewport height) учитывает строку браузера iOS Safari;
+   vh — fallback для старых браузеров. */
 .ss-mobile-sheet {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 301;
   background: #fff;
   border-radius: 20px 20px 0 0;
   animation: ss-sheet-in 0.22s ease;
-  /* 92% от оверлея (position:fixed inset:0) = реальная видимая область.
-     Избегаем vh, т.к. на iOS Safari vh считается без учёта строки браузера. */
-  max-height: 92%;
+  max-height: 85vh;
+  max-height: 85dvh;
   display: flex;
   flex-direction: column;
 }
@@ -307,7 +310,7 @@
 .ss-mobile-sheet-body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: env(safe-area-inset-bottom, 16px);
+  padding-bottom: max(env(safe-area-inset-bottom), 20px);
   flex: 1;
   min-height: 0;
 }
