@@ -195,15 +195,6 @@ const MainHeader = () => {
                     Чаты
                   </Link>
                 )}
-                {token && (
-                  <button
-                    type="button"
-                    className="ss-mobile-nav-link ss-mobile-nav-link--logout"
-                    onClick={() => { logout(); close(); }}
-                  >
-                    Выйти
-                  </button>
-                )}
                 {!token && (
                   <>
                     <Link className="ss-mobile-nav-link" to="/login" onClick={close}>

@@ -138,6 +138,7 @@ const ExpertsPage = () => {
   const [mobileSelectSearch, setMobileSelectSearch] = useState('');
   const [mobileSelectClosing, setMobileSelectClosing] = useState(false);
   const originalBodyOverflow = useRef<string | null>(null);
+  const justOpenedRef = useRef(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 900);
@@ -319,12 +320,15 @@ const ExpertsPage = () => {
   const sortLabel = sortBy === 'name' ? 'По имени' : 'По новизне';
 
   const openMobileSelect = (type: MobileSelectType) => {
+    justOpenedRef.current = true;
     setMobileSelectClosing(false);
     setMobileSelectSearch('');
     setMobileSelectType(type);
+    window.setTimeout(() => { justOpenedRef.current = false; }, 350);
   };
 
   const closeMobileSelect = () => {
+    if (justOpenedRef.current) return;
     setMobileSelectClosing(true);
     window.setTimeout(() => {
       setMobileSelectType(null);
