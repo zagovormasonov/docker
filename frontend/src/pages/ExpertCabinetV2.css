@@ -2053,6 +2053,21 @@
   .expert-cab-v2 .ec-planner-week-strip {
     top: 111px;
   }
+  /* Предотвращаем горизонтальное переполнение полотна календаря */
+  .expert-cab-v2 .ec-main {
+    overflow-x: hidden;
+  }
+  .expert-cab-v2 .ec-planner-grid-card {
+    overflow: hidden;
+  }
+  .expert-cab-v2 .ec-planner-timeline {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .expert-cab-v2 .ec-planner-track {
+    min-width: 0;
+    overflow: hidden;
+  }
 }
 
 .expert-cab-v2 .ec-mobile-tab {
