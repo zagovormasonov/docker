@@ -7,8 +7,11 @@ const { Content, Footer } = AntLayout;
 const Layout = () => {
   const location = useLocation();
   const isChatsRoute = location.pathname.startsWith('/chats');
-  const isHomeRoute = location.pathname === '/' || location.pathname === '';
   const HEADER_HEIGHT = 64;
+
+  if (location.pathname.startsWith('/expert-dashboard')) {
+    return <Outlet />;
+  }
 
   return (
     <AntLayout style={{ minHeight: '100vh', background: '#fafafa' }}>

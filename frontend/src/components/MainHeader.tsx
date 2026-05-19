@@ -7,8 +7,10 @@ const MainHeader = () => {
   const location = useLocation();
   const { user, token } = useAuth();
 
-  const cabinetLabel = user?.userType === 'expert' || user?.userType === 'admin' ? 'Кабинет мастера' : 'Личный кабинет';
-  const cabinetHref = user?.slug ? `/${user.userType}/${user.slug}` : '/login';
+  const isExpertOrAdmin = user?.userType === 'expert' || user?.userType === 'admin';
+  const cabinetLabel = isExpertOrAdmin ? 'Кабинет мастера' : 'Личный кабинет';
+  const cabinetHref = token ? (isExpertOrAdmin ? '/expert-dashboard' : '/profile') : '/login';
+  const profileHref = token ? (isExpertOrAdmin && user?.id ? `/experts/${user.id}` : '/profile') : '/login';
 
   return (
     <nav className="ss-nav">
@@ -63,7 +65,7 @@ const MainHeader = () => {
           </Link>
         ) : null}
 
-        <Link className="ss-ibt" to={token ? '/profile' : '/login'} aria-label="Профиль">
+        <Link className="ss-ibt" to={profileHref} aria-label="Профиль">
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
             <path
               d="M7.5 1.5C5.3 1.5 3.5 3.3 3.5 5.5V9L2 10.5h11L11.5 9V5.5C11.5 3.3 9.7 1.5 7.5 1.5Z"
@@ -75,11 +77,11 @@ const MainHeader = () => {
           </svg>
         </Link>
 
-        <Link className="ss-cab-btn" to={token ? cabinetHref : '/login'}>
+        <Link className="ss-cab-btn" to={cabinetHref}>
           {cabinetLabel}
         </Link>
 
-        <Link to={token ? cabinetHref : '/login'} className="ss-ava" aria-label="Профиль">
+        <Link to={profileHref} className="ss-ava" aria-label="Профиль">
           {user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : null}
         </Link>
       </div>
