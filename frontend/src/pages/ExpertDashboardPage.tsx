@@ -125,7 +125,7 @@ function IconIncome() {
 }
 
 const ExpertDashboardPage: React.FC = () => {
-  const { user, loading: authLoading, token } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [panel, setPanel] = useState<Panel>('dashboard');
@@ -802,48 +802,6 @@ const ExpertDashboardPage: React.FC = () => {
 
   return (
     <div className="expert-cab-v2">
-      <nav className="ec-nav">
-        <Link className="ec-nav-logo" to="/">
-          <div className="ec-logo-mark">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-              <path d="M7 1.5C7 1.5 4.5 4.2 4.5 7C4.5 8.38 5.62 9.5 7 9.5C8.38 9.5 9.5 8.38 9.5 7C9.5 4.2 7 1.5 7 1.5Z" fill="white" opacity=".9" />
-              <path d="M7 9.5C7 9.5 9.8 8.7 11.5 7C10.2 10.8 7 12.5 7 12.5C7 12.5 3.8 10.8 2.5 7C4.2 8.7 7 9.5 7 9.5Z" fill="white" opacity=".55" />
-            </svg>
-          </div>
-          SoulSynergy
-        </Link>
-        <div className="ec-nav-links">
-          <Link className="ec-nl" to="/">
-            Главная
-          </Link>
-          <Link className="ec-nl" to="/experts">
-            Мастера
-          </Link>
-          <Link className="ec-nl" to="/events">
-            События
-          </Link>
-          <Link className="ec-nl" to="/expert-landing">
-            Цифровые продукты
-          </Link>
-          <Link className="ec-nl" to="/">
-            Дзен
-          </Link>
-        </div>
-        <div className="ec-nav-right">
-          {token ? (
-            <Link className="ec-ibt" to="/chats">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
-                <path d="M7.5 1.5C5.3 1.5 3.5 3.3 3.5 5.5V9L2 10.5h11L11.5 9V5.5C11.5 3.3 9.7 1.5 7.5 1.5Z" stroke="currentColor" strokeWidth=".9" fill="none" />
-              </svg>
-            </Link>
-          ) : null}
-          <span className="ec-cab-active">Кабинет мастера</span>
-          <Link to="/profile" className="ec-ava-nav">
-            {user.avatarUrl ? <img src={user.avatarUrl} alt="" /> : '★'}
-          </Link>
-        </div>
-      </nav>
-
       {/* Горизонтальное меню панелей — видно только на мобильных (≤800px) вместо скрытого сайдбара */}
       <div className="ec-mobile-tabs">
         <button type="button" className={`ec-mobile-tab ${panel === 'dashboard' ? 'ec-active' : ''}`} onClick={() => setPanel('dashboard')}>

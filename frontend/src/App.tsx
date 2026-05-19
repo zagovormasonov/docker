@@ -5,6 +5,7 @@ import ruRU from 'antd/locale/ru_RU';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import Layout from './components/Layout';
+import PageLoader from './components/PageLoader';
 import './App.css';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -44,7 +45,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, loading } = useAuth();
 
   if (loading) {
-    return <div>Загрузка...</div>;
+    return <PageLoader />;
   }
 
   return token ? <>{children}</> : <Navigate to="/login" />;
@@ -66,7 +67,7 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <BrowserRouter>
-            <Suspense fallback={<div className="app-route-loading">Загрузка...</div>}>
+            <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
