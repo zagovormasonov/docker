@@ -304,6 +304,8 @@
   overflow: hidden;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
 }
 
 .ss-mstr .mc:hover {
@@ -373,6 +375,9 @@
 
 .ss-mstr .mc-body {
   padding: 0 14px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .ss-mstr .mc-ava-wrap {
@@ -480,6 +485,7 @@
   gap: 12px;
   padding-top: 10px;
   border-top: 1px solid var(--ssm-bd);
+  margin-top: auto;
 }
 
 .ss-mstr .mc-stats {

@@ -516,6 +516,8 @@
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
   text-align: left;
+  display: flex;
+  flex-direction: column;
 }
 
 .home-v2 .ss-card:hover {
@@ -573,6 +575,7 @@
 
 .home-v2 .ss-c-body {
   padding: 13px 15px;
+  flex: 1;
 }
 
 .home-v2 .ss-card.ss-feat .ss-c-body {
