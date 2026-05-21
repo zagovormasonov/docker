@@ -47,7 +47,7 @@ const MainHeader = () => {
           <Link className={`ss-nl ${location.pathname.startsWith('/events') ? 'ss-active' : ''}`} to="/events">
             События
           </Link>
-          <Link className="ss-nl" to="/expert-landing">
+          <Link className={`ss-nl ${location.pathname.startsWith('/products') ? 'ss-active' : ''}`} to="/products">
             Цифровые продукты<span className="ss-ndot" />
           </Link>
           <button type="button" className="ss-nl" onClick={() => navigate('/')}>
@@ -156,7 +156,7 @@ const MainHeader = () => {
                 <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/events') ? 'ss-mobile-nav-link--active' : ''}`} to="/events" onClick={close}>
                   События
                 </Link>
-                <Link className="ss-mobile-nav-link" to="/expert-landing" onClick={close}>
+                <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/products') ? 'ss-mobile-nav-link--active' : ''}`} to="/products" onClick={close}>
                   Цифровые продукты
                 </Link>
               </nav>

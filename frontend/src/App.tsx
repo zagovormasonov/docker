@@ -40,6 +40,7 @@ const ExpertLandingPage = lazy(() => import('./pages/ExpertLandingPage'));
 const MyBookingsPage = lazy(() => import('./pages/MyBookingsPage'));
 const ExpertDashboardPage = lazy(() => import('./pages/ExpertDashboardPage'));
 const LoyaltyPage = lazy(() => import('./pages/LoyaltyPage'));
+const DigitalProductsPage = lazy(() => import('./pages/DigitalProductsPage'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, loading } = useAuth();
@@ -109,6 +110,7 @@ function App() {
                   <Route path="become-expert" element={<BecomeExpertPage />} />
                   <Route path="loyalty" element={<LoyaltyPage />} />
                   <Route path="payment-success" element={<PaymentSuccessPage />} />
+                  <Route path="products" element={<DigitalProductsPage />} />
                 </Route>
               </Routes>
             </Suspense>

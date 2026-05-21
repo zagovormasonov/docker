@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSynergy — Цифровые продукты</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F7F6FF;--bgc:#fff;--bgs:#F0EFFE;
+  --acc:#7B6FD4;--acs:#C9C4F0;--acp:#EAE8FB;--act:#4A3FA8;--acd:#362E8A;
+  --tel:#2BA882;--tell:#E2F7F0;--telt:#0D6B50;
+  --amb:#C07A18;--ambl:#FDF2E0;--ambt:#7A4A08;
+  --t1:#2D2A4A;--t2:#6B6890;--t3:#A8A5C4;
+  --bd:rgba(123,111,212,.14);
+  --rsm:6px;--rmd:10px;--rlg:14px;--rxl:18px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:14px;}
+.nav{display:flex;align-items:center;padding:0 28px;height:56px;background:var(--bgc);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100;}
+.nav-logo{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600;color:var(--acd);text-decoration:none;margin-right:32px;}
+.logo-mark{width:30px;height:30px;background:var(--acc);border-radius:9px;display:flex;align-items:center;justify-content:center;}
+.nav-links{display:flex;gap:2px;flex:1;overflow-x:auto;}
+.nl{padding:6px 12px;font-size:13px;color:var(--t2);border-radius:var(--rmd);cursor:pointer;white-space:nowrap;text-decoration:none;transition:background .12s;}
+.nl:hover,.nl.active{background:var(--acp);color:var(--act);}
+.nl.active{font-weight:500;}
+.ndot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--acc);vertical-align:super;margin-left:2px;}
+.nav-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.ibt{width:32px;height:32px;border:1px solid var(--bd);border-radius:var(--rmd);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);}
+.ibt:hover{background:var(--acp);}
+.cab-btn{padding:8px 16px;font-size:13px;font-weight:500;background:var(--acc);color:#fff;border:none;border-radius:var(--rmd);cursor:pointer;}
+.cab-btn:hover{background:var(--act);}
+.ava{width:30px;height:30px;border-radius:50%;background:var(--acp);border:1.5px solid var(--acs);}
+
+.hero-strip{background:var(--bgc);border-bottom:1px solid var(--bd);padding:32px 28px 0;}
+.hs-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--act);background:var(--acp);border:1px solid var(--acs);padding:3px 12px;border-radius:100px;margin-bottom:14px;}
+.hs-h{font-size:26px;font-weight:600;color:var(--t1);letter-spacing:-.02em;margin-bottom:6px;}
+.hs-h em{color:var(--acc);font-style:normal;}
+.hs-sub{font-size:13px;color:var(--t2);max-width:500px;line-height:1.65;margin-bottom:24px;}
+.hs-stats{display:flex;gap:28px;margin-bottom:20px;}
+.hss{text-align:center;}
+.hss-n{font-size:22px;font-weight:600;color:var(--acc);}
+.hss-l{font-size:10px;color:var(--t3);margin-top:1px;}
+.fmt-tabs{display:flex;gap:0;}
+.fmtab{padding:10px 18px;font-size:13px;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .12s;}
+.fmtab:hover{color:var(--t1);}
+.fmtab.on{color:var(--act);font-weight:500;border-bottom-color:var(--acc);}
+
+.filter-bar{background:var(--bgc);border-bottom:1px solid var(--bd);padding:12px 28px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.fb-label{font-size:11px;color:var(--t3);font-weight:500;margin-right:2px;}
+.pill{padding:5px 13px;border-radius:100px;font-size:12px;font-weight:500;border:1px solid var(--bd);background:var(--bgc);color:var(--t2);cursor:pointer;transition:all .13s;white-space:nowrap;}
+.pill:hover{border-color:var(--acc);color:var(--act);}
+.pill.on{background:var(--acp);border-color:var(--acc);color:var(--act);}
+.pill.on-t{background:var(--tell);border-color:var(--tel);color:var(--telt);}
+.divider{width:1px;height:20px;background:var(--bd);margin:0 4px;}
+
+.layout{display:grid;grid-template-columns:1fr 290px;gap:0;max-width:1180px;margin:0 auto;}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}}
+.main{padding:20px 16px 20px 28px;}
+.sort-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cnt{font-size:12px;color:var(--t3);}
+.sort-sel{font-size:12px;color:var(--t2);border:1px solid var(--bd);border-radius:var(--rsm);padding:5px 10px;background:var(--bgc);outline:none;cursor:pointer;}
+
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+@media(max-width:700px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+.pc{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rlg);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.pc:hover{border-color:var(--acs);box-shadow:0 4px 16px rgba(123,111,212,.1);}
+.pc.dimmed{opacity:.18;pointer-events:none;}
+.pc.feat{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;}
+.pc-thumb{height:110px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;}
+.pc.feat .pc-thumb{height:100%;min-height:140px;}
+.format-badge{position:absolute;bottom:8px;left:8px;display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:10px;font-weight:500;background:var(--bgc);border:1px solid var(--bd);}
+.new-dot{position:absolute;top:8px;right:8px;background:var(--acc);color:#fff;font-size:9px;font-weight:600;padding:2px 7px;border-radius:100px;}
+.pc-body{padding:12px 14px;}
+.pc.feat .pc-body{padding:20px 18px;display:flex;flex-direction:column;justify-content:center;}
+.cat-tag{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:100px;font-weight:500;margin-bottom:6px;}
+.tp{background:var(--acp);color:var(--act);}
+.tt{background:var(--tell);color:var(--telt);}
+.ta{background:var(--ambl);color:var(--ambt);}
+.pc-title{font-size:13px;font-weight:600;color:var(--t1);line-height:1.42;margin-bottom:4px;}
+.pc.feat .pc-title{font-size:17px;margin-bottom:8px;}
+.pc-desc{font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:10px;}
+.pc-meta{font-size:11px;color:var(--t3);display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.avxs{width:16px;height:16px;border-radius:50%;background:var(--acp);display:inline-block;border:1px solid var(--acs);}
+.pc-foot{padding:10px 14px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--bg);}
+.pc-price{font-size:14px;font-weight:700;color:var(--t1);}
+.pc-price.free{color:var(--telt);}
+.open-btn{padding:7px 14px;background:var(--acc);color:#fff;border:none;border-radius:var(--rsm);font-size:12px;font-weight:500;cursor:pointer;}
+.open-btn:hover{background:var(--act);}
+.open-btn.teal{background:var(--tel);}
+.open-btn.teal:hover{background:var(--telt);}
+.more-btn{display:block;width:100%;margin-top:14px;padding:11px;text-align:center;font-size:13px;color:var(--t2);background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rlg);cursor:pointer;}
+.more-btn:hover{border-color:var(--acs);color:var(--act);}
+
+.sidebar{border-left:1px solid var(--bd);padding:20px;background:var(--bgc);}
+.side-sec{margin-bottom:22px;}
+.side-h{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;}
+.prev-panel{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rlg);overflow:hidden;}
+.pp-thumb{height:90px;display:flex;align-items:center;justify-content:center;font-size:40px;}
+.pp-body{padding:12px 14px;}
+.pp-cat{font-size:10px;font-weight:500;margin-bottom:6px;display:inline-flex;padding:2px 7px;border-radius:100px;}
+.pp-title{font-size:14px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:6px;}
+.pp-desc{font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:10px;}
+.pp-modules{background:var(--bgs);border-radius:var(--rmd);padding:8px 10px;margin-bottom:10px;}
+.ppm-title{font-size:10px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+.ppm-item{font-size:11px;color:var(--t1);padding:3px 0;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:5px;}
+.ppm-item:last-child{border-bottom:none;}
+.ppm-dot{width:5px;height:5px;border-radius:50%;background:var(--acc);flex-shrink:0;}
+.pp-price-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.pp-price{font-size:20px;font-weight:700;color:var(--t1);}
+.pp-old{font-size:12px;color:var(--t3);text-decoration:line-through;margin-left:6px;}
+.buy-btn{display:block;width:100%;padding:11px;text-align:center;background:var(--acc);color:#fff;border:none;border-radius:var(--rmd);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:6px;}
+.buy-btn:hover{background:var(--act);}
+.wish-btn{display:block;width:100%;padding:11px;text-align:center;background:var(--acp);color:var(--act);border:none;border-radius:var(--rmd);font-size:13px;font-weight:500;cursor:pointer;}
+.wish-btn:hover{background:var(--acc);color:#fff;}
+.ta-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd);cursor:pointer;}
+.ta-item:last-child{border-bottom:none;}
+.ta-ava{width:32px;height:32px;border-radius:50%;background:var(--acp);display:flex;align-items:center;justify-content:center;font-size:15px;border:1.5px solid var(--acs);}
+.ta-name{font-size:12px;font-weight:500;color:var(--t1);}
+.ta-cnt{font-size:10px;color:var(--t3);}
+.ta-arrow{margin-left:auto;font-size:12px;color:var(--acm);}
+.promo{background:var(--acc);border-radius:var(--rlg);padding:16px;}
+.promo h4{font-size:14px;font-weight:600;color:#fff;margin-bottom:5px;}
+.promo p{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:12px;line-height:1.55;}
+.promo-btn{display:block;width:100%;padding:9px;text-align:center;background:#fff;color:var(--act);border:none;border-radius:var(--rmd);font-size:12px;font-weight:500;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="#">
+    <div class="logo-mark">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1.5C7 1.5 4.5 4.2 4.5 7C4.5 8.38 5.62 9.5 7 9.5C8.38 9.5 9.5 8.38 9.5 7C9.5 4.2 7 1.5 7 1.5Z" fill="white" opacity=".9"/>
+        <path d="M7 9.5C7 9.5 9.8 8.7 11.5 7C10.2 10.8 7 12.5 7 12.5C7 12.5 3.8 10.8 2.5 7C4.2 8.7 7 9.5 7 9.5Z" fill="white" opacity=".55"/>
+      </svg>
+    </div>
+    SoulSynergy
+  </a>
+  <div class="nav-links">
+    <a class="nl" href="#">Главная</a>
+    <a class="nl" href="#">Мастера</a>
+    <a class="nl" href="#">Практики</a>
+    <a class="nl active" href="#">Цифровые продукты</a>
+    <a class="nl" href="#">Дзен</a>
+  </div>
+  <div class="nav-right">
+    <button class="ibt"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 2.5h11v7.5H8L5.5 12.5V10H2V2.5z" stroke="currentColor" stroke-width=".9" fill="none" stroke-linejoin="round"/></svg></button>
+    <button class="ibt"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.5C5.3 1.5 3.5 3.3 3.5 5.5V9L2 10.5h11L11.5 9V5.5C11.5 3.3 9.7 1.5 7.5 1.5Z" stroke="currentColor" stroke-width=".9" fill="none"/></svg></button>
+    <button class="cab-btn">Кабинет мастера</button>
+    <div class="ava"></div>
+  </div>
+</nav>
+
+<div class="hero-strip">
+  <div class="hs-eyebrow"><svg width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3" fill="#7B6FD4"/></svg>Новый раздел платформы</div>
+  <div class="hs-h">Практики, которые работают <em>в вашем темпе</em></div>
+  <div class="hs-sub">Записи эфиров, курсы, аудио-медитации, PDF-гайды и ченнелинг-пакеты от мастеров платформы. Купил — и возвращаешься когда готов.</div>
+  <div class="hs-stats">
+    <div class="hss"><div class="hss-n" id="c1">0</div><div class="hss-l">продуктов</div></div>
+    <div class="hss"><div class="hss-n" id="c2">0</div><div class="hss-l">мастеров-авторов</div></div>
+    <div class="hss"><div class="hss-n" id="c3">0</div><div class="hss-l">покупок этой недели</div></div>
+  </div>
+  <div class="fmt-tabs">
+    <span class="fmtab on" data-fmt="all">Все форматы</span>
+    <span class="fmtab" data-fmt="audio">🎧 Аудио</span>
+    <span class="fmtab" data-fmt="video">🎬 Видео и записи</span>
+    <span class="fmtab" data-fmt="text">📄 PDF и тексты</span>
+    <span class="fmtab" data-fmt="bundle">📦 Пакеты</span>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <span class="fb-label">Тема:</span>
+  <span class="pill on" data-cat="">Все темы</span>
+  <span class="pill" data-cat="soul">Душа и путь</span>
+  <span class="pill" data-cat="money">Деньги и рост</span>
+  <span class="pill" data-cat="heal">Тело и исцеление</span>
+  <span class="pill" data-cat="chan">Ченнелинг</span>
+  <span class="pill" data-cat="med">Медитации</span>
+  <span class="pill" data-cat="rel">Отношения</span>
+  <div class="divider"></div>
+  <span class="pill" id="pill-free" data-price="free">Бесплатные</span>
+  <span class="pill" id="pill-new">Новинки</span>
+</div>
+
+<div class="layout">
+  <div class="main">
+    <div class="sort-row">
+      <span class="cnt" id="p-count">Найдено 9 продуктов</span>
+      <select class="sort-sel"><option>По популярности</option><option>Сначала новые</option><option>Дешевле</option><option>Дороже</option></select>
+    </div>
+    <div class="pgrid" id="pgrid">
+      <div class="pc feat" data-fmt="bundle" data-cat="money soul" data-new="1" data-price="16369">
+        <div class="pc-thumb" style="background:var(--acp);">🏆<span class="new-dot">Хит</span><span class="format-badge">📦 Пакет курса</span></div>
+        <div class="pc-body">
+          <span class="cat-tag tp">Деньги · Рост</span>
+          <div class="pc-title">Финансовая эволюция: MoneyMaker — полный курс</div>
+          <div class="pc-desc">3 модуля глубинной работы с деньгами, страхами масштаба и внутренними блоками.</div>
+          <div class="pc-meta"><span><span class="avxs"></span>Рахмат</span><span>3 модуля · 6 часов</span><span>⭐ 4.9</span></div>
+        </div>
+      </div>
+      <div class="pc" data-fmt="video" data-cat="soul heal" data-new="0" data-price="2500">
+        <div class="pc-thumb" style="background:var(--tell);">🎬<span class="format-badge">🎬 Запись эфира</span></div>
+        <div class="pc-body"><span class="cat-tag tt">Психология</span><div class="pc-title">Гипноз и внутренние ограничения</div><div class="pc-meta"><span><span class="avxs"></span>Дарья</span><span>2.5 часа</span></div></div>
+        <div class="pc-foot"><span class="pc-price">2 500 ₽</span><button class="open-btn teal">Открыть</button></div>
+      </div>
+      <div class="pc" data-fmt="audio" data-cat="med soul" data-new="1" data-price="1500">
+        <div class="pc-thumb" style="background:var(--acp);">🎧<span class="new-dot">Новое</span><span class="format-badge">🎧 Аудио</span></div>
+        <div class="pc-body"><span class="cat-tag tp">Медитации</span><div class="pc-title">Пакет медитаций: утренние практики</div><div class="pc-meta"><span><span class="avxs"></span>Юлия</span><span>7 треков</span></div></div>
+        <div class="pc-foot"><span class="pc-price">1 500 ₽</span><button class="open-btn">Открыть</button></div>
+      </div>
+      <div class="pc" data-fmt="text" data-cat="money" data-new="0" data-price="990">
+        <div class="pc-thumb" style="background:var(--ambl);">📄<span class="format-badge">📄 PDF-гайд</span></div>
+        <div class="pc-body"><span class="cat-tag ta">Деньги</span><div class="pc-title">9 шагов к внутренней свободе. Рабочая тетрадь</div><div class="pc-meta"><span><span class="avxs"></span>Анастасия</span><span>42 стр.</span></div></div>
+        <div class="pc-foot"><span class="pc-price">990 ₽</span><button class="open-btn">Открыть</button></div>
+      </div>
+      <div class="pc" data-fmt="audio" data-cat="chan soul" data-new="1" data-price="1200">
+        <div class="pc-thumb" style="background:var(--acp);">✨<span class="new-dot">Новое</span><span class="format-badge">🎧 Аудио</span></div>
+        <div class="pc-body"><span class="cat-tag tp">Ченнелинг</span><div class="pc-title">Послания света — апрель 2026</div><div class="pc-meta"><span><span class="avxs"></span>Диана</span><span>38 мин</span></div></div>
+        <div class="pc-foot"><span class="pc-price">1 200 ₽</span><button class="open-btn">Открыть</button></div>
+      </div>
+      <div class="pc" data-fmt="video" data-cat="money soul" data-new="0" data-price="4900">
+        <div class="pc-thumb" style="background:var(--tell);">🎬<span class="format-badge">🎬 Видеокурс</span></div>
+        <div class="pc-body"><span class="cat-tag tt">Психосоматика</span><div class="pc-title">Курс по психосоматике: тело знает</div><div class="pc-meta"><span><span class="avxs"></span>Амина</span><span>5 модулей</span></div></div>
+        <div class="pc-foot"><span class="pc-price">4 900 ₽</span><button class="open-btn teal">Открыть</button></div>
+      </div>
+      <div class="pc" data-fmt="text" data-cat="chan soul" data-new="0" data-price="1900">
+        <div class="pc-thumb" style="background:var(--acp);">🌙<span class="format-badge">📄 Гайд</span></div>
+        <div class="pc-body"><span class="cat-tag tp">Цолькин</span><div class="pc-title">Гайд Цолькин 2026: ваш код судьбы</div><div class="pc-meta"><span><span class="avxs"></span>Мадам Цолькин</span><span>68 стр.</span></div></div>
+        <div class="pc-foot"><span class="pc-price">1 900 ₽</span><button class="open-btn">Открыть</button></div>
+      </div>
+      <div class="pc" data-fmt="bundle" data-cat="heal med" data-new="0" data-price="3500">
+        <div class="pc-thumb" style="background:var(--ambl);">🏔️<span class="format-badge">📦 Пакет</span></div>
+        <div class="pc-body"><span class="cat-tag ta">Ретриты · Практики</span><div class="pc-title">Пакет: подготовка к ретриту</div><div class="pc-meta"><span><span class="avxs"></span>Юлия</span><span>3 практики + гайд</span></div></div>
+        <div class="pc-foot"><span class="pc-price">3 500 ₽</span><button class="open-btn">Открыть</button></div>
+      </div>
+      <div class="pc" data-fmt="audio" data-cat="heal" data-new="0" data-price="0">
+        <div class="pc-thumb" style="background:var(--tell);">🌿<span class="format-badge">🎧 Бесплатно</span></div>
+        <div class="pc-body"><span class="cat-tag tt">Тело и здоровье</span><div class="pc-title">Вводная медитация: сканирование тела</div><div class="pc-meta"><span><span class="avxs"></span>Роман</span><span>18 мин · демо</span></div></div>
+        <div class="pc-foot"><span class="pc-price free">Бесплатно</span><button class="open-btn teal">Слушать</button></div>
+      </div>
+    </div>
+    <button class="more-btn">Показать ещё продукты</button>
+  </div>
+
+  <aside class="sidebar">
+    <div class="side-sec">
+      <div class="side-h">Превью продукта</div>
+      <div class="prev-panel" id="prev-panel">
+        <div class="pp-thumb" style="background:var(--acp);">🏆</div>
+        <div class="pp-body">
+          <span class="pp-cat tp">Деньги · Рост</span>
+          <div class="pp-title">Финансовая эволюция: MoneyMaker</div>
+          <div class="pp-desc">3 модуля глубинной работы. Авторская методика трансформации отношений с деньгами.</div>
+          <div class="pp-modules">
+            <div class="ppm-title">Что внутри</div>
+            <div class="ppm-item"><span class="ppm-dot"></span>Модуль 1: Корни ограничений</div>
+            <div class="ppm-item"><span class="ppm-dot"></span>Модуль 2: Архитектура изобилия</div>
+            <div class="ppm-item"><span class="ppm-dot"></span>Модуль 3: Монетизация энергии</div>
+          </div>
+          <div class="pp-price-row">
+            <div><span class="pp-price">16 369 ₽</span><span class="pp-old">22 000 ₽</span></div>
+            <span style="font-size:11px;color:var(--telt);background:var(--tell);padding:3px 8px;border-radius:100px;">-25%</span>
+          </div>
+          <button class="buy-btn">Открыть практику →</button>
+          <button class="wish-btn">В избранное</button>
+        </div>
+      </div>
+    </div>
+    <div class="side-sec">
+      <div class="side-h">Авторы продуктов</div>
+      <div class="ta-item"><div class="ta-ava">🙏</div><div><div class="ta-name">Рахмат</div><div class="ta-cnt">1 продукт</div></div><span class="ta-arrow">→</span></div>
+      <div class="ta-item"><div class="ta-ava">🌸</div><div><div class="ta-name">Амина</div><div class="ta-cnt">2 продукта</div></div><span class="ta-arrow">→</span></div>
+      <div class="ta-item"><div class="ta-ava">🔮</div><div><div class="ta-name">Дарья</div><div class="ta-cnt">1 продукт</div></div><span class="ta-arrow">→</span></div>
+      <div class="ta-item"><div class="ta-ava">✨</div><div><div class="ta-name">Диана</div><div class="ta-cnt">2 продукта</div></div><span class="ta-arrow">→</span></div>
+      <div class="ta-item"><div class="ta-ava">🌿</div><div><div class="ta-name">Юлия</div><div class="ta-cnt">2 продукта</div></div><span class="ta-arrow">→</span></div>
+    </div>
+    <div class="side-sec">
+      <div class="promo">
+        <h4>Вы мастер?</h4>
+        <p>Загрузите свой курс, запись или медитацию и начните зарабатывать на платформе.</p>
+        <button class="promo-btn">Добавить продукт</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  [{id:'c1',t:87},{id:'c2',t:24},{id:'c3',t:143}].forEach(function(o){
+    var el=document.getElementById(o.id);if(!el)return;
+    var s=null,d=1200;
+    function step(ts){if(!s)s=ts;var p=Math.min((ts-s)/d,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(e*o.t);if(p<1)requestAnimationFrame(step);}
+    setTimeout(function(){requestAnimationFrame(step);},200);
+  });
+  var cards=Array.from(document.querySelectorAll('.pc'));
+  var activeFmt='all',activeCat='',showFree=false,showNew=false;
+  function applyFilter(){
+    var v=0;
+    cards.forEach(function(c){
+      var fmt=c.getAttribute('data-fmt')||'';
+      var cat=c.getAttribute('data-cat')||'';
+      var isNew=c.getAttribute('data-new')==='1';
+      var price=parseInt(c.getAttribute('data-price')||'0');
+      var ok=(activeFmt==='all'||fmt===activeFmt)&&(!activeCat||cat.indexOf(activeCat)>=0)&&(!showFree||(price===0))&&(!showNew||isNew);
+      c.classList.toggle('dimmed',!ok);
+      if(ok)v++;
+    });
+    document.getElementById('p-count').textContent='Найдено '+v+' продуктов';
+  }
+  document.querySelectorAll('.fmtab').forEach(function(t){t.addEventListener('click',function(){document.querySelectorAll('.fmtab').forEach(function(x){x.classList.remove('on');});t.classList.add('on');activeFmt=t.getAttribute('data-fmt');applyFilter();});});
+  document.querySelectorAll('.pill[data-cat]').forEach(function(p){p.addEventListener('click',function(){document.querySelectorAll('.pill[data-cat]').forEach(function(x){x.classList.remove('on');});p.classList.add('on');activeCat=p.getAttribute('data-cat');applyFilter();});});
+  document.getElementById('pill-free').addEventListener('click',function(){showFree=!showFree;this.classList.toggle('on-t',showFree);applyFilter();});
+  document.getElementById('pill-new').addEventListener('click',function(){showNew=!showNew;this.classList.toggle('on',showNew);applyFilter();});
+})();
+</script>
+</body>
+</html>
