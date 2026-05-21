@@ -421,6 +421,259 @@
   color: #4a3fa8;
 }
 
+/* ── Responsive ─────────────────────────────────────────── */
+
+/* Tablet: sidebar скрыт, выравниваем отступы */
+@media (max-width: 900px) {
+  .dp-hero {
+    padding: 24px 20px 0;
+  }
+
+  .dp-filter-bar {
+    padding: 10px 20px;
+  }
+
+  .dp-main {
+    padding: 16px 20px;
+  }
+}
+
+/* Narrow tablet / large phone */
+@media (max-width: 768px) {
+  .dp-hero {
+    padding: 20px 16px 0;
+  }
+
+  .dp-hero-h {
+    font-size: 21px;
+  }
+
+  .dp-hero-sub {
+    font-size: 12px;
+    max-width: none;
+    margin-bottom: 18px;
+  }
+
+  .dp-stats {
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+
+  .dp-stat-n {
+    font-size: 19px;
+  }
+
+  /* Табы — горизонтальная прокрутка без переноса */
+  .dp-fmt-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .dp-fmt-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dp-fmtab {
+    font-size: 12px;
+    padding: 9px 14px;
+  }
+
+  /* Фильтры — горизонтальная прокрутка */
+  .dp-filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 10px 16px;
+    gap: 6px;
+  }
+  .dp-filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dp-fb-label {
+    flex-shrink: 0;
+  }
+
+  .dp-pill {
+    flex-shrink: 0;
+    font-size: 11px;
+    padding: 4px 11px;
+  }
+
+  .dp-main {
+    padding: 14px 16px;
+  }
+
+  /* Фичерная карточка: стекируем thumb поверх body */
+  .dp-card.dp-feat {
+    grid-template-columns: 1fr;
+  }
+
+  .dp-card.dp-feat .dp-thumb {
+    height: 120px;
+    min-height: unset;
+  }
+
+  .dp-card.dp-feat .dp-card-body {
+    padding: 14px 16px;
+  }
+
+  .dp-card.dp-feat .dp-card-title {
+    font-size: 15px;
+  }
+}
+
+/* Phone */
+@media (max-width: 480px) {
+  .dp-hero {
+    padding: 16px 12px 0;
+  }
+
+  .dp-eyebrow {
+    font-size: 10px;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+  }
+
+  .dp-hero-h {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .dp-hero-sub {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .dp-stats {
+    gap: 0;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .dp-stat-n {
+    font-size: 18px;
+  }
+
+  .dp-stat-l {
+    font-size: 9px;
+  }
+
+  .dp-fmtab {
+    font-size: 11.5px;
+    padding: 8px 12px;
+  }
+
+  .dp-filter-bar {
+    padding: 8px 12px;
+    gap: 5px;
+  }
+
+  .dp-main {
+    padding: 12px 10px;
+  }
+
+  .dp-sort-row {
+    margin-bottom: 12px;
+  }
+
+  /* На маленьких экранах сетка остаётся 2 колонки, но с меньшим gap */
+  .dp-grid {
+    gap: 8px;
+  }
+
+  /* Обычные карточки: компактнее */
+  .dp-thumb {
+    height: 88px;
+    font-size: 28px;
+  }
+
+  .dp-fmt-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .dp-new-dot {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .dp-card-body {
+    padding: 9px 10px;
+  }
+
+  .dp-card-title {
+    font-size: 12px;
+  }
+
+  .dp-cat-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    margin-bottom: 4px;
+  }
+
+  .dp-card-meta {
+    font-size: 10px;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .dp-avxs {
+    width: 13px;
+    height: 13px;
+  }
+
+  .dp-card-foot {
+    padding: 7px 10px;
+  }
+
+  .dp-price {
+    font-size: 13px;
+  }
+
+  .dp-open-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  /* Фичерная карточка */
+  .dp-card.dp-feat .dp-thumb {
+    height: 100px;
+  }
+
+  .dp-card.dp-feat .dp-card-body {
+    padding: 12px;
+  }
+
+  .dp-card.dp-feat .dp-card-title {
+    font-size: 14px;
+  }
+
+  .dp-card.dp-feat .dp-card-meta {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .dp-more-btn {
+    font-size: 12px;
+    padding: 10px;
+    margin-top: 10px;
+  }
+}
+
+/* Очень маленькие экраны — 1 колонка */
+@media (max-width: 360px) {
+  .dp-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dp-thumb {
+    height: 100px;
+    font-size: 32px;
+  }
+}
+
 /* ── Sidebar ────────────────────────────────────────────── */
 .dp-sidebar {
   border-left: 1px solid rgba(123, 111, 212, 0.14);
@@ -676,4 +929,16 @@
 
 .dp-promo-btn:hover {
   opacity: 0.9;
+}
+
+/* Мобильный промо-блок — скрыт на десктопе, виден когда сайдбар исчезает */
+.dp-mobile-promo {
+  display: none;
+  margin-top: 16px;
+}
+
+@media (max-width: 900px) {
+  .dp-mobile-promo {
+    display: block;
+  }
 }

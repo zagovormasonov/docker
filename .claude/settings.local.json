@@ -3,7 +3,8 @@
     "allow": [
       "Bash(grep -E '\\\\.\\(html|vue|jsx|tsx|ts|js|php\\)$')",
       "Bash(grep -E '\\\\.\\(tsx|ts|html\\)$')",
-      "Bash(grep -E '\\\\.\\(tsx|ts\\)$')"
+      "Bash(grep -E '\\\\.\\(tsx|ts\\)$')",
+      "Bash(npx tsc *)"
     ]
   }
 }

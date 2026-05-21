@@ -415,6 +415,15 @@ const DigitalProductsPage = () => {
           </div>
 
           <button type="button" className="dp-more-btn">Показать ещё продукты</button>
+
+          {/* Мобильный промо-блок — виден только когда сайдбар скрыт */}
+          <div className="dp-mobile-promo">
+            <div className="dp-promo">
+              <h4>Вы мастер?</h4>
+              <p>Загрузите свой курс, запись или медитацию и начните зарабатывать на платформе.</p>
+              <button type="button" className="dp-promo-btn">Добавить продукт</button>
+            </div>
+          </div>
         </div>
 
         {/* Sidebar */}
