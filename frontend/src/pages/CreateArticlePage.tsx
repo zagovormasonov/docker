@@ -181,28 +181,6 @@ const CreateArticlePage = () => {
 
   return (
     <div className="ca-page">
-
-      {/* ── Top bar ── */}
-      <div className="ca-topbar">
-        <button type="button" className="ca-back-btn" onClick={() => navigate('/my-articles')}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-            <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          К моим статьям
-        </button>
-        <div className="ca-topbar-actions">
-          <button type="button" className="ca-cancel-btn" onClick={() => navigate('/my-articles')}>
-            Отмена
-          </button>
-          <button type="button" className="ca-submit-btn" onClick={handleSubmit} disabled={loading}>
-            {loading
-              ? <><span className="ca-btn-spinner" /> Сохранение...</>
-              : isEdit ? 'Сохранить изменения' : 'Создать статью'
-            }
-          </button>
-        </div>
-      </div>
-
       {/* ── Page header ── */}
       <div className="ca-hero">
         <div className="ca-eyebrow">
