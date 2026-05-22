@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { message } from 'antd';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -30,8 +30,11 @@ const CATEGORIES = [
 const CreateArticlePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const quillRef = useRef<ReactQuill>(null);
   const isEdit = !!id;
+  const publishNow = searchParams.get('publishNow') === '1';
+  const redirectTo = searchParams.get('redirectTo') || '/my-articles';
 
   const [title, setTitle]               = useState('');
   const [titleError, setTitleError]     = useState('');

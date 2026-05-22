@@ -271,7 +271,8 @@ router.post(
     }
 
     try {
-      const { title, content, coverImage } = req.body;
+      const { title, content, coverImage, publishNow } = req.body;
+      const shouldPublishNow = Boolean(publishNow);
       console.log('📝 Создание статьи (черновик):', { title, userId: req.userId });
 
       // Создаем статью как черновик (БЕЗ отправки на модерацию)
@@ -280,9 +281,9 @@ router.post(
         console.log('🔍 Создаём статью как черновик');
         result = await query(
           `INSERT INTO articles (author_id, title, content, cover_image, is_published, moderation_status)
-           VALUES ($1, $2, $3, $4, false, 'draft')
+           VALUES ($1, $2, $3, $4, $5, $6)
            RETURNING *`,
-          [req.userId, title, content, coverImage || null]
+          [req.userId, title, content, coverImage || null, shouldPublishNow, shouldPublishNow ? 'approved' : 'draft']
         );
         console.log('✅ Статья создана как черновик');
       } catch (error) {
@@ -290,9 +291,9 @@ router.post(
         console.log('⚠️ Поля модерации не найдены, создаем статью без них:', error.message);
         result = await query(
           `INSERT INTO articles (author_id, title, content, cover_image, is_published)
-           VALUES ($1, $2, $3, $4, false)
+           VALUES ($1, $2, $3, $4, $5)
            RETURNING *`,
-          [req.userId, title, content, coverImage || null]
+          [req.userId, title, content, coverImage || null, shouldPublishNow]
         );
         console.log('✅ Статья создана без полей модерации');
       }

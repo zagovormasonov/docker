@@ -53,6 +53,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return token ? <>{children}</> : <Navigate to="/login" />;
 };
 
+const ExpertRoute = ({ children }: { children: React.ReactNode }) => {
+  const { token, user, loading } = useAuth();
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+
+  return user?.userType === 'expert' || user?.userType === 'admin'
+    ? <>{children}</>
+    : <Navigate to="/" />;
+};
+
 function App() {
   return (
     <ConfigProvider
@@ -87,8 +103,8 @@ function App() {
                   <Route path="events" element={<EventsPage />} />
                   <Route path="events/filters" element={<EventsFilterPage />} />
                   <Route path="events/:id" element={<EventPage />} />
-                  <Route path="events/create" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
-                  <Route path="events/edit/:id" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
+                  <Route path="events/create" element={<ExpertRoute><CreateEventPage /></ExpertRoute>} />
+                  <Route path="events/edit/:id" element={<ExpertRoute><CreateEventPage /></ExpertRoute>} />
 
                   <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                   <Route path="favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
@@ -96,11 +112,11 @@ function App() {
                   <Route path="expert-dashboard" element={<ProtectedRoute><ExpertDashboardPage /></ProtectedRoute>} />
                   <Route path="chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
                   <Route path="chats/:chatId" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
-                  <Route path="create-article" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
-                  <Route path="edit-article/:id" element={<ProtectedRoute><CreateArticlePage /></ProtectedRoute>} />
-                  <Route path="my-articles" element={<ProtectedRoute><MyArticlesPage /></ProtectedRoute>} />
-                  <Route path="my-events" element={<ProtectedRoute><MyEventsPage /></ProtectedRoute>} />
-                  <Route path="archived-articles" element={<ProtectedRoute><ArchivedArticlesPage /></ProtectedRoute>} />
+                  <Route path="create-article" element={<ExpertRoute><CreateArticlePage /></ExpertRoute>} />
+                  <Route path="edit-article/:id" element={<ExpertRoute><CreateArticlePage /></ExpertRoute>} />
+                  <Route path="my-articles" element={<ExpertRoute><MyArticlesPage /></ExpertRoute>} />
+                  <Route path="my-events" element={<ExpertRoute><MyEventsPage /></ExpertRoute>} />
+                  <Route path="archived-articles" element={<ExpertRoute><ArchivedArticlesPage /></ExpertRoute>} />
                   <Route path="moderation" element={<ProtectedRoute><ModerationPage /></ProtectedRoute>} />
                   <Route path="admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                   <Route path="admin-logs" element={<ProtectedRoute><AdminLogsPage /></ProtectedRoute>} />
