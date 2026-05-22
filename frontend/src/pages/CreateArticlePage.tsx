@@ -1,69 +1,60 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Typography, Space, Divider, Spin, Upload, Image } from 'antd';
-import { ArrowLeftOutlined, PictureOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { message } from 'antd';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
 import api from '../api/axios';
+import './CreateArticlePage.css';
 
-const { Title, Text } = Typography;
-
-marked.setOptions({
-  breaks: true
-});
+marked.setOptions({ breaks: true });
 
 const MARKDOWN_PATTERNS = [
-  /\*\*(.*?)\*\*/,
-  /__(.*?)__/,
-  /`{1,3}[^`]+`{1,3}/,
-  /^>{1,}\s/m,
-  /^#{1,6}\s/m,
-  /^\s*[-*+]\s+/m,
-  /\[(.*?)\]\((.*?)\)/,
-  /!\[(.*?)\]\((.*?)\)/
+  /\*\*(.*?)\*\*/,/__(.*?)__/,/`{1,3}[^`]+`{1,3}/,
+  /^>{1,}\s/m,/^#{1,6}\s/m,/^\s*[-*+]\s+/m,
+  /\[(.*?)\]\((.*?)\)/,/!\[(.*?)\]\((.*?)\)/,
 ];
+const looksLikeMarkdown = (text: string) => MARKDOWN_PATTERNS.some((p) => p.test(text));
+const stripHtml = (html: string) => { const d = document.createElement('div'); d.innerHTML = html; return d.textContent || d.innerText || ''; };
 
-const looksLikeMarkdown = (text: string) => MARKDOWN_PATTERNS.some((pattern) => pattern.test(text));
-
-const stripHtml = (html: string): string => {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
-};
+const CATEGORIES = [
+  { key: 'chan',   label: 'Ченнелинг' },
+  { key: 'psych', label: 'Психология' },
+  { key: 'soul',  label: 'Духовный путь' },
+  { key: 'money', label: 'Деньги и рост' },
+  { key: 'body',  label: 'Тело и здоровье' },
+  { key: 'zolk',  label: 'Цолькин' },
+  { key: 'story', label: 'История мастера' },
+];
 
 const CreateArticlePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form] = Form.useForm();
-  const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [loadingArticle, setLoadingArticle] = useState(false);
-  const [uploadingCover, setUploadingCover] = useState(false);
-  const [coverImageUrl, setCoverImageUrl] = useState('');
   const quillRef = useRef<ReactQuill>(null);
   const isEdit = !!id;
 
-  useEffect(() => {
-    if (isEdit) {
-      fetchArticle();
-    }
-  }, [id]);
+  const [title, setTitle]               = useState('');
+  const [titleError, setTitleError]     = useState('');
+  const [content, setContent]           = useState('');
+  const [contentError, setContentError] = useState('');
+  const [category, setCategory]         = useState('');
+  const [coverUrl, setCoverUrl]         = useState('');
+  const [coverInput, setCoverInput]     = useState('');
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [loading, setLoading]           = useState(false);
+  const [loadingArticle, setLoadingArticle] = useState(false);
+
+  useEffect(() => { if (isEdit) fetchArticle(); }, [id]);
 
   const fetchArticle = async () => {
     setLoadingArticle(true);
     try {
-      const response = await api.get(`/articles/${id}`);
-      const article = response.data;
-
-      form.setFieldsValue({
-        title: article.title,
-        coverImage: article.cover_image || ''
-      });
-      setContent(article.content || '');
-      setCoverImageUrl(article.cover_image || '');
-    } catch (error) {
-      console.error('Ошибка загрузки статьи:', error);
+      const { data } = await api.get(`/articles/${id}`);
+      setTitle(data.title || '');
+      setContent(data.content || '');
+      setCoverUrl(data.cover_image || '');
+      setCoverInput(data.cover_image || '');
+    } catch {
       message.error('Ошибка загрузки статьи');
       navigate('/my-articles');
     } finally {
@@ -71,130 +62,73 @@ const CreateArticlePage = () => {
     }
   };
 
-  const onFinish = async (values: any) => {
-    if (!content.trim() || content === '<p><br></p>') {
-      message.error('Содержание статьи не может быть пустым');
-      return;
-    }
+  const validate = () => {
+    let ok = true;
+    if (!title.trim() || title.trim().length < 5) {
+      setTitleError('Минимум 5 символов'); ok = false;
+    } else if (title.trim().length > 200) {
+      setTitleError('Максимум 200 символов'); ok = false;
+    } else { setTitleError(''); }
 
+    const plain = stripHtml(content).trim();
+    if (!content.trim() || content === '<p><br></p>' || plain.length < 50) {
+      setContentError('Минимум 50 символов текста'); ok = false;
+    } else { setContentError(''); }
+    return ok;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
     setLoading(true);
     try {
-      const data = {
-        title: stripHtml(values.title),
-        content,
-        coverImage: coverImageUrl || values.coverImage || null
-      };
-
+      const data = { title: stripHtml(title), content, coverImage: coverUrl || null };
       if (isEdit) {
-        const response = await api.put(`/articles/${id}`, data);
-
-        // Показываем уведомление в зависимости от ответа сервера
-        if (response.data.message) {
-          message.success(response.data.message);
-        } else {
-          message.success('Статья успешно обновлена!');
-        }
-
-        // Обновляем URL обложки после сохранения
-        if (data.coverImage) {
-          setCoverImageUrl(data.coverImage);
-        }
-
-        // После сохранения переходим к списку статей
-        navigate('/my-articles');
+        const res = await api.put(`/articles/${id}`, data);
+        message.success(res.data.message || 'Статья обновлена!');
       } else {
-        const response = await api.post('/articles', data);
-
-        // Показываем уведомление в зависимости от ответа сервера
-        if (response.data.message) {
-          message.success(response.data.message);
-        } else {
-          message.success('Статья успешно создана!');
-        }
-
-        // После создания переходим к списку статей
-        navigate('/my-articles');
+        const res = await api.post('/articles', data);
+        message.success(res.data.message || 'Статья создана!');
       }
-    } catch (error: any) {
-      console.error('Ошибка сохранения статьи:', error);
-      const errorMsg = error.response?.data?.error || 'Ошибка сохранения статьи';
-      message.error(errorMsg);
+      navigate('/my-articles');
+    } catch (err: any) {
+      message.error(err.response?.data?.error || 'Ошибка сохранения');
     } finally {
       setLoading(false);
     }
   };
 
-  // Обработчик загрузки изображений (мемоизирован)
-  const imageHandler = useCallback(() => {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
-
-    input.onchange = async () => {
-      if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const formData = new FormData();
-        formData.append('image', file);
-
-        try {
-          const hide = message.loading('Загрузка изображения...', 0);
-          const response = await api.post('/upload/image', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          hide();
-
-          const imageUrl = response.data.url;
-          const quill = quillRef.current?.getEditor();
-          if (quill) {
-            const range = quill.getSelection(true);
-            quill.insertEmbed(range.index, 'image', imageUrl);
-            quill.setSelection(range.index + 1, 0);
-          }
-          message.success('Изображение загружено!');
-        } catch (error) {
-          console.error('Ошибка загрузки изображения:', error);
-          message.error('Ошибка загрузки изображения');
-        }
-      }
-    };
-  }, []);
-
-  // Обработчик загрузки обложки статьи
-  const handleCoverUpload = async (file: File) => {
+  const handleCoverFile = async (file: File) => {
     setUploadingCover(true);
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const uploadResponse = await api.post('/upload/image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      const imageUrl = uploadResponse.data.url;
-      setCoverImageUrl(imageUrl);
-      form.setFieldValue('coverImage', imageUrl);
+      const fd = new FormData();
+      fd.append('image', file);
+      const { data } = await api.post('/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setCoverUrl(data.url);
+      setCoverInput(data.url);
       message.success('Обложка загружена!');
-    } catch (error) {
-      console.error('Ошибка загрузки обложки:', error);
+    } catch {
       message.error('Ошибка загрузки обложки');
     } finally {
       setUploadingCover(false);
     }
-    return false;
   };
 
-  const handleRemoveCover = () => {
-    setCoverImageUrl('');
-    form.setFieldValue('coverImage', '');
-    message.info('Обложка удалена');
-  };
+  const imageHandler = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*'; input.click();
+    input.onchange = async () => {
+      if (!input.files?.[0]) return;
+      const fd = new FormData(); fd.append('image', input.files[0]);
+      try {
+        const hide = message.loading('Загрузка...', 0);
+        const { data } = await api.post('/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        hide();
+        const quill = quillRef.current?.getEditor();
+        if (quill) { const r = quill.getSelection(true); quill.insertEmbed(r.index, 'image', data.url); quill.setSelection(r.index + 1, 0); }
+      } catch { message.error('Ошибка загрузки'); }
+    };
+  }, []);
 
-  // Мемоизируем modules и formats, чтобы избежать лишних ререндеров ReactQuill
   const modules = useMemo(() => ({
     toolbar: {
       container: [
@@ -204,227 +138,219 @@ const CreateArticlePage = () => {
         [{ indent: '-1' }, { indent: '+1' }],
         ['link', 'image'],
         [{ align: [] }],
-        ['clean']
+        ['clean'],
       ],
-      handlers: {
-        image: imageHandler
-      }
-    }
+      handlers: { image: imageHandler },
+    },
   }), [imageHandler]);
 
   const formats = useMemo(() => [
-    'header',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet', 'indent',
-    'link', 'image', 'align'
+    'header', 'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent', 'link', 'image', 'align',
   ], []);
 
   useEffect(() => {
-    const quillInstance = quillRef.current?.getEditor();
-    const quillRoot = quillInstance?.root;
-
-    if (!quillInstance || !quillRoot) {
-      return;
-    }
-
-    const handleMarkdownPaste = (event: ClipboardEvent) => {
-      const plainText = event.clipboardData?.getData('text/plain');
-
-      if (!plainText || !looksLikeMarkdown(plainText)) {
-        return;
-      }
-
-      const htmlFromMarkdown = marked.parse(plainText);
-
-      if (typeof htmlFromMarkdown !== 'string') {
-        return;
-      }
-
-      const normalizedHtml = htmlFromMarkdown.trim();
-
-      if (!normalizedHtml) {
-        return;
-      }
-
-      event.preventDefault();
-
-      const selection = quillInstance.getSelection(true);
-      const insertIndex = selection ? selection.index : quillInstance.getLength();
-
-      if (selection?.length) {
-        quillInstance.deleteText(selection.index, selection.length, 'user');
-      }
-
-      quillInstance.clipboard.dangerouslyPasteHTML(insertIndex, normalizedHtml, 'user');
+    const quill = quillRef.current?.getEditor();
+    const root = quill?.root;
+    if (!quill || !root) return;
+    const handler = (e: ClipboardEvent) => {
+      const plain = e.clipboardData?.getData('text/plain');
+      if (!plain || !looksLikeMarkdown(plain)) return;
+      const html = marked.parse(plain);
+      if (typeof html !== 'string' || !html.trim()) return;
+      e.preventDefault();
+      const sel = quill.getSelection(true);
+      const idx = sel ? sel.index : quill.getLength();
+      if (sel?.length) quill.deleteText(sel.index, sel.length, 'user');
+      quill.clipboard.dangerouslyPasteHTML(idx, html.trim(), 'user');
     };
-
-    quillRoot.addEventListener('paste', handleMarkdownPaste);
-
-    return () => {
-      quillRoot.removeEventListener('paste', handleMarkdownPaste);
-    };
+    root.addEventListener('paste', handler);
+    return () => root.removeEventListener('paste', handler);
   }, []);
+
+  const charCount = title.length;
 
   if (loadingArticle) {
     return (
-      <div className="container" style={{ maxWidth: 900, textAlign: 'center', paddingTop: 100 }}>
-        <Spin size="large" tip="Загрузка статьи..." />
+      <div className="ca-loading">
+        <div className="ca-spinner" />
+        <span>Загрузка статьи...</span>
       </div>
     );
   }
 
   return (
-    <div className="container" style={{ maxWidth: 900 }}>
-      <div style={{ marginBottom: 16 }}>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => navigate('/my-articles')}
-        >
+    <div className="ca-page">
+
+      {/* ── Top bar ── */}
+      <div className="ca-topbar">
+        <button type="button" className="ca-back-btn" onClick={() => navigate('/my-articles')}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+            <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           К моим статьям
-        </Button>
+        </button>
+        <div className="ca-topbar-actions">
+          <button type="button" className="ca-cancel-btn" onClick={() => navigate('/my-articles')}>
+            Отмена
+          </button>
+          <button type="button" className="ca-submit-btn" onClick={handleSubmit} disabled={loading}>
+            {loading
+              ? <><span className="ca-btn-spinner" /> Сохранение...</>
+              : isEdit ? 'Сохранить изменения' : 'Создать статью'
+            }
+          </button>
+        </div>
       </div>
 
-      <Card>
-        <Title level={2} style={{ marginBottom: 24 }}>
-          {isEdit ? 'Редактировать статью' : 'Создать статью'}
-        </Title>
+      {/* ── Page header ── */}
+      <div className="ca-hero">
+        <div className="ca-eyebrow">
+          <svg width="7" height="7" viewBox="0 0 7 7" aria-hidden><circle cx="3.5" cy="3.5" r="3" fill="#7B6FD4" /></svg>
+          {isEdit ? 'Редактирование' : 'Новая публикация'}
+        </div>
+        <div className="ca-hero-title">{isEdit ? 'Редактировать статью' : 'Написать статью'}</div>
+        <div className="ca-hero-sub">Статья сохраняется как черновик — отправить на модерацию можно из «Моих статей».</div>
+      </div>
 
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-        >
-          <Form.Item
-            name="title"
-            label={<Text strong>Заголовок</Text>}
-            rules={[
-              { required: true, message: 'Введите заголовок' },
-              { min: 5, message: 'Минимум 5 символов' },
-              { max: 200, message: 'Максимум 200 символов' }
-            ]}
-          >
-            <Input
-              size="large"
-              placeholder="Введите заголовок статьи"
-              showCount
+      {/* ── Main layout ── */}
+      <div className="ca-layout">
+
+        {/* Editor column */}
+        <div className="ca-editor-col">
+
+          {/* Title */}
+          <div className="ca-field">
+            <div className="ca-field-header">
+              <label className="ca-label" htmlFor="ca-title">Заголовок <span className="ca-req">*</span></label>
+              <span className={`ca-char-count${charCount > 180 ? ' ca-char-warn' : ''}`}>{charCount}/200</span>
+            </div>
+            <input
+              id="ca-title"
+              type="text"
+              className={`ca-title-inp${titleError ? ' ca-inp-err' : ''}`}
+              placeholder="Введите заголовок статьи..."
+              value={title}
               maxLength={200}
+              onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(''); }}
             />
-          </Form.Item>
+            {titleError && <div className="ca-err-msg">{titleError}</div>}
+          </div>
 
-          <Form.Item
-            label={<Text strong>Обложка статьи</Text>}
-          >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              {coverImageUrl && (
-                <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <Image
-                    src={coverImageUrl}
-                    alt="Обложка"
-                    style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8 }}
-                  />
-                  <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={handleRemoveCover}
-                    style={{ position: 'absolute', top: 8, right: 8 }}
-                  >
-                    Удалить
-                  </Button>
-                </div>
-              )}
-
-              {!coverImageUrl && (
-                <>
-                  <Upload
-                    accept="image/*"
-                    showUploadList={false}
-                    beforeUpload={handleCoverUpload}
-                    disabled={uploadingCover}
-                  >
-                    <Button
-                      icon={<UploadOutlined />}
-                      loading={uploadingCover}
-                      size="large"
-                    >
-                      {uploadingCover ? 'Загрузка...' : 'Загрузить обложку'}
-                    </Button>
-                  </Upload>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    или введите URL изображения:
-                  </Text>
-                  <Form.Item
-                    name="coverImage"
-                    noStyle
-                  >
-                    <Input
-                      size="large"
-                      placeholder="https://example.com/image.jpg"
-                      prefix={<PictureOutlined />}
-                      onChange={(e) => setCoverImageUrl(e.target.value)}
-                    />
-                  </Form.Item>
-                </>
-              )}
-            </Space>
-          </Form.Item>
-
-          <Form.Item
-            label={<Text strong>Содержание статьи</Text>}
-            required
-          >
-            <div style={{
-              border: '1px solid #d9d9d9',
-              borderRadius: 8,
-              overflow: 'hidden'
-            }}>
+          {/* Content */}
+          <div className="ca-field">
+            <label className="ca-label">Содержание <span className="ca-req">*</span></label>
+            <div className={`ca-quill-wrap${contentError ? ' ca-inp-err' : ''}`}>
               <ReactQuill
                 ref={quillRef}
                 theme="snow"
                 value={content}
-                onChange={setContent}
+                onChange={(v) => { setContent(v); if (contentError) setContentError(''); }}
                 modules={modules}
                 formats={formats}
                 placeholder="Напишите вашу статью здесь..."
-                style={{
-                  minHeight: 400,
-                  backgroundColor: 'white'
-                }}
               />
             </div>
-            <Text type="secondary" style={{ fontSize: 12, marginTop: 8, display: 'block' }}>
-              Минимум 50 символов
-            </Text>
-          </Form.Item>
+            {contentError
+              ? <div className="ca-err-msg">{contentError}</div>
+              : <div className="ca-hint">Минимум 50 символов. Поддерживается вставка Markdown.</div>
+            }
+          </div>
 
-          <Divider />
+        </div>
 
-          <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
-            <Text type="secondary" style={{ fontSize: 13 }}>
-              💡 Статья будет сохранена как черновик. Чтобы отправить её на модерацию,
-              нажмите кнопку "Опубликовать" в списке ваших статей.
-            </Text>
-          </Space>
+        {/* Sidebar column */}
+        <div className="ca-sidebar">
 
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Space>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                size="large"
-              >
-                {isEdit ? 'Сохранить изменения' : 'Создать статью'}
-              </Button>
-              <Button
-                size="large"
-                onClick={() => navigate('/my-articles')}
-              >
-                Отмена
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Card>
+          {/* Cover */}
+          <div className="ca-side-card">
+            <div className="ca-side-h">Обложка статьи</div>
+
+            {coverUrl ? (
+              <div className="ca-cover-preview">
+                <img src={coverUrl} alt="Обложка" className="ca-cover-img" />
+                <button
+                  type="button"
+                  className="ca-cover-remove"
+                  onClick={() => { setCoverUrl(''); setCoverInput(''); }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                    <path d="M2 2l8 8M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  Удалить
+                </button>
+              </div>
+            ) : (
+              <div className="ca-cover-upload-zone">
+                <label className={`ca-upload-btn${uploadingCover ? ' ca-uploading' : ''}`}>
+                  {uploadingCover ? (
+                    <><span className="ca-btn-spinner ca-btn-spinner--dark" /> Загрузка...</>
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+                        <path d="M7.5 10V2M4 5l3.5-3.5L11 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M2 11.5V13h11v-1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                      </svg>
+                      Загрузить файл
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => { if (e.target.files?.[0]) handleCoverFile(e.target.files[0]); }}
+                    disabled={uploadingCover}
+                  />
+                </label>
+                <div className="ca-cover-divider"><span>или</span></div>
+                <input
+                  type="text"
+                  className="ca-url-inp"
+                  placeholder="Вставьте URL изображения"
+                  value={coverInput}
+                  onChange={(e) => { setCoverInput(e.target.value); setCoverUrl(e.target.value); }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Category */}
+          <div className="ca-side-card">
+            <div className="ca-side-h">Категория</div>
+            <div className="ca-cats">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  className={`ca-cat-pill${category === c.key ? ' ca-cat-on' : ''}`}
+                  onClick={() => setCategory(category === c.key ? '' : c.key)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tips */}
+          <div className="ca-side-card ca-tips-card">
+            <div className="ca-side-h">Советы</div>
+            <ul className="ca-tips">
+              <li>Добавьте яркий заголовок — читатели выбирают по первым словам.</li>
+              <li>Личный опыт и конкретные примеры делают текст живым.</li>
+              <li>Обложка увеличивает кликабельность в ленте в 3 раза.</li>
+              <li>Поддерживается вставка Markdown из буфера обмена.</li>
+            </ul>
+          </div>
+
+          {/* Submit (bottom sticky on mobile) */}
+          <button type="button" className="ca-submit-btn ca-submit-full" onClick={handleSubmit} disabled={loading}>
+            {loading
+              ? <><span className="ca-btn-spinner" /> Сохранение...</>
+              : isEdit ? 'Сохранить изменения' : 'Создать статью'
+            }
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
