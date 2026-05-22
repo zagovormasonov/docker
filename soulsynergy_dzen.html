@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSynergy — Дзен</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F7F6FF;--bgc:#fff;--bgs:#F0EFFE;
+  --acc:#7B6FD4;--acs:#C9C4F0;--acp:#EAE8FB;--act:#4A3FA8;--acd:#362E8A;
+  --tel:#2BA882;--tell:#E2F7F0;--telt:#0D6B50;
+  --amb:#C07A18;--ambl:#FDF2E0;--ambt:#7A4A08;
+  --t1:#2D2A4A;--t2:#6B6890;--t3:#A8A5C4;
+  --bd:rgba(123,111,212,.13);
+  --rsm:6px;--rmd:10px;--rlg:14px;--rxl:20px;
+  --nav-h:56px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:14px;}
+
+/* ── NAV ── */
+.nav{display:flex;align-items:center;padding:0 28px;height:var(--nav-h);background:var(--bgc);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:200;}
+.nav-logo{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600;color:var(--acd);text-decoration:none;margin-right:32px;flex-shrink:0;}
+.logo-mark{width:30px;height:30px;background:var(--acc);border-radius:9px;display:flex;align-items:center;justify-content:center;}
+.nav-links{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nl{padding:6px 12px;font-size:13px;color:var(--t2);border-radius:var(--rmd);cursor:pointer;white-space:nowrap;text-decoration:none;transition:background .12s;}
+.nl:hover,.nl.active{background:var(--acp);color:var(--act);}
+.nl.active{font-weight:500;}
+.nav-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.ibt{width:32px;height:32px;border:1px solid var(--bd);border-radius:var(--rmd);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);}
+.ibt:hover{background:var(--acp);}
+.cab-btn{padding:8px 16px;font-size:13px;font-weight:500;background:var(--acc);color:#fff;border:none;border-radius:var(--rmd);cursor:pointer;white-space:nowrap;}
+.cab-btn:hover{background:var(--act);}
+.ava{width:30px;height:30px;border-radius:50%;background:var(--acp);border:1.5px solid var(--acs);flex-shrink:0;}
+.burger{display:none;width:32px;height:32px;border:1px solid var(--bd);border-radius:var(--rmd);background:transparent;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px;padding:7px;flex-shrink:0;}
+.burger-line{width:18px;height:1.5px;background:var(--t2);border-radius:2px;transition:all .2s;}
+
+/* ── MOBILE MENU OVERLAY ── */
+.mob-menu{position:fixed;inset:0;z-index:300;display:none;}
+.mob-menu.open{display:block;}
+.mob-menu-backdrop{position:absolute;inset:0;background:rgba(45,42,74,.45);}
+.mob-menu-drawer{position:absolute;top:0;left:0;width:76vw;max-width:280px;height:100%;background:var(--bgc);box-shadow:4px 0 24px rgba(45,42,74,.12);display:flex;flex-direction:column;overflow-y:auto;}
+.mob-menu-top{padding:16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.mob-close{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;background:var(--bgs);border-radius:50%;cursor:pointer;color:var(--t2);}
+.mob-nav-links{padding:8px 0;}
+.mob-nl{display:flex;align-items:center;gap:10px;padding:13px 20px;font-size:14px;color:var(--t2);cursor:pointer;text-decoration:none;border-left:3px solid transparent;transition:all .12s;}
+.mob-nl:hover,.mob-nl.active{color:var(--act);background:var(--acp);border-left-color:var(--acc);}
+.mob-nl.active{font-weight:500;}
+.mob-nl-ico{font-size:16px;width:24px;text-align:center;}
+.mob-menu-foot{padding:16px;margin-top:auto;border-top:1px solid var(--bd);}
+.mob-cab-btn{display:block;width:100%;padding:11px;text-align:center;background:var(--acc);color:#fff;border:none;border-radius:var(--rmd);font-size:13px;font-weight:500;cursor:pointer;}
+
+/* ── HERO ── */
+.dzen-hero{background:var(--bgc);border-bottom:1px solid var(--bd);padding:28px 28px 0;}
+.dh-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;}
+.dh-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--act);background:var(--acp);border:1px solid var(--acs);padding:3px 12px;border-radius:100px;margin-bottom:10px;}
+.dh-title{font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.02em;margin-bottom:5px;}
+.dh-title em{color:var(--acc);font-style:normal;}
+.dh-sub{font-size:13px;color:var(--t2);max-width:440px;line-height:1.6;}
+.write-btn{display:flex;align-items:center;gap:7px;padding:10px 20px;background:var(--acc);color:#fff;border:none;border-radius:var(--rxl);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.write-btn:hover{background:var(--act);}
+.dz-search{display:flex;align-items:center;border:1.5px solid var(--acs);border-radius:var(--rxl);background:var(--bgc);padding:0 14px;height:40px;max-width:420px;margin-bottom:16px;}
+.dz-search:focus-within{border-color:var(--acc);}
+.ds-ico{color:var(--t3);margin-right:8px;flex-shrink:0;}
+.ds-inp{flex:1;border:none;outline:none;font-size:13px;background:transparent;color:var(--t1);min-width:0;}
+.ds-inp::placeholder{color:var(--t3);}
+.feed-tabs{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.feed-tabs::-webkit-scrollbar{display:none;}
+.ftab{padding:10px 16px;font-size:13px;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .12s;flex-shrink:0;}
+.ftab:hover{color:var(--t1);}
+.ftab.on{color:var(--act);font-weight:500;border-bottom-color:var(--acc);}
+
+/* ── TOPIC BAR ── */
+.topic-bar{background:var(--bgc);border-bottom:1px solid var(--bd);padding:10px 28px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.topic-bar::-webkit-scrollbar{display:none;}
+.pill{padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500;border:1px solid var(--bd);background:var(--bgc);color:var(--t2);cursor:pointer;transition:all .13s;white-space:nowrap;flex-shrink:0;}
+.pill:hover{border-color:var(--acc);color:var(--act);}
+.pill.on{background:var(--acp);border-color:var(--acc);color:var(--act);}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:1fr 276px;max-width:1140px;margin:0 auto;}
+.main{padding:20px 14px 80px 28px;}
+
+/* ── FEATURED ARTICLE ── */
+.feat-art{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rlg);overflow:hidden;cursor:pointer;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;transition:border-color .15s,box-shadow .15s;}
+.feat-art:hover{border-color:var(--acs);box-shadow:0 4px 18px rgba(123,111,212,.1);}
+.fa-img{background:var(--acp);display:flex;align-items:center;justify-content:center;font-size:52px;min-height:180px;}
+.fa-body{padding:22px 20px;display:flex;flex-direction:column;justify-content:center;}
+.fa-tag{display:inline-flex;font-size:10px;padding:2px 8px;border-radius:100px;font-weight:500;margin-bottom:10px;}
+.tp{background:var(--acp);color:var(--act);}
+.tt{background:var(--tell);color:var(--telt);}
+.ta{background:var(--ambl);color:var(--ambt);}
+.fa-title{font-size:18px;font-weight:600;color:var(--t1);line-height:1.38;margin-bottom:10px;}
+.fa-excerpt{font-size:13px;color:var(--t2);line-height:1.65;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.fa-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.art-author{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);}
+.avxs{width:18px;height:18px;border-radius:50%;background:var(--acp);border:1px solid var(--acs);display:inline-block;flex-shrink:0;}
+.art-date,.art-read,.art-likes{font-size:11px;color:var(--t3);}
+
+/* ── ARTICLE GRID (2-col cards) ── */
+.art-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px;}
+.ac{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rlg);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.ac:hover{border-color:var(--acs);box-shadow:0 3px 12px rgba(123,111,212,.09);}
+.ac.dimmed{opacity:.18;pointer-events:none;}
+.ac-img{height:100px;background:var(--bgs);display:flex;align-items:center;justify-content:center;font-size:32px;}
+.ac-body{padding:11px 13px;}
+.ac-tag{display:inline-flex;font-size:10px;padding:2px 7px;border-radius:100px;font-weight:500;margin-bottom:5px;}
+.ac-title{font-size:13px;font-weight:600;color:var(--t1);line-height:1.42;margin-bottom:5px;}
+.ac-excerpt{font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ac-foot{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--bd);}
+.ac-author{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2);}
+.ac-stats{font-size:11px;color:var(--t3);}
+
+/* ── ARTICLE LIST ── */
+.al{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rlg);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;display:grid;grid-template-columns:110px 1fr;margin-bottom:10px;}
+.al:hover{border-color:var(--acs);box-shadow:0 3px 10px rgba(123,111,212,.08);}
+.al.dimmed{opacity:.18;pointer-events:none;}
+.al-img{background:var(--bgs);display:flex;align-items:center;justify-content:center;font-size:28px;border-right:1px solid var(--bd);}
+.al-body{padding:11px 14px;display:flex;flex-direction:column;justify-content:center;}
+.al-tag{display:inline-flex;font-size:10px;padding:2px 7px;border-radius:100px;font-weight:500;margin-bottom:4px;}
+.al-title{font-size:13px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:4px;}
+.al-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.al-author{font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px;}
+.al-stats{font-size:11px;color:var(--t3);}
+
+.more-btn{display:block;width:100%;margin-top:6px;padding:11px;text-align:center;font-size:13px;color:var(--t2);background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rlg);cursor:pointer;}
+.more-btn:hover{border-color:var(--acs);color:var(--act);}
+
+/* ── SIDEBAR ── */
+.sidebar{border-left:1px solid var(--bd);padding:18px;background:var(--bgc);}
+.side-sec{margin-bottom:20px;}
+.side-h{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;}
+.tr-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);cursor:pointer;}
+.tr-item:last-child{border-bottom:none;}
+.tr-num{font-size:20px;font-weight:700;color:var(--acs);min-width:24px;text-align:center;flex-shrink:0;line-height:1.2;}
+.tr-title{font-size:12px;font-weight:500;color:var(--t1);line-height:1.4;margin-bottom:3px;}
+.tr-meta{font-size:10px;color:var(--t3);}
+.taut-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--bd);cursor:pointer;}
+.taut-item:last-child{border-bottom:none;}
+.taut-ava{width:34px;height:34px;border-radius:50%;background:var(--acp);display:flex;align-items:center;justify-content:center;font-size:17px;border:1.5px solid var(--acs);flex-shrink:0;}
+.taut-name{font-size:12px;font-weight:500;color:var(--t1);}
+.taut-sub{font-size:10px;color:var(--t3);}
+.follow-btn{margin-left:auto;padding:4px 10px;font-size:11px;font-weight:500;background:var(--acp);color:var(--act);border:none;border-radius:100px;cursor:pointer;flex-shrink:0;}
+.follow-btn:hover{background:var(--acc);color:#fff;}
+.tags-cloud{display:flex;flex-wrap:wrap;gap:5px;}
+.tc-tag{padding:4px 10px;border-radius:100px;font-size:11px;font-weight:500;border:1px solid var(--bd);color:var(--t2);cursor:pointer;background:var(--bgc);transition:all .12s;}
+.tc-tag:hover{border-color:var(--acc);color:var(--act);}
+
+/* ── READER OVERLAY ── */
+.reader-overlay{position:fixed;inset:0;z-index:400;background:rgba(45,42,74,.5);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
+.reader{background:var(--bgc);border-radius:var(--rlg);max-width:600px;width:100%;overflow:hidden;margin:auto;}
+.reader-hdr{padding:14px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bgc);z-index:1;}
+.reader-back{font-size:12px;color:var(--acc);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.reader-back:hover{color:var(--act);}
+.reader-share{font-size:12px;color:var(--t2);cursor:pointer;}
+.reader-img{height:180px;display:flex;align-items:center;justify-content:center;font-size:56px;}
+.reader-body{padding:20px 24px;}
+.reader-cat{display:inline-flex;font-size:10px;padding:2px 8px;border-radius:100px;font-weight:500;margin-bottom:10px;}
+.reader-title{font-size:20px;font-weight:600;color:var(--t1);line-height:1.35;margin-bottom:10px;}
+.reader-meta{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--bd);flex-wrap:wrap;}
+.reader-text{font-size:14px;color:var(--t2);line-height:1.8;}
+.reader-text p{margin-bottom:14px;}
+.reader-foot{padding:14px 24px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.like-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--acp);color:var(--act);border:none;border-radius:100px;font-size:12px;font-weight:500;cursor:pointer;}
+.like-btn:hover{background:var(--acc);color:#fff;}
+.sub-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--acc);color:#fff;border:none;border-radius:100px;font-size:12px;font-weight:500;cursor:pointer;}
+.sub-btn:hover{background:var(--act);}
+
+/* ── MOBILE BOTTOM NAV ── */
+.mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:150;background:var(--bgc);border-top:1px solid var(--bd);padding:0;height:58px;}
+.mbn-inner{display:flex;height:100%;}
+.mbn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9px;color:var(--t3);cursor:pointer;padding:6px 0;border:none;background:transparent;transition:color .12s;text-decoration:none;}
+.mbn-item.active{color:var(--acc);}
+.mbn-item svg{flex-shrink:0;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--t1);color:#fff;font-size:12px;padding:9px 18px;border-radius:100px;opacity:0;transition:all .25s;z-index:500;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — TABLET/MOBILE  ≤900px
+   ═══════════════════════════════════════════ */
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .main{padding:16px 16px 72px;}
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — MOBILE  ≤680px
+   ═══════════════════════════════════════════ */
+@media(max-width:680px){
+  /* NAV */
+  .nav{padding:0 14px;}
+  .nav-logo{margin-right:auto;}
+  .nav-links{display:none;}
+  .ibt.hide-mob{display:none;}
+  .cab-btn{display:none;}
+  .burger{display:flex;}
+
+  /* HERO */
+  .dzen-hero{padding:18px 16px 0;}
+  .dh-top{flex-direction:column;gap:12px;margin-bottom:14px;}
+  .dh-top .write-btn{width:100%;justify-content:center;}
+  .dh-title{font-size:20px;}
+  .dh-sub{font-size:12px;max-width:none;}
+  .dz-search{max-width:none;height:44px;}
+  .ftab{padding:9px 13px;font-size:12px;}
+
+  /* TOPIC BAR */
+  .topic-bar{padding:10px 16px;}
+
+  /* FEATURED ARTICLE — stack */
+  .feat-art{grid-template-columns:1fr;grid-template-rows:auto auto;}
+  .fa-img{min-height:140px;font-size:44px;}
+  .fa-body{padding:16px;}
+  .fa-title{font-size:16px;}
+
+  /* ARTICLE GRID — 1 column */
+  .art-grid{grid-template-columns:1fr;}
+
+  /* ARTICLE LIST — narrower thumb */
+  .al{grid-template-columns:80px 1fr;}
+
+  /* READER — full screen */
+  .reader-overlay{padding:0;align-items:stretch;}
+  .reader{border-radius:0;max-width:none;height:100%;display:flex;flex-direction:column;}
+  .reader-hdr{border-radius:0;}
+  .reader-body{flex:1;overflow-y:auto;padding:16px 18px;}
+  .reader-img{height:150px;font-size:44px;}
+  .reader-title{font-size:18px;}
+  .reader-foot{position:sticky;bottom:0;background:var(--bgc);}
+
+  /* BOTTOM NAV */
+  .mob-bottom-nav{display:block;}
+  .toast{bottom:72px;}
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — SMALL MOBILE  ≤380px
+   ═══════════════════════════════════════════ */
+@media(max-width:380px){
+  .dh-title{font-size:18px;}
+  .fa-title{font-size:15px;}
+  .ac-title,.al-title{font-size:12px;}
+  .reader-title{font-size:16px;}
+  .reader-foot{flex-direction:column;}
+  .like-btn,.sub-btn{width:100%;justify-content:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAVIGATION ══ -->
+<nav class="nav">
+  <a class="nav-logo" href="#">
+    <div class="logo-mark">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1.5C7 1.5 4.5 4.2 4.5 7C4.5 8.38 5.62 9.5 7 9.5C8.38 9.5 9.5 8.38 9.5 7C9.5 4.2 7 1.5 7 1.5Z" fill="white" opacity=".9"/>
+        <path d="M7 9.5C7 9.5 9.8 8.7 11.5 7C10.2 10.8 7 12.5 7 12.5C7 12.5 3.8 10.8 2.5 7C4.2 8.7 7 9.5 7 9.5Z" fill="white" opacity=".55"/>
+      </svg>
+    </div>
+    SoulSynergy
+  </a>
+  <div class="nav-links">
+    <a class="nl" href="#">Главная</a>
+    <a class="nl" href="#">Мастера</a>
+    <a class="nl" href="#">События</a>
+    <a class="nl" href="#">Цифровые продукты</a>
+    <a class="nl active" href="#">Дзен</a>
+  </div>
+  <div class="nav-right">
+    <button class="ibt hide-mob">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 2.5h11v7.5H8L5.5 12.5V10H2V2.5z" stroke="currentColor" stroke-width=".9" fill="none" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="ibt hide-mob">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.5C5.3 1.5 3.5 3.3 3.5 5.5V9L2 10.5h11L11.5 9V5.5C11.5 3.3 9.7 1.5 7.5 1.5Z" stroke="currentColor" stroke-width=".9" fill="none"/></svg>
+    </button>
+    <button class="cab-btn">Кабинет мастера</button>
+    <div class="ava"></div>
+    <button class="burger" id="burger-btn" aria-label="Меню">
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ══ MOBILE MENU DRAWER ══ -->
+<div class="mob-menu" id="mob-menu">
+  <div class="mob-menu-backdrop" id="mob-backdrop"></div>
+  <div class="mob-menu-drawer">
+    <div class="mob-menu-top">
+      <a class="nav-logo" href="#" style="margin-right:0;">
+        <div class="logo-mark">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1.5C7 1.5 4.5 4.2 4.5 7C4.5 8.38 5.62 9.5 7 9.5C8.38 9.5 9.5 8.38 9.5 7C9.5 4.2 7 1.5 7 1.5Z" fill="white" opacity=".9"/>
+            <path d="M7 9.5C7 9.5 9.8 8.7 11.5 7C10.2 10.8 7 12.5 7 12.5C7 12.5 3.8 10.8 2.5 7C4.2 8.7 7 9.5 7 9.5Z" fill="white" opacity=".55"/>
+          </svg>
+        </div>
+        SoulSynergy
+      </a>
+      <button class="mob-close" id="mob-close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <nav class="mob-nav-links">
+      <a class="mob-nl" href="#"><span class="mob-nl-ico">🏠</span>Главная</a>
+      <a class="mob-nl" href="#"><span class="mob-nl-ico">✨</span>Мастера</a>
+      <a class="mob-nl" href="#"><span class="mob-nl-ico">🗓</span>События</a>
+      <a class="mob-nl" href="#"><span class="mob-nl-ico">📦</span>Цифровые продукты</a>
+      <a class="mob-nl active" href="#"><span class="mob-nl-ico">📖</span>Дзен</a>
+    </nav>
+    <div class="mob-menu-foot">
+      <button class="mob-cab-btn">Кабинет мастера</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HERO ══ -->
+<div class="dzen-hero">
+  <div class="dh-top">
+    <div>
+      <div class="dh-eyebrow">
+        <svg width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3" fill="#7B6FD4"/></svg>
+        Живые тексты платформы
+      </div>
+      <div class="dh-title">Дзен — читайте <em>живых мастеров</em></div>
+      <div class="dh-sub">Ченнелинги, практики, психология, истории и размышления от экспертов сообщества.</div>
+    </div>
+    <button class="write-btn">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 10l1.5-3.5L10 0l2 2-6.5 7.5L2 10z" stroke="#fff" stroke-width="1" fill="none" stroke-linejoin="round"/><path d="M8.5 1.5l2 2" stroke="#fff" stroke-width="1"/></svg>
+      Написать статью
+    </button>
+  </div>
+  <div class="dz-search">
+    <span class="ds-ico">
+      <svg width="14" height="14" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.1"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+    </span>
+    <input class="ds-inp" id="srch" type="text" placeholder="Поиск по статьям и авторам...">
+  </div>
+  <div class="feed-tabs">
+    <span class="ftab on" data-tab="all">Всё подряд</span>
+    <span class="ftab" data-tab="new">Новое</span>
+    <span class="ftab" data-tab="pop">Популярное</span>
+    <span class="ftab" data-tab="chan">Ченнелинги</span>
+    <span class="ftab" data-tab="my">Мои подписки</span>
+  </div>
+</div>
+
+<!-- ══ TOPIC BAR ══ -->
+<div class="topic-bar">
+  <span class="pill on" data-topic="">Все темы</span>
+  <span class="pill" data-topic="chan">Ченнелинг</span>
+  <span class="pill" data-topic="psych">Психология</span>
+  <span class="pill" data-topic="soul">Духовный путь</span>
+  <span class="pill" data-topic="money">Деньги и рост</span>
+  <span class="pill" data-topic="body">Тело и здоровье</span>
+  <span class="pill" data-topic="zolk">Цолькин</span>
+  <span class="pill" data-topic="story">Истории мастеров</span>
+</div>
+
+<!-- ══ CONTENT LAYOUT ══ -->
+<div class="layout">
+  <div class="main">
+
+    <!-- Featured Article -->
+    <div class="feat-art" data-topic="chan soul" data-author="амина" id="fa-main">
+      <div class="fa-img" style="background:var(--acp);">🌊</div>
+      <div class="fa-body">
+        <span class="fa-tag tp">Ченнелинг</span>
+        <div class="fa-title">Апрель 2026 — послание духа света. Время перехода</div>
+        <div class="fa-excerpt">Послание для тех, кто стоит на пороге. Апрель — месяц сдвигов. Энергии говорят: время отпустить старое и шагнуть в неизвестность с доверием...</div>
+        <div class="fa-meta">
+          <span class="art-author"><span class="avxs"></span>Амина</span>
+          <span class="art-date">02 апр 2026</span>
+          <span class="art-read">5 мин</span>
+          <span class="art-likes">❤ 127 · 👁 3.4к</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article Grid -->
+    <div class="art-grid">
+      <div class="ac" data-topic="psych money" data-author="дарья">
+        <div class="ac-img" style="background:var(--ambl);">💰</div>
+        <div class="ac-body">
+          <span class="ac-tag ta">Психология · Деньги</span>
+          <div class="ac-title">7 признаков внутреннего саботажа роста</div>
+          <div class="ac-excerpt">Почему даже самые умные эксперты остаются в тени? Разбираем механизмы.</div>
+          <div class="ac-foot"><span class="ac-author"><span class="avxs"></span>Дарья</span><span class="ac-stats">❤ 56 · 👁 874</span></div>
+        </div>
+      </div>
+      <div class="ac" data-topic="soul chan" data-author="роман">
+        <div class="ac-img" style="background:var(--acp);">✨</div>
+        <div class="ac-body">
+          <span class="ac-tag tp">Духовный путь</span>
+          <div class="ac-title">Магирани и архетипы нового времени</div>
+          <div class="ac-excerpt">Кто такие духовные лидеры нового времени? Как узнать, что ты — из них?</div>
+          <div class="ac-foot"><span class="ac-author"><span class="avxs"></span>Роман</span><span class="ac-stats">❤ 31 · 👁 612</span></div>
+        </div>
+      </div>
+      <div class="ac" data-topic="body soul" data-author="юлия">
+        <div class="ac-img" style="background:var(--tell);">🌿</div>
+        <div class="ac-body">
+          <span class="ac-tag tt">Тело и здоровье</span>
+          <div class="ac-title">Путь осознанного взросления: тело как учитель</div>
+          <div class="ac-excerpt">Всё, что мы не прожили — остаётся в теле. Как вернуться к себе.</div>
+          <div class="ac-foot"><span class="ac-author"><span class="avxs"></span>Юлия</span><span class="ac-stats">❤ 18 · 👁 430</span></div>
+        </div>
+      </div>
+      <div class="ac" data-topic="psych money" data-author="дарья">
+        <div class="ac-img" style="background:var(--ambl);">🔥</div>
+        <div class="ac-body">
+          <span class="ac-tag ta">Выгорание</span>
+          <div class="ac-title">Выгорание эксперта: как я потеряла себя в работе</div>
+          <div class="ac-excerpt">Личная история и выход. Когда успех стал клеткой.</div>
+          <div class="ac-foot"><span class="ac-author"><span class="avxs"></span>Дарья</span><span class="ac-stats">❤ 88 · 👁 2.1к</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article List -->
+    <div id="art-list">
+      <div class="al" data-topic="zolk chan" data-author="мадам цолькин">
+        <div class="al-img" style="background:var(--acp);">🌙</div>
+        <div class="al-body">
+          <span class="al-tag tp">Цолькин</span>
+          <div class="al-title">Мадам Цолькин: апрель 2026 — ваш код и задача месяца</div>
+          <div class="al-meta"><span class="al-author"><span class="avxs"></span>Мадам Цолькин</span><span class="al-stats">31 мар · ❤ 64 · 👁 1.8к</span></div>
+        </div>
+      </div>
+      <div class="al" data-topic="soul chan" data-author="амина">
+        <div class="al-img" style="background:var(--acp);">🔮</div>
+        <div class="al-body">
+          <span class="al-tag tp">Ченнелинг</span>
+          <div class="al-title">Послания духа света: как открыться каналу и не потеряться</div>
+          <div class="al-meta"><span class="al-author"><span class="avxs"></span>Амина</span><span class="al-stats">28 мар · ❤ 43 · 👁 1.1к</span></div>
+        </div>
+      </div>
+      <div class="al" data-topic="body psych" data-author="роман">
+        <div class="al-img" style="background:var(--tell);">🧘</div>
+        <div class="al-body">
+          <span class="al-tag tt">Психосоматика</span>
+          <div class="al-title">Психосоматика: почему болит спина — и при чём тут мама</div>
+          <div class="al-meta"><span class="al-author"><span class="avxs"></span>Роман</span><span class="al-stats">25 мар · ❤ 72 · 👁 2.4к</span></div>
+        </div>
+      </div>
+      <div class="al" data-topic="money soul" data-author="рахмат">
+        <div class="al-img" style="background:var(--ambl);">💎</div>
+        <div class="al-body">
+          <span class="al-tag ta">Деньги · Энергия</span>
+          <div class="al-title">Деньги как энергия: почему они уходят от тех, кто их боится</div>
+          <div class="al-meta"><span class="al-author"><span class="avxs"></span>Рахмат</span><span class="al-stats">20 мар · ❤ 95 · 👁 3.2к</span></div>
+        </div>
+      </div>
+      <div class="al" data-topic="story soul" data-author="анастасия">
+        <div class="al-img" style="background:var(--acp);">🦋</div>
+        <div class="al-body">
+          <span class="al-tag tp">История мастера</span>
+          <div class="al-title">Как я ушла из корпорации и стала коучем: честно о страхах и деньгах</div>
+          <div class="al-meta"><span class="al-author"><span class="avxs"></span>Анастасия</span><span class="al-stats">15 мар · ❤ 114 · 👁 4.1к</span></div>
+        </div>
+      </div>
+      <div class="al" data-topic="chan soul" data-author="диана">
+        <div class="al-img" style="background:var(--acp);">🌌</div>
+        <div class="al-body">
+          <span class="al-tag tp">Ченнелинг</span>
+          <div class="al-title">Послания звёздных душ: что хочет сказать Вселенная в апреле</div>
+          <div class="al-meta"><span class="al-author"><span class="avxs"></span>Диана</span><span class="al-stats">14 апр · ❤ 58 · 👁 1.5к</span></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="more-btn">Показать ещё статьи</button>
+  </div>
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="side-sec">
+      <div class="side-h">Популярное сейчас</div>
+      <div class="tr-item"><span class="tr-num">1</span><div><div class="tr-title">Как я ушла из корпорации и стала коучем</div><div class="tr-meta">Анастасия · 4.1к просм.</div></div></div>
+      <div class="tr-item"><span class="tr-num">2</span><div><div class="tr-title">Деньги как энергия: почему они уходят</div><div class="tr-meta">Рахмат · 3.2к просм.</div></div></div>
+      <div class="tr-item"><span class="tr-num">3</span><div><div class="tr-title">Апрель 2026 — послание духа света</div><div class="tr-meta">Амина · 3.4к просм.</div></div></div>
+      <div class="tr-item"><span class="tr-num">4</span><div><div class="tr-title">Психосоматика: почему болит спина</div><div class="tr-meta">Роман · 2.4к просм.</div></div></div>
+      <div class="tr-item"><span class="tr-num">5</span><div><div class="tr-title">Выгорание эксперта: личная история</div><div class="tr-meta">Дарья · 2.1к просм.</div></div></div>
+    </div>
+    <div class="side-sec">
+      <div class="side-h">Авторы для подписки</div>
+      <div class="taut-item"><div class="taut-ava">🌸</div><div><div class="taut-name">Амина</div><div class="taut-sub">12 статей · Таролог</div></div><button class="follow-btn">+ Читать</button></div>
+      <div class="taut-item"><div class="taut-ava">🔮</div><div><div class="taut-name">Дарья ДарСлова</div><div class="taut-sub">8 статей · Психолог</div></div><button class="follow-btn">+ Читать</button></div>
+      <div class="taut-item"><div class="taut-ava">🙏</div><div><div class="taut-name">Рахмат</div><div class="taut-sub">6 статей · Целитель</div></div><button class="follow-btn">+ Читать</button></div>
+      <div class="taut-item"><div class="taut-ava">🌙</div><div><div class="taut-name">Мадам Цолькин</div><div class="taut-sub">14 статей · Астролог</div></div><button class="follow-btn">+ Читать</button></div>
+    </div>
+    <div class="side-sec">
+      <div class="side-h">Темы</div>
+      <div class="tags-cloud">
+        <span class="tc-tag">#ченнелинг</span><span class="tc-tag">#психология</span><span class="tc-tag">#деньги</span><span class="tc-tag">#пробуждение</span><span class="tc-tag">#цолькин</span><span class="tc-tag">#выгорание</span><span class="tc-tag">#медитация</span><span class="tc-tag">#исцеление</span><span class="tc-tag">#саботаж</span><span class="tc-tag">#ретрит</span><span class="tc-tag">#духовность</span><span class="tc-tag">#тело</span>
+      </div>
+    </div>
+    <div class="side-sec">
+      <div style="background:var(--acc);border-radius:var(--rlg);padding:16px;">
+        <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:5px;">Пишите о своём пути</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:12px;line-height:1.6;">Публикуйте статьи, ченнелинги, практики — ваша аудитория ждёт.</div>
+        <button style="display:block;width:100%;padding:9px;text-align:center;background:#fff;color:var(--act);border:none;border-radius:var(--rmd);font-size:12px;font-weight:500;cursor:pointer;">Написать статью</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ══ READER MODAL ══ -->
+<div id="reader-wrap" style="display:none;">
+  <div class="reader-overlay">
+    <div class="reader" id="reader-content"></div>
+  </div>
+</div>
+
+<!-- ══ MOBILE BOTTOM NAVIGATION ══ -->
+<nav class="mob-bottom-nav">
+  <div class="mbn-inner">
+    <a class="mbn-item" href="#">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 8.5L10 3l7 5.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V8.5z" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M7.5 18V12h5v6" stroke="currentColor" stroke-width="1.2"/></svg>
+      Главная
+    </a>
+    <a class="mbn-item" href="#">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="8" r="3.5" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 17c0-3.6 2.9-5.5 6.5-5.5s6.5 1.9 6.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Мастера
+    </a>
+    <a class="mbn-item" href="#">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M3 8.5h14M7 2.5v3M13 2.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      События
+    </a>
+    <a class="mbn-item" href="#">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h12v9H4z" stroke="currentColor" stroke-width="1.2"/><path d="M7 17h6M10 13v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Продукты
+    </a>
+    <a class="mbn-item active" href="#">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M5 5.5C5 4.7 5.7 4 6.5 4h7C14.3 4 15 4.7 15 5.5v9c0 .8-.7 1.5-1.5 1.5h-7C5.7 16 5 15.3 5 14.5v-9zM7 7h6M7 10h6M7 13h4" stroke="white" stroke-width="1.1" stroke-linecap="round" fill="none"/></svg>
+      Дзен
+    </a>
+  </div>
+</nav>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  /* ── Article data ── */
+  var defArt={
+    cat:'tp',catLabel:'Ченнелинг',img:'🌊',bg:'#EAE8FB',
+    author:'Амина',date:'02 апр 2026',read:'5 мин',likes:'127',
+    title:'Апрель 2026 — послание духа света',
+    text:'<p>Послание для тех, кто стоит на пороге. Апрель — месяц сдвигов, перехода и обновления.</p><p>Энергии говорят: время отпустить старое и шагнуть в неизвестность с доверием. Это не прыжок в пропасть — это полёт.</p><p>Те, кто долго ждали «правильного момента» — этот момент наступил. Не потому что всё стало идеально. А потому что вы сами стали готовы.</p><p>Апрель активирует зону самовыражения. Говорите. Пишите. Показывайте себя.</p>'
+  };
+
+  /* ── Reader ── */
+  function openReader(a){
+    var w=document.getElementById('reader-wrap');
+    document.getElementById('reader-content').innerHTML=
+      '<div class="reader-hdr">'+
+        '<span class="reader-back" id="rb"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Назад</span>'+
+        '<span class="reader-share">Поделиться</span>'+
+      '</div>'+
+      '<div class="reader-img" style="background:'+a.bg+';font-size:56px;">'+a.img+'</div>'+
+      '<div class="reader-body">'+
+        '<span class="reader-cat '+a.cat+'">'+a.catLabel+'</span>'+
+        '<div class="reader-title">'+a.title+'</div>'+
+        '<div class="reader-meta"><span class="art-author"><span class="avxs"></span>'+a.author+'</span><span class="art-date">'+a.date+'</span><span class="art-read">'+a.read+'</span></div>'+
+        '<div class="reader-text">'+a.text+'</div>'+
+      '</div>'+
+      '<div class="reader-foot">'+
+        '<button class="like-btn" id="like-btn">❤ Нравится · '+a.likes+'</button>'+
+        '<button class="sub-btn">Подписаться на автора</button>'+
+      '</div>';
+    w.style.display='block';
+    document.body.style.overflow='hidden';
+    document.getElementById('rb').addEventListener('click',closeReader);
+    document.getElementById('like-btn').addEventListener('click',function(){
+      var b=this;
+      var liked=b.getAttribute('data-liked');
+      if(!liked){b.style.background='var(--acc)';b.style.color='#fff';b.setAttribute('data-liked','1');showToast('Добавлено в любимые');}
+    });
+  }
+  function closeReader(){
+    document.getElementById('reader-wrap').style.display='none';
+    document.body.style.overflow='';
+  }
+  document.getElementById('reader-wrap').addEventListener('click',function(e){
+    if(e.target===document.querySelector('.reader-overlay'))closeReader();
+  });
+
+  /* ── Open articles ── */
+  document.getElementById('fa-main').addEventListener('click',function(){openReader(defArt);});
+  document.querySelectorAll('.ac,.al').forEach(function(c){c.addEventListener('click',function(){openReader(defArt);});});
+
+  /* ── Filter ── */
+  var allCards=Array.from(document.querySelectorAll('.ac,.al,.feat-art'));
+  var activeTopic='';
+  function doFilter(){
+    var q=document.getElementById('srch').value.toLowerCase().trim();
+    allCards.forEach(function(c){
+      var topic=(c.getAttribute('data-topic')||'').toLowerCase();
+      var author=(c.getAttribute('data-author')||'').toLowerCase();
+      var topicOk=!activeTopic||topic.indexOf(activeTopic)>=0;
+      var queryOk=!q||author.indexOf(q)>=0||topic.indexOf(q)>=0;
+      c.classList.toggle('dimmed',!(topicOk&&queryOk));
+    });
+  }
+  document.getElementById('srch').addEventListener('input',doFilter);
+  document.querySelectorAll('.pill[data-topic]').forEach(function(p){
+    p.addEventListener('click',function(){
+      document.querySelectorAll('.pill[data-topic]').forEach(function(x){x.classList.remove('on');});
+      p.classList.add('on');
+      activeTopic=p.getAttribute('data-topic');
+      doFilter();
+    });
+  });
+  document.querySelectorAll('.ftab').forEach(function(t){
+    t.addEventListener('click',function(){
+      document.querySelectorAll('.ftab').forEach(function(x){x.classList.remove('on');});
+      t.classList.add('on');
+      var key=t.getAttribute('data-tab');
+      activeTopic=key==='chan'?'chan':'';
+      document.querySelectorAll('.pill[data-topic]').forEach(function(p){
+        p.classList.toggle('on',p.getAttribute('data-topic')===(key==='chan'?'chan':''));
+      });
+      doFilter();
+    });
+  });
+
+  /* ── Follow buttons ── */
+  document.querySelectorAll('.follow-btn').forEach(function(b){
+    b.addEventListener('click',function(e){
+      e.stopPropagation();
+      if(b.textContent.trim()==='+ Читать'){
+        b.textContent='✓ Читаю';
+        b.style.background='var(--tell)';
+        b.style.color='var(--telt)';
+        showToast('Подписка оформлена');
+      } else {
+        b.textContent='+ Читать';
+        b.style.background='';
+        b.style.color='';
+      }
+    });
+  });
+
+  /* ── Mobile menu ── */
+  var burgerBtn=document.getElementById('burger-btn');
+  var mobMenu=document.getElementById('mob-menu');
+  var mobClose=document.getElementById('mob-close');
+  var mobBackdrop=document.getElementById('mob-backdrop');
+
+  function openMenu(){
+    mobMenu.classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeMenu(){
+    mobMenu.classList.remove('open');
+    document.body.style.overflow='';
+  }
+  burgerBtn.addEventListener('click',openMenu);
+  mobClose.addEventListener('click',closeMenu);
+  mobBackdrop.addEventListener('click',closeMenu);
+
+  /* ── Keyboard close ── */
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      closeReader();
+      closeMenu();
+    }
+  });
+
+  /* ── Toast ── */
+  var toastTimer;
+  function showToast(msg){
+    var t=document.getElementById('toast');
+    t.textContent=msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){t.classList.remove('show');},2200);
+  }
+
+  /* ── More button ── */
+  document.querySelector('.more-btn').addEventListener('click',function(){
+    showToast('Загружаем новые статьи...');
+  });
+})();
+</script>
+</body>
+</html>
