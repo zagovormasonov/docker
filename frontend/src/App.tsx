@@ -41,6 +41,7 @@ const MyBookingsPage = lazy(() => import('./pages/MyBookingsPage'));
 const ExpertDashboardPage = lazy(() => import('./pages/ExpertDashboardPage'));
 const LoyaltyPage = lazy(() => import('./pages/LoyaltyPage'));
 const DigitalProductsPage = lazy(() => import('./pages/DigitalProductsPage'));
+const DzenPage = lazy(() => import('./pages/DzenPage'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, loading } = useAuth();
@@ -111,6 +112,7 @@ function App() {
                   <Route path="loyalty" element={<LoyaltyPage />} />
                   <Route path="payment-success" element={<PaymentSuccessPage />} />
                   <Route path="products" element={<DigitalProductsPage />} />
+                  <Route path="dzen" element={<DzenPage />} />
                 </Route>
               </Routes>
             </Suspense>

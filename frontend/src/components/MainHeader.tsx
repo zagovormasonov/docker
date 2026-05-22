@@ -50,9 +50,9 @@ const MainHeader = () => {
           <Link className={`ss-nl ${location.pathname.startsWith('/products') ? 'ss-active' : ''}`} to="/products">
             Цифровые продукты<span className="ss-ndot" />
           </Link>
-          <a className="ss-nl" href="/soulsynergy_dzen.html">
+          <Link className={`ss-nl ${location.pathname.startsWith('/dzen') ? 'ss-active' : ''}`} to="/dzen">
             Дзен
-          </a>
+          </Link>
           {user?.userType === 'admin' && (
             <>
               <Link className={`ss-nl ${location.pathname.startsWith('/moderation') ? 'ss-active' : ''}`} to="/moderation">
@@ -159,9 +159,9 @@ const MainHeader = () => {
                 <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/products') ? 'ss-mobile-nav-link--active' : ''}`} to="/products" onClick={close}>
                   Цифровые продукты
                 </Link>
-                <a className="ss-mobile-nav-link" href="/soulsynergy_dzen.html" onClick={close}>
+                <Link className={`ss-mobile-nav-link ${location.pathname.startsWith('/dzen') ? 'ss-mobile-nav-link--active' : ''}`} to="/dzen" onClick={close}>
                   Дзен
-                </a>
+                </Link>
               </nav>
 
               <div className="ss-mobile-divider" />
