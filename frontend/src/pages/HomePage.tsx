@@ -42,6 +42,11 @@ interface EventRow {
   price: string;
   is_online: boolean;
   city_name?: string;
+  cover_image?: string;
+  description?: string;
+  event_type?: string;
+  location?: string;
+  organizer_name?: string;
 }
 
 interface DigitalProductPreview {
@@ -476,6 +481,18 @@ export default function HomePage() {
 
   const emojiFor = (id: number) => PHOTOS[id % PHOTOS.length];
 
+  const isFreeEvent = (event: EventRow) =>
+    !event.price || event.price === '0' || String(event.price).toLowerCase() === 'бесплатно';
+
+  const formatEventPlace = (event: EventRow) => {
+    if (event.is_online) return 'Онлайн';
+    return event.city_name || event.location || 'Офлайн';
+  };
+
+  const formatEventPrice = (event: EventRow) => (
+    isFreeEvent(event) ? 'Бесплатно' : event.price
+  );
+
   const cardDimmed = (article: Article) => {
     if (!pillActive || !PILL_MAP[pillActive]) return false;
     const tags = inferTags(`${article.title} ${stripHtml(article.content)}`);
@@ -528,7 +545,10 @@ export default function HomePage() {
   };
 
   const renderEventCard = (event: EventRow, featuredCard: boolean) => {
-    const paid = event.price && event.price !== '0' && String(event.price).toLowerCase() !== 'бесплатно';
+    const eventPlace = formatEventPlace(event);
+    const eventDate = dayjs(event.event_date);
+    const eventDescription = stripHtml(event.description || '').slice(0, featuredCard ? 140 : 88);
+    const hasCover = Boolean(event.cover_image);
 
     return (
       <article
@@ -536,24 +556,36 @@ export default function HomePage() {
         className={`ss-card ss-type-ev ${featuredCard ? 'ss-feat' : ''}`}
         onClick={() => navigate(`/events/${event.id}`)}
       >
-        <div className="ss-c-img" style={{ background: 'var(--ss-accent-pale)', fontSize: featuredCard ? 42 : 38 }}>
+        <div
+          className="ss-c-img"
+          style={{
+            background: hasCover ? `url(${event.cover_image}) center / cover no-repeat` : 'var(--ss-accent-pale)',
+            fontSize: featuredCard ? 42 : 38,
+            color: hasCover ? 'transparent' : undefined,
+          }}
+        >
           🎙️
         </div>
         <div className="ss-c-body">
           <span className="ss-ctag ss-tp">
-            {event.is_online ? 'Онлайн' : event.city_name || 'Оффлайн'} · {dayjs(event.event_date).format('DD MMM')}
+            {(event.event_type || eventPlace)} · {eventDate.format('DD MMM')}
           </span>
           <div className="ss-c-title">{event.title}</div>
           {featuredCard ? (
             <div className="ss-c-excerpt">
-              {dayjs(event.event_date).format('DD MMMM')} · {event.is_online ? 'Онлайн' : event.city_name || ''}
+              {eventDescription || `${eventDate.format('DD MMMM')} · ${eventPlace}`}
             </div>
+          ) : eventDescription ? (
+            <div className="ss-c-excerpt">{eventDescription}</div>
           ) : null}
-          <div className="ss-c-meta">{dayjs(event.event_date).format('HH:mm')}</div>
+          <div className="ss-c-meta">
+            {eventDate.format('DD MMMM · HH:mm')} · {eventPlace}
+            {event.organizer_name ? ` · ${event.organizer_name}` : ''}
+          </div>
         </div>
         <div className="ss-c-foot">
-          {paid ? <span className="ss-pill-paid">{event.price}</span> : <span className="ss-pill-free">Бесплатно</span>}
-          <span style={{ fontSize: 11, color: 'var(--ss-accent)', cursor: 'pointer' }}>Подробнее →</span>
+          {isFreeEvent(event) ? <span className="ss-pill-free">Бесплатно</span> : <span className="ss-pill-paid">{event.price}</span>}
+          <span style={{ fontSize: 11, color: 'var(--ss-accent)', cursor: 'pointer' }}>{formatEventPrice(event)} →</span>
         </div>
       </article>
     );
@@ -748,8 +780,11 @@ export default function HomePage() {
               <div key={event.id} className="ss-ev-item">
                 <div className="ss-ev-when">{dayjs(event.event_date).format('DD MMMM · HH:mm')}</div>
                 <div className="ss-ev-title">{event.title}</div>
+                <div style={{ fontSize: 11, color: 'var(--ss-text-2)', marginTop: 4 }}>
+                  {event.event_type || formatEventPlace(event)}
+                </div>
                 <div className="ss-ev-foot">
-                  {event.price && event.price !== '0' ? (
+                  {!isFreeEvent(event) ? (
                     <span className="ss-pill-paid">{event.price}</span>
                   ) : (
                     <span className="ss-pill-free">Бесплатно</span>
