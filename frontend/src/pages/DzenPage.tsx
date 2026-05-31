@@ -105,11 +105,13 @@ function Reader({
   canEdit,
   onClose,
   onEdit,
+  onAuthorClick,
 }: {
   article: Article;
   canEdit: boolean;
   onClose: () => void;
   onEdit: () => void;
+  onAuthorClick: () => void;
 }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -151,7 +153,12 @@ function Reader({
           <span className={`dz-reader-cat ${tagMeta.className}`}>{tagMeta.label}</span>
           <div className="dz-reader-title">{article.title}</div>
           <div className="dz-reader-meta">
-            <span className="dz-art-author"><span className="dz-avxs" />{article.author_name}</span>
+            <button type="button" className="dz-reader-author" onClick={onAuthorClick}>
+              <span className="dz-avxs">
+                <img src={article.author_avatar || '/emp.jpg'} alt="" />
+              </span>
+              <span>{article.author_name}</span>
+            </button>
             <span className="dz-art-date">{dayjs(article.created_at).format('DD MMM YYYY')}</span>
             <span className="dz-art-read">👁 {article.views}</span>
           </div>
@@ -250,10 +257,16 @@ const DzenPage = () => {
   const trending = useMemo(() => articlesPopular.slice(0, 5), [articlesPopular]);
 
   const sideAuthors = useMemo(() => {
-    const counts = new Map<string, { name: string; count: number }>();
+    const counts = new Map<string, { id: number; name: string; avatar?: string; count: number }>();
     for (const article of articlesNew) {
-      const current = counts.get(article.author_name) || { name: article.author_name, count: 0 };
+      const current = counts.get(article.author_name) || {
+        id: article.author_id,
+        name: article.author_name,
+        avatar: article.author_avatar,
+        count: 0,
+      };
       current.count += 1;
+      if (!current.avatar && article.author_avatar) current.avatar = article.author_avatar;
       counts.set(article.author_name, current);
     }
     return [...counts.values()].sort((a, b) => b.count - a.count).slice(0, 4);
@@ -267,6 +280,10 @@ const DzenPage = () => {
     navigate(`/edit-article/${articleId}?publishNow=1&redirectTo=/dzen&section=dzen`);
   }, [navigate]);
 
+  const openAuthorProfile = useCallback((authorId: number) => {
+    navigate(`/experts/${authorId}`);
+  }, [navigate]);
+
   return (
     <div className="dz-page">
       {readerArticle && (
@@ -275,6 +292,7 @@ const DzenPage = () => {
           canEdit={user?.id === readerArticle.author_id}
           onClose={() => setReaderArticle(null)}
           onEdit={() => openEditArticle(readerArticle.id)}
+          onAuthorClick={() => openAuthorProfile(readerArticle.author_id)}
         />
       )}
 
@@ -365,7 +383,7 @@ const DzenPage = () => {
                     <div className="dz-feat-title">{featured.title}</div>
                     <div className="dz-feat-excerpt">{stripHtml(featured.content).slice(0, 220)}...</div>
                     <div className="dz-art-meta">
-                      <span className="dz-art-author"><span className="dz-avxs" />{featured.author_name}</span>
+                      <span className="dz-art-author"><span className="dz-avxs"><img src={featured.author_avatar || '/emp.jpg'} alt="" /></span>{featured.author_name}</span>
                       <span className="dz-art-date">{dayjs(featured.created_at).format('DD MMM YYYY')}</span>
                       <span className="dz-art-read">❤ {featured.likes_count} · 👁 {featured.views}</span>
                     </div>
@@ -387,7 +405,7 @@ const DzenPage = () => {
                       <div className="dz-card-title">{article.title}</div>
                       <div className="dz-card-excerpt">{stripHtml(article.content).slice(0, 120)}...</div>
                       <div className="dz-card-foot">
-                        <span className="dz-ac-author"><span className="dz-avxs" />{article.author_name}</span>
+                        <span className="dz-ac-author"><span className="dz-avxs"><img src={article.author_avatar || '/emp.jpg'} alt="" /></span>{article.author_name}</span>
                         <span className="dz-ac-stats">❤ {article.likes_count} · 👁 {article.views}</span>
                       </div>
                     </div>
@@ -408,7 +426,7 @@ const DzenPage = () => {
                       <span className={`dz-al-tag ${getTagMeta(article).className}`}>{getTagMeta(article).label}</span>
                       <div className="dz-list-title">{article.title}</div>
                       <div className="dz-list-meta">
-                        <span className="dz-al-author"><span className="dz-avxs" />{article.author_name}</span>
+                        <span className="dz-al-author"><span className="dz-avxs"><img src={article.author_avatar || '/emp.jpg'} alt="" /></span>{article.author_name}</span>
                         <span className="dz-al-stats">{dayjs(article.created_at).format('DD MMM')} · ❤ {article.likes_count} · 👁 {article.views}</span>
                       </div>
                     </div>
@@ -439,9 +457,13 @@ const DzenPage = () => {
             <div className="dz-side-h">Авторы для подписки</div>
             {sideAuthors.map((author) => (
               <div key={author.name} className="dz-author-item">
-                <div className="dz-author-ava">✦</div>
+                <button type="button" className="dz-author-profile" onClick={() => openAuthorProfile(author.id)}>
+                  <span className="dz-author-ava">
+                    <img src={author.avatar || '/emp.jpg'} alt="" />
+                  </span>
+                </button>
                 <div className="dz-author-info">
-                  <div className="dz-author-name">{author.name}</div>
+                  <button type="button" className="dz-author-name" onClick={() => openAuthorProfile(author.id)}>{author.name}</button>
                   <div className="dz-author-sub">{author.count} статей · эксперт</div>
                 </div>
                 <button
