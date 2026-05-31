@@ -1,2 +1,2 @@
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS category VARCHAR(50);
-
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS article_section VARCHAR(50) DEFAULT 'main';

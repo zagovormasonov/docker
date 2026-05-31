@@ -167,8 +167,8 @@ const DzenPage = () => {
     (async () => {
       try {
         const [newRes, popularRes] = await Promise.all([
-          api.get('/articles?sort=new'),
-          api.get('/articles?sort=popular'),
+          api.get('/articles?sort=new&section=dzen'),
+          api.get('/articles?sort=popular&section=dzen'),
         ]);
 
         if (!alive) return;
@@ -201,6 +201,7 @@ const DzenPage = () => {
 
   const topicFilter = activeTab === 'chan' ? 'chan' : activeTopic;
   const baseArticles = activeTab === 'pop' ? articlesPopular : articlesNew;
+  const isSearchMode = query.trim().length > 0;
 
   const visibleArticles = useMemo(() => {
     let list = [...baseArticles];
@@ -224,9 +225,9 @@ const DzenPage = () => {
     return list;
   }, [baseArticles, activeTab, followed, query, topicFilter]);
 
-  const featured = visibleArticles[0] || null;
-  const gridArticles = visibleArticles.slice(1, 5);
-  const listArticles = visibleArticles.slice(5);
+  const featured = isSearchMode ? null : visibleArticles[0] || null;
+  const gridArticles = isSearchMode ? [] : visibleArticles.slice(1, 5);
+  const listArticles = isSearchMode ? visibleArticles : visibleArticles.slice(5);
 
   const trending = useMemo(() => articlesPopular.slice(0, 5), [articlesPopular]);
 
@@ -241,7 +242,7 @@ const DzenPage = () => {
   }, [articlesNew]);
 
   const openCreateArticle = useCallback(() => {
-    navigate('/create-article?publishNow=1&redirectTo=/dzen');
+    navigate('/create-article?publishNow=1&redirectTo=/dzen&section=dzen');
   }, [navigate]);
 
   return (
@@ -365,7 +366,7 @@ const DzenPage = () => {
                 ))}
               </div>
 
-              <div className="dz-list">
+              <div className={`dz-list${isSearchMode ? ' dz-search-results' : ''}`}>
                 {listArticles.map((article) => (
                   <div key={article.id} className="dz-list-item" onClick={() => setReaderArticle(article)}>
                     <div

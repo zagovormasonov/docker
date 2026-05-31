@@ -40,6 +40,7 @@ const CreateArticlePage = () => {
   const quillRef = useRef<ReactQuill>(null);
   const isEdit = !!id;
   const publishNow = searchParams.get('publishNow') === '1';
+  const articleSection = searchParams.get('section') || 'main';
   const redirectTo = searchParams.get('redirectTo') || '/my-articles';
 
   const [title, setTitle] = useState('');
@@ -107,6 +108,7 @@ const CreateArticlePage = () => {
         title: stripHtml(title),
         content,
         category: category || null,
+        articleSection,
         coverImage: coverUrl || null,
         publishNow,
       };

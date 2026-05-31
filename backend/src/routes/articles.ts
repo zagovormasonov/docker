@@ -159,7 +159,10 @@ router.get('/search', async (req, res) => {
 // Закрепленные статьи показываются вверху
 router.get('/', async (req, res) => {
   try {
-    const { sort = 'new' } = req.query;
+    const { sort = 'new', section } = req.query;
+    const sectionWhere = section === 'dzen'
+      ? "AND a.article_section = 'dzen'"
+      : "AND (a.article_section IS NULL OR a.article_section <> 'dzen')";
 
     let orderBy = 'a.created_at DESC';
     if (sort === 'popular') {
@@ -179,6 +182,7 @@ router.get('/', async (req, res) => {
          WHERE a.is_published = true 
          AND (a.archived = false OR a.archived IS NULL)
          AND (a.moderation_status = 'approved' OR a.moderation_status IS NULL)
+         ${sectionWhere}
          ORDER BY 
            CASE WHEN a.is_pinned = true THEN 0 ELSE 1 END,
            CASE WHEN a.is_pinned = true THEN a.pin_order ELSE 999 END,
@@ -199,6 +203,7 @@ router.get('/', async (req, res) => {
            JOIN users u ON a.author_id = u.id
            WHERE a.is_published = true
            AND (a.archived = false OR a.archived IS NULL)
+           ${sectionWhere}
            ORDER BY 
              CASE WHEN a.is_pinned = true THEN 0 ELSE 1 END,
              CASE WHEN a.is_pinned = true THEN a.pin_order ELSE 999 END,
@@ -214,6 +219,7 @@ router.get('/', async (req, res) => {
            JOIN users u ON a.author_id = u.id
            WHERE a.is_published = true
            AND (a.archived = false OR a.archived IS NULL)
+           ${sectionWhere}
            ORDER BY ${orderBy}
            LIMIT 100`
         );
@@ -271,8 +277,9 @@ router.post(
     }
 
     try {
-      const { title, content, category, coverImage, publishNow } = req.body;
+      const { title, content, category, articleSection, coverImage, publishNow } = req.body;
       const shouldPublishNow = Boolean(publishNow);
+      const normalizedSection = articleSection === 'dzen' ? 'dzen' : 'main';
       console.log('📝 Создание статьи (черновик):', { title, userId: req.userId });
 
       // Создаем статью как черновик (БЕЗ отправки на модерацию)
@@ -280,10 +287,10 @@ router.post(
       try {
         console.log('🔍 Создаём статью как черновик');
         result = await query(
-          `INSERT INTO articles (author_id, title, content, category, cover_image, is_published, moderation_status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `INSERT INTO articles (author_id, title, content, category, article_section, cover_image, is_published, moderation_status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
            RETURNING *`,
-          [req.userId, title, content, category || null, coverImage || null, shouldPublishNow, shouldPublishNow ? 'approved' : 'draft']
+          [req.userId, title, content, category || null, normalizedSection, coverImage || null, shouldPublishNow, shouldPublishNow ? 'approved' : 'draft']
         );
         console.log('✅ Статья создана как черновик');
       } catch (error) {
@@ -291,10 +298,10 @@ router.post(
         console.log('⚠️ Поля модерации не найдены, создаем статью без них:', error.message);
         try {
           result = await query(
-            `INSERT INTO articles (author_id, title, content, category, cover_image, is_published)
-             VALUES ($1, $2, $3, $4, $5, $6)
+            `INSERT INTO articles (author_id, title, content, category, article_section, cover_image, is_published)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [req.userId, title, content, category || null, coverImage || null, shouldPublishNow]
+            [req.userId, title, content, category || null, normalizedSection, coverImage || null, shouldPublishNow]
           );
         } catch (categoryError) {
           console.log('Category column not found, creating article without category:', categoryError.message);
@@ -331,7 +338,8 @@ router.put(
   async (req: AuthRequest, res) => {
     try {
       const { id } = req.params;
-      const { title, content, category, coverImage } = req.body;
+      const { title, content, category, articleSection, coverImage } = req.body;
+      const normalizedSection = articleSection === 'dzen' ? 'dzen' : undefined;
 
       console.log('📝 Обновление статьи:', { id, title, userId: req.userId });
 
@@ -362,16 +370,17 @@ router.put(
            SET title = COALESCE($1, title),
                content = COALESCE($2, content),
                category = $3,
-               cover_image = COALESCE($4, cover_image),
+               article_section = COALESCE($4, article_section),
+               cover_image = COALESCE($5, cover_image),
                moderation_status = 'draft',
                is_published = false,
                moderation_reason = NULL,
                moderated_by = NULL,
                moderated_at = NULL,
                updated_at = CURRENT_TIMESTAMP
-           WHERE id = $5 AND author_id = $6
+           WHERE id = $6 AND author_id = $7
            RETURNING *`,
-          [title, content, category || null, coverImage, id, req.userId]
+          [title, content, category || null, normalizedSection, coverImage, id, req.userId]
         );
       } catch (categoryError) {
         console.log('Category column not found, updating article without category:', categoryError.message);
