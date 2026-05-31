@@ -536,6 +536,7 @@
   border-radius: 14px;
   max-width: 600px;
   width: 100%;
+  min-width: 0;
   overflow: hidden;
   margin: auto;
 }
@@ -599,7 +600,7 @@
   font-size: 56px;
 }
 
-.dz-reader-body { padding: 20px 24px; }
+.dz-reader-body { padding: 20px 24px; min-width: 0; }
 
 .dz-reader-cat {
   display: inline-flex;
@@ -616,6 +617,8 @@
   color: var(--t1);
   line-height: 1.35;
   margin-bottom: 10px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dz-reader-meta {
@@ -628,8 +631,20 @@
   flex-wrap: wrap;
 }
 
-.dz-reader-text { font-size: 14px; color: var(--t2); line-height: 1.8; }
-.dz-reader-text p { margin-bottom: 14px; }
+.dz-reader-text {
+  max-width: 100%;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--t2);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.dz-reader-text p { margin-bottom: 14px; overflow-wrap: anywhere; }
+.dz-reader-text img, .dz-reader-text video, .dz-reader-text iframe {
+  max-width: 100%;
+  height: auto;
+}
 
 .dz-reader-foot {
   padding: 14px 24px;
