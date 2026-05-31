@@ -10,20 +10,26 @@ import './CreateArticlePage.css';
 marked.setOptions({ breaks: true });
 
 const MARKDOWN_PATTERNS = [
-  /\*\*(.*?)\*\*/,/__(.*?)__/,/`{1,3}[^`]+`{1,3}/,
-  /^>{1,}\s/m,/^#{1,6}\s/m,/^\s*[-*+]\s+/m,
-  /\[(.*?)\]\((.*?)\)/,/!\[(.*?)\]\((.*?)\)/,
+  /\*\*(.*?)\*\*/, /__(.*?)__/, /`{1,3}[^`]+`{1,3}/,
+  /^>{1,}\s/m, /^#{1,6}\s/m, /^\s*[-*+]\s+/m,
+  /\[(.*?)\]\((.*?)\)/, /!\[(.*?)\]\((.*?)\)/,
 ];
+
 const looksLikeMarkdown = (text: string) => MARKDOWN_PATTERNS.some((p) => p.test(text));
-const stripHtml = (html: string) => { const d = document.createElement('div'); d.innerHTML = html; return d.textContent || d.innerText || ''; };
+
+const stripHtml = (html: string) => {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return d.textContent || d.innerText || '';
+};
 
 const CATEGORIES = [
-  { key: 'chan',   label: 'Ченнелинг' },
+  { key: 'chan', label: 'Ченнелинг' },
   { key: 'psych', label: 'Психология' },
-  { key: 'soul',  label: 'Духовный путь' },
+  { key: 'soul', label: 'Духовный путь' },
   { key: 'money', label: 'Деньги и рост' },
-  { key: 'body',  label: 'Тело и здоровье' },
-  { key: 'zolk',  label: 'Цолькин' },
+  { key: 'body', label: 'Тело и здоровье' },
+  { key: 'zolk', label: 'Цолькин' },
   { key: 'story', label: 'История мастера' },
 ];
 
@@ -36,18 +42,20 @@ const CreateArticlePage = () => {
   const publishNow = searchParams.get('publishNow') === '1';
   const redirectTo = searchParams.get('redirectTo') || '/my-articles';
 
-  const [title, setTitle]               = useState('');
-  const [titleError, setTitleError]     = useState('');
-  const [content, setContent]           = useState('');
+  const [title, setTitle] = useState('');
+  const [titleError, setTitleError] = useState('');
+  const [content, setContent] = useState('');
   const [contentError, setContentError] = useState('');
-  const [category, setCategory]         = useState('');
-  const [coverUrl, setCoverUrl]         = useState('');
-  const [coverInput, setCoverInput]     = useState('');
+  const [category, setCategory] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
+  const [coverInput, setCoverInput] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
-  const [loading, setLoading]           = useState(false);
+  const [loading, setLoading] = useState(false);
   const [loadingArticle, setLoadingArticle] = useState(false);
 
-  useEffect(() => { if (isEdit) fetchArticle(); }, [id]);
+  useEffect(() => {
+    if (isEdit) fetchArticle();
+  }, [id]);
 
   const fetchArticle = async () => {
     setLoadingArticle(true);
@@ -55,6 +63,7 @@ const CreateArticlePage = () => {
       const { data } = await api.get(`/articles/${id}`);
       setTitle(data.title || '');
       setContent(data.content || '');
+      setCategory(data.category || '');
       setCoverUrl(data.cover_image || '');
       setCoverInput(data.cover_image || '');
     } catch {
@@ -67,32 +76,56 @@ const CreateArticlePage = () => {
 
   const validate = () => {
     let ok = true;
+
     if (!title.trim() || title.trim().length < 5) {
-      setTitleError('Минимум 5 символов'); ok = false;
+      setTitleError('Минимум 5 символов');
+      ok = false;
     } else if (title.trim().length > 200) {
-      setTitleError('Максимум 200 символов'); ok = false;
-    } else { setTitleError(''); }
+      setTitleError('Максимум 200 символов');
+      ok = false;
+    } else {
+      setTitleError('');
+    }
 
     const plain = stripHtml(content).trim();
     if (!content.trim() || content === '<p><br></p>' || plain.length < 50) {
-      setContentError('Минимум 50 символов текста'); ok = false;
-    } else { setContentError(''); }
+      setContentError('Минимум 50 символов текста');
+      ok = false;
+    } else {
+      setContentError('');
+    }
+
     return ok;
   };
 
   const handleSubmit = async () => {
     if (!validate()) return;
+
     setLoading(true);
     try {
-      const data = { title: stripHtml(title), content, coverImage: coverUrl || null };
+      const data = {
+        title: stripHtml(title),
+        content,
+        category: category || null,
+        coverImage: coverUrl || null,
+        publishNow,
+      };
+
       if (isEdit) {
         const res = await api.put(`/articles/${id}`, data);
-        message.success(res.data.message || 'Статья обновлена!');
+        if (publishNow) {
+          await api.post(`/articles/${id}/publish`);
+        }
+        message.success(publishNow ? 'Статья опубликована!' : (res.data.message || 'Статья обновлена!'));
       } else {
         const res = await api.post('/articles', data);
-        message.success(res.data.message || 'Статья создана!');
+        if (publishNow && res.data?.id) {
+          await api.post(`/articles/${res.data.id}/publish`);
+        }
+        message.success(publishNow ? 'Статья опубликована!' : (res.data.message || 'Статья создана!'));
       }
-      navigate('/my-articles');
+
+      navigate(redirectTo);
     } catch (err: any) {
       message.error(err.response?.data?.error || 'Ошибка сохранения');
     } finally {
@@ -105,7 +138,9 @@ const CreateArticlePage = () => {
     try {
       const fd = new FormData();
       fd.append('image', file);
-      const { data } = await api.post('/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const { data } = await api.post('/upload/image', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setCoverUrl(data.url);
       setCoverInput(data.url);
       message.success('Обложка загружена!');
@@ -118,17 +153,28 @@ const CreateArticlePage = () => {
 
   const imageHandler = useCallback(() => {
     const input = document.createElement('input');
-    input.type = 'file'; input.accept = 'image/*'; input.click();
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.click();
     input.onchange = async () => {
       if (!input.files?.[0]) return;
-      const fd = new FormData(); fd.append('image', input.files[0]);
+      const fd = new FormData();
+      fd.append('image', input.files[0]);
       try {
         const hide = message.loading('Загрузка...', 0);
-        const { data } = await api.post('/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        const { data } = await api.post('/upload/image', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         hide();
         const quill = quillRef.current?.getEditor();
-        if (quill) { const r = quill.getSelection(true); quill.insertEmbed(r.index, 'image', data.url); quill.setSelection(r.index + 1, 0); }
-      } catch { message.error('Ошибка загрузки'); }
+        if (quill) {
+          const r = quill.getSelection(true);
+          quill.insertEmbed(r.index, 'image', data.url);
+          quill.setSelection(r.index + 1, 0);
+        }
+      } catch {
+        message.error('Ошибка загрузки');
+      }
     };
   }, []);
 
@@ -156,22 +202,31 @@ const CreateArticlePage = () => {
     const quill = quillRef.current?.getEditor();
     const root = quill?.root;
     if (!quill || !root) return;
+
     const handler = (e: ClipboardEvent) => {
       const plain = e.clipboardData?.getData('text/plain');
       if (!plain || !looksLikeMarkdown(plain)) return;
       const html = marked.parse(plain);
       if (typeof html !== 'string' || !html.trim()) return;
+
       e.preventDefault();
       const sel = quill.getSelection(true);
       const idx = sel ? sel.index : quill.getLength();
       if (sel?.length) quill.deleteText(sel.index, sel.length, 'user');
       quill.clipboard.dangerouslyPasteHTML(idx, html.trim(), 'user');
     };
+
     root.addEventListener('paste', handler);
     return () => root.removeEventListener('paste', handler);
   }, []);
 
   const charCount = title.length;
+  const pageTitle = isEdit ? 'Редактировать статью' : 'Написать статью';
+  const submitLabel = loading
+    ? 'Сохранение...'
+    : publishNow
+      ? (isEdit ? 'Обновить и опубликовать' : 'Опубликовать статью')
+      : (isEdit ? 'Сохранить изменения' : 'Создать статью');
 
   if (loadingArticle) {
     return (
@@ -184,23 +239,23 @@ const CreateArticlePage = () => {
 
   return (
     <div className="ca-page">
-      {/* ── Page header ── */}
       <div className="ca-hero">
         <div className="ca-eyebrow">
-          <svg width="7" height="7" viewBox="0 0 7 7" aria-hidden><circle cx="3.5" cy="3.5" r="3" fill="#7B6FD4" /></svg>
+          <svg width="7" height="7" viewBox="0 0 7 7" aria-hidden>
+            <circle cx="3.5" cy="3.5" r="3" fill="#7B6FD4" />
+          </svg>
           {isEdit ? 'Редактирование' : 'Новая публикация'}
         </div>
-        <div className="ca-hero-title">{isEdit ? 'Редактировать статью' : 'Написать статью'}</div>
-        <div className="ca-hero-sub">Статья сохраняется как черновик — отправить на модерацию можно из «Моих статей».</div>
+        <div className="ca-hero-title">{pageTitle}</div>
+        <div className="ca-hero-sub">
+          {publishNow
+            ? 'После сохранения статья сразу появится в разделе.'
+            : 'Статья сохраняется как черновик — отправить на публикацию можно из «Моих статей».'}
+        </div>
       </div>
 
-      {/* ── Main layout ── */}
       <div className="ca-layout">
-
-        {/* Editor column */}
         <div className="ca-editor-col">
-
-          {/* Title */}
           <div className="ca-field">
             <div className="ca-field-header">
               <label className="ca-label" htmlFor="ca-title">Заголовок <span className="ca-req">*</span></label>
@@ -213,12 +268,14 @@ const CreateArticlePage = () => {
               placeholder="Введите заголовок статьи..."
               value={title}
               maxLength={200}
-              onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(''); }}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (titleError) setTitleError('');
+              }}
             />
             {titleError && <div className="ca-err-msg">{titleError}</div>}
           </div>
 
-          {/* Content */}
           <div className="ca-field">
             <label className="ca-label">Содержание <span className="ca-req">*</span></label>
             <div className={`ca-quill-wrap${contentError ? ' ca-inp-err' : ''}`}>
@@ -226,7 +283,10 @@ const CreateArticlePage = () => {
                 ref={quillRef}
                 theme="snow"
                 value={content}
-                onChange={(v) => { setContent(v); if (contentError) setContentError(''); }}
+                onChange={(v) => {
+                  setContent(v);
+                  if (contentError) setContentError('');
+                }}
                 modules={modules}
                 formats={formats}
                 placeholder="Напишите вашу статью здесь..."
@@ -234,16 +294,11 @@ const CreateArticlePage = () => {
             </div>
             {contentError
               ? <div className="ca-err-msg">{contentError}</div>
-              : <div className="ca-hint">Минимум 50 символов. Поддерживается вставка Markdown.</div>
-            }
+              : <div className="ca-hint">Минимум 50 символов. Поддерживается вставка Markdown.</div>}
           </div>
-
         </div>
 
-        {/* Sidebar column */}
         <div className="ca-sidebar">
-
-          {/* Cover */}
           <div className="ca-side-card">
             <div className="ca-side-h">Обложка статьи</div>
 
@@ -253,7 +308,10 @@ const CreateArticlePage = () => {
                 <button
                   type="button"
                   className="ca-cover-remove"
-                  onClick={() => { setCoverUrl(''); setCoverInput(''); }}
+                  onClick={() => {
+                    setCoverUrl('');
+                    setCoverInput('');
+                  }}
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
                     <path d="M2 2l8 8M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -279,7 +337,9 @@ const CreateArticlePage = () => {
                     type="file"
                     accept="image/*"
                     style={{ display: 'none' }}
-                    onChange={(e) => { if (e.target.files?.[0]) handleCoverFile(e.target.files[0]); }}
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) handleCoverFile(e.target.files[0]);
+                    }}
                     disabled={uploadingCover}
                   />
                 </label>
@@ -289,13 +349,15 @@ const CreateArticlePage = () => {
                   className="ca-url-inp"
                   placeholder="Вставьте URL изображения"
                   value={coverInput}
-                  onChange={(e) => { setCoverInput(e.target.value); setCoverUrl(e.target.value); }}
+                  onChange={(e) => {
+                    setCoverInput(e.target.value);
+                    setCoverUrl(e.target.value);
+                  }}
                 />
               </div>
             )}
           </div>
 
-          {/* Category */}
           <div className="ca-side-card">
             <div className="ca-side-h">Категория</div>
             <div className="ca-cats">
@@ -312,7 +374,6 @@ const CreateArticlePage = () => {
             </div>
           </div>
 
-          {/* Tips */}
           <div className="ca-side-card ca-tips-card">
             <div className="ca-side-h">Советы</div>
             <ul className="ca-tips">
@@ -323,12 +384,8 @@ const CreateArticlePage = () => {
             </ul>
           </div>
 
-          {/* Submit (bottom sticky on mobile) */}
           <button type="button" className="ca-submit-btn ca-submit-full" onClick={handleSubmit} disabled={loading}>
-            {loading
-              ? <><span className="ca-btn-spinner" /> Сохранение...</>
-              : isEdit ? 'Сохранить изменения' : 'Создать статью'
-            }
+            {loading ? <><span className="ca-btn-spinner" /> {submitLabel}</> : submitLabel}
           </button>
         </div>
       </div>

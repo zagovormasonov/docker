@@ -271,7 +271,7 @@ router.post(
     }
 
     try {
-      const { title, content, coverImage, publishNow } = req.body;
+      const { title, content, category, coverImage, publishNow } = req.body;
       const shouldPublishNow = Boolean(publishNow);
       console.log('📝 Создание статьи (черновик):', { title, userId: req.userId });
 
@@ -280,21 +280,31 @@ router.post(
       try {
         console.log('🔍 Создаём статью как черновик');
         result = await query(
-          `INSERT INTO articles (author_id, title, content, cover_image, is_published, moderation_status)
-           VALUES ($1, $2, $3, $4, $5, $6)
+          `INSERT INTO articles (author_id, title, content, category, cover_image, is_published, moderation_status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
            RETURNING *`,
-          [req.userId, title, content, coverImage || null, shouldPublishNow, shouldPublishNow ? 'approved' : 'draft']
+          [req.userId, title, content, category || null, coverImage || null, shouldPublishNow, shouldPublishNow ? 'approved' : 'draft']
         );
         console.log('✅ Статья создана как черновик');
       } catch (error) {
         // Если поля модерации не существуют, создаем без них
         console.log('⚠️ Поля модерации не найдены, создаем статью без них:', error.message);
-        result = await query(
-          `INSERT INTO articles (author_id, title, content, cover_image, is_published)
-           VALUES ($1, $2, $3, $4, $5)
-           RETURNING *`,
-          [req.userId, title, content, coverImage || null, shouldPublishNow]
-        );
+        try {
+          result = await query(
+            `INSERT INTO articles (author_id, title, content, category, cover_image, is_published)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING *`,
+            [req.userId, title, content, category || null, coverImage || null, shouldPublishNow]
+          );
+        } catch (categoryError) {
+          console.log('Category column not found, creating article without category:', categoryError.message);
+          result = await query(
+            `INSERT INTO articles (author_id, title, content, cover_image, is_published)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING *`,
+            [req.userId, title, content, coverImage || null, shouldPublishNow]
+          );
+        }
         console.log('✅ Статья создана без полей модерации');
       }
 
@@ -321,7 +331,7 @@ router.put(
   async (req: AuthRequest, res) => {
     try {
       const { id } = req.params;
-      const { title, content, coverImage } = req.body;
+      const { title, content, category, coverImage } = req.body;
 
       console.log('📝 Обновление статьи:', { id, title, userId: req.userId });
 
@@ -345,21 +355,42 @@ router.put(
       // Обновляем статью БЕЗ изменения статуса модерации
       // Если статья была черновиком - остается черновиком
       // Если была на модерации - сбрасываем в черновик для повторной отправки
-      const result = await query(
-        `UPDATE articles 
-         SET title = COALESCE($1, title),
-             content = COALESCE($2, content),
-             cover_image = COALESCE($3, cover_image),
-             moderation_status = 'draft',
-             is_published = false,
-             moderation_reason = NULL,
-             moderated_by = NULL,
-             moderated_at = NULL,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = $4 AND author_id = $5
-         RETURNING *`,
-        [title, content, coverImage, id, req.userId]
-      );
+      let result;
+      try {
+        result = await query(
+          `UPDATE articles 
+           SET title = COALESCE($1, title),
+               content = COALESCE($2, content),
+               category = $3,
+               cover_image = COALESCE($4, cover_image),
+               moderation_status = 'draft',
+               is_published = false,
+               moderation_reason = NULL,
+               moderated_by = NULL,
+               moderated_at = NULL,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE id = $5 AND author_id = $6
+           RETURNING *`,
+          [title, content, category || null, coverImage, id, req.userId]
+        );
+      } catch (categoryError) {
+        console.log('Category column not found, updating article without category:', categoryError.message);
+        result = await query(
+          `UPDATE articles 
+           SET title = COALESCE($1, title),
+               content = COALESCE($2, content),
+               cover_image = COALESCE($3, cover_image),
+               moderation_status = 'draft',
+               is_published = false,
+               moderation_reason = NULL,
+               moderated_by = NULL,
+               moderated_at = NULL,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE id = $4 AND author_id = $5
+           RETURNING *`,
+          [title, content, coverImage, id, req.userId]
+        );
+      }
 
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Статья не найдена' });

@@ -226,6 +226,7 @@ export const initDatabase = async () => {
 
     // Добавляем счетчик лайков к статьям
     await query(`ALTER TABLE articles ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0`);
+    await query(`ALTER TABLE articles ADD COLUMN IF NOT EXISTS category VARCHAR(50)`);
 
     // Таблица событий (новая версия для мероприятий)
     await query(`
