@@ -9,6 +9,7 @@ type TagClass = 'dz-tp' | 'dz-tt' | 'dz-ta';
 
 interface Article {
   id: number;
+  author_id: number;
   title: string;
   content: string;
   category?: string;
@@ -44,6 +45,8 @@ const FEED_TABS = [
   { key: 'chan', label: 'Ченнелинги' },
   { key: 'my', label: 'Мои авторы' },
 ];
+
+const EDIT_LABEL = '\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c';
 
 const stripHtml = (html: string) => {
   const tmp = document.createElement('div');
@@ -97,7 +100,17 @@ const getTagMeta = (article: Article): { label: string; className: TagClass } =>
   return { label: 'Духовный путь', className: 'dz-tp' };
 };
 
-function Reader({ article, onClose }: { article: Article; onClose: () => void }) {
+function Reader({
+  article,
+  canEdit,
+  onClose,
+  onEdit,
+}: {
+  article: Article;
+  canEdit: boolean;
+  onClose: () => void;
+  onEdit: () => void;
+}) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
@@ -122,6 +135,11 @@ function Reader({ article, onClose }: { article: Article; onClose: () => void })
             </svg>
             Назад
           </button>
+          {canEdit && (
+            <button type="button" className="dz-reader-edit" aria-label={EDIT_LABEL} onClick={onEdit}>
+              Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ
+            </button>
+          )}
         </div>
         <div
           className="dz-reader-img"
@@ -245,9 +263,20 @@ const DzenPage = () => {
     navigate('/create-article?publishNow=1&redirectTo=/dzen&section=dzen');
   }, [navigate]);
 
+  const openEditArticle = useCallback((articleId: number) => {
+    navigate(`/edit-article/${articleId}?publishNow=1&redirectTo=/dzen&section=dzen`);
+  }, [navigate]);
+
   return (
     <div className="dz-page">
-      {readerArticle && <Reader article={readerArticle} onClose={() => setReaderArticle(null)} />}
+      {readerArticle && (
+        <Reader
+          article={readerArticle}
+          canEdit={user?.id === readerArticle.author_id}
+          onClose={() => setReaderArticle(null)}
+          onEdit={() => openEditArticle(readerArticle.id)}
+        />
+      )}
 
       <div className="dz-hero">
         <div className="dz-hero-top">

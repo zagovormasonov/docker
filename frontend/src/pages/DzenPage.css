@@ -566,6 +566,23 @@
 }
 .dz-reader-back:hover { color: var(--act); }
 
+.dz-reader-edit {
+  padding: 7px 13px;
+  background: var(--acp);
+  color: var(--act);
+  border: 1px solid var(--acs);
+  border-radius: 100px;
+  font-size: 0;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.dz-reader-edit::before {
+  content: "\0420\0435\0434\0430\043A\0442\0438\0440\043E\0432\0430\0442\044C";
+  font-size: 12px;
+}
+.dz-reader-edit:hover { background: var(--acc); color: #fff; }
+
 .dz-reader-share {
   font-size: 12px;
   color: var(--t2);

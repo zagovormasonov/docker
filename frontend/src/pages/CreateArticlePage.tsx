@@ -40,7 +40,7 @@ const CreateArticlePage = () => {
   const quillRef = useRef<ReactQuill>(null);
   const isEdit = !!id;
   const publishNow = searchParams.get('publishNow') === '1';
-  const articleSection = searchParams.get('section') || 'main';
+  const articleSectionParam = searchParams.get('section');
   const redirectTo = searchParams.get('redirectTo') || '/my-articles';
 
   const [title, setTitle] = useState('');
@@ -48,6 +48,7 @@ const CreateArticlePage = () => {
   const [content, setContent] = useState('');
   const [contentError, setContentError] = useState('');
   const [category, setCategory] = useState('');
+  const [articleSection, setArticleSection] = useState(articleSectionParam || 'main');
   const [coverUrl, setCoverUrl] = useState('');
   const [coverInput, setCoverInput] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -65,6 +66,9 @@ const CreateArticlePage = () => {
       setTitle(data.title || '');
       setContent(data.content || '');
       setCategory(data.category || '');
+      if (!articleSectionParam && data.article_section) {
+        setArticleSection(data.article_section);
+      }
       setCoverUrl(data.cover_image || '');
       setCoverInput(data.cover_image || '');
     } catch {
