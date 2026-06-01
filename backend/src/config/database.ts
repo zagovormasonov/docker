@@ -79,10 +79,32 @@ export const initDatabase = async () => {
         price DECIMAL(10, 2),
         product_type VARCHAR(50) CHECK (product_type IN ('digital', 'physical', 'service')),
         image_url VARCHAR(500),
+        product_format VARCHAR(50) DEFAULT 'text' CHECK (product_format IN ('audio', 'video', 'text', 'bundle')),
+        category_key VARCHAR(255) DEFAULT 'soul',
+        is_new BOOLEAN DEFAULT false,
+        thumb_bg VARCHAR(20) DEFAULT '#eae8fb',
+        emoji VARCHAR(20) DEFAULT '📄',
+        badge VARCHAR(100),
+        tag_label VARCHAR(100),
+        meta_detail VARCHAR(100),
+        is_featured BOOLEAN DEFAULT false,
+        hit_label VARCHAR(50),
+        button_label VARCHAR(50) DEFAULT 'Открыть',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS product_format VARCHAR(50) DEFAULT 'text' CHECK (product_format IN ('audio', 'video', 'text', 'bundle'))`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS category_key VARCHAR(255) DEFAULT 'soul'`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_new BOOLEAN DEFAULT false`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS thumb_bg VARCHAR(20) DEFAULT '#eae8fb'`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS emoji VARCHAR(20) DEFAULT '📄'`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS badge VARCHAR(100)`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS tag_label VARCHAR(100)`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_detail VARCHAR(100)`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS hit_label VARCHAR(50)`);
+    await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS button_label VARCHAR(50) DEFAULT 'Открыть'`);
 
     // Таблица картин в галерее
     await query(`

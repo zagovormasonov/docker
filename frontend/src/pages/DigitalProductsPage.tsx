@@ -1,17 +1,19 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import './DigitalProductsPage.css';
+import api from '../api/axios';
 
 type Fmt = 'all' | 'audio' | 'video' | 'text' | 'bundle';
 type Cat = '' | 'soul' | 'money' | 'heal' | 'chan' | 'med' | 'rel';
 
 interface Product {
-  id: number;
+  id: number | string;
   fmt: Fmt;
   cat: string;
   isNew: boolean;
   price: number;
   thumbBg: string;
   emoji: string;
+  imageUrl?: string;
   badge: string;
   tagClass: 'dp-tag-p' | 'dp-tag-t' | 'dp-tag-a';
   tagLabel: string;
@@ -23,6 +25,26 @@ interface Product {
   hitLabel?: string;
   btnClass?: string;
   btnLabel: string;
+}
+
+interface ApiProduct {
+  id: number;
+  title: string;
+  description?: string;
+  price?: number | string;
+  image_url?: string;
+  product_format?: Fmt;
+  category_key?: string;
+  is_new?: boolean;
+  thumb_bg?: string;
+  emoji?: string;
+  badge?: string;
+  tag_label?: string;
+  meta_detail?: string;
+  is_featured?: boolean;
+  hit_label?: string;
+  button_label?: string;
+  expert_name?: string;
 }
 
 const PRODUCTS: Product[] = [
@@ -237,30 +259,100 @@ const CAT_PILLS: { key: Cat; label: string }[] = [
   { key: 'rel', label: 'Отношения' },
 ];
 
+const tagClassByBg = (bg?: string): Product['tagClass'] => {
+  if (bg === '#e2f7f0') return 'dp-tag-t';
+  if (bg === '#fdf2e0') return 'dp-tag-a';
+  return 'dp-tag-p';
+};
+
+const fallbackBadgeByFormat = (fmt: Fmt) => {
+  if (fmt === 'audio') return '🎧 Аудио';
+  if (fmt === 'video') return '🎬 Запись эфира';
+  if (fmt === 'bundle') return '📦 Пакет';
+  return '📄 PDF-гайд';
+};
+
+const fallbackEmojiByFormat = (fmt: Fmt) => {
+  if (fmt === 'audio') return '🎧';
+  if (fmt === 'video') return '🎬';
+  if (fmt === 'bundle') return '🏆';
+  return '📄';
+};
+
+const mapApiProduct = (p: ApiProduct): Product => {
+  const fmt = p.product_format || 'text';
+  const price = Number(p.price || 0);
+
+  return {
+    id: `api-${p.id}`,
+    fmt,
+    cat: p.category_key || 'soul',
+    isNew: Boolean(p.is_new),
+    price: Number.isFinite(price) ? price : 0,
+    thumbBg: p.thumb_bg || '#eae8fb',
+    emoji: p.emoji || fallbackEmojiByFormat(fmt),
+    imageUrl: p.image_url,
+    badge: p.badge || fallbackBadgeByFormat(fmt),
+    tagClass: tagClassByBg(p.thumb_bg),
+    tagLabel: p.tag_label || 'Авторский продукт',
+    title: p.title,
+    desc: p.description,
+    meta: p.expert_name || 'Эксперт',
+    metaDetail: p.meta_detail || '',
+    featured: Boolean(p.is_featured),
+    hitLabel: p.hit_label || undefined,
+    btnClass: p.thumb_bg === '#e2f7f0' ? 'dp-teal' : undefined,
+    btnLabel: p.button_label || 'Открыть',
+  };
+};
+
 const DigitalProductsPage = () => {
   const [activeFmt, setActiveFmt] = useState<Fmt>('all');
   const [activeCat, setActiveCat] = useState<Cat>('');
   const [showFree, setShowFree] = useState(false);
   const [showNew, setShowNew] = useState(false);
-  const [previewId, setPreviewId] = useState<number>(1);
+  const [previewId, setPreviewId] = useState<number | string>(1);
+  const [apiProducts, setApiProducts] = useState<Product[]>([]);
 
-  const c1 = useCounter(87);
-  const c2 = useCounter(24);
+  useEffect(() => {
+    api.get('/products/digital/public')
+      .then((response) => {
+        const rows = Array.isArray(response.data) ? response.data : [];
+        setApiProducts(rows.map(mapApiProduct));
+      })
+      .catch((error) => {
+        console.error('Error loading digital products:', error);
+      });
+  }, []);
+
+  const products = useMemo(() => [...apiProducts, ...PRODUCTS], [apiProducts]);
+  const authors = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach((p) => counts.set(p.meta, (counts.get(p.meta) || 0) + 1));
+    return Array.from(counts.entries()).slice(0, 8).map(([name, count], i) => ({
+      emoji: ['🙏', '🌸', '🔮', '✨', '🌿', '📄', '🎧', '🎬'][i] || '✨',
+      name,
+      cnt: `${count} ${count === 1 ? 'продукт' : count < 5 ? 'продукта' : 'продуктов'}`
+    }));
+  }, [products]);
+
+  const c1 = useCounter(Math.max(87, products.length));
+  const c2 = useCounter(Math.max(24, authors.length));
   const c3 = useCounter(143);
 
   const filtered = useMemo(() => {
-    return PRODUCTS.filter((p) => {
+    return products.filter((p) => {
       const fmtOk = activeFmt === 'all' || p.fmt === activeFmt;
       const catOk = !activeCat || p.cat.includes(activeCat);
       const freeOk = !showFree || p.price === 0;
       const newOk = !showNew || p.isNew;
       return fmtOk && catOk && freeOk && newOk;
     });
-  }, [activeFmt, activeCat, showFree, showNew]);
+  }, [activeFmt, activeCat, showFree, showNew, products]);
 
   const filteredIds = useMemo(() => new Set(filtered.map((p) => p.id)), [filtered]);
 
-  const preview = useMemo(() => PRODUCTS.find((p) => p.id === previewId), [previewId]);
+  const preview = useMemo(() => products.find((p) => p.id === previewId), [previewId, products]);
 
   return (
     <div className="dp-page">
@@ -351,7 +443,7 @@ const DigitalProductsPage = () => {
           </div>
 
           <div className="dp-grid">
-            {PRODUCTS.map((p) => {
+            {products.map((p) => {
               const visible = filteredIds.has(p.id);
               if (p.featured) {
                 return (
@@ -361,7 +453,7 @@ const DigitalProductsPage = () => {
                     onClick={() => setPreviewId(p.id)}
                   >
                     <div className="dp-thumb" style={{ background: p.thumbBg }}>
-                      {p.emoji}
+                      {p.imageUrl ? <img src={p.imageUrl} alt={p.title} /> : p.emoji}
                       {p.hitLabel && <span className="dp-new-dot">{p.hitLabel}</span>}
                       <span className="dp-fmt-badge">{p.badge}</span>
                     </div>
@@ -385,7 +477,7 @@ const DigitalProductsPage = () => {
                   onClick={() => setPreviewId(p.id)}
                 >
                   <div className="dp-thumb" style={{ background: p.thumbBg }}>
-                    {p.emoji}
+                    {p.imageUrl ? <img src={p.imageUrl} alt={p.title} /> : p.emoji}
                     {p.isNew && <span className="dp-new-dot">Новое</span>}
                     <span className="dp-fmt-badge">{p.badge}</span>
                   </div>
@@ -434,7 +526,7 @@ const DigitalProductsPage = () => {
               {preview ? (
                 <>
                   <div className="dp-pp-thumb" style={{ background: preview.thumbBg }}>
-                    {preview.emoji}
+                    {preview.imageUrl ? <img src={preview.imageUrl} alt={preview.title} /> : preview.emoji}
                   </div>
                   <div className="dp-pp-body">
                     <span className={`dp-pp-cat ${preview.tagClass}`}>{preview.tagLabel}</span>
@@ -476,7 +568,7 @@ const DigitalProductsPage = () => {
 
           <div className="dp-side-sec">
             <div className="dp-side-h">Авторы продуктов</div>
-            {AUTHORS.map((a) => (
+            {authors.map((a) => (
               <div key={a.name} className="dp-author-item">
                 <div className="dp-author-ava">{a.emoji}</div>
                 <div>

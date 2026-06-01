@@ -1,10 +1,32 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Space, Tag, Popconfirm, Typography, Select, Upload, message } from 'antd';
+import { Form, Input, Button, Space, Tag, Popconfirm, Typography, Select, Upload, message, Checkbox } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 
 const { Text } = Typography;
 const { TextArea } = Input;
+
+const FORMAT_OPTIONS = [
+  { value: 'audio', label: '🎧 Аудио', emoji: '🎧', badge: '🎧 Аудио', bg: '#eae8fb' },
+  { value: 'video', label: '🎬 Видео / запись', emoji: '🎬', badge: '🎬 Запись эфира', bg: '#e2f7f0' },
+  { value: 'text', label: '📄 PDF / текст', emoji: '📄', badge: '📄 PDF-гайд', bg: '#fdf2e0' },
+  { value: 'bundle', label: '📦 Пакет / курс', emoji: '🏆', badge: '📦 Пакет курса', bg: '#eae8fb' }
+];
+
+const CATEGORY_OPTIONS = [
+  { value: 'soul', label: 'Душа и путь' },
+  { value: 'money', label: 'Деньги и рост' },
+  { value: 'heal', label: 'Тело и исцеление' },
+  { value: 'chan', label: 'Ченнелинг' },
+  { value: 'med', label: 'Медитации' },
+  { value: 'rel', label: 'Отношения' }
+];
+
+const TAG_STYLE_OPTIONS = [
+  { value: '#eae8fb', label: 'Фиолетовый' },
+  { value: '#e2f7f0', label: 'Зелёный' },
+  { value: '#fdf2e0', label: 'Тёплый' }
+];
 
 interface ProductManagerProps {
   products: any[];
@@ -25,9 +47,31 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
       description: p.description,
       price: p.price,
       productType: p.product_type,
-      imageUrl: p.image_url
+      imageUrl: p.image_url,
+      productFormat: p.product_format || 'text',
+      categoryKeys: (p.category_key || 'soul').split(' ').filter(Boolean),
+      isNew: Boolean(p.is_new),
+      thumbBg: p.thumb_bg || '#eae8fb',
+      emoji: p.emoji || '📄',
+      badge: p.badge || '',
+      tagLabel: p.tag_label || '',
+      metaDetail: p.meta_detail || '',
+      isFeatured: Boolean(p.is_featured),
+      hitLabel: p.hit_label || '',
+      buttonLabel: p.button_label || 'Открыть'
     });
     setShowForm(true);
+  };
+
+  const applyFormatDefaults = (format: string) => {
+    const option = FORMAT_OPTIONS.find((item) => item.value === format);
+    if (!option) return;
+    form.setFieldsValue({
+      productFormat: option.value,
+      emoji: option.emoji,
+      badge: option.badge,
+      thumbBg: option.bg
+    });
   };
 
   const handleDelete = async (id: number) => {
@@ -68,7 +112,18 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
         description: values.description,
         price: values.price ? Number(values.price) : null,
         productType: values.productType,
-        imageUrl: values.imageUrl || null
+        imageUrl: values.imageUrl || null,
+        productFormat: values.productFormat || 'text',
+        categoryKey: Array.isArray(values.categoryKeys) ? values.categoryKeys.join(' ') : values.categoryKeys || 'soul',
+        isNew: Boolean(values.isNew),
+        thumbBg: values.thumbBg || '#eae8fb',
+        emoji: values.emoji || '📄',
+        badge: values.badge || null,
+        tagLabel: values.tagLabel || null,
+        metaDetail: values.metaDetail || null,
+        isFeatured: Boolean(values.isFeatured),
+        hitLabel: values.hitLabel || null,
+        buttonLabel: values.buttonLabel || 'Открыть'
       };
 
       if (editing) {
@@ -101,6 +156,15 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
           onClick={() => {
             setEditing(null);
             form.resetFields();
+            form.setFieldsValue({
+              productType: 'digital',
+              productFormat: 'text',
+              categoryKeys: ['soul'],
+              thumbBg: '#eae8fb',
+              emoji: '📄',
+              badge: '📄 PDF-гайд',
+              buttonLabel: 'Открыть'
+            });
             setShowForm(!showForm);
           }}
         >
@@ -143,6 +207,78 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
                   <Select.Option value="physical">Физический</Select.Option>
                   <Select.Option value="service">Услуга</Select.Option>
                 </Select>
+              </Form.Item>
+            </Space>
+
+            <div style={{ margin: '4px 0 16px', fontWeight: 600 }}>Характеристики для раздела «Цифровые продукты»</div>
+
+            <Space wrap size="middle" align="start">
+              <Form.Item
+                name="productFormat"
+                label="Формат"
+                rules={[{ required: true, message: 'Выберите формат' }]}
+              >
+                <Select
+                  style={{ width: 190 }}
+                  size="large"
+                  placeholder="Формат"
+                  onChange={applyFormatDefaults}
+                  options={FORMAT_OPTIONS.map(({ value, label }) => ({ value, label }))}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="categoryKeys"
+                label="Темы"
+                rules={[{ required: true, message: 'Выберите хотя бы одну тему' }]}
+              >
+                <Select
+                  mode="multiple"
+                  style={{ minWidth: 260 }}
+                  size="large"
+                  placeholder="Темы продукта"
+                  options={CATEGORY_OPTIONS}
+                />
+              </Form.Item>
+
+              <Form.Item name="tagLabel" label="Метка темы">
+                <Input size="large" placeholder="Медитации / Деньги · Рост" style={{ borderRadius: 12, width: 220 }} />
+              </Form.Item>
+            </Space>
+
+            <Space wrap size="middle" align="start">
+              <Form.Item name="metaDetail" label="Длительность / состав">
+                <Input size="large" placeholder="7 треков / 2.5 часа / 42 стр." style={{ borderRadius: 12, width: 230 }} />
+              </Form.Item>
+
+              <Form.Item name="badge" label="Бейдж формата">
+                <Input size="large" placeholder="🎧 Аудио" style={{ borderRadius: 12, width: 180 }} />
+              </Form.Item>
+
+              <Form.Item name="emoji" label="Иконка">
+                <Input size="large" placeholder="🎧" maxLength={8} style={{ borderRadius: 12, width: 100 }} />
+              </Form.Item>
+
+              <Form.Item name="thumbBg" label="Цвет карточки">
+                <Select style={{ width: 150 }} size="large" options={TAG_STYLE_OPTIONS} />
+              </Form.Item>
+            </Space>
+
+            <Space wrap size="middle" align="start">
+              <Form.Item name="buttonLabel" label="Текст кнопки">
+                <Input size="large" placeholder="Открыть" style={{ borderRadius: 12, width: 150 }} />
+              </Form.Item>
+
+              <Form.Item name="hitLabel" label="Лейбл хита">
+                <Input size="large" placeholder="Хит" style={{ borderRadius: 12, width: 130 }} />
+              </Form.Item>
+
+              <Form.Item name="isNew" valuePropName="checked" style={{ paddingTop: 34 }}>
+                <Checkbox>Новинка</Checkbox>
+              </Form.Item>
+
+              <Form.Item name="isFeatured" valuePropName="checked" style={{ paddingTop: 34 }}>
+                <Checkbox>Выделить карточку</Checkbox>
               </Form.Item>
             </Space>
 
@@ -213,7 +349,14 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
                     <Tag color={p.product_type === 'digital' ? 'blue' : p.product_type === 'physical' ? 'green' : 'purple'} style={{ borderRadius: 10 }}>
                       {p.product_type === 'digital' ? 'Цифровой' : p.product_type === 'physical' ? 'Физический' : 'Услуга'}
                     </Tag>
+                    {p.product_format && <Tag style={{ borderRadius: 10 }}>{p.product_format}</Tag>}
+                    {p.is_new && <Tag color="gold" style={{ borderRadius: 10 }}>Новинка</Tag>}
                   </Space>
+                  {(p.tag_label || p.meta_detail) && (
+                    <div style={{ fontSize: 12, color: '#86868b', marginTop: 4 }}>
+                      {[p.tag_label, p.meta_detail].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
                 </div>
               </div>
               <Space>

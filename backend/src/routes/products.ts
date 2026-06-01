@@ -9,6 +9,48 @@ interface AuthRequest extends express.Request {
   userId: number;
 }
 
+const productDetailsFields = `
+  product_format,
+  category_key,
+  is_new,
+  thumb_bg,
+  emoji,
+  badge,
+  tag_label,
+  meta_detail,
+  is_featured,
+  hit_label,
+  button_label
+`;
+
+const productDetailValidators = [
+  body('productFormat').optional({ nullable: true }).isIn(['audio', 'video', 'text', 'bundle']).withMessage('Неверный формат продукта'),
+  body('categoryKey').optional({ nullable: true }).isString(),
+  body('isNew').optional({ nullable: true }).isBoolean().withMessage('Поле "Новинка" должно быть boolean'),
+  body('thumbBg').optional({ nullable: true }).isString(),
+  body('emoji').optional({ nullable: true }).isString(),
+  body('badge').optional({ nullable: true }).isString(),
+  body('tagLabel').optional({ nullable: true }).isString(),
+  body('metaDetail').optional({ nullable: true }).isString(),
+  body('isFeatured').optional({ nullable: true }).isBoolean().withMessage('Поле "Избранный" должно быть boolean'),
+  body('hitLabel').optional({ nullable: true }).isString(),
+  body('buttonLabel').optional({ nullable: true }).isString()
+];
+
+const mapProductDetails = (payload: any) => [
+  payload.productFormat,
+  payload.categoryKey,
+  payload.isNew,
+  payload.thumbBg,
+  payload.emoji,
+  payload.badge,
+  payload.tagLabel,
+  payload.metaDetail,
+  payload.isFeatured,
+  payload.hitLabel,
+  payload.buttonLabel
+];
+
 // Получение всех продуктов эксперта
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
@@ -20,6 +62,24 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Ошибка получения продуктов:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Публичная витрина цифровых продуктов
+router.get('/digital/public', async (_req, res) => {
+  try {
+    const result = await query(
+      `SELECT p.*, u.name AS expert_name, u.slug AS expert_slug
+       FROM products p
+       JOIN users u ON u.id = p.expert_id
+       WHERE p.product_type = 'digital'
+       ORDER BY p.is_featured DESC, p.created_at DESC`
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Ошибка получения цифровых продуктов:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
@@ -50,7 +110,8 @@ router.post(
     body('title').trim().isLength({ min: 3 }).withMessage('Название должно содержать минимум 3 символа'),
     body('description').trim().isLength({ min: 10 }).withMessage('Описание должно содержать минимум 10 символов'),
     body('productType').isIn(['digital', 'physical', 'service']).withMessage('Неверный тип продукта'),
-    body('price').optional().isNumeric().withMessage('Цена должна быть числом')
+    body('price').optional({ nullable: true }).isNumeric().withMessage('Цена должна быть числом'),
+    ...productDetailValidators
   ],
   async (req: AuthRequest, res) => {
     const errors = validationResult(req);
@@ -60,12 +121,45 @@ router.post(
 
     try {
       const { title, description, price, productType, imageUrl } = req.body;
+      const [
+        productFormat,
+        categoryKey,
+        isNew,
+        thumbBg,
+        emoji,
+        badge,
+        tagLabel,
+        metaDetail,
+        isFeatured,
+        hitLabel,
+        buttonLabel
+      ] = mapProductDetails(req.body);
 
       const result = await query(
-        `INSERT INTO products (expert_id, title, description, price, product_type, image_url)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO products (
+           expert_id, title, description, price, product_type, image_url, ${productDetailsFields}
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
          RETURNING *`,
-        [req.userId, title, description, price, productType, imageUrl]
+        [
+          req.userId,
+          title,
+          description,
+          price,
+          productType,
+          imageUrl,
+          productFormat,
+          categoryKey,
+          isNew,
+          thumbBg,
+          emoji,
+          badge,
+          tagLabel,
+          metaDetail,
+          isFeatured,
+          hitLabel,
+          buttonLabel
+        ]
       );
 
       res.status(201).json(result.rows[0]);
@@ -81,10 +175,29 @@ router.put(
   '/:id',
   authenticateToken,
   requireExpert,
+  productDetailValidators,
   async (req: AuthRequest, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     try {
       const { id } = req.params;
       const { title, description, price, productType, imageUrl } = req.body;
+      const [
+        productFormat,
+        categoryKey,
+        isNew,
+        thumbBg,
+        emoji,
+        badge,
+        tagLabel,
+        metaDetail,
+        isFeatured,
+        hitLabel,
+        buttonLabel
+      ] = mapProductDetails(req.body);
 
       const result = await query(
         `UPDATE products 
@@ -93,10 +206,40 @@ router.put(
              price = COALESCE($3, price),
              product_type = COALESCE($4, product_type),
              image_url = COALESCE($5, image_url),
+             product_format = COALESCE($6, product_format),
+             category_key = COALESCE($7, category_key),
+             is_new = COALESCE($8, is_new),
+             thumb_bg = COALESCE($9, thumb_bg),
+             emoji = COALESCE($10, emoji),
+             badge = COALESCE($11, badge),
+             tag_label = COALESCE($12, tag_label),
+             meta_detail = COALESCE($13, meta_detail),
+             is_featured = COALESCE($14, is_featured),
+             hit_label = COALESCE($15, hit_label),
+             button_label = COALESCE($16, button_label),
              updated_at = CURRENT_TIMESTAMP
-         WHERE id = $6 AND expert_id = $7
+         WHERE id = $17 AND expert_id = $18
          RETURNING *`,
-        [title, description, price, productType, imageUrl, id, req.userId]
+        [
+          title,
+          description,
+          price,
+          productType,
+          imageUrl,
+          productFormat,
+          categoryKey,
+          isNew,
+          thumbBg,
+          emoji,
+          badge,
+          tagLabel,
+          metaDetail,
+          isFeatured,
+          hitLabel,
+          buttonLabel,
+          id,
+          req.userId
+        ]
       );
 
       if (result.rows.length === 0) {
