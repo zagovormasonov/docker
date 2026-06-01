@@ -169,7 +169,9 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
   const [addSlotRows, setAddSlotRows] = useState<AddSlotRow[]>([]);
   const [bookingFocus, setBookingFocus] = useState<PlannerBooking | null>(null);
   const [editTimes, setEditTimes] = useState({ start: '09:00', end: '10:00' });
+  const [weekSlide, setWeekSlide] = useState<'next' | 'prev' | null>(null);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const weekSlideTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (!ok) return;
@@ -192,6 +194,12 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
       setAddSlotRows([{ id: mkRowId(), start: '09:00', end: '10:00' }]);
     }
   }, [addOpen]);
+
+  useEffect(() => () => {
+    if (weekSlideTimer.current) {
+      window.clearTimeout(weekSlideTimer.current);
+    }
+  }, []);
 
   const scheduleByWeekday = useMemo(() => {
     const acc: Record<number, PlannerExpertSchedule[]> = {};
@@ -251,15 +259,20 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
     return Array.from({ length: 7 }, (_, i) => ws.add(i, 'day'));
   }, [pickDay]);
 
-  const moveByDays = useCallback((days: number) => {
-    const next = pickDay.add(days, 'day');
+  const moveWeek = useCallback((direction: -1 | 1) => {
+    if (weekSlideTimer.current) {
+      window.clearTimeout(weekSlideTimer.current);
+    }
+
+    setWeekSlide(direction > 0 ? 'next' : 'prev');
+    const next = pickDay.add(direction * 7, 'day');
     setPickDay(next);
     setCalMonth(next.startOf('month'));
+    weekSlideTimer.current = window.setTimeout(() => {
+      setWeekSlide(null);
+      weekSlideTimer.current = null;
+    }, 260);
   }, [pickDay, setPickDay, setCalMonth]);
-
-  const moveCalendarPage = useCallback((direction: -1 | 1) => {
-    moveByDays(direction * (plannerTab === 'week' ? 7 : 1));
-  }, [moveByDays, plannerTab]);
 
   const startSwipe = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -277,8 +290,8 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
     const dy = touch.clientY - start.y;
     if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
 
-    moveCalendarPage(dx < 0 ? 1 : -1);
-  }, [moveCalendarPage]);
+    moveWeek(dx < 0 ? 1 : -1);
+  }, [moveWeek]);
 
   const flashErr = useCallback((msg: string) => {
     setErr(msg);
@@ -433,12 +446,15 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
             <button
               type="button"
               className="ec-planner-date-nav-btn"
-              onClick={() => moveCalendarPage(-1)}
-              aria-label={plannerTab === 'week' ? 'Предыдущая неделя' : 'Предыдущий день'}
+              onClick={() => moveWeek(-1)}
+              aria-label="Предыдущая неделя"
             >
               ‹
             </button>
-            <div className={`ec-planner-week-strip ${plannerTab === 'week' ? 'ec-planner-week-strip--week' : ''}`}>
+            <div
+              key={pickDay.startOf('isoWeek').format('YYYY-MM-DD')}
+              className={`ec-planner-week-strip ${plannerTab === 'week' ? 'ec-planner-week-strip--week' : ''} ${weekSlide ? `ec-planner-week-strip--slide-${weekSlide}` : ''}`}
+            >
               {weekDays.map((d) => (
                 <button
                   key={d.format('YYYY-MM-DD')}
@@ -457,8 +473,8 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
             <button
               type="button"
               className="ec-planner-date-nav-btn"
-              onClick={() => moveCalendarPage(1)}
-              aria-label={plannerTab === 'week' ? 'Следующая неделя' : 'Следующий день'}
+              onClick={() => moveWeek(1)}
+              aria-label="Следующая неделя"
             >
               ›
             </button>

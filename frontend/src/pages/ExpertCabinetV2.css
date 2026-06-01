@@ -1398,6 +1398,36 @@
   touch-action: pan-y;
 }
 
+.expert-cab-v2 .ec-planner-week-strip--slide-next {
+  animation: ec-week-slide-next 0.26s ease both;
+}
+
+.expert-cab-v2 .ec-planner-week-strip--slide-prev {
+  animation: ec-week-slide-prev 0.26s ease both;
+}
+
+@keyframes ec-week-slide-next {
+  from {
+    opacity: 0.35;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ec-week-slide-prev {
+  from {
+    opacity: 0.35;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .expert-cab-v2 .ec-planner-week-strip--week {
   justify-content: space-between;
 }
