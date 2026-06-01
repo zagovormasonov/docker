@@ -29,6 +29,7 @@ const { Title, Paragraph } = Typography;
 const ExpertLandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isExpertOrAdmin = user?.userType === 'expert' || user?.userType === 'admin';
   const [loading, setLoading] = useState(false);
   const [useBonuses, setUseBonuses] = useState(false);
   const [scrollY, setScrollY] = useState(0);
@@ -279,38 +280,84 @@ const ExpertLandingPage: React.FC = () => {
         <div style={{
           marginBottom: 40
         }} id="pricing-section">
-          <div style={{
-            textAlign: 'center',
-            marginBottom: 48
-          }}>
-            <Title level={2} style={{
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 700,
-              fontSize: 32,
-              color: '#1d1d1f',
-              margin: '0 0 16px 0'
+          {isExpertOrAdmin ? (
+            <div style={{
+              textAlign: 'center',
+              background: '#ffffff',
+              borderRadius: 24,
+              padding: '40px 24px',
+              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)'
             }}>
-              Выберите профессиональный профиль
-            </Title>
+              <Title level={2} style={{
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 700,
+                fontSize: 32,
+                color: '#1d1d1f',
+                margin: '0 0 16px 0'
+              }}>
+                Вы уже эксперт SoulSynergy
+              </Title>
+              <p style={{
+                fontSize: 14,
+                color: 'grey',
+                lineHeight: 1.6,
+                margin: '0 0 24px',
+                fontFamily: 'Montserrat, sans-serif'
+              }}>
+                Управляйте профилем, расписанием, услугами и цифровыми продуктами в кабинете мастера.
+              </p>
+              <Button
+                type="primary"
+                size="large"
+                onClick={() => navigate('/expert-dashboard')}
+                style={{
+                  height: 48,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  fontFamily: 'Montserrat, sans-serif',
+                  background: '#6366f1',
+                  border: 'none',
+                  borderRadius: 25,
+                  padding: '0 28px'
+                }}
+              >
+                Перейти в кабинет
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div style={{
+                textAlign: 'center',
+                marginBottom: 48
+              }}>
+                <Title level={2} style={{
+                  fontFamily: 'Montserrat, sans-serif',
+                  fontWeight: 700,
+                  fontSize: 32,
+                  color: '#1d1d1f',
+                  margin: '0 0 16px 0'
+                }}>
+                  Выберите профессиональный профиль
+                </Title>
 
-            <p style={{
-              fontSize: 14,
-              color: 'grey',
-              lineHeight: 1.6,
-              margin: 0,
-              fontFamily: 'Montserrat, sans-serif'
-            }}>
-              Начните формировать свой личный бренд, который будет работать на вас!
-            </p>
-          </div>
+                <p style={{
+                  fontSize: 14,
+                  color: 'grey',
+                  lineHeight: 1.6,
+                  margin: 0,
+                  fontFamily: 'Montserrat, sans-serif'
+                }}>
+                  Начните формировать свой личный бренд, который будет работать на вас!
+                </p>
+              </div>
 
-          {/* Pricing Cards */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: 24,
-            marginBottom: 32
-          }}>
+              {/* Pricing Cards */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: 24,
+                marginBottom: 32
+              }}>
             {/* Monthly Plan */}
             <div style={{
               background: '#ffffff',
@@ -492,6 +539,8 @@ const ExpertLandingPage: React.FC = () => {
               ) : null}
             </div>
           </div>
+            </>
+          )}
         </div>
       </div>
 

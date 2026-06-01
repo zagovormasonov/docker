@@ -116,6 +116,7 @@ const createPreviewStats = (details?: ExpertDetails | null, expert?: Expert | nu
 const ExpertsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isExpertOrAdmin = user?.userType === 'expert' || user?.userType === 'admin';
 
   const [experts, setExperts] = useState<Expert[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -460,9 +461,11 @@ const ExpertsPage = () => {
             <div className="ph-title">Эксперты</div>
             <div className="ph-sub">Выбирайте специалистов по темам, городам и формату профиля на основном сайте SoulSynergy.</div>
           </div>
-          <button type="button" className="add-btn" onClick={() => navigate('/become-expert')}>
-            Стать экспертом
-          </button>
+          {!isExpertOrAdmin ? (
+            <button type="button" className="add-btn" onClick={() => navigate('/become-expert')}>
+              Стать экспертом
+            </button>
+          ) : null}
         </div>
 
         <div className="search-row">
@@ -501,6 +504,7 @@ const ExpertsPage = () => {
                 placeholder="Все города"
                 onChange={(value) => setSelectedCity(value || '')}
                 allowClear
+                suffixIcon={<ChevronDown size={16} className="ss-select-arrow" />}
                 options={cities.map((city) => ({ label: city.name, value: city.name }))}
               />
 
@@ -511,6 +515,7 @@ const ExpertsPage = () => {
                 placeholder="Тематики"
                 onChange={setSelectedTopics}
                 maxTagCount="responsive"
+                suffixIcon={<ChevronDown size={16} className="ss-select-arrow" />}
                 options={topics.map((topic) => ({ label: topic.name, value: topic.name }))}
               />
             </>
@@ -577,6 +582,7 @@ const ExpertsPage = () => {
                 className="ss-sort-select"
                 value={sortBy}
                 onChange={setSortBy}
+                suffixIcon={<ChevronDown size={16} className="ss-select-arrow" />}
                 options={[
                   { label: 'По новизне', value: 'newest' },
                   { label: 'По имени', value: 'name' }

@@ -10,6 +10,7 @@ const PaymentSuccessPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, updateUser, login } = useAuth();
+  const isExpertOrAdmin = user?.userType === 'expert' || user?.userType === 'admin';
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<any>(null);
 
@@ -197,7 +198,7 @@ const PaymentSuccessPage: React.FC = () => {
                 <Button 
                   type="primary" 
                   size="large"
-                  onClick={() => navigate('/become-expert')}
+                  onClick={() => navigate(isExpertOrAdmin ? '/expert-dashboard' : '/become-expert')}
                   style={{
                     height: 48,
                     fontSize: 16,
@@ -208,7 +209,7 @@ const PaymentSuccessPage: React.FC = () => {
                     padding: '0 32px'
                   }}
                 >
-                  Попробовать снова
+                  {isExpertOrAdmin ? 'В кабинет мастера' : 'Попробовать снова'}
                 </Button>
                 <Button 
                   size="large"

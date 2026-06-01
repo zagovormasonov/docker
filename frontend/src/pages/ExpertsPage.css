@@ -202,6 +202,28 @@
   align-items: center;
 }
 
+.ss-mstr .ss-select .ant-select-arrow,
+.ss-mstr .ss-sort-select .ant-select-arrow {
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ssm-t2);
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.ss-mstr .ss-select-arrow {
+  display: block;
+  pointer-events: none;
+  stroke-width: 2;
+}
+
+.ss-mstr .ss-select.ant-select-open .ss-select-arrow,
+.ss-mstr .ss-sort-select.ant-select-open .ss-select-arrow {
+  transform: rotate(180deg);
+}
+
 .ss-mstr .filter-tabs {
   display: flex;
   gap: 0;

@@ -156,6 +156,7 @@ export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
   const { user } = useAuth();
+  const isExpertOrAdmin = user?.userType === 'expert' || user?.userType === 'admin';
 
   const [articlesNew, setArticlesNew] = useState<Article[]>([]);
   const [articlesPopular, setArticlesPopular] = useState<Article[]>([]);
@@ -853,16 +854,18 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="ss-join-blk">
-            <h3>Вы — мастер или эксперт?</h3>
-            <p>Создайте профиль, публикуйте практики и находите своих клиентов через доверие и резонанс.</p>
-            <button type="button" className="ss-jbtn ss-jbtn-w" onClick={() => navigate('/register')}>
-              Создать профиль
-            </button>
-            <button type="button" className="ss-jbtn ss-jbtn-t" onClick={() => navigate('/expert-landing')}>
-              Узнать больше
-            </button>
-          </div>
+          {!isExpertOrAdmin ? (
+            <div className="ss-join-blk">
+              <h3>Вы — мастер или эксперт?</h3>
+              <p>Создайте профиль, публикуйте практики и находите своих клиентов через доверие и резонанс.</p>
+              <button type="button" className="ss-jbtn ss-jbtn-w" onClick={() => navigate('/register')}>
+                Создать профиль
+              </button>
+              <button type="button" className="ss-jbtn ss-jbtn-t" onClick={() => navigate('/expert-landing')}>
+                Узнать больше
+              </button>
+            </div>
+          ) : null}
         </aside>
       </div>
 
