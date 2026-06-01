@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import 'dayjs/locale/ru';
@@ -169,6 +169,7 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
   const [addSlotRows, setAddSlotRows] = useState<AddSlotRow[]>([]);
   const [bookingFocus, setBookingFocus] = useState<PlannerBooking | null>(null);
   const [editTimes, setEditTimes] = useState({ start: '09:00', end: '10:00' });
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!ok) return;
@@ -249,6 +250,35 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
     const ws = pickDay.startOf('isoWeek');
     return Array.from({ length: 7 }, (_, i) => ws.add(i, 'day'));
   }, [pickDay]);
+
+  const moveByDays = useCallback((days: number) => {
+    const next = pickDay.add(days, 'day');
+    setPickDay(next);
+    setCalMonth(next.startOf('month'));
+  }, [pickDay, setPickDay, setCalMonth]);
+
+  const moveCalendarPage = useCallback((direction: -1 | 1) => {
+    moveByDays(direction * (plannerTab === 'week' ? 7 : 1));
+  }, [moveByDays, plannerTab]);
+
+  const startSwipe = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    swipeStart.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const finishSwipe = useCallback((e: React.TouchEvent) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    const touch = e.changedTouches[0];
+    if (!start || !touch) return;
+
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+
+    moveCalendarPage(dx < 0 ? 1 : -1);
+  }, [moveCalendarPage]);
 
   const flashErr = useCallback((msg: string) => {
     setErr(msg);
@@ -398,22 +428,40 @@ const CalendarPlannerPanel: React.FC<CalendarPlannerPanelProps> = ({
           {ok ? <div className="ec-planner-flash ec-planner-flash--ok">{ok}</div> : null}
         </aside>
 
-        <div className="ec-planner-main">
-          <div className={`ec-planner-week-strip ${plannerTab === 'week' ? 'ec-planner-week-strip--week' : ''}`}>
-            {weekDays.map((d) => (
-              <button
-                key={d.format('YYYY-MM-DD')}
-                type="button"
-                className={`ec-planner-wd ${d.isSame(pickDay, 'day') ? 'ec-planner-wd--active' : ''}`}
-                onClick={() => {
-                  setPickDay(d);
-                  setCalMonth(d.startOf('month'));
-                }}
-              >
-                <span className="ec-planner-wd-dow">{d.locale('ru').format('ddd')}</span>
-                <span className="ec-planner-wd-num">{d.date()}</span>
-              </button>
-            ))}
+        <div className="ec-planner-main" onTouchStart={startSwipe} onTouchEnd={finishSwipe}>
+          <div className="ec-planner-date-nav" aria-label="Навигация по датам">
+            <button
+              type="button"
+              className="ec-planner-date-nav-btn"
+              onClick={() => moveCalendarPage(-1)}
+              aria-label={plannerTab === 'week' ? 'Предыдущая неделя' : 'Предыдущий день'}
+            >
+              ‹
+            </button>
+            <div className={`ec-planner-week-strip ${plannerTab === 'week' ? 'ec-planner-week-strip--week' : ''}`}>
+              {weekDays.map((d) => (
+                <button
+                  key={d.format('YYYY-MM-DD')}
+                  type="button"
+                  className={`ec-planner-wd ${d.isSame(pickDay, 'day') ? 'ec-planner-wd--active' : ''}`}
+                  onClick={() => {
+                    setPickDay(d);
+                    setCalMonth(d.startOf('month'));
+                  }}
+                >
+                  <span className="ec-planner-wd-dow">{d.locale('ru').format('ddd')}</span>
+                  <span className="ec-planner-wd-num">{d.date()}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="ec-planner-date-nav-btn"
+              onClick={() => moveCalendarPage(1)}
+              aria-label={plannerTab === 'week' ? 'Следующая неделя' : 'Следующий день'}
+            >
+              ›
+            </button>
           </div>
 
           <div className="ec-planner-grid-card">

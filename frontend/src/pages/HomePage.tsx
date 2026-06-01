@@ -13,6 +13,7 @@ dayjs.locale('ru');
 const ArticlePage = lazy(() => import('./ArticlePage'));
 const HOME_PRIMARY_CACHE_TTL = 2 * 60 * 1000;
 const HOME_AUX_CACHE_TTL = 5 * 60 * 1000;
+const HOME_ARTICLES_PAGE_SIZE = 6;
 
 interface Article {
   id: number;
@@ -167,6 +168,7 @@ export default function HomePage() {
 
   const [feedTab, setFeedTab] = useState<'stream' | 'popular' | 'events'>('stream');
   const [pillActive, setPillActive] = useState<string | null>(null);
+  const [visibleArticlesCount, setVisibleArticlesCount] = useState(HOME_ARTICLES_PAGE_SIZE);
 
   const [heroSearch, setHeroSearch] = useState(searchQuery);
 
@@ -191,6 +193,10 @@ export default function HomePage() {
   useEffect(() => {
     setHeroSearch(searchQuery);
   }, [searchQuery]);
+
+  useEffect(() => {
+    setVisibleArticlesCount(HOME_ARTICLES_PAGE_SIZE);
+  }, [feedTab, searchQuery, pillActive]);
 
   useEffect(() => {
     if (homePrimaryCache && Date.now() - homePrimaryCache.timestamp < HOME_PRIMARY_CACHE_TTL) {
@@ -442,6 +448,13 @@ export default function HomePage() {
     if (!featured) return filteredArticles;
     return filteredArticles.filter((article) => article.id !== featured.id);
   }, [filteredArticles, featured]);
+
+  const visibleGridArticles = useMemo(
+    () => gridArticles.slice(0, Math.max(0, visibleArticlesCount - (featured ? 1 : 0))),
+    [gridArticles, visibleArticlesCount, featured]
+  );
+
+  const canShowMoreArticles = visibleGridArticles.length < gridArticles.length;
 
   const sidebarEvents = useMemo(() => events.slice(0, 4), [events]);
 
@@ -732,11 +745,17 @@ export default function HomePage() {
             <>
               <div className="ss-feed-grid">
                 {featured ? renderArticleCard(featured, true) : null}
-                {gridArticles.map((article) => renderArticleCard(article, false))}
+                {visibleGridArticles.map((article) => renderArticleCard(article, false))}
               </div>
-              <button type="button" className="ss-more-btn" onClick={() => navigate('/experts')}>
+              {canShowMoreArticles ? (
+                <button
+                  type="button"
+                  className="ss-more-btn"
+                  onClick={() => setVisibleArticlesCount((count) => count + HOME_ARTICLES_PAGE_SIZE)}
+                >
                 Показать ещё
-              </button>
+                </button>
+              ) : null}
             </>
           )}
         </main>
