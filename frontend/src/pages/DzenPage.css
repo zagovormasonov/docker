@@ -232,6 +232,17 @@
   justify-content: center;
   font-size: 52px;
   height: clamp(180px, 30vw, 300px);
+  overflow: hidden;
+}
+
+.dz-feat-img img,
+.dz-card-img img,
+.dz-list-img img,
+.dz-reader-img img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .dz-feat-body {
@@ -297,6 +308,7 @@
   align-items: center;
   justify-content: center;
   font-size: 32px;
+  overflow: hidden;
 }
 
 .dz-card-body { padding: 11px 13px; min-width: 0; }
@@ -368,6 +380,7 @@
   font-size: 28px;
   height: 150px;
   border-bottom: 1px solid var(--bd);
+  overflow: hidden;
 }
 
 .dz-list-body {
@@ -657,6 +670,7 @@
   align-items: center;
   justify-content: center;
   font-size: 56px;
+  overflow: hidden;
 }
 
 .dz-reader-body { padding: 20px 24px; min-width: 0; }

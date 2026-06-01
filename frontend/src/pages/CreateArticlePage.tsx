@@ -5,6 +5,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
 import api from '../api/axios';
+import { compressImageToWebp } from '../utils/imageCompression';
 import './CreateArticlePage.css';
 
 marked.setOptions({ breaks: true });
@@ -142,8 +143,9 @@ const CreateArticlePage = () => {
   const handleCoverFile = async (file: File) => {
     setUploadingCover(true);
     try {
+      const optimizedFile = await compressImageToWebp(file);
       const fd = new FormData();
-      fd.append('image', file);
+      fd.append('image', optimizedFile);
       const { data } = await api.post('/upload/image', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -164,9 +166,10 @@ const CreateArticlePage = () => {
     input.click();
     input.onchange = async () => {
       if (!input.files?.[0]) return;
-      const fd = new FormData();
-      fd.append('image', input.files[0]);
       try {
+        const optimizedFile = await compressImageToWebp(input.files[0]);
+        const fd = new FormData();
+        fd.append('image', optimizedFile);
         const hide = message.loading('Загрузка...', 0);
         const { data } = await api.post('/upload/image', fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -310,7 +313,7 @@ const CreateArticlePage = () => {
 
             {coverUrl ? (
               <div className="ca-cover-preview">
-                <img src={coverUrl} alt="Обложка" className="ca-cover-img" />
+                <img src={coverUrl} alt="Обложка" className="ca-cover-img" loading="lazy" decoding="async" />
                 <button
                   type="button"
                   className="ca-cover-remove"

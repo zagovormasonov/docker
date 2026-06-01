@@ -396,7 +396,7 @@ const DigitalProductsPage = () => {
         {openedProduct && (
           <div className="dp-modal-product">
             <div className="dp-modal-hero" style={{ background: openedProduct.thumbBg }}>
-              {openedProduct.imageUrl ? <img src={openedProduct.imageUrl} alt={openedProduct.title} /> : openedProduct.emoji}
+              {openedProduct.imageUrl ? <img src={openedProduct.imageUrl} alt={openedProduct.title} loading="eager" decoding="async" /> : openedProduct.emoji}
               <span className="dp-fmt-badge">{openedProduct.badge}</span>
               {(openedProduct.hitLabel || openedProduct.isNew) && (
                 <span className="dp-new-dot">{openedProduct.hitLabel || 'Новое'}</span>
@@ -524,7 +524,7 @@ const DigitalProductsPage = () => {
                     onClick={() => openProduct(p)}
                   >
                     <div className="dp-thumb" style={{ background: p.thumbBg }}>
-                      {p.imageUrl ? <img src={p.imageUrl} alt={p.title} /> : p.emoji}
+                      {p.imageUrl ? <img src={p.imageUrl} alt={p.title} loading="lazy" decoding="async" /> : p.emoji}
                       {p.hitLabel && <span className="dp-new-dot">{p.hitLabel}</span>}
                       <span className="dp-fmt-badge">{p.badge}</span>
                     </div>
@@ -548,7 +548,7 @@ const DigitalProductsPage = () => {
                   onClick={() => openProduct(p)}
                 >
                   <div className="dp-thumb" style={{ background: p.thumbBg }}>
-                    {p.imageUrl ? <img src={p.imageUrl} alt={p.title} /> : p.emoji}
+                    {p.imageUrl ? <img src={p.imageUrl} alt={p.title} loading="lazy" decoding="async" /> : p.emoji}
                     {p.isNew && <span className="dp-new-dot">Новое</span>}
                     <span className="dp-fmt-badge">{p.badge}</span>
                   </div>
@@ -612,7 +612,7 @@ const DigitalProductsPage = () => {
               {preview ? (
                 <>
                   <div className="dp-pp-thumb" style={{ background: preview.thumbBg }}>
-                    {preview.imageUrl ? <img src={preview.imageUrl} alt={preview.title} /> : preview.emoji}
+                    {preview.imageUrl ? <img src={preview.imageUrl} alt={preview.title} loading="lazy" decoding="async" /> : preview.emoji}
                   </div>
                   <div className="dp-pp-body">
                     <span className={`dp-pp-cat ${preview.tagClass}`}>{preview.tagLabel}</span>

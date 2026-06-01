@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, Space, Tag, Popconfirm, Typography, Select, Upload, message, Checkbox } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
+import { compressImageToWebp } from '../../utils/imageCompression';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -129,8 +130,9 @@ const ProductManager: React.FC<ProductManagerProps> = ({
   const handleImageUpload = async (file: File) => {
     setUploading(true);
     try {
+      const optimizedFile = await compressImageToWebp(file);
       const fd = new FormData();
-      fd.append('image', file);
+      fd.append('image', optimizedFile);
       const r = await api.post('/upload/image', fd, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -334,6 +336,8 @@ const ProductManager: React.FC<ProductManagerProps> = ({
                     <img
                       src={form.getFieldValue('imageUrl')}
                       alt="Preview"
+                      loading="lazy"
+                      decoding="async"
                       style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 12 }}
                     />
                     <Button
@@ -375,7 +379,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({
             }}>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', flex: 1, minWidth: 0 }}>
                 {p.image_url && (
-                  <img src={p.image_url} alt={p.title}
+                  <img src={p.image_url} alt={p.title} loading="lazy" decoding="async"
                     style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 10, flexShrink: 0 }} />
                 )}
                 <div style={{ minWidth: 0 }}>

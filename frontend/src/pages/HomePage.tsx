@@ -504,7 +504,7 @@ export default function HomePage() {
   const renderArticleCard = (article: Article, featuredCard: boolean) => {
     const dimmed = cardDimmed(article);
     const cover = article.cover_image ? (
-      <img src={article.cover_image} alt="" />
+      <img src={article.cover_image} alt="" loading={featuredCard ? 'eager' : 'lazy'} decoding="async" />
     ) : (
       <span aria-hidden>{emojiFor(article.id)}</span>
     );
@@ -529,7 +529,7 @@ export default function HomePage() {
           <div className="ss-c-foot">
             <span>
               {article.author_avatar ? (
-                <img className="ss-avxs" src={article.author_avatar} alt="" />
+                <img className="ss-avxs" src={article.author_avatar} alt="" loading="lazy" decoding="async" />
               ) : (
                 <span className="ss-avxs" />
               )}

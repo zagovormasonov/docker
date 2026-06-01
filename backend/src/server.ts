@@ -72,7 +72,10 @@ app.use(express.urlencoded({ extended: true }));
 // Статические файлы для загруженных изображений
 const uploadsPath = path.join(__dirname, '../uploads');
 console.log('📁 Статический сервер uploads:', uploadsPath);
-app.use('/uploads', express.static(uploadsPath));
+app.use('/uploads', express.static(uploadsPath, {
+  maxAge: '30d',
+  immutable: true,
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);

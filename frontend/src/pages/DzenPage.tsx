@@ -100,6 +100,21 @@ const getTagMeta = (article: Article): { label: string; className: TagClass } =>
   return { label: 'Духовный путь', className: 'dz-tp' };
 };
 
+const renderArticleImage = (article: Article, className: string, eager = false) => (
+  <div className={className}>
+    {article.cover_image ? (
+      <img
+        src={article.cover_image}
+        alt=""
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+      />
+    ) : (
+      '📝'
+    )}
+  </div>
+);
+
 function Reader({
   article,
   canEdit,
@@ -150,19 +165,14 @@ function Reader({
             </div>
           )}
         </div>
-        <div
-          className="dz-reader-img"
-          style={article.cover_image ? { backgroundImage: `url(${article.cover_image})`, backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' } : undefined}
-        >
-          {!article.cover_image ? '📝' : '•'}
-        </div>
+        {renderArticleImage(article, 'dz-reader-img', true)}
         <div className="dz-reader-body">
           <span className={`dz-reader-cat ${tagMeta.className}`}>{tagMeta.label}</span>
           <div className="dz-reader-title">{article.title}</div>
           <div className="dz-reader-meta">
             <button type="button" className="dz-reader-author" onClick={onAuthorClick}>
               <span className="dz-avxs">
-                <img src={article.author_avatar || '/emp.jpg'} alt="" />
+                <img src={article.author_avatar || '/emp.jpg'} alt="" loading="lazy" decoding="async" />
               </span>
               <span>{article.author_name}</span>
             </button>
@@ -398,18 +408,13 @@ const DzenPage = () => {
             <>
               {featured && (
                 <div className="dz-feat" onClick={() => setReaderArticle(featured)}>
-                  <div
-                    className="dz-feat-img"
-                    style={featured.cover_image ? { backgroundImage: `url(${featured.cover_image})`, backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' } : undefined}
-                  >
-                    {!featured.cover_image ? '📝' : '•'}
-                  </div>
+                  {renderArticleImage(featured, 'dz-feat-img', true)}
                   <div className="dz-feat-body">
                     <span className={`dz-fa-tag ${getTagMeta(featured).className}`}>{getTagMeta(featured).label}</span>
                     <div className="dz-feat-title">{featured.title}</div>
                     <div className="dz-feat-excerpt">{stripHtml(featured.content).slice(0, 220)}...</div>
                     <div className="dz-art-meta">
-                      <span className="dz-art-author"><span className="dz-avxs"><img src={featured.author_avatar || '/emp.jpg'} alt="" /></span>{featured.author_name}</span>
+                      <span className="dz-art-author"><span className="dz-avxs"><img src={featured.author_avatar || '/emp.jpg'} alt="" loading="lazy" decoding="async" /></span>{featured.author_name}</span>
                       <span className="dz-art-date">{dayjs(featured.created_at).format('DD MMM YYYY')}</span>
                       <span className="dz-art-read">❤ {featured.likes_count} · 👁 {featured.views}</span>
                     </div>
@@ -420,18 +425,13 @@ const DzenPage = () => {
               <div className="dz-grid">
                 {gridArticles.map((article) => (
                   <div key={article.id} className="dz-card" onClick={() => setReaderArticle(article)}>
-                    <div
-                      className="dz-card-img"
-                      style={article.cover_image ? { backgroundImage: `url(${article.cover_image})`, backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' } : undefined}
-                    >
-                      {!article.cover_image ? '📝' : '•'}
-                    </div>
+                    {renderArticleImage(article, 'dz-card-img')}
                     <div className="dz-card-body">
                       <span className={`dz-ac-tag ${getTagMeta(article).className}`}>{getTagMeta(article).label}</span>
                       <div className="dz-card-title">{article.title}</div>
                       <div className="dz-card-excerpt">{stripHtml(article.content).slice(0, 120)}...</div>
                       <div className="dz-card-foot">
-                        <span className="dz-ac-author"><span className="dz-avxs"><img src={article.author_avatar || '/emp.jpg'} alt="" /></span>{article.author_name}</span>
+                        <span className="dz-ac-author"><span className="dz-avxs"><img src={article.author_avatar || '/emp.jpg'} alt="" loading="lazy" decoding="async" /></span>{article.author_name}</span>
                         <span className="dz-ac-stats">❤ {article.likes_count} · 👁 {article.views}</span>
                       </div>
                     </div>
@@ -442,17 +442,12 @@ const DzenPage = () => {
               <div className={`dz-list${isSearchMode ? ' dz-search-results' : ''}`}>
                 {listArticles.map((article) => (
                   <div key={article.id} className="dz-list-item" onClick={() => setReaderArticle(article)}>
-                    <div
-                      className="dz-list-img"
-                      style={article.cover_image ? { backgroundImage: `url(${article.cover_image})`, backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' } : undefined}
-                    >
-                      {!article.cover_image ? '📝' : '•'}
-                    </div>
+                    {renderArticleImage(article, 'dz-list-img')}
                     <div className="dz-list-body">
                       <span className={`dz-al-tag ${getTagMeta(article).className}`}>{getTagMeta(article).label}</span>
                       <div className="dz-list-title">{article.title}</div>
                       <div className="dz-list-meta">
-                        <span className="dz-al-author"><span className="dz-avxs"><img src={article.author_avatar || '/emp.jpg'} alt="" /></span>{article.author_name}</span>
+                        <span className="dz-al-author"><span className="dz-avxs"><img src={article.author_avatar || '/emp.jpg'} alt="" loading="lazy" decoding="async" /></span>{article.author_name}</span>
                         <span className="dz-al-stats">{dayjs(article.created_at).format('DD MMM')} · ❤ {article.likes_count} · 👁 {article.views}</span>
                       </div>
                     </div>
@@ -485,7 +480,7 @@ const DzenPage = () => {
               <div key={author.name} className="dz-author-item">
                 <button type="button" className="dz-author-profile" onClick={() => openAuthorProfile(author.id)}>
                   <span className="dz-author-ava">
-                    <img src={author.avatar || '/emp.jpg'} alt="" />
+                    <img src={author.avatar || '/emp.jpg'} alt="" loading="lazy" decoding="async" />
                   </span>
                 </button>
                 <div className="dz-author-info">
