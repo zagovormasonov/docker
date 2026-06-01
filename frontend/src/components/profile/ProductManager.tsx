@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, Space, Tag, Popconfirm, Typography, Select, Upload, message, Checkbox } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
@@ -32,13 +32,36 @@ interface ProductManagerProps {
   products: any[];
   onProductsUpdate: (products: any[]) => void;
   isMobile: boolean;
+  autoOpenCreate?: boolean;
+  onAutoOpenHandled?: () => void;
 }
 
-const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpdate, isMobile }) => {
+const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpdate, isMobile, autoOpenCreate, onAutoOpenHandled }) => {
   const [form] = Form.useForm();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
+
+  const openCreateForm = () => {
+    setEditing(null);
+    form.resetFields();
+    form.setFieldsValue({
+      productType: 'digital',
+      productFormat: 'text',
+      categoryKeys: ['soul'],
+      thumbBg: '#eae8fb',
+      emoji: '📄',
+      badge: '📄 PDF-гайд',
+      buttonLabel: 'Открыть'
+    });
+    setShowForm(true);
+  };
+
+  useEffect(() => {
+    if (!autoOpenCreate) return;
+    openCreateForm();
+    onAutoOpenHandled?.();
+  }, [autoOpenCreate]);
 
   const handleEdit = (p: any) => {
     setEditing(p);
@@ -154,18 +177,13 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
           icon={<PlusOutlined />}
           style={{ borderRadius: 12, background: '#1d1d1f', border: 'none' }}
           onClick={() => {
-            setEditing(null);
-            form.resetFields();
-            form.setFieldsValue({
-              productType: 'digital',
-              productFormat: 'text',
-              categoryKeys: ['soul'],
-              thumbBg: '#eae8fb',
-              emoji: '📄',
-              badge: '📄 PDF-гайд',
-              buttonLabel: 'Открыть'
-            });
-            setShowForm(!showForm);
+            if (showForm) {
+              setShowForm(false);
+              setEditing(null);
+              form.resetFields();
+            } else {
+              openCreateForm();
+            }
           }}
         >
           {showForm ? 'Отмена' : 'Добавить'}

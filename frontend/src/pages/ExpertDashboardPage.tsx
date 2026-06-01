@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Spin, Button, Space } from 'antd';
 import { CheckOutlined, CloseOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -127,8 +127,10 @@ function IconIncome() {
 const ExpertDashboardPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [panel, setPanel] = useState<Panel>('dashboard');
+  const [autoOpenProductForm, setAutoOpenProductForm] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -180,6 +182,19 @@ const ExpertDashboardPage: React.FC = () => {
     }
     loadAll();
   }, [user, authLoading, navigate, loadAll]);
+
+  useEffect(() => {
+    const panelParam = searchParams.get('panel');
+    const actionParam = searchParams.get('action');
+
+    if (panelParam === 'products') {
+      setPanel('products');
+      if (actionParam === 'new') {
+        setAutoOpenProductForm(true);
+      }
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (panel === 'clients' && user) loadAll();
@@ -682,7 +697,10 @@ const ExpertDashboardPage: React.FC = () => {
           {!products.filter((p) => p.product_type === 'digital').length && (
             <div style={{ padding: 16, fontSize: 13, color: 'var(--ec-t3)' }}>Нет цифровых продуктов</div>
           )}
-          <button type="button" className="ec-add-svc-btn" onClick={() => setPanel('products')}>
+          <button type="button" className="ec-add-svc-btn" onClick={() => {
+            setPanel('products');
+            setAutoOpenProductForm(true);
+          }}>
             + Добавить продукт
           </button>
         </div>
@@ -875,7 +893,13 @@ const ExpertDashboardPage: React.FC = () => {
                 <>
                   <div className="ec-page-title">Цифровые продукты</div>
                   <div className="ec-page-sub">Курсы, записи, медитации</div>
-                  <ProductManager products={products} onProductsUpdate={setProducts} isMobile={isMobile} />
+                  <ProductManager
+                    products={products}
+                    onProductsUpdate={setProducts}
+                    isMobile={isMobile}
+                    autoOpenCreate={autoOpenProductForm}
+                    onAutoOpenHandled={() => setAutoOpenProductForm(false)}
+                  />
                 </>
               )}
               {panel === 'income' && renderIncome()}

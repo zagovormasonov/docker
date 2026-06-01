@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal } from 'antd';
 import './DigitalProductsPage.css';
 import api from '../api/axios';
@@ -310,6 +311,7 @@ const mapApiProduct = (p: ApiProduct): Product => {
 };
 
 const DigitalProductsPage = () => {
+  const navigate = useNavigate();
   const [activeFmt, setActiveFmt] = useState<Fmt>('all');
   const [activeCat, setActiveCat] = useState<Cat>('');
   const [showFree, setShowFree] = useState(false);
@@ -361,6 +363,11 @@ const DigitalProductsPage = () => {
   const openProduct = (product: Product) => {
     setPreviewId(product.id);
     setOpenedProduct(product);
+  };
+
+  const openCreateProduct = () => {
+    const token = localStorage.getItem('token');
+    navigate(token ? '/expert-dashboard?panel=products&action=new' : '/login');
   };
 
   return (
@@ -562,7 +569,7 @@ const DigitalProductsPage = () => {
             <div className="dp-promo">
               <h4>Вы мастер?</h4>
               <p>Загрузите свой курс, запись или медитацию и начните зарабатывать на платформе.</p>
-              <button type="button" className="dp-promo-btn">Добавить продукт</button>
+              <button type="button" className="dp-promo-btn" onClick={openCreateProduct}>Добавить продукт</button>
             </div>
           </div>
         </div>
@@ -633,7 +640,7 @@ const DigitalProductsPage = () => {
             <div className="dp-promo">
               <h4>Вы мастер?</h4>
               <p>Загрузите свой курс, запись или медитацию и начните зарабатывать на платформе.</p>
-              <button type="button" className="dp-promo-btn">Добавить продукт</button>
+              <button type="button" className="dp-promo-btn" onClick={openCreateProduct}>Добавить продукт</button>
             </div>
           </div>
         </aside>
