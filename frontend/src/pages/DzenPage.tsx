@@ -105,12 +105,14 @@ function Reader({
   canEdit,
   onClose,
   onEdit,
+  onDelete,
   onAuthorClick,
 }: {
   article: Article;
   canEdit: boolean;
   onClose: () => void;
   onEdit: () => void;
+  onDelete: () => void;
   onAuthorClick: () => void;
 }) {
   useEffect(() => {
@@ -138,9 +140,14 @@ function Reader({
             Назад
           </button>
           {canEdit && (
-            <button type="button" className="dz-reader-edit" aria-label={EDIT_LABEL} onClick={onEdit}>
-              Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ
-            </button>
+            <div className="dz-reader-actions">
+              <button type="button" className="dz-reader-edit" aria-label={EDIT_LABEL} onClick={onEdit}>
+                Редактировать
+              </button>
+              <button type="button" className="dz-reader-delete" onClick={onDelete}>
+                Удалить
+              </button>
+            </div>
           )}
         </div>
         <div
@@ -280,6 +287,24 @@ const DzenPage = () => {
     navigate(`/edit-article/${articleId}?publishNow=1&redirectTo=/dzen&section=dzen`);
   }, [navigate]);
 
+  const removeArticleFromFeeds = useCallback((articleId: number) => {
+    setArticlesNew((items) => items.filter((article) => article.id !== articleId));
+    setArticlesPopular((items) => items.filter((article) => article.id !== articleId));
+    setReaderArticle((article) => article?.id === articleId ? null : article);
+  }, []);
+
+  const deleteArticle = useCallback(async (article: Article) => {
+    if (!window.confirm('Удалить статью? Это действие нельзя отменить.')) return;
+
+    try {
+      await api.delete(`/articles/${article.id}`);
+      removeArticleFromFeeds(article.id);
+    } catch (error) {
+      console.error('Ошибка удаления статьи:', error);
+      alert('Не удалось удалить статью');
+    }
+  }, [removeArticleFromFeeds]);
+
   const openAuthorProfile = useCallback((authorId: number) => {
     navigate(`/experts/${authorId}`);
   }, [navigate]);
@@ -292,6 +317,7 @@ const DzenPage = () => {
           canEdit={user?.id === readerArticle.author_id}
           onClose={() => setReaderArticle(null)}
           onEdit={() => openEditArticle(readerArticle.id)}
+          onDelete={() => deleteArticle(readerArticle)}
           onAuthorClick={() => openAuthorProfile(readerArticle.author_id)}
         />
       )}

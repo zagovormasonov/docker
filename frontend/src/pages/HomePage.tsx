@@ -512,7 +512,7 @@ export default function HomePage() {
     return (
       <article
         key={article.id}
-        className={`ss-card ${featuredCard ? 'ss-feat' : ''} ${dimmed ? 'ss-dimmed' : ''}`}
+        className={`ss-card ss-article-card ${featuredCard ? 'ss-feat' : ''} ${dimmed ? 'ss-dimmed' : ''}`}
         onClick={() => openArticle(article.id)}
       >
         <div className="ss-c-img">{cover}</div>
