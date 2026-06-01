@@ -51,9 +51,36 @@ const mapProductDetails = (payload: any) => [
   payload.buttonLabel
 ];
 
+const ensureProductDetailsColumns = async () => {
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS product_format VARCHAR(50) DEFAULT 'text' CHECK (product_format IN ('audio', 'video', 'text', 'bundle'))`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS category_key VARCHAR(255) DEFAULT 'soul'`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_new BOOLEAN DEFAULT false`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS thumb_bg VARCHAR(20) DEFAULT '#eae8fb'`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS emoji VARCHAR(20) DEFAULT '📄'`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS badge VARCHAR(100)`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS tag_label VARCHAR(100)`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_detail VARCHAR(100)`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS hit_label VARCHAR(50)`);
+  await query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS button_label VARCHAR(50) DEFAULT 'Открыть'`);
+};
+
+let productDetailsColumnsReady: Promise<void> | null = null;
+
+const ensureProductDetailsColumnsReady = async () => {
+  if (!productDetailsColumnsReady) {
+    productDetailsColumnsReady = ensureProductDetailsColumns().catch((error) => {
+      productDetailsColumnsReady = null;
+      throw error;
+    });
+  }
+  return productDetailsColumnsReady;
+};
+
 // Получение всех продуктов эксперта
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    await ensureProductDetailsColumnsReady();
     const result = await query(
       'SELECT * FROM products WHERE expert_id = $1 ORDER BY created_at DESC',
       [req.userId]
@@ -69,6 +96,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 // Публичная витрина цифровых продуктов
 router.get('/digital/public', async (_req, res) => {
   try {
+    await ensureProductDetailsColumnsReady();
     const result = await query(
       `SELECT p.*, u.name AS expert_name, u.slug AS expert_slug
        FROM products p
@@ -87,6 +115,7 @@ router.get('/digital/public', async (_req, res) => {
 // Получение продуктов конкретного эксперта (публичный endpoint)
 router.get('/expert/:id', async (req, res) => {
   try {
+    await ensureProductDetailsColumnsReady();
     const { id } = req.params;
 
     const result = await query(
@@ -120,6 +149,7 @@ router.post(
     }
 
     try {
+      await ensureProductDetailsColumnsReady();
       const { title, description, price, productType, imageUrl } = req.body;
       const [
         productFormat,
@@ -183,6 +213,7 @@ router.put(
     }
 
     try {
+      await ensureProductDetailsColumnsReady();
       const { id } = req.params;
       const { title, description, price, productType, imageUrl } = req.body;
       const [
@@ -261,6 +292,7 @@ router.delete(
   requireExpert,
   async (req: AuthRequest, res) => {
     try {
+      await ensureProductDetailsColumnsReady();
       const { id } = req.params;
 
       const result = await query(
@@ -283,6 +315,7 @@ router.delete(
 // Получение одного продукта
 router.get('/:id', async (req, res) => {
   try {
+    await ensureProductDetailsColumnsReady();
     const { id } = req.params;
 
     const result = await query(

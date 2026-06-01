@@ -211,6 +211,14 @@
   .dp-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .dp-modal-product {
+    grid-template-columns: 1fr;
+  }
+
+  .dp-modal-hero {
+    min-height: 180px;
+  }
 }
 
 /* Product Card */
@@ -732,6 +740,43 @@
 
 .dp-pp-body {
   padding: 12px 14px;
+}
+
+.dp-modal-product {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.85fr) 1fr;
+  gap: 20px;
+}
+
+.dp-modal-hero {
+  min-height: 260px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dp-modal-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dp-modal-body h3 {
+  margin: 10px 0 8px;
+  color: #2d2a4a;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.dp-modal-body p {
+  color: #6b6890;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
 }
 
 .dp-pp-cat {

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Modal } from 'antd';
 import './DigitalProductsPage.css';
 import api from '../api/axios';
 
@@ -25,6 +26,7 @@ interface Product {
   hitLabel?: string;
   btnClass?: string;
   btnLabel: string;
+  raw?: ApiProduct;
 }
 
 interface ApiProduct {
@@ -303,6 +305,7 @@ const mapApiProduct = (p: ApiProduct): Product => {
     hitLabel: p.hit_label || undefined,
     btnClass: p.thumb_bg === '#e2f7f0' ? 'dp-teal' : undefined,
     btnLabel: p.button_label || 'Открыть',
+    raw: p,
   };
 };
 
@@ -312,6 +315,7 @@ const DigitalProductsPage = () => {
   const [showFree, setShowFree] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [previewId, setPreviewId] = useState<number | string>(1);
+  const [openedProduct, setOpenedProduct] = useState<Product | null>(null);
   const [apiProducts, setApiProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -354,8 +358,50 @@ const DigitalProductsPage = () => {
 
   const preview = useMemo(() => products.find((p) => p.id === previewId), [previewId, products]);
 
+  const openProduct = (product: Product) => {
+    setPreviewId(product.id);
+    setOpenedProduct(product);
+  };
+
   return (
     <div className="dp-page">
+      <Modal
+        title={openedProduct?.title}
+        open={Boolean(openedProduct)}
+        onCancel={() => setOpenedProduct(null)}
+        footer={null}
+        width={760}
+        centered
+      >
+        {openedProduct && (
+          <div className="dp-modal-product">
+            <div className="dp-modal-hero" style={{ background: openedProduct.thumbBg }}>
+              {openedProduct.imageUrl ? <img src={openedProduct.imageUrl} alt={openedProduct.title} /> : openedProduct.emoji}
+              <span className="dp-fmt-badge">{openedProduct.badge}</span>
+              {(openedProduct.hitLabel || openedProduct.isNew) && (
+                <span className="dp-new-dot">{openedProduct.hitLabel || 'Новое'}</span>
+              )}
+            </div>
+            <div className="dp-modal-body">
+              <span className={`dp-cat-tag ${openedProduct.tagClass}`}>{openedProduct.tagLabel}</span>
+              <h3>{openedProduct.title}</h3>
+              <div className="dp-card-meta" style={{ marginBottom: 14 }}>
+                <span><span className="dp-avxs" />{openedProduct.meta}</span>
+                {openedProduct.metaDetail ? <span>{openedProduct.metaDetail}</span> : null}
+              </div>
+              <p>{openedProduct.desc || 'Авторский цифровой продукт от мастера платформы.'}</p>
+              <div className="dp-price-row">
+                <span className={`dp-pp-price${openedProduct.price === 0 ? ' dp-free' : ''}`}>
+                  {openedProduct.price === 0 ? 'Бесплатно' : `${openedProduct.price.toLocaleString('ru-RU')} ₽`}
+                </span>
+              </div>
+              <button type="button" className="dp-buy-btn" onClick={() => setOpenedProduct(null)}>
+                {openedProduct.price === 0 ? 'Открыть' : 'Перейти к покупке'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
       {/* Hero */}
       <div className="dp-hero">
         <div className="dp-eyebrow">
@@ -450,7 +496,7 @@ const DigitalProductsPage = () => {
                   <div
                     key={p.id}
                     className={`dp-card dp-feat${!visible ? ' dp-dimmed' : ''}`}
-                    onClick={() => setPreviewId(p.id)}
+                    onClick={() => openProduct(p)}
                   >
                     <div className="dp-thumb" style={{ background: p.thumbBg }}>
                       {p.imageUrl ? <img src={p.imageUrl} alt={p.title} /> : p.emoji}
@@ -474,7 +520,7 @@ const DigitalProductsPage = () => {
                 <div
                   key={p.id}
                   className={`dp-card${!visible ? ' dp-dimmed' : ''}`}
-                  onClick={() => setPreviewId(p.id)}
+                  onClick={() => openProduct(p)}
                 >
                   <div className="dp-thumb" style={{ background: p.thumbBg }}>
                     {p.imageUrl ? <img src={p.imageUrl} alt={p.title} /> : p.emoji}
@@ -496,7 +542,10 @@ const DigitalProductsPage = () => {
                     <button
                       type="button"
                       className={`dp-open-btn${p.btnClass ? ` ${p.btnClass}` : ''}`}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openProduct(p);
+                      }}
                     >
                       {p.btnLabel}
                     </button>
@@ -554,7 +603,7 @@ const DigitalProductsPage = () => {
                       </div>
                       {preview.id === 1 && <span className="dp-discount-badge">-25%</span>}
                     </div>
-                    <button type="button" className="dp-buy-btn">Открыть практику →</button>
+                    <button type="button" className="dp-buy-btn" onClick={() => openProduct(preview)}>Открыть практику →</button>
                     <button type="button" className="dp-wish-btn">В избранное</button>
                   </div>
                 </>
