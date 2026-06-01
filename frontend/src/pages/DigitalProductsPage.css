@@ -147,6 +147,12 @@
   color: #0d6b50;
 }
 
+.dp-edit-btn {
+  background: #fff;
+  color: #4a3fa8;
+  border: 1px solid #c9c4f0;
+}
+
 .dp-divider {
   width: 1px;
   height: 20px;

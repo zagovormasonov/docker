@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Modal } from 'antd';
 import './DigitalProductsPage.css';
 import api from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
 
 type Fmt = 'all' | 'audio' | 'video' | 'text' | 'bundle';
 type Cat = '' | 'soul' | 'money' | 'heal' | 'chan' | 'med' | 'rel';
@@ -27,6 +28,7 @@ interface Product {
   hitLabel?: string;
   btnClass?: string;
   btnLabel: string;
+  ownerId?: number;
   raw?: ApiProduct;
 }
 
@@ -47,6 +49,7 @@ interface ApiProduct {
   is_featured?: boolean;
   hit_label?: string;
   button_label?: string;
+  expert_id?: number;
   expert_name?: string;
 }
 
@@ -306,12 +309,14 @@ const mapApiProduct = (p: ApiProduct): Product => {
     hitLabel: p.hit_label || undefined,
     btnClass: p.thumb_bg === '#e2f7f0' ? 'dp-teal' : undefined,
     btnLabel: p.button_label || 'Открыть',
+    ownerId: p.expert_id,
     raw: p,
   };
 };
 
 const DigitalProductsPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeFmt, setActiveFmt] = useState<Fmt>('all');
   const [activeCat, setActiveCat] = useState<Cat>('');
   const [showFree, setShowFree] = useState(false);
@@ -370,6 +375,14 @@ const DigitalProductsPage = () => {
     navigate(token ? '/expert-dashboard?panel=products&action=new' : '/login');
   };
 
+  const canEditProduct = (product: Product) => Boolean(product.raw?.id && user?.id && Number(product.ownerId) === Number(user.id));
+
+  const openEditProduct = (product: Product) => {
+    if (!product.raw?.id) return;
+    setOpenedProduct(null);
+    navigate(`/expert-dashboard?panel=products&action=edit&productId=${product.raw.id}`);
+  };
+
   return (
     <div className="dp-page">
       <Modal
@@ -405,6 +418,11 @@ const DigitalProductsPage = () => {
               <button type="button" className="dp-buy-btn" onClick={() => setOpenedProduct(null)}>
                 {openedProduct.price === 0 ? 'Открыть' : 'Перейти к покупке'}
               </button>
+              {canEditProduct(openedProduct) && (
+                <button type="button" className="dp-wish-btn" onClick={() => openEditProduct(openedProduct)}>
+                  Редактировать продукт
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -556,6 +574,18 @@ const DigitalProductsPage = () => {
                     >
                       {p.btnLabel}
                     </button>
+                    {canEditProduct(p) && (
+                      <button
+                        type="button"
+                        className="dp-open-btn dp-edit-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditProduct(p);
+                        }}
+                      >
+                        Редактировать
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -611,6 +641,11 @@ const DigitalProductsPage = () => {
                       {preview.id === 1 && <span className="dp-discount-badge">-25%</span>}
                     </div>
                     <button type="button" className="dp-buy-btn" onClick={() => openProduct(preview)}>Открыть практику →</button>
+                    {canEditProduct(preview) && (
+                      <button type="button" className="dp-wish-btn" onClick={() => openEditProduct(preview)}>
+                        Редактировать продукт
+                      </button>
+                    )}
                     <button type="button" className="dp-wish-btn">В избранное</button>
                   </div>
                 </>

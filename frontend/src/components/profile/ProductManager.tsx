@@ -33,10 +33,20 @@ interface ProductManagerProps {
   onProductsUpdate: (products: any[]) => void;
   isMobile: boolean;
   autoOpenCreate?: boolean;
+  autoEditProductId?: number | null;
   onAutoOpenHandled?: () => void;
+  onAutoEditHandled?: () => void;
 }
 
-const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpdate, isMobile, autoOpenCreate, onAutoOpenHandled }) => {
+const ProductManager: React.FC<ProductManagerProps> = ({
+  products,
+  onProductsUpdate,
+  isMobile,
+  autoOpenCreate,
+  autoEditProductId,
+  onAutoOpenHandled,
+  onAutoEditHandled
+}) => {
   const [form] = Form.useForm();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<any>(null);
@@ -56,12 +66,6 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
     });
     setShowForm(true);
   };
-
-  useEffect(() => {
-    if (!autoOpenCreate) return;
-    openCreateForm();
-    onAutoOpenHandled?.();
-  }, [autoOpenCreate]);
 
   const handleEdit = (p: any) => {
     setEditing(p);
@@ -85,6 +89,20 @@ const ProductManager: React.FC<ProductManagerProps> = ({ products, onProductsUpd
     });
     setShowForm(true);
   };
+
+  useEffect(() => {
+    if (!autoOpenCreate) return;
+    openCreateForm();
+    onAutoOpenHandled?.();
+  }, [autoOpenCreate]);
+
+  useEffect(() => {
+    if (!autoEditProductId) return;
+    const product = products.find((p) => Number(p.id) === Number(autoEditProductId));
+    if (!product) return;
+    handleEdit(product);
+    onAutoEditHandled?.();
+  }, [autoEditProductId, products]);
 
   const applyFormatDefaults = (format: string) => {
     const option = FORMAT_OPTIONS.find((item) => item.value === format);

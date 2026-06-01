@@ -131,6 +131,7 @@ const ExpertDashboardPage: React.FC = () => {
 
   const [panel, setPanel] = useState<Panel>('dashboard');
   const [autoOpenProductForm, setAutoOpenProductForm] = useState(false);
+  const [autoEditProductId, setAutoEditProductId] = useState<number | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -191,6 +192,12 @@ const ExpertDashboardPage: React.FC = () => {
       setPanel('products');
       if (actionParam === 'new') {
         setAutoOpenProductForm(true);
+      }
+      if (actionParam === 'edit') {
+        const productId = Number(searchParams.get('productId'));
+        if (Number.isFinite(productId) && productId > 0) {
+          setAutoEditProductId(productId);
+        }
       }
       setSearchParams({}, { replace: true });
     }
@@ -898,7 +905,9 @@ const ExpertDashboardPage: React.FC = () => {
                     onProductsUpdate={setProducts}
                     isMobile={isMobile}
                     autoOpenCreate={autoOpenProductForm}
+                    autoEditProductId={autoEditProductId}
                     onAutoOpenHandled={() => setAutoOpenProductForm(false)}
+                    onAutoEditHandled={() => setAutoEditProductId(null)}
                   />
                 </>
               )}
