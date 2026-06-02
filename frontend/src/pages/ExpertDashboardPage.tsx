@@ -445,7 +445,7 @@ const ExpertDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="ec-two-col" style={{ gridTemplateColumns: '1fr' }}>
+      <div className="ec-two-col">
         <div className="ec-col-card">
           <div className="ec-cc-hdr">
             <span className="ec-cc-title">Календарь записей</span>
@@ -505,7 +505,7 @@ const ExpertDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="ec-two-col">
+      <div className="ec-two-col" style={{ gridTemplateColumns: '1fr' }}>
         <div className="ec-col-card">
           <div className="ec-cc-hdr">
             <span className="ec-cc-title">Активность по месяцам</span>
