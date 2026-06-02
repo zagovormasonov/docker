@@ -20,6 +20,10 @@ type YMapsApi = {
     properties?: { hintContent?: string; balloonContent?: string },
     options?: Record<string, unknown>
   ) => unknown;
+  suggest: (request: string, options?: { results?: number; provider?: string }) => Promise<Array<{
+    displayName: string;
+    value: string;
+  }>>;
   geocode: (query: string, options?: { results?: number }) => Promise<{
     geoObjects: {
       get: (index: number) => {
@@ -37,9 +41,10 @@ declare global {
 }
 
 const yandexMapsApiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY as string | undefined;
+const yandexMapsSuggestApiKey = import.meta.env.VITE_YANDEX_SUGGEST_API_KEY as string | undefined;
 const DEFAULT_CENTER: YMapPoint = [55.751574, 37.573856];
 
-const loadYandexMaps = () => {
+export const loadYandexMaps = () => {
   if (window.ymaps) {
     return Promise.resolve(window.ymaps);
   }
@@ -58,6 +63,11 @@ const loadYandexMaps = () => {
       apikey: yandexMapsApiKey,
       lang: 'ru_RU',
     });
+    const suggestApiKey = yandexMapsSuggestApiKey || yandexMapsApiKey;
+
+    if (suggestApiKey) {
+      params.set('suggest_apikey', suggestApiKey);
+    }
 
     script.src = `https://api-maps.yandex.ru/2.1/?${params.toString()}`;
     script.async = true;
@@ -69,11 +79,19 @@ const loadYandexMaps = () => {
 
       window.ymaps.ready(() => resolve(window.ymaps!));
     };
-    script.onerror = () => reject(new Error('Failed to load Yandex Maps API'));
+    script.onerror = () => {
+      window.__yandexMapsPromise = undefined;
+      reject(new Error('Failed to load Yandex Maps API'));
+    };
     document.head.appendChild(script);
   });
 
   return window.__yandexMapsPromise;
+};
+
+export const getYandexAddressSuggestions = async (query: string) => {
+  const ymaps = await loadYandexMaps();
+  return ymaps.suggest(query, { results: 5, provider: 'yandex#map' });
 };
 
 const buildAddressQuery = (location: string, cityName: string) => (

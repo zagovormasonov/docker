@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Form, Input, Button, Card, message, Typography, Select, DatePicker, Switch,
+  Form, Input, Button, Card, message, Typography, Select, DatePicker, Switch, AutoComplete,
   Upload, Space, Image
 } from 'antd';
 import {
@@ -15,7 +15,7 @@ import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import EventMap from '../components/EventMap';
+import EventMap, { getYandexAddressSuggestions } from '../components/EventMap';
 import { EVENT_TYPES } from './EventsPage';
 
 const { Title, Text } = Typography;
@@ -59,6 +59,9 @@ const CreateEventPage = () => {
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
   const [description, setDescription] = useState('');
+  const [addressOptions, setAddressOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [addressSuggestLoading, setAddressSuggestLoading] = useState(false);
+  const [selectedMapAddress, setSelectedMapAddress] = useState('');
   const quillRef = useRef<ReactQuill>(null);
 
   useEffect(() => {
@@ -91,6 +94,7 @@ const CreateEventPage = () => {
       setIsOnline(event.is_online);
       setCoverImageUrl(event.cover_image || '');
       setDescription(event.description || '');
+      setSelectedMapAddress(event.location || '');
 
       form.setFieldsValue({
         title: event.title,
@@ -333,7 +337,48 @@ const CreateEventPage = () => {
     [cities, watchedCityId]
   );
   const normalizedLocation = typeof watchedLocation === 'string' ? watchedLocation.trim() : '';
-  const shouldShowMapPreview = !isOnline && Boolean(selectedCityName) && normalizedLocation.length >= 3;
+  const addressForMap = selectedMapAddress.trim();
+  const shouldShowMapPreview = !isOnline && Boolean(selectedCityName) && addressForMap.length >= 3;
+
+  useEffect(() => {
+    if (isOnline || !selectedCityName || normalizedLocation.length < 2) {
+      setAddressOptions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const query = normalizedLocation.toLowerCase().includes(selectedCityName.toLowerCase())
+      ? normalizedLocation
+      : `${selectedCityName}, ${normalizedLocation}`;
+
+    const timer = window.setTimeout(async () => {
+      try {
+        setAddressSuggestLoading(true);
+        const suggestions = await getYandexAddressSuggestions(query);
+
+        if (cancelled) return;
+
+        setAddressOptions(suggestions.map((suggestion) => ({
+          value: suggestion.value || suggestion.displayName,
+          label: suggestion.displayName || suggestion.value,
+        })));
+      } catch (error) {
+        console.warn('Yandex address suggest error:', error);
+        if (!cancelled) {
+          setAddressOptions([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setAddressSuggestLoading(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [isOnline, normalizedLocation, selectedCityName]);
 
   return (
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
@@ -458,7 +503,9 @@ const CreateEventPage = () => {
               onChange={(checked) => {
                 setIsOnline(checked);
                 if (checked) {
-                  form.setFieldsValue({ cityId: null });
+                  form.setFieldsValue({ cityId: null, location: '' });
+                  setSelectedMapAddress('');
+                  setAddressOptions([]);
                 }
               }}
             />
@@ -477,6 +524,11 @@ const CreateEventPage = () => {
                 filterOption={(input, option) =>
                   (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
                 }
+                onChange={() => {
+                  setSelectedMapAddress('');
+                  setAddressOptions([]);
+                  form.setFieldValue('location', '');
+                }}
                 options={cities.map(city => ({
                   value: city.id,
                   label: city.name
@@ -504,11 +556,33 @@ const CreateEventPage = () => {
             label={<Text strong>Место проведения</Text>}
             name="location"
           >
-            <Input
-              size="large"
-              placeholder={isOnline ? "Ссылка на платформу (Zoom, etc.)" : "Адрес проведения"}
-              prefix={<EnvironmentOutlined />}
-            />
+            {isOnline ? (
+              <Input
+                size="large"
+                placeholder="Ссылка на платформу (Zoom, etc.)"
+                prefix={<EnvironmentOutlined />}
+              />
+            ) : (
+              <AutoComplete
+                size="large"
+                options={addressOptions}
+                notFoundContent={addressSuggestLoading ? 'Загрузка адресов...' : 'Начните вводить адрес'}
+                onChange={(value) => {
+                  if (!addressOptions.some((option) => option.value === value)) {
+                    setSelectedMapAddress('');
+                  }
+                }}
+                onSelect={(value) => {
+                  setSelectedMapAddress(value);
+                }}
+              >
+                <Input
+                  size="large"
+                  placeholder="Начните вводить адрес и выберите вариант из списка"
+                  prefix={<EnvironmentOutlined />}
+                />
+              </AutoComplete>
+            )}
           </Form.Item>
 
           {shouldShowMapPreview && (
@@ -517,7 +591,7 @@ const CreateEventPage = () => {
                 Метка на Яндекс.Карте обновляется по выбранному городу и адресу
               </Text>
               <EventMap
-                location={normalizedLocation}
+                location={addressForMap}
                 cityName={selectedCityName}
                 eventTitle={typeof watchedTitle === 'string' && watchedTitle.trim() ? watchedTitle : 'Место проведения'}
               />
