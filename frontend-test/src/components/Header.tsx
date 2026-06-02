@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Space, Drawer, Modal, Form, Input, message as antdMessage } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Space, Drawer, Modal, Form, Input, message as antdMessage } from 'antd';
 import {
   Home,
   Users,
@@ -12,7 +12,6 @@ import {
   Settings,
   Headphones,
   Send,
-  Bell,
   Search,
   Menu as MenuIcon,
   X,
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
-import Notifications from './Notifications';
 import type { MenuProps } from 'antd';
 import { useState, useEffect } from 'react';
 import './Header.css';
@@ -34,7 +32,7 @@ const { Header: AntHeader } = Layout;
 
 const Header = () => {
   const { user, logout } = useAuth();
-  const { unreadCount, markAsRead, testNotification } = useNotifications();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -48,8 +46,6 @@ const Header = () => {
 
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportForm] = Form.useForm();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notificationsUnreadCount, setNotificationsUnreadCount] = useState(0);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [showSearch, setShowSearch] = useState(false);
@@ -382,14 +378,7 @@ const Header = () => {
                 )}
                 <div style={{ display: 'flex', gap: '4px' }}>
                   <button className="header-minimal__btn" onClick={handleChatsClick}>
-                    <Badge count={unreadCount} size="small" offset={[2, -2]}>
-                      <MessageSquare size={19} />
-                    </Badge>
-                  </button>
-                  <button className="header-minimal__btn" onClick={() => setNotificationsOpen(true)}>
-                    <Badge count={notificationsUnreadCount} size="small" offset={[2, -2]}>
-                      <Bell size={19} />
-                    </Badge>
+                    <MessageSquare size={19} />
                   </button>
                   <button className="header-minimal__btn" onClick={() => setSupportModalOpen(true)}>
                     <Headphones size={19} />
@@ -428,9 +417,7 @@ const Header = () => {
             onClick={() => setMobileMenuOpen(true)}
             style={{ border: 'none', background: 'transparent' }}
           >
-            <Badge count={unreadCount} size="small">
-              <MenuIcon size={22} />
-            </Badge>
+            <MenuIcon size={22} />
           </button>
         </div>
       </header>
@@ -498,12 +485,6 @@ const Header = () => {
           </div>
         </Form>
       </Modal>
-
-      <Notifications
-        visible={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
-        onUnreadCountChange={setNotificationsUnreadCount}
-      />
     </>
   );
 };

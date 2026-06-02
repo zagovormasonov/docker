@@ -879,6 +879,7 @@ export default function HomePage() {
         }}
         open={modalOpen}
         width="100%"
+        className="ss-reader-modal"
         centered
         destroyOnClose
         maskStyle={{
@@ -901,6 +902,8 @@ export default function HomePage() {
             .hide-scrollbar::-webkit-scrollbar { display: none; }
             .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             .ant-modal-content { box-shadow: none !important; background: transparent !important; border: none !important; }
+            .ss-reader-modal { max-width: 100vw !important; margin: 0 !important; }
+            @media (max-width: 768px) { .ss-reader-modal { width: 100vw !important; } }
           `}
         </style>
 

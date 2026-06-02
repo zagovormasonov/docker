@@ -199,8 +199,8 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
     <div className="container" style={{
       maxWidth: 900,
       paddingTop: embeddedArticleId ? (isMobile ? 0 : 60) : 24,
-      paddingLeft: isMobile ? 6 : undefined,
-      paddingRight: isMobile ? 6 : undefined,
+      paddingLeft: isMobile ? 12 : undefined,
+      paddingRight: isMobile ? 12 : undefined,
       width: '100%'
     }}>
       {!embeddedArticleId && (
@@ -216,7 +216,7 @@ const ArticlePage = ({ embeddedArticleId }: { embeddedArticleId?: number }) => {
 
       <Card
         bordered={!embeddedArticleId && !isMobile}
-        styles={{ body: { padding: isMobile ? '6px' : '24px' } }}
+        styles={{ body: { padding: isMobile ? 0 : '24px' } }}
         style={{
           boxShadow: (embeddedArticleId || isMobile) ? 'none' : undefined,
           border: (embeddedArticleId || isMobile) ? 'none' : undefined,

@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Space, Drawer, Modal, Form, Input, message as antdMessage } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Space, Drawer, Modal, Form, Input, message as antdMessage } from 'antd';
 import {
   Home,
   Users,
@@ -378,9 +378,7 @@ const Header = () => {
                 )}
                 <div style={{ display: 'flex', gap: '4px' }}>
                   <button className="header-minimal__btn" onClick={handleChatsClick}>
-                    <Badge count={unreadCount} size="small" offset={[2, -2]}>
-                      <MessageSquare size={19} />
-                    </Badge>
+                    <MessageSquare size={19} />
                   </button>
                   <button className="header-minimal__btn" onClick={() => setSupportModalOpen(true)}>
                     <Headphones size={19} />
@@ -419,9 +417,7 @@ const Header = () => {
             onClick={() => setMobileMenuOpen(true)}
             style={{ border: 'none', background: 'transparent' }}
           >
-            <Badge count={unreadCount} size="small">
-              <MenuIcon size={22} />
-            </Badge>
+            <MenuIcon size={22} />
           </button>
         </div>
       </header>
