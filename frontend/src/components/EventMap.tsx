@@ -94,12 +94,18 @@ export const getYandexAddressSuggestions = async (query: string) => {
   return ymaps.suggest(query, { results: 5, provider: 'yandex#map' });
 };
 
-const buildAddressQuery = (location: string, cityName: string) => (
-  [cityName, location]
-    .map((part) => part?.trim())
-    .filter(Boolean)
-    .join(', ')
-);
+const buildAddressQueries = (location: string, cityName: string) => {
+  const normalizedLocation = location.trim();
+  const normalizedCity = cityName.trim();
+  const locationIncludesCity = Boolean(normalizedCity)
+    && normalizedLocation.toLowerCase().includes(normalizedCity.toLowerCase());
+
+  return [
+    normalizedLocation,
+    locationIncludesCity ? '' : [normalizedCity, normalizedLocation].filter(Boolean).join(', '),
+    normalizedCity,
+  ].filter((query, index, queries) => query && queries.indexOf(query) === index);
+};
 
 const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) => {
   const mapRef = React.useRef<HTMLDivElement | null>(null);
@@ -108,9 +114,9 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
 
   React.useEffect(() => {
     let cancelled = false;
-    const query = buildAddressQuery(location, cityName);
+    const queries = buildAddressQueries(location, cityName);
 
-    if (!query) {
+    if (!queries.length) {
       setStatus('error');
       return;
     }
@@ -121,16 +127,25 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
         const ymaps = await loadYandexMaps();
         if (cancelled || !mapRef.current) return;
 
-        const geocodeResult = await ymaps.geocode(query, { results: 1 });
-        if (cancelled || !mapRef.current) return;
+        let coordinates: YMapPoint | null = null;
+        let foundQuery = queries[0];
 
-        const firstResult = geocodeResult.geoObjects.get(0);
-        if (!firstResult) {
+        for (const query of queries) {
+          const geocodeResult = await ymaps.geocode(query, { results: 1 });
+          if (cancelled || !mapRef.current) return;
+
+          const firstResult = geocodeResult.geoObjects.get(0);
+          if (firstResult) {
+            coordinates = firstResult.geometry.getCoordinates();
+            foundQuery = query;
+            break;
+          }
+        }
+
+        if (!coordinates) {
           setStatus('error');
           return;
         }
-
-        const coordinates = firstResult.geometry.getCoordinates();
 
         if (!mapInstanceRef.current) {
           mapInstanceRef.current = new ymaps.Map(mapRef.current, {
@@ -147,7 +162,7 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
           coordinates,
           {
             hintContent: eventTitle,
-            balloonContent: `${eventTitle}<br/>${query}`,
+            balloonContent: `${eventTitle}<br/>${foundQuery}`,
           },
           {
             preset: 'islands#violetDotIcon',
