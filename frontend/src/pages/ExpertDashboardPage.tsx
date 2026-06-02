@@ -41,14 +41,6 @@ interface Booking {
   created_at: string;
 }
 
-interface NotifRow {
-  id: number;
-  title?: string;
-  message?: string;
-  is_read?: boolean;
-  created_at: string;
-}
-
 interface ExpertSchedule {
   id: number;
   day_of_week: number;
@@ -136,7 +128,6 @@ const ExpertDashboardPage: React.FC = () => {
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState<NotifRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [incomingCount, setIncomingCount] = useState(0);
   const [calMonth, setCalMonth] = useState(dayjs());
@@ -154,20 +145,18 @@ const ExpertDashboardPage: React.FC = () => {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const [bk, inc, cl, ex, pr, nt] = await Promise.all([
+      const [bk, inc, cl, ex, pr] = await Promise.all([
         api.get('/bookings/expert/bookings'),
         api.get('/bookings/incoming').catch(() => ({ data: [] })),
         api.get('/experts/my-clients').catch(() => ({ data: [] })),
         api.get(`/experts/${user.id}`).catch(() => ({ data: {} })),
         api.get('/products').catch(() => ({ data: [] })),
-        api.get('/notifications').catch(() => ({ data: { notifications: [] } })),
       ]);
       setAllBookings(bk.data || []);
       setIncomingCount((inc.data || []).length);
       setClients(cl.data || []);
       setServices(ex.data?.services || []);
       setProducts(Array.isArray(pr.data) ? pr.data : []);
-      setNotifications(nt.data?.notifications || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -456,7 +445,7 @@ const ExpertDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="ec-two-col">
+      <div className="ec-two-col" style={{ gridTemplateColumns: '1fr' }}>
         <div className="ec-col-card">
           <div className="ec-cc-hdr">
             <span className="ec-cc-title">Календарь записей</span>
@@ -541,27 +530,6 @@ const ExpertDashboardPage: React.FC = () => {
               <span className="ec-ct-sub">всего записей в разделе</span>
             </div>
           </div>
-        </div>
-
-        <div className="ec-col-card">
-          <div className="ec-cc-hdr">
-            <span className="ec-cc-title">Уведомления</span>
-            <button type="button" className="ec-cc-action" onClick={() => navigate('/profile')}>
-              Профиль →
-            </button>
-          </div>
-          {notifications.slice(0, 5).map((n) => (
-            <div key={n.id} className={`ec-notif-item ${!n.is_read ? 'ec-unread' : ''}`}>
-              <div className="ec-ni-ico" style={{ background: 'var(--ec-acp)' }}>
-                📬
-              </div>
-              <div>
-                <div className="ec-ni-text">{n.title || n.message || 'Уведомление'}</div>
-                <div className="ec-ni-time">{dayjs(n.created_at).locale('ru').format('DD MMM · HH:mm')}</div>
-              </div>
-            </div>
-          ))}
-          {!notifications.length && <div style={{ padding: 24, fontSize: 13, color: 'var(--ec-t3)' }}>Нет уведомлений</div>}
         </div>
       </div>
 

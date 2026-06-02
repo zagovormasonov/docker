@@ -12,7 +12,6 @@ import {
   Settings,
   Headphones,
   Send,
-  Bell,
   Search,
   Menu as MenuIcon,
   X,
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
-import Notifications from './Notifications';
 import type { MenuProps } from 'antd';
 import { useState, useEffect } from 'react';
 import './Header.css';
@@ -34,7 +32,7 @@ const { Header: AntHeader } = Layout;
 
 const Header = () => {
   const { user, logout } = useAuth();
-  const { unreadCount, markAsRead, testNotification } = useNotifications();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -48,8 +46,6 @@ const Header = () => {
 
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportForm] = Form.useForm();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notificationsUnreadCount, setNotificationsUnreadCount] = useState(0);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [showSearch, setShowSearch] = useState(false);
@@ -386,11 +382,6 @@ const Header = () => {
                       <MessageSquare size={19} />
                     </Badge>
                   </button>
-                  <button className="header-minimal__btn" onClick={() => setNotificationsOpen(true)}>
-                    <Badge count={notificationsUnreadCount} size="small" offset={[2, -2]}>
-                      <Bell size={19} />
-                    </Badge>
-                  </button>
                   <button className="header-minimal__btn" onClick={() => setSupportModalOpen(true)}>
                     <Headphones size={19} />
                   </button>
@@ -499,11 +490,6 @@ const Header = () => {
         </Form>
       </Modal>
 
-      <Notifications
-        visible={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
-        onUnreadCountChange={setNotificationsUnreadCount}
-      />
     </>
   );
 };

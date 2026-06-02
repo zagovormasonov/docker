@@ -937,7 +937,7 @@ export default function HomePage() {
               width: '100%',
             }}
           >
-            <div style={{ width: '100%', maxWidth: 900 }}>
+            <div style={{ width: '100%', maxWidth: isMobile ? '100%' : 900 }}>
               {selectedArticleId ? (
                 <Suspense fallback={<div className="ss-loading">Загрузка статьи…</div>}>
                   <ArticlePage embeddedArticleId={selectedArticleId} />
