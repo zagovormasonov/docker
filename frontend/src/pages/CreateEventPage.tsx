@@ -15,6 +15,7 @@ import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import EventMap from '../components/EventMap';
 import { EVENT_TYPES } from './EventsPage';
 
 const { Title, Text } = Typography;
@@ -324,6 +325,16 @@ const CreateEventPage = () => {
     }
   }, [form, id]);
 
+  const watchedTitle = Form.useWatch('title', form);
+  const watchedLocation = Form.useWatch('location', form);
+  const watchedCityId = Form.useWatch('cityId', form);
+  const selectedCityName = useMemo(
+    () => cities.find((city) => city.id === watchedCityId)?.name || '',
+    [cities, watchedCityId]
+  );
+  const normalizedLocation = typeof watchedLocation === 'string' ? watchedLocation.trim() : '';
+  const shouldShowMapPreview = !isOnline && Boolean(selectedCityName) && normalizedLocation.length >= 3;
+
   return (
     <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
       <Card>
@@ -500,6 +511,19 @@ const CreateEventPage = () => {
             />
           </Form.Item>
 
+          {shouldShowMapPreview && (
+            <div style={{ marginTop: -8, marginBottom: 24 }}>
+              <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                Метка на Яндекс.Карте обновляется по выбранному городу и адресу
+              </Text>
+              <EventMap
+                location={normalizedLocation}
+                cityName={selectedCityName}
+                eventTitle={typeof watchedTitle === 'string' && watchedTitle.trim() ? watchedTitle : 'Место проведения'}
+              />
+            </div>
+          )}
+
           <Form.Item
             label={<Text strong>Стоимость</Text>}
             name="price"
@@ -544,4 +568,3 @@ const CreateEventPage = () => {
 };
 
 export default CreateEventPage;
-

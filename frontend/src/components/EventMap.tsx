@@ -6,97 +6,188 @@ interface EventMapProps {
   eventTitle: string;
 }
 
-const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) => {
-  // Функция для геокодирования адреса
-  const geocodeAddress = async (address: string, city: string): Promise<[number, number] | null> => {
-    try {
-      // Используем Nominatim API (бесплатный сервис OpenStreetMap)
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(`${address}, ${city}`)}&limit=1`
-      );
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      }
-      
-      // Если точный адрес не найден, ищем по городу
-      const cityResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=1`
-      );
-      const cityData = await cityResponse.json();
-      
-      if (cityData && cityData.length > 0) {
-        return [parseFloat(cityData[0].lat), parseFloat(cityData[0].lon)];
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Ошибка геокодирования:', error);
-      return null;
-    }
-  };
+type YMapPoint = [number, number];
 
-  const [coordinates, setCoordinates] = React.useState<[number, number] | null>(null);
-  const [loading, setLoading] = React.useState(true);
+type YMapsApi = {
+  ready: (callback: () => void) => void;
+  Map: new (element: HTMLElement, options: { center: YMapPoint; zoom: number; controls?: string[] }) => {
+    geoObjects: { add: (placemark: unknown) => void; removeAll: () => void };
+    setCenter: (center: YMapPoint, zoom?: number) => void;
+    destroy: () => void;
+  };
+  Placemark: new (
+    coordinates: YMapPoint,
+    properties?: { hintContent?: string; balloonContent?: string },
+    options?: Record<string, unknown>
+  ) => unknown;
+  geocode: (query: string, options?: { results?: number }) => Promise<{
+    geoObjects: {
+      get: (index: number) => {
+        geometry: { getCoordinates: () => YMapPoint };
+      } | null;
+    };
+  }>;
+};
+
+declare global {
+  interface Window {
+    ymaps?: YMapsApi;
+    __yandexMapsPromise?: Promise<YMapsApi>;
+  }
+}
+
+const yandexMapsApiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY as string | undefined;
+const DEFAULT_CENTER: YMapPoint = [55.751574, 37.573856];
+
+const loadYandexMaps = () => {
+  if (window.ymaps) {
+    return Promise.resolve(window.ymaps);
+  }
+
+  if (window.__yandexMapsPromise) {
+    return window.__yandexMapsPromise;
+  }
+
+  if (!yandexMapsApiKey) {
+    return Promise.reject(new Error('VITE_YANDEX_MAPS_API_KEY is not set'));
+  }
+
+  window.__yandexMapsPromise = new Promise<YMapsApi>((resolve, reject) => {
+    const script = document.createElement('script');
+    const params = new URLSearchParams({
+      apikey: yandexMapsApiKey,
+      lang: 'ru_RU',
+    });
+
+    script.src = `https://api-maps.yandex.ru/2.1/?${params.toString()}`;
+    script.async = true;
+    script.onload = () => {
+      if (!window.ymaps) {
+        reject(new Error('Yandex Maps API did not initialize'));
+        return;
+      }
+
+      window.ymaps.ready(() => resolve(window.ymaps!));
+    };
+    script.onerror = () => reject(new Error('Failed to load Yandex Maps API'));
+    document.head.appendChild(script);
+  });
+
+  return window.__yandexMapsPromise;
+};
+
+const buildAddressQuery = (location: string, cityName: string) => (
+  [cityName, location]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(', ')
+);
+
+const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) => {
+  const mapRef = React.useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = React.useRef<InstanceType<YMapsApi['Map']> | null>(null);
+  const [status, setStatus] = React.useState<'loading' | 'ready' | 'error' | 'missing-key'>('loading');
 
   React.useEffect(() => {
-    const fetchCoordinates = async () => {
-      setLoading(true);
-      const coords = await geocodeAddress(location, cityName);
-      setCoordinates(coords);
-      setLoading(false);
+    let cancelled = false;
+    const query = buildAddressQuery(location, cityName);
+
+    if (!query) {
+      setStatus('error');
+      return;
+    }
+
+    const initMap = async () => {
+      try {
+        setStatus('loading');
+        const ymaps = await loadYandexMaps();
+        if (cancelled || !mapRef.current) return;
+
+        const geocodeResult = await ymaps.geocode(query, { results: 1 });
+        if (cancelled || !mapRef.current) return;
+
+        const firstResult = geocodeResult.geoObjects.get(0);
+        if (!firstResult) {
+          setStatus('error');
+          return;
+        }
+
+        const coordinates = firstResult.geometry.getCoordinates();
+
+        if (!mapInstanceRef.current) {
+          mapInstanceRef.current = new ymaps.Map(mapRef.current, {
+            center: coordinates || DEFAULT_CENTER,
+            zoom: 15,
+            controls: ['zoomControl', 'fullscreenControl'],
+          });
+        } else {
+          mapInstanceRef.current.setCenter(coordinates, 15);
+          mapInstanceRef.current.geoObjects.removeAll();
+        }
+
+        const placemark = new ymaps.Placemark(
+          coordinates,
+          {
+            hintContent: eventTitle,
+            balloonContent: `${eventTitle}<br/>${query}`,
+          },
+          {
+            preset: 'islands#violetDotIcon',
+          }
+        );
+
+        mapInstanceRef.current.geoObjects.add(placemark);
+        setStatus('ready');
+      } catch (error) {
+        console.error('Yandex map error:', error);
+        setStatus(yandexMapsApiKey ? 'error' : 'missing-key');
+      }
     };
 
-    fetchCoordinates();
-  }, [location, cityName]);
+    initMap();
 
-  if (loading) {
-    return (
-      <div style={{ 
-        height: 300, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        background: '#f5f5f5',
-        borderRadius: 8
-      }}>
-        <div>Загрузка карты...</div>
-      </div>
-    );
-  }
+    return () => {
+      cancelled = true;
+    };
+  }, [location, cityName, eventTitle]);
 
-  if (!coordinates) {
-    return (
-      <div style={{ 
-        height: 300, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        background: '#f5f5f5',
-        borderRadius: 8,
-        color: '#666'
-      }}>
-        <div>Не удалось найти местоположение на карте</div>
-      </div>
-    );
-  }
+  React.useEffect(() => {
+    return () => {
+      mapInstanceRef.current?.destroy();
+      mapInstanceRef.current = null;
+    };
+  }, []);
 
-  // Создаем URL для OpenStreetMap с маркером
-  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${coordinates[1]-0.01},${coordinates[0]-0.01},${coordinates[1]+0.01},${coordinates[0]+0.01}&layer=mapnik&marker=${coordinates[0]},${coordinates[1]}`;
+  const message = status === 'missing-key'
+    ? 'Добавьте VITE_YANDEX_MAPS_API_KEY, чтобы показать Яндекс.Карту'
+    : status === 'error'
+      ? 'Не удалось найти адрес на карте'
+      : 'Загрузка Яндекс.Карты...';
 
   return (
-    <div style={{ height: 300, borderRadius: 8, overflow: 'hidden' }}>
-      <iframe
-        width="100%"
-        height="100%"
-        frameBorder="0"
-        scrolling="no"
-        marginHeight={0}
-        marginWidth={0}
-        src={mapUrl}
+    <div style={{ position: 'relative', height: 300, borderRadius: 8, overflow: 'hidden', background: '#f5f5f5' }}>
+      {status !== 'ready' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            color: '#666',
+            textAlign: 'center',
+            background: '#f5f5f5',
+          }}
+        >
+          {message}
+        </div>
+      )}
+      <div
+        ref={mapRef}
         title={`Карта события: ${eventTitle}`}
-        style={{ border: 'none' }}
+        style={{ width: '100%', height: '100%' }}
       />
     </div>
   );
