@@ -42,6 +42,7 @@ declare global {
 
 const yandexMapsApiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY as string | undefined;
 const yandexMapsSuggestApiKey = import.meta.env.VITE_YANDEX_SUGGEST_API_KEY as string | undefined;
+const yandexGeocoderApiKey = import.meta.env.VITE_YANDEX_GEOCODER_API_KEY as string | undefined;
 const DEFAULT_CENTER: YMapPoint = [55.751574, 37.573856];
 
 export const loadYandexMaps = () => {
@@ -94,6 +95,41 @@ export const getYandexAddressSuggestions = async (query: string) => {
   return ymaps.suggest(query, { results: 5, provider: 'yandex#map' });
 };
 
+const geocodeByHttpApi = async (query: string): Promise<YMapPoint | null> => {
+  const apiKey = yandexGeocoderApiKey || yandexMapsApiKey;
+  if (!apiKey) {
+    return null;
+  }
+
+  const params = new URLSearchParams({
+    apikey: apiKey,
+    geocode: query,
+    format: 'json',
+    results: '1',
+    lang: 'ru_RU',
+  });
+  const response = await fetch(`https://geocode-maps.yandex.ru/v1/?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`Yandex geocoder HTTP error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const pos = data?.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject?.Point?.pos;
+
+  if (typeof pos !== 'string') {
+    return null;
+  }
+
+  const [longitude, latitude] = pos.split(' ').map(Number);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  return [latitude, longitude];
+};
+
 const buildAddressQueries = (location: string, cityName: string) => {
   const normalizedLocation = location.trim();
   const normalizedCity = cityName.trim();
@@ -131,15 +167,23 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
         let foundQuery = queries[0];
 
         for (const query of queries) {
+          coordinates = await geocodeByHttpApi(query);
+          if (cancelled || !mapRef.current) return;
+
+          if (coordinates) {
+            foundQuery = query;
+            break;
+          }
+
           const geocodeResult = await ymaps.geocode(query, { results: 1 });
           if (cancelled || !mapRef.current) return;
 
           const firstResult = geocodeResult.geoObjects.get(0);
-          if (firstResult) {
-            coordinates = firstResult.geometry.getCoordinates();
-            foundQuery = query;
-            break;
-          }
+          if (!firstResult) continue;
+
+          coordinates = firstResult.geometry.getCoordinates();
+          foundQuery = query;
+          break;
         }
 
         if (!coordinates) {
