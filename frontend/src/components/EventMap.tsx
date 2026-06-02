@@ -111,7 +111,8 @@ const geocodeByHttpApi = async (query: string): Promise<YMapPoint | null> => {
   const response = await fetch(`https://geocode-maps.yandex.ru/v1/?${params.toString()}`);
 
   if (!response.ok) {
-    throw new Error(`Yandex geocoder HTTP error: ${response.status}`);
+    console.warn(`Yandex geocoder HTTP error: ${response.status}`);
+    return null;
   }
 
   const data = await response.json();
