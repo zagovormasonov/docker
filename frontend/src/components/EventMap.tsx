@@ -144,16 +144,27 @@ const buildAddressQueries = (location: string, cityName: string) => {
   ].filter((query, index, queries) => query && queries.indexOf(query) === index);
 };
 
+const buildMapWidgetUrl = (query: string) => {
+  const params = new URLSearchParams({
+    text: query,
+    z: '16',
+  });
+
+  return `https://yandex.ru/map-widget/v1/?${params.toString()}`;
+};
+
 const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) => {
   const mapRef = React.useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = React.useRef<InstanceType<YMapsApi['Map']> | null>(null);
-  const [status, setStatus] = React.useState<'loading' | 'ready' | 'error' | 'missing-key'>('loading');
+  const [status, setStatus] = React.useState<'loading' | 'ready' | 'widget' | 'error' | 'missing-key'>('loading');
+  const [widgetUrl, setWidgetUrl] = React.useState('');
 
   React.useEffect(() => {
     let cancelled = false;
     const queries = buildAddressQueries(location, cityName);
 
     if (!queries.length) {
+      setWidgetUrl('');
       setStatus('error');
       return;
     }
@@ -161,6 +172,7 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
     const initMap = async () => {
       try {
         setStatus('loading');
+        setWidgetUrl('');
         const ymaps = await loadYandexMaps();
         if (cancelled || !mapRef.current) return;
 
@@ -176,7 +188,14 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
             break;
           }
 
-          const geocodeResult = await ymaps.geocode(query, { results: 1 });
+          let geocodeResult: Awaited<ReturnType<YMapsApi['geocode']>> | null = null;
+          try {
+            geocodeResult = await ymaps.geocode(query, { results: 1 });
+          } catch (error) {
+            console.warn('Yandex JS geocode error:', error);
+            continue;
+          }
+
           if (cancelled || !mapRef.current) return;
 
           const firstResult = geocodeResult.geoObjects.get(0);
@@ -188,7 +207,8 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
         }
 
         if (!coordinates) {
-          setStatus('error');
+          setWidgetUrl(buildMapWidgetUrl(queries[0]));
+          setStatus('widget');
           return;
         }
 
@@ -218,6 +238,12 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
         setStatus('ready');
       } catch (error) {
         console.error('Yandex map error:', error);
+        if (queries[0]) {
+          setWidgetUrl(buildMapWidgetUrl(queries[0]));
+          setStatus('widget');
+          return;
+        }
+
         setStatus(yandexMapsApiKey ? 'error' : 'missing-key');
       }
     };
@@ -244,7 +270,17 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
 
   return (
     <div style={{ position: 'relative', height: 300, borderRadius: 8, overflow: 'hidden', background: '#f5f5f5' }}>
-      {status !== 'ready' && (
+      {status === 'widget' && widgetUrl ? (
+        <iframe
+          src={widgetUrl}
+          title={`РљР°СЂС‚Р° СЃРѕР±С‹С‚РёСЏ: ${eventTitle}`}
+          width="100%"
+          height="100%"
+          frameBorder={0}
+          allowFullScreen
+          style={{ border: 0 }}
+        />
+      ) : status !== 'ready' && (
         <div
           style={{
             position: 'absolute',
@@ -265,7 +301,7 @@ const EventMap: React.FC<EventMapProps> = ({ location, cityName, eventTitle }) =
       <div
         ref={mapRef}
         title={`Карта события: ${eventTitle}`}
-        style={{ width: '100%', height: '100%' }}
+        style={{ display: status === 'widget' ? 'none' : 'block', width: '100%', height: '100%' }}
       />
     </div>
   );
