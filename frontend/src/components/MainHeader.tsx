@@ -80,18 +80,6 @@ const MainHeader = () => {
             </Link>
           ) : null}
 
-          <Link className="ss-ibt ss-ibt--profile" to={profileHref} aria-label="Профиль">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
-              <path
-                d="M7.5 1.5C5.3 1.5 3.5 3.3 3.5 5.5V9L2 10.5h11L11.5 9V5.5C11.5 3.3 9.7 1.5 7.5 1.5Z"
-                stroke="currentColor"
-                strokeWidth=".9"
-                fill="none"
-              />
-              <path d="M6.2 12a1.3 1.3 0 002.6 0" stroke="currentColor" strokeWidth=".9" />
-            </svg>
-          </Link>
-
           <Link className="ss-cab-btn" to={cabinetHref}>
             {cabinetLabel}
           </Link>
