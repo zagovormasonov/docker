@@ -82,6 +82,24 @@ router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
     const { planId, amount, description, isRecurring, recurringInterval, useBonuses } = req.body;
     const userId = req.userId;
 
+    if (planId === 'monthly' || planId === 'yearly') {
+      await query(
+        `UPDATE users
+         SET user_type = 'expert',
+             subscription_plan = NULL,
+             subscription_expires_at = NULL,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [userId]
+      );
+
+      return res.json({
+        expert_granted: true,
+        payment_required: false,
+        message: 'Expert status is free now.'
+      });
+    }
+
     // Проверяем обязательные поля
     if (!planId || !amount || !description) {
       return res.status(400).json({ error: 'Отсутствуют обязательные поля: planId, amount, description' });

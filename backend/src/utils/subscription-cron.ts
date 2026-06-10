@@ -11,6 +11,9 @@ import { dailySubscriptionCheck } from '../routes/subscription-checker';
 let cronJob: cron.ScheduledTask | null = null;
 
 export function startSubscriptionCron(): void {
+  console.log('Expert subscription payments are disabled; subscription cron is not started.');
+  return;
+
   // Проверяем, не запущен ли уже cron
   if (cronJob) {
     console.log('⚠️ Cron job для проверки подписок уже запущен');

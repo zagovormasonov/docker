@@ -22,13 +22,26 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
     }
 
     const dbUser = result.rows[0];
+    const effectiveUserType = dbUser.user_type === 'admin' ? 'admin' : 'expert';
+
+    if (dbUser.user_type !== effectiveUserType) {
+      await query(
+        `UPDATE users
+         SET user_type = $1,
+             subscription_plan = NULL,
+             subscription_expires_at = NULL,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $2`,
+        [effectiveUserType, req.userId]
+      );
+    }
 
     // Преобразуем snake_case в camelCase для frontend
     const user: any = {
       id: dbUser.id,
       email: dbUser.email,
       name: dbUser.name,
-      userType: dbUser.user_type,
+      userType: effectiveUserType,
       slug: dbUser.slug,
       avatarUrl: dbUser.avatar_url,
       bio: dbUser.bio,
@@ -296,13 +309,38 @@ router.post('/become-expert', authenticateToken, async (req: AuthRequest, res) =
 
     const user = userResult.rows[0];
 
+    if (user.user_type === 'admin') {
+      const newToken = jwt.sign(
+        { userId: user.id, userType: 'admin' },
+        process.env.JWT_SECRET || 'secret',
+        { expiresIn: '30d' }
+      );
+
+      return res.json({
+        message: 'User is already an admin.',
+        userType: 'admin',
+        token: newToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          userType: 'admin'
+        }
+      });
+    }
+
     if (user.user_type === 'expert') {
       return res.status(400).json({ error: 'Пользователь уже является экспертом' });
     }
 
     // Обновляем тип пользователя на эксперта
     await query(
-      'UPDATE users SET user_type = $1 WHERE id = $2',
+      `UPDATE users
+       SET user_type = $1,
+           subscription_plan = NULL,
+           subscription_expires_at = NULL,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2`,
       ['expert', req.userId]
     );
 

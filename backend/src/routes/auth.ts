@@ -26,7 +26,8 @@ router.post(
     }
 
     try {
-      const { email, password, name, userType, referralCode } = req.body;
+      const { email, password, name, referralCode } = req.body;
+      const userType = 'expert';
 
       // Проверка существования пользователя по email
       const existingUserByEmail = await query(

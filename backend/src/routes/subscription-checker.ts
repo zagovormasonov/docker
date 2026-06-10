@@ -12,6 +12,9 @@ export async function checkAndRevokeExpiredSubscriptions(): Promise<{
   revokedCount: number;
   revokedUsers: Array<{ id: number; email: string; username: string }>;
 }> {
+  console.log('Expert subscriptions are disabled; no expert statuses will be revoked.');
+  return { revokedCount: 0, revokedUsers: [] };
+
   try {
     console.log('🔍 Проверка истекших подписок...');
 
@@ -78,6 +81,9 @@ export async function sendExpirationWarnings(): Promise<{
   warningCount: number;
   warnedUsers: Array<{ id: number; email: string; username: string }>;
 }> {
+  console.log('Expert subscriptions are disabled; no expiration warnings will be sent.');
+  return { warningCount: 0, warnedUsers: [] };
+
   try {
     console.log('⚠️ Проверка подписок, истекающих в ближайшие 5 дней...');
 

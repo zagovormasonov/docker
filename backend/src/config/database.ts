@@ -186,6 +186,14 @@ export const initDatabase = async () => {
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_plan VARCHAR(50)`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP`);
     await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_payment_date TIMESTAMP`);
+    await query(`
+      UPDATE users
+      SET user_type = 'expert',
+          subscription_plan = NULL,
+          subscription_expires_at = NULL,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE user_type = 'client'
+    `);
     
     // Добавляем поддержку ответов на сообщения
     await query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES messages(id) ON DELETE SET NULL`);

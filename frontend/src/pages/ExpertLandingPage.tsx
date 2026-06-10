@@ -70,6 +70,32 @@ const ExpertLandingPage: React.FC = () => {
   };
 
   const handlePayment = async (amount: number, isMonthly: boolean) => {
+    const setPlanLoading = isMonthly ? setLoadingMonthly : setLoadingYearly;
+    setPlanLoading(true);
+
+    try {
+      if (!user) {
+        navigate('/register');
+        return;
+      }
+
+      const response = await fetch('/api/users/become-expert', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      navigate(response.ok ? '/expert-dashboard' : '/profile');
+    } catch (error) {
+      console.error('Expert activation error:', error);
+      navigate('/profile');
+    } finally {
+      setPlanLoading(false);
+    }
+    return;
+
     const isLoading = isMonthly ? loadingMonthly : loadingYearly;
     if (isLoading) return; // Предотвращаем двойной клик
 
@@ -384,7 +410,7 @@ const ExpertLandingPage: React.FC = () => {
                 color: 'black',
                 margin: '12px 0 24px 0'
               }}>
-                790₽
+                Бесплатно
               </div>
               <p style={{
                 fontSize: 14,
@@ -461,11 +487,11 @@ const ExpertLandingPage: React.FC = () => {
                 color: '#ffffff',
                 margin: '12px 0 8px 0'
               }}>
-                {user?.referredById ? '3 069' : '3 369'}₽
+                Бесплатно
               </div>
               {user?.referredById && (
                 <div style={{ color: 'white', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
-                  Специальная цена по приглашению! (3 069₽ вместо 3 369₽)
+                  Экспертный статус теперь доступен без оплаты
                 </div>
               )}
               <div style={{
@@ -481,7 +507,7 @@ const ExpertLandingPage: React.FC = () => {
                   color: 'rgba(255, 255, 255, 0.6)',
                   fontSize: 14
                 }}>
-                  9 480₽
+                  0 ₽
                 </span>
                 <span style={{
                   background: 'rgba(255, 255, 255, 0.2)',

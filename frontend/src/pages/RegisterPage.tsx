@@ -17,7 +17,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const referralCode = searchParams.get('ref') || '';
-  const plan = searchParams.get('plan') || '';
+  const plan: string = '';
 
   const sendVerificationEmail = async (email: string, name: string, verificationToken: string) => {
     try {
